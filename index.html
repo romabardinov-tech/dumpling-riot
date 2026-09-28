@@ -255,8 +255,8 @@ let toastTimer=0;
 const arena={l:52,r:1868,t:58,b:1022};
 
 const I18N={
- ru:{language:'ЯЗЫК',chooseChar:'ВЫБЕРИ ПЕРСОНАЖА',mode:'РЕЖИМ ИГРЫ',onePlayer:'1 ИГРОК',twoPlayers:'2 ИГРОКА',modeOneDesc:'Обычный одиночный режим.',modeTwoDesc:'Локальный кооператив.',onlinePlayers:'ОНЛАЙН 2 ИГРОКА',onlineDesc:'Два устройства через комнату.',p2Info:'P2: стрелки · 7–0 оружие · SHIFT рывок · ENTER бомба · авто-стрельба',start:'НАЧАТЬ НОЧНУЮ СМЕНУ',controls:'P1: WASD · мышь · 1–4 оружие · SPACE рывок · E бомба · ESC меню · P2: стрелки · 7–0 оружие · SHIFT рывок · ENTER бомба',guide:'Босс появляется каждые 5 волн и оставляет уникальную реликвию. Оружие улучшается при повышении уровня.',levelPause:'ИГРА ОСТАНОВЛЕНА · УРОВЕНЬ ПОВЫШЕН',pickUpgrade:'ВЫБЕРИ ОДНО УЛУЧШЕНИЕ',dead:'ТЕБЯ СЪЕЛИ',retry:'ЕЩЁ РАЗ',menu:'В МЕНЮ',hp:'HP',xp:'XP',lvl:'УР.',wave:'ВОЛНА',score:'ОЧКИ',enemies:'ВРАГОВ',boss:'БОСС',relic:'УНИКАЛЬНАЯ РЕЛИКВИЯ',run:'RUN ENDED'},
- en:{language:'LANGUAGE',chooseChar:'CHOOSE CHARACTER',mode:'GAME MODE',onePlayer:'1 PLAYER',twoPlayers:'2 PLAYERS',modeOneDesc:'Classic solo mode.',modeTwoDesc:'Local co-op.',onlinePlayers:'ONLINE 2 PLAYERS',onlineDesc:'Two devices via a room.',p2Info:'P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb · auto-fire',start:'START NIGHT SHIFT',controls:'P1: WASD · mouse · 1–4 weapons · SPACE dash · E bomb · ESC menu · P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb',guide:'A boss appears every 5 waves and leaves a unique relic. Weapons upgrade when you level up.',levelPause:'GAME PAUSED · LEVEL UP',pickUpgrade:'CHOOSE ONE UPGRADE',dead:'YOU GOT EATEN',retry:'TRY AGAIN',menu:'MAIN MENU',hp:'HP',xp:'XP',lvl:'LV.',wave:'WAVE',score:'SCORE',enemies:'ENEMIES',boss:'BOSS',relic:'UNIQUE RELIC',run:'RUN ENDED'}
+ ru:{language:'ЯЗЫК',chooseChar:'ВЫБЕРИ ПЕРСОНАЖА',mode:'РЕЖИМ ИГРЫ',onePlayer:'1 ИГРОК',twoPlayers:'2 ИГРОКА',modeOneDesc:'Обычный одиночный режим.',modeTwoDesc:'Локальный кооператив.',onlinePlayers:'ОНЛАЙН 2 ИГРОКА',onlineDesc:'Код комнаты из 5 цифр.',p2Info:'P2: стрелки · 7–0 оружие · SHIFT рывок · ENTER бомба · авто-стрельба',start:'НАЧАТЬ НОЧНУЮ СМЕНУ',controls:'P1: WASD · мышь · 1–4 оружие · SPACE рывок · E бомба · ESC меню · P2: стрелки · 7–0 оружие · SHIFT рывок · ENTER бомба',guide:'Босс появляется каждые 5 волн и оставляет уникальную реликвию. Оружие улучшается при повышении уровня.',levelPause:'ИГРА ОСТАНОВЛЕНА · УРОВЕНЬ ПОВЫШЕН',pickUpgrade:'ВЫБЕРИ ОДНО УЛУЧШЕНИЕ',dead:'ТЕБЯ СЪЕЛИ',retry:'ЕЩЁ РАЗ',menu:'В МЕНЮ',hp:'HP',xp:'XP',lvl:'УР.',wave:'ВОЛНА',score:'ОЧКИ',enemies:'ВРАГОВ',boss:'БОСС',relic:'УНИКАЛЬНАЯ РЕЛИКВИЯ',run:'RUN ENDED'},
+ en:{language:'LANGUAGE',chooseChar:'CHOOSE CHARACTER',mode:'GAME MODE',onePlayer:'1 PLAYER',twoPlayers:'2 PLAYERS',modeOneDesc:'Classic solo mode.',modeTwoDesc:'Local co-op.',onlinePlayers:'ONLINE 2 PLAYERS',onlineDesc:'5-digit room code.',p2Info:'P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb · auto-fire',start:'START NIGHT SHIFT',controls:'P1: WASD · mouse · 1–4 weapons · SPACE dash · E bomb · ESC menu · P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb',guide:'A boss appears every 5 waves and leaves a unique relic. Weapons upgrade when you level up.',levelPause:'GAME PAUSED · LEVEL UP',pickUpgrade:'CHOOSE ONE UPGRADE',dead:'YOU GOT EATEN',retry:'TRY AGAIN',menu:'MAIN MENU',hp:'HP',xp:'XP',lvl:'LV.',wave:'WAVE',score:'SCORE',enemies:'ENEMIES',boss:'BOSS',relic:'UNIQUE RELIC',run:'RUN ENDED'}
 };
 const T=k=>(I18N[lang]&&I18N[lang][k])||I18N.ru[k]||k;
 function locName(o){return lang==='en'?(o.enName||o.name):(o.name)}
@@ -287,44 +287,51 @@ function setHud(on){document.getElementById('hud').style.display=on?'block':'non
 function requestMobileFullscreen(){try{if(!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}if(screen.orientation&&screen.orientation.lock){const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
 function resetPlayer(p,ch,x,y){p.charId=ch.id;p.x=x;p.y=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.hurtT=0;p.hurtLean=0;p.boost={dmg:1,rate:1,move:1,crit:0}}
 function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e)e.textContent=t}
-function setupPeer(){
+const makeRoomCode=()=>String(rndi(10000,99999));
+function setupPeer(hostMode=false){
  if(typeof Peer==='undefined'){setOnlineStatus('Не удалось загрузить онлайн-модуль. Обнови страницу.');return Promise.reject(new Error('PeerJS не загружен'))}
  if(peerReadyPromise)return peerReadyPromise;
  peerReadyPromise=new Promise((resolve,reject)=>{
-   try{
-     peer=new Peer(undefined,{host:'0.peerjs.com',port:443,path:'/',secure:true,debug:0});
-     let settled=false;
-     const fail=e=>{
-       const type=e&&e.type?e.type:'ошибка';
-       const msg=e&&e.message?e.message:'';
-       setOnlineStatus('Онлайн: ошибка '+type+(msg?' — '+msg:''));
-       if(!settled){settled=true;reject(e||new Error(type))}
-     };
-     peer.on('open',id=>{
-       settled=true;
-       netRoom=id;
-       setOnlineStatus('Код комнаты: '+id);
-       const i=document.getElementById('roomCodeInput');if(i)i.value=id;
-       resolve(id);
-     });
-     peer.on('connection',c=>{
-       if(netConn){c.close();return}
-       netConn=c;
-       isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;
-       wireNet(c);
-       setOnlineStatus('Игрок подключён. Оба игрока в комнате — можно начинать игру.');
-     });
-     peer.on('error',fail);
-     peer.on('disconnected',()=>setOnlineStatus('Онлайн: соединение с сервером разорвано. Нажми подключиться снова.'));
-     peer.on('close',()=>setOnlineStatus('Онлайн: соединение закрыто.'));
-   }catch(e){peer=null;peerReadyPromise=null;reject(e)}
+   const openPeer=(attempt=0)=>{
+     const id=hostMode?(netRoom||makeRoomCode()):undefined;
+     try{
+       peer=new Peer(id);
+       let settled=false;
+       const fail=e=>{
+         const type=e&&e.type?e.type:'ошибка',msg=e&&e.message?e.message:'';
+         if(hostMode&&type==='unavailable-id'&&attempt<5){try{peer.destroy()}catch(_){};setTimeout(()=>openPeer(attempt+1),120);return}
+         setOnlineStatus('Онлайн: ошибка '+type+(msg?' — '+msg:''));
+         if(!settled){settled=true;peer=null;peerReadyPromise=null;reject(e||new Error(type))}
+       };
+       peer.on('open',peerId=>{
+         settled=true;
+         if(hostMode){
+           netRoom=peerId;
+           setOnlineStatus('Код комнаты: '+peerId);
+           const i=document.getElementById('roomCodeInput');if(i)i.value=peerId;
+         }
+         resolve(peerId);
+       });
+       peer.on('connection',c=>{
+         if(netConn){c.close();return}
+         netConn=c;
+         isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;
+         wireNet(c);
+         setOnlineStatus('Игрок подключён. Можно начинать игру.');
+       });
+       peer.on('error',fail);
+       peer.on('disconnected',()=>setOnlineStatus('Онлайн: сервер отключён. Попробуй ещё раз.'));
+       peer.on('close',()=>setOnlineStatus('Онлайн: соединение закрыто.'));
+     }catch(e){peer=null;peerReadyPromise=null;reject(e)}
+   };
+   openPeer();
  });
  return peerReadyPromise;
 }
 function wireNet(c){
  c.on('open',()=>setOnlineStatus(isOnlineHost?'Игрок подключён.':'Подключено к комнате '+netRoom));
  c.on('data',m=>{
-  if(m.t==='hello'){netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;setOnlineStatus('Подключено. Ждём второго игрока / старта хоста.')}
+  if(m.t==='hello'){netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;setOnlineStatus('Подключено. Ждём старта хоста.')}
   if(m.t==='input'&&isOnlineHost){touchInput.p2MoveX=Number(m.mx)||0;touchInput.p2MoveY=Number(m.my)||0;player2.weapon=clamp(Number(m.weapon)||0,0,3)}
   if(m.t==='dash'&&isOnlineHost)dashFor(player2);
   if(m.t==='bomb'&&isOnlineHost)bombFor(player2);
@@ -963,7 +970,7 @@ setLanguage(lang);
 document.getElementById('startBtn').onclick=()=>{initAudio();startGame()};
 document.getElementById('createRoomBtn')?.addEventListener('click',async()=>{
  setOnlineStatus('Создаём комнату...');
- try{await setupPeer();isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;setOnlineStatus('Код комнаты: '+netRoom)}
+ try{await setupPeer(true);isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;setOnlineStatus('Код комнаты: '+netRoom)}
  catch(e){}
 });
 document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
@@ -971,10 +978,10 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
  if(!code){setOnlineStatus('Введи код комнаты.');return}
  setOnlineStatus('Подключаемся к '+code+'...');
  try{
-   await setupPeer();
+   await setupPeer(false);
    const c=peer.connect(code,{reliable:true});
    netConn=c;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;wireNet(c);
-   c.on('open',()=>{c.send({t:'hello',room:netRoom||code});setOnlineStatus('Подключено. Ждём старта хоста.')});
+   c.on('open',()=>{c.send({t:'hello',room:code});setOnlineStatus('Подключено. Ждём старта хоста.')});
    c.on('error',e=>setOnlineStatus('Онлайн: ошибка подключения '+(e&&e.type?e.type:'unknown')+(e&&e.message?' — '+e.message:'')));
  }catch(e){}
 });document.getElementById('retryBtn').onclick=()=>{initAudio();startGame()};document.getElementById('menuBtn').onclick=goMenu;
