@@ -201,6 +201,12 @@ function playMusicNote(freq,when,dur=.56,vol=.035,type='triangle',outGain=null){
  g.gain.exponentialRampToValueAtTime(.0001,when+dur);
  o.start(when);o.stop(when+dur+.04);
 }
+function playMusicPiano(freq,when,dur=.75,vol=.026,outGain=null){
+ const out=outGain||musicGain;if(!audioCtx||!out)return; const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.setValueAtTime(freq,when);o.connect(g);g.connect(out);g.gain.setValueAtTime(.0001,when);g.gain.exponentialRampToValueAtTime(vol,when+.012);g.gain.exponentialRampToValueAtTime(vol*.42,when+.12);g.gain.exponentialRampToValueAtTime(.0001,when+dur);o.start(when);o.stop(when+dur+.03);
+}
+function playMusicViolin(freq,when,dur=.9,vol=.018,outGain=null){
+ const out=outGain||musicGain;if(!audioCtx||!out)return; const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();o.type='sawtooth';o.frequency.setValueAtTime(freq,when);o.frequency.exponentialRampToValueAtTime(freq*1.015,when+dur);f.type='lowpass';f.frequency.value=1700;o.connect(f);f.connect(g);g.connect(out);g.gain.setValueAtTime(.0001,when);g.gain.exponentialRampToValueAtTime(vol,when+.08);g.gain.setValueAtTime(vol*.72,when+dur*.55);g.gain.exponentialRampToValueAtTime(.0001,when+dur);o.start(when);o.stop(when+dur+.03);
+}
 function playMusicPulse(when,freq=52,outGain=null){
  const out=outGain||musicGain;
  if(!audioCtx||!out)return;
@@ -215,10 +221,10 @@ function scheduleHorrorMusic(){
  // Dark minor-key loop: lead + low pulse + occasional dissonant accent.
  const notes=[110,130.81,138.59,110,92.5,103.83,123.47,82.41,98,116.54,87.31,103.83,77.78,92.5,69.3,82.41];
  const now=audioCtx.currentTime+.04,beat=.52,n=notes[musicStep%notes.length];
- playMusicNote(n,now,.46,.048,'triangle');
- if(musicStep%2===0)playMusicNote(n*2,now,.22,.012,'sine');
- if(musicStep%2===0)playMusicPulse(now,n/2.6);
- if(musicStep%4===3)playMusicNote(n*1.414,now+.16,.28,.018,'sawtooth');
+ playMusicNote(n,now,.46,.030,'triangle');
+ if(musicStep%2===0)playMusicPiano(n*2,now+.03,.72,.022);
+ if(musicStep%4===1)playMusicViolin(n*1.5,now+.08,.82,.014);
+ if(musicStep%4===3)playMusicNote(n*1.414,now+.16,.28,.008,'sawtooth');
  musicStep++;
  musicTimer=setTimeout(scheduleHorrorMusic,beat*1000);
 }
@@ -242,12 +248,12 @@ function startHorrorMusic(){
  musicStarted=true;
  musicGain.gain.cancelScheduledValues(ac.currentTime);
  musicGain.gain.setValueAtTime(.0001,ac.currentTime);
- musicGain.gain.linearRampToValueAtTime(.62,ac.currentTime+.18);
+ musicGain.gain.linearRampToValueAtTime(.46,ac.currentTime+.18);
  const mk=(freq,vol,type='sine')=>{
    const o=ac.createOscillator(),g=ac.createGain();
    o.type=type;o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(musicGain);o.start();return o
  };
- if(!drone1){drone1=mk(36.71,.38,'sine');drone2=mk(55,.14,'triangle');}
+ if(!drone1){drone1=mk(36.71,.16,'sine');drone2=mk(55,.07,'triangle');}
  scheduleHorrorMusic();
 }
 function stopMenuMusic(){
@@ -279,7 +285,7 @@ function startMenuMusic(){
  musicGain.gain.setTargetAtTime(.0001,ac.currentTime,.02);
  menuGain.gain.cancelScheduledValues(ac.currentTime);
  menuGain.gain.setValueAtTime(.0001,ac.currentTime);
- menuGain.gain.linearRampToValueAtTime(.62,ac.currentTime+.12);
+ menuGain.gain.linearRampToValueAtTime(.48,ac.currentTime+.12);
  scheduleMenuMusic();
 }
 function initAudio(){
