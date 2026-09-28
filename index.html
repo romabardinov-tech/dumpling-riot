@@ -449,7 +449,7 @@ function makeBoss(w){
   ['МАТЬ ПЕЛЬМЕНЕЙ','MOTHER OF DUMPLINGS',3],['ШЕФ ИЗ НОЖЕЙ','THE KNIFE CHEF',4],['ПОЖИРАТЕЛЬ ТАРЕЛОК','PLATE DEVOURER',5]
  ];
  const [n,en,k]=bosses[idx%bosses.length];const hp=1750+w*265;
- return {type:'boss',name:n,enName:en,x:rnd(arena.l+160,arena.r-160),y:rnd(arena.t+100,arena.b-100),hp,maxhp:hp,speed:32+w*1.8,r:25+((k===5)?7:0),hit:0,phase:rnd(0,TAU),attack:1.0,kind:k,lunge:0,stage:1,hitT:0,hitLean:0};
+ return {type:'boss',name:n,enName:en,x:rnd(arena.l+160,arena.r-160),y:rnd(arena.t+100,arena.b-100),hp,maxhp:hp,speed:44+w*2.4,r:25+((k===5)?7:0),hit:0,phase:rnd(0,TAU),attack:.65,kind:k,lunge:0,stage:1,hitT:0,hitLean:0,dashTimer:rnd(.8,1.6),specialTimer:rnd(1.2,2.2)};
 }
 function spawnEnemy(){
  const edge=rndi(0,3);let x,y;if(edge===0){x=arena.l+4;y=rnd(arena.t+5,arena.b-5)}else if(edge===1){x=arena.r-4;y=rnd(arena.t+5,arena.b-5)}else if(edge===2){x=rnd(arena.l+5,arena.r-5);y=arena.t+4}else{x=rnd(arena.l+5,arena.r-5);y=arena.b-4}
@@ -549,7 +549,19 @@ function attackFor(p,weaponIndex,target=null){
  spawnParticles(p.x+Math.cos(ang)*10,p.y+Math.sin(ang)*10,3,w.color,.5);
 }
 function attack(){attackFor(player,weapon,null)}
-function bombFor(p){if(!p||p.dead||state!=='game'||p.bomb<=0)return;initAudio();sfx('bomb');p.bomb--;ring(p.x,p.y,42,'#ff5c4e',.42,55);ring(p.x,p.y,20,'#ffd36a',.28,33);spawnParticles(p.x,p.y,34,'#ff5c4e',1.8);spawnParticles(p.x,p.y,18,'#ffd36a',1.2);bloodBurst(p.x,p.y,24,1.3);for(const e of enemies){if(dist(p,e)<58){damageEnemy(e,170*p.boost.dmg);const d=dist(p,e)||1;e.x+=((e.x-p.x)/d)*18;e.y+=((e.y-p.y)/d)*18}}p.inv=.35;shake=.22;toast(p===player?'БОМБА!':'P2 БОМБА!')}
+function bombFor(p){
+ if(!p||p.dead||state!=='game'||p.bomb<=0)return;
+ initAudio();sfx('bomb');p.bomb--;
+ const dmg=190*p.boost.dmg;
+ ring(p.x,p.y,18,'#ffd36a',.28,42);
+ ring(p.x,p.y,42,'#ff5c4e',.42,82);
+ ring(p.x,p.y,72,'#ff3f52',.58,112);
+ const rs=rings.slice(-2);for(const r of rs){r.damage=dmg;r.hit=new Set()}
+ spawnParticles(p.x,p.y,46,'#ff5c4e',2.2);spawnParticles(p.x,p.y,24,'#ffd36a',1.5);
+ bloodBurst(p.x,p.y,30,1.5);
+ for(const e of enemies){const d=dist(p,e);if(d<88){damageEnemy(e,dmg*.45);const n=d||1;e.x+=((e.x-p.x)/n)*28;e.y+=((e.y-p.y)/n)*28}}
+ p.inv=.42;shake=.3;toast(p===player?'ВЗРЫВНАЯ ЗОНА!':'P2 ВЗРЫВНАЯ ЗОНА!')
+}
 function bomb(){bombFor(player)}
 function dashForOnlineGuest(){sendNet({t:'dash'})}
 function bombOnlineGuest(){sendNet({t:'bomb'})}
@@ -592,9 +604,40 @@ function updateEnemies(dt){
    const ratio=e.hp/e.maxhp;
    e.stage=ratio<.25?3:(ratio<.55?2:1);
    e.attack-=dt;
-   const rage=e.stage===3?1.48:e.stage===2?1.22:1.08;
+   e.dashTimer-=dt;
+   e.specialTimer-=dt;
+   const rage=e.stage===3?1.72:e.stage===2?1.42:1.18;
+   // Bosses constantly reposition and perform short violent dashes.
+   if(e.dashTimer<=0){
+    e.dashTimer=(.95+Math.random()*1.25)/rage;
+    const side=(Math.random()<.5?-1:1);
+    const da=Math.atan2(dy,dx)+(Math.random()<.35?side*1.15:0);
+    const dashLen=(e.stage===3?150:e.stage===2?125:105);
+    e.x=clamp(e.x+Math.cos(da)*dashLen,arena.l+35,arena.r-35);
+    e.y=clamp(e.y+Math.sin(da)*dashLen,arena.t+35,arena.b-35);
+    ring(e.x,e.y,28,'#ff4055',.25,54);
+    spawnParticles(e.x,e.y,16,'#ff4055',1.5);
+    shake=Math.max(shake,.08);
+   }
+   if(e.specialTimer<=0){
+    e.specialTimer=(2.1+Math.random()*1.4)/rage;
+    // Large delayed-looking shockwave around the boss.
+    const aoeDmg=18+e.stage*6;
+    const ar=72+e.stage*16;
+    ring(e.x,e.y,12,'#ff304e',.5,ar);
+    rings[rings.length-1].damage=aoeDmg;
+    rings[rings.length-1].hit=new Set();
+    // Stage 2+ also throws a second offset blast.
+    if(e.stage>=2){
+      const oa=e.phase+Math.PI;
+      const ox=clamp(e.x+Math.cos(oa)*105,arena.l+30,arena.r-30),oy=clamp(e.y+Math.sin(oa)*105,arena.t+30,arena.b-30);
+      ring(ox,oy,10,'#c45cff',.55,58+e.stage*10);
+      rings[rings.length-1].damage=aoeDmg*.8;
+      rings[rings.length-1].hit=new Set();
+    }
+   }
    if(e.attack<=0){
-    e.attack=(.52+Math.random()*.46)/rage;
+    e.attack=(.34+Math.random()*.34)/rage;
     if(e.kind===0){
       const count=e.stage+2;for(let i=0;i<count;i++){const a=i*TAU/count+e.phase;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*105,vy:Math.sin(a)*105,life:2,r:3,damage:23+e.stage*3,pierce:99,color:'#ff5252',enemy:true})}
       if(e.stage>=2)ring(e.x,e.y,42,'#ff4658',.35,55);
@@ -611,9 +654,10 @@ function updateEnemies(dt){
       ring(e.x,e.y,52,'#ef5862',.3,66);for(let i=0;i<8+e.stage*2;i++){const a=i*TAU/(8+e.stage*2)+e.phase*.2;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*78,vy:Math.sin(a)*78,life:2.3,r:4,damage:18+e.stage*4,pierce:99,color:'#ef5862',enemy:true})}
     }
    }
-   const bm=e.stage===3?1.35:1;
-   if(e.kind===4&&e.lunge>0)e.x+=nx*170*dt,e.y+=ny*170*dt;else{e.x+=nx*e.speed*bm*dt;e.y+=ny*e.speed*bm*dt}
-   if(d<38)hurtPlayer(tp,dt*(15+e.stage*3),e.x,e.y);
+   const bm=e.stage===3?1.48:e.stage===2?1.28:1.12;
+   if(e.kind===4&&e.lunge>0)e.x+=nx*230*dt,e.y+=ny*230*dt;else{e.x+=nx*e.speed*bm*dt;e.y+=ny*e.speed*bm*dt}
+   e.x=clamp(e.x,arena.l+24,arena.r-24);e.y=clamp(e.y,arena.t+24,arena.b-24);
+   if(d<42)hurtPlayer(tp,dt*(18+e.stage*4),e.x,e.y);
   }else if(e.type==='eye'){
    const desired=d>185?1:-1;e.x+=nx*e.speed*dt*desired;e.y+=ny*e.speed*dt*desired;e.attack-=dt;
    if(e.attack<=0){e.attack=1.0+Math.random()*.45;const a=Math.atan2(dy,dx);for(let q=-1;q<=1;q++){const aa=a+q*.08;projectiles.push({x:e.x,y:e.y,vx:Math.cos(aa)*150,vy:Math.sin(aa)*150,life:1.8,r:3,damage:9,pierce:99,color:'#e64b62',enemy:true})}}
