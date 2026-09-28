@@ -168,7 +168,7 @@ const world={w:1920,h:1080};
 const camera={x:960,y:540,smooth:0.12};
 let relicOwned=false;
 let horrorTime=0;
-let audioCtx=null, masterGain=null, musicGain=null, musicTimer=null, musicStep=0, musicStarted=false; let drone1=null,drone2=null;
+let audioCtx=null, masterGain=null, musicGain=null, musicTimer=null, musicStep=0, musicStarted=false; let drone1=null,drone2=null,menuMusicTimer=null,menuMusicStep=0,menuGain=null;
 function playMusicNote(freq,when,dur=.56,vol=.035,type='triangle'){
  if(!audioCtx||!musicGain)return;
  const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();
