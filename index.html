@@ -308,29 +308,61 @@ function sfx(kind){
  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
  o.connect(g); g.connect(masterGain);
  const cfg={
-  shoot:[kind==='heavy'?120:210,.035,'square'],
-  hit:[70,.055,'sawtooth'],
-  hurt:[48,.12,'sawtooth'],
-  pain:[92,.19,'triangle'],
-  dash:[310,.06,'triangle'],
-  bomb:[58,.18,'square'],
-  boss:[42,.24,'sawtooth'],
-  pickup:[520,.10,'triangle']
- }[kind]||[180,.04,'square'];
- o.type=cfg[2];
- o.frequency.setValueAtTime(cfg[0],now);
- o.frequency.exponentialRampToValueAtTime(Math.max(28,cfg[0]*.42),now+cfg[1]);
- g.gain.setValueAtTime(.0001,now);
- g.gain.exponentialRampToValueAtTime(.18,now+.008);
- g.gain.exponentialRampToValueAtTime(.0001,now+cfg[1]);
- o.start(now); o.stop(now+cfg[1]+.02);
- if(kind==='pain'){
-  const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();o2.connect(g2);g2.connect(masterGain);
-  o2.type='sine';o2.frequency.setValueAtTime(176,now);o2.frequency.exponentialRampToValueAtTime(82,now+.16);
-  g2.gain.setValueAtTime(.0001,now);g2.gain.exponentialRampToValueAtTime(.10,now+.012);g2.gain.exponentialRampToValueAtTime(.0001,now+.18);
-  o2.start(now);o2.stop(now+.2);
- }
+  shoot:[kind==='heavy'?145:235,.045,'triangle'],
+  hit:[78,.045,'triangle'],
+  hurt:[52,.10,'sine'],
+  dash:[310,.055,'triangle'],
+  bomb:[58,.16,'triangle'],
+  boss:[42,.22,'sawtooth'],
+  pickup:[520,.09,'triangle']
+ }[kind]||[180,.04,'triangle'];
+ const volume={shoot:.055,hit:.045,hurt:.08,dash:.06,bomb:.10,boss:.12,pickup:.07}[kind]??.045;
+ o.type=cfg[2];o.frequency.setValueAtTime(cfg[0],now);
+ o.frequency.exponentialRampToValueAtTime(Math.max(28,cfg[0]*.52),now+cfg[1]);
+ g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(volume,now+.008);
+ g.gain.exponentialRampToValueAtTime(.0001,now+cfg[1]);o.start(now);o.stop(now+cfg[1]+.02);
 }
+function bossVoice(kind){
+ if(!audioCtx||!masterGain)return;
+ const now=audioCtx.currentTime;
+ const p=[
+  [55,.85,'sawtooth'],[42,1.0,'square'],[78,.7,'sawtooth'],
+  [120,.9,'sine'],[92,.8,'square'],[48,1.15,'sawtooth']
+ ][kind]||[60,.8,'sawtooth'];
+ const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=p[2];o.connect(g);g.connect(masterGain);
+ o.frequency.setValueAtTime(p[0],now);o.frequency.exponentialRampToValueAtTime(Math.max(24,p[0]*.42),now+p[1]);
+ g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.085,now+.035);g.gain.exponentialRampToValueAtTime(.0001,now+p[1]);
+ o.start(now);o.stop(now+p[1]+.03);
+}
+function bossDialogue(boss){
+ if(!boss)return;
+ const lines=[
+  'МЯСО. ТЫ НЕ УЙДЁШЬ.',
+  'Я СЛЫШУ, КАК ТЫ БОИШЬСЯ.',
+  'НОЖИ УЖЕ ГОТОВЫ.',
+  'МОИ ПЕЛЬМЕНИ ГОЛОДНЫ.',
+  'СЕЙЧАС БУДЕТ БОЛЬНО.',
+  'Я СЪЕМ ТЕБЯ ЦЕЛИКОМ.'
+ ];
+ const line=lines[boss.kind]||'ТЫ НЕ УЙДЁШЬ.';
+ toast(line);initAudio();bossVoice(boss.kind);
+}
+function enemyDeathVoice(type){
+ if(!audioCtx||!masterGain||Math.random()>.20)return;
+ const now=audioCtx.currentTime;
+ const p={
+  fork:[180,.20,'triangle'],pepper:[240,.18,'sine'],knife:[130,.25,'sawtooth'],plate:[300,.16,'triangle'],
+  crawler:[95,.28,'sawtooth'],stalker:[260,.22,'sine'],eye:[150,.30,'sine'],siren:[360,.34,'sine'],
+  wretch:[85,.32,'sawtooth'],spitter:[190,.22,'triangle'],parasite:[110,.28,'sawtooth'],
+  feaster:[65,.38,'sawtooth'],hands:[210,.25,'triangle'],butcher:[58,.35,'sawtooth'],
+  slicer:[270,.18,'square'],boiler:[50,.42,'sawtooth'],maw:[42,.46,'sawtooth']
+ }[type]||[120,.22,'triangle'];
+ const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=p[2];o.connect(g);g.connect(masterGain);
+ o.frequency.setValueAtTime(p[0],now);o.frequency.exponentialRampToValueAtTime(Math.max(30,p[0]*.5),now+p[1]);
+ g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.045,now+.012);g.gain.exponentialRampToValueAtTime(.0001,now+p[1]);
+ o.start(now);o.stop(now+p[1]+.02);
+}
+
 const keys=new Set();const mouse={x:240,y:135,down:false};
 const player={x:240,y:145,vx:0,vy:0,aim:0,hp:100,maxhp:100,xp:0,next:100,lvl:1,speed:88,fire:0,dash:0,bomb:3,inv:0,shots:0,dead:false,boost:{dmg:1,rate:1,move:1,crit:0},weapon:0,charId:chars[0].id};
 const player2={x:260,y:145,vx:0,vy:0,aim:0,hp:100,maxhp:100,xp:0,next:100,lvl:1,speed:92,fire:0,dash:0,bomb:3,inv:0,shots:0,dead:false,boost:{dmg:1,rate:1,move:1,crit:0},weapon:1,charId:chars[1].id};
@@ -466,7 +498,7 @@ function beginWave(){
  if(bossWave){
    boss=makeBoss(wave);enemies.push(boss);
    for(let i=1;i<targetCount;i++)spawnEnemy();
-   initAudio();sfx('boss');toast('БОСС: '+boss.name);
+   initAudio();bossDialogue(boss);
  }else for(let i=0;i<targetCount;i++)spawnEnemy();
 }
 function makeBoss(w){
@@ -675,8 +707,10 @@ function damageEnemy(e,d){
 }
 
 function finishEnemyDeath(e){
+
  if(!e||e.dead)return;
  e.hp=0;e.dead=true;
+ enemyDeathVoice(e.type);
  score+=e.type==='boss'?3200:(['butcher','maw','feaster'].includes(e.type)?220:(['wretch','boiler','siren'].includes(e.type)?170:100));
  combo=Math.min(9,combo+.25);gainXP(e.type==='boss'?150:(['butcher','maw','feaster'].includes(e.type)?38:(['wretch','boiler','siren'].includes(e.type)?30:22)));
  if(e.type==='parasite'){for(let i=0;i<2;i++){const ang=rnd(0,TAU);spawnEnemy();const s=enemies[enemies.length-1];s.type='crawler';s.x=e.x+Math.cos(ang)*10;s.y=e.y+Math.sin(ang)*10;}}
