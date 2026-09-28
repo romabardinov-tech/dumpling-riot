@@ -216,21 +216,20 @@ function stopHorrorMusic(){
 }
 function startHorrorMusic(){
  musicMode='game';
- initAudio().then(()=>{
-  if(musicMode!=='game'||!audioCtx||!musicGain)return;
-  stopMenuMusic();
-  if(musicStarted)return;
-  musicStarted=true;
-  musicGain.gain.cancelScheduledValues(audioCtx.currentTime);
-  musicGain.gain.setValueAtTime(.0001,audioCtx.currentTime);
-  musicGain.gain.exponentialRampToValueAtTime(.48,audioCtx.currentTime+.65);
-  const mk=(freq,vol,type='sine')=>{
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.type=type;o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(musicGain);o.start();return o
-  };
-  if(!drone1){drone1=mk(36.71,.30,'sine');drone2=mk(55,.10,'triangle');}
-  scheduleHorrorMusic();
- }).catch(()=>{});
+ const ac=initAudio();
+ if(!ac||!musicGain)return;
+ stopMenuMusic();
+ if(musicStarted)return;
+ musicStarted=true;
+ musicGain.gain.cancelScheduledValues(ac.currentTime);
+ musicGain.gain.setValueAtTime(.0001,ac.currentTime);
+ musicGain.gain.linearRampToValueAtTime(.62,ac.currentTime+.18);
+ const mk=(freq,vol,type='sine')=>{
+   const o=ac.createOscillator(),g=ac.createGain();
+   o.type=type;o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(musicGain);o.start();return o
+ };
+ if(!drone1){drone1=mk(36.71,.38,'sine');drone2=mk(55,.14,'triangle');}
+ scheduleHorrorMusic();
 }
 function stopMenuMusic(){
  if(menuMusicTimer){clearTimeout(menuMusicTimer);menuMusicTimer=null}
@@ -252,32 +251,37 @@ function scheduleMenuMusic(){
 }
 function startMenuMusic(){
  musicMode='menu';
- initAudio().then(()=>{
-  if(musicMode!=='menu'||!audioCtx||!masterGain)return;
-  stopHorrorMusic();
-  if(!menuGain){menuGain=audioCtx.createGain();menuGain.gain.value=.0001;menuGain.connect(masterGain)}
-  stopMenuMusic();
-  musicGain.gain.cancelScheduledValues(audioCtx.currentTime);
-  musicGain.gain.setTargetAtTime(.0001,audioCtx.currentTime,.03);
-  menuGain.gain.cancelScheduledValues(audioCtx.currentTime);
-  menuGain.gain.setTargetAtTime(.42,audioCtx.currentTime,.08);
-  scheduleMenuMusic();
- }).catch(()=>{});
+ const ac=initAudio();
+ if(!ac||!masterGain)return;
+ stopHorrorMusic();
+ if(!menuGain){menuGain=ac.createGain();menuGain.gain.value=.0001;menuGain.connect(masterGain)}
+ stopMenuMusic();
+ musicGain.gain.cancelScheduledValues(ac.currentTime);
+ musicGain.gain.setTargetAtTime(.0001,ac.currentTime,.02);
+ menuGain.gain.cancelScheduledValues(ac.currentTime);
+ menuGain.gain.setValueAtTime(.0001,ac.currentTime);
+ menuGain.gain.linearRampToValueAtTime(.62,ac.currentTime+.12);
+ scheduleMenuMusic();
 }
 function initAudio(){
  try{
   if(!audioCtx){
-   audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+   const AC=window.AudioContext||window.webkitAudioContext;
+   if(!AC)throw new Error('Web Audio API unavailable');
+   audioCtx=new AC();
    masterGain=audioCtx.createGain();
-   masterGain.gain.value=.48;
+   masterGain.gain.value=.70;
    masterGain.connect(audioCtx.destination);
    musicGain=audioCtx.createGain();
    musicGain.gain.value=.0;
    musicGain.connect(masterGain);
   }
-  if(audioCtx.state==='suspended')return audioCtx.resume();
-  return Promise.resolve();
- }catch(e){audioCtx=null;return Promise.reject(e)}
+  if(audioCtx.state==='suspended'||audioCtx.state==='interrupted'){
+   const p=audioCtx.resume();
+   if(p&&p.catch)p.catch(()=>{});
+  }
+  return audioCtx;
+ }catch(e){audioCtx=null;masterGain=null;musicGain=null;return null}
 }
 function sfx(kind){
  if(!audioCtx||!masterGain) return;
@@ -1092,10 +1096,10 @@ addEventListener('keydown',e=>{keys.add(e.code);if(e.code==='Digit7')player2.wea
 function screenToGame(clientX,clientY){const r=c.getBoundingClientRect();const scale=Math.min(r.width/W,r.height/H);const dw=W*scale,dh=H*scale;const ox=r.left+(r.width-dw)/2,oy=r.top+(r.height-dh)/2;return {x:clamp((clientX-ox)/scale,0,W),y:clamp((clientY-oy)/scale,0,H)}}
 c.addEventListener('mousemove',e=>{const p=screenToGame(e.clientX,e.clientY);mouse.x=p.x;mouse.y=p.y});c.addEventListener('mousedown',e=>{initAudio();if(e.button===0){mouse.down=true;if(state==='game')attack()}});addEventListener('mouseup',e=>{if(e.button===0)mouse.down=false});
 document.querySelectorAll('.langBtn').forEach(b=>b.addEventListener('click',()=>setLanguage(b.dataset.lang)));
-document.addEventListener('pointerdown',()=>{if(state==='menu')startMenuMusic();else initAudio()},{passive:true});
+document.addEventListener('pointerdown',()=>{initAudio();if(state==='menu')startMenuMusic()},{passive:true});
 setupMobile();
 setLanguage(lang);
-document.getElementById('startBtn').onclick=()=>{initAudio();startGame()};
+document.getElementById('startBtn').onclick=()=>{startHorrorMusic();startGame()};
 document.getElementById('createRoomBtn')?.addEventListener('click',async()=>{
  setOnlineStatus('Создаём комнату...');
  try{await setupPeer(true);isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;setOnlineStatus('Код комнаты: '+netRoom)}
@@ -1112,7 +1116,7 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
    c.on('open',()=>{c.send({t:'hello',room:code});setOnlineStatus('Подключено. Запускаем игру...')});
    c.on('error',e=>setOnlineStatus('Онлайн: ошибка подключения '+(e&&e.type?e.type:'unknown')+(e&&e.message?' — '+e.message:'')));
  }catch(e){}
-});document.getElementById('retryBtn').onclick=()=>{initAudio();startGame()};document.getElementById('menuBtn').onclick=goMenu;
+});document.getElementById('retryBtn').onclick=()=>{startHorrorMusic();startGame()};document.getElementById('menuBtn').onclick=goMenu;
 
 window.addEventListener('error',e=>{const msg=(e&&e.error&&e.error.message)||e.message||'Неизвестная ошибка';const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
 window.addEventListener('unhandledrejection',e=>{const msg=(e&&e.reason&&e.reason.message)||String(e.reason||'Promise error');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
