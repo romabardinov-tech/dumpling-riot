@@ -815,7 +815,8 @@ function updateProjectiles(dt){
       if(p.bleed)e.bleed=Math.max(e.bleed||0,p.bleed);
       if(p.poison)e.poison=Math.max(e.poison||0,p.poison);
       if(p.explosive&&p.explosionRadius){
-        ring(p.x,p.y,5,p.color,.25,p.explosionRadius).damage=p.damage*.58;
+        ring(p.x,p.y,5,p.color,.25,p.explosionRadius);
+        rings[rings.length-1].damage=p.damage*.58;
         rings[rings.length-1].hit=new Set();
         spawnParticles(p.x,p.y,14,p.color,1.1);
       }
