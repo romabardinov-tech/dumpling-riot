@@ -334,17 +334,22 @@ function bossVoice(kind){
  g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.085,now+.035);g.gain.exponentialRampToValueAtTime(.0001,now+p[1]);
  o.start(now);o.stop(now+p[1]+.03);
 }
-function bossDialogue(boss){
+const bossTaunts=[
+ ['МЯСО. ТЫ НЕ УЙДЁШЬ.','НЕ ДЁРГАЙСЯ.','Я ЕЩЁ НЕ НАЕЛСЯ.','ТЫ СЛИШКОМ МЯГКИЙ.'],
+ ['Я СЛЫШУ, КАК ТЫ БОИШЬСЯ.','КОТЁЛ УЖЕ КИПИТ.','ТЕПЕРЬ БУДЕТ ГОРЯЧО.','ТЕБЯ СВАРЯТ.'],
+ ['НОЖИ УЖЕ ГОТОВЫ.','СТОЙ СМИРНО.','ОДНО ДВИЖЕНИЕ — И ТЫ ПОРЕЗАН.','ТЕБЕ НЕКУДА БЕЖАТЬ.'],
+ ['МОИ ПЕЛЬМЕНИ ГОЛОДНЫ.','ЕЩЁ ОДНА ЖЕРТВА.','НЕ ТРОГАЙ МОИХ ДЕТЕЙ.','МАТЬ ЗНАЕТ, КАК ТЫ ВКУСЕН.'],
+ ['СЕЙЧАС БУДЕТ БОЛЬНО.','ПОПРОБУЙ УВЕРНУТЬСЯ.','Я ЛЮБЛЮ ЗВУК НОЖЕЙ.','РЕЖЬТЕ ЕГО.'],
+ ['Я СЪЕМ ТЕБЯ ЦЕЛИКОМ.','МНЕ НЕДОСТАТОЧНО.','ЕЩЁ. ЕЩЁ!','ТАРЕЛКА ПУСТА.']
+];
+function bossDialogue(boss,force=false){
  if(!boss)return;
- const lines=[
-  'МЯСО. ТЫ НЕ УЙДЁШЬ.',
-  'Я СЛЫШУ, КАК ТЫ БОИШЬСЯ.',
-  'НОЖИ УЖЕ ГОТОВЫ.',
-  'МОИ ПЕЛЬМЕНИ ГОЛОДНЫ.',
-  'СЕЙЧАС БУДЕТ БОЛЬНО.',
-  'Я СЪЕМ ТЕБЯ ЦЕЛИКОМ.'
- ];
- const line=lines[boss.kind]||'ТЫ НЕ УЙДЁШЬ.';
+ const now=performance.now();
+ if(!force&&boss.nextTaunt&&now<boss.nextTaunt)return;
+ if(!force&&Math.random()>.10)return;
+ const lines=bossTaunts[boss.kind]||['ТЫ НЕ УЙДЁШЬ.'];
+ const line=pick(lines);
+ boss.nextTaunt=now+18000+Math.random()*22000;
  toast(line);initAudio();bossVoice(boss.kind);
 }
 function enemyDeathVoice(type){
@@ -508,7 +513,7 @@ function makeBoss(w){
   ['МАТЬ ПЕЛЬМЕНЕЙ','MOTHER OF DUMPLINGS',3],['ШЕФ ИЗ НОЖЕЙ','THE KNIFE CHEF',4],['ПОЖИРАТЕЛЬ ТАРЕЛОК','PLATE DEVOURER',5]
  ];
  const [n,en,k]=bosses[idx%bosses.length];const hp=1750+w*265;
- return {type:'boss',name:n,enName:en,x:rnd(arena.l+160,arena.r-160),y:rnd(arena.t+100,arena.b-100),hp,maxhp:hp,speed:44+w*2.4,r:25+((k===5)?7:0),hit:0,phase:rnd(0,TAU),attack:.65,kind:k,lunge:0,stage:1,hitT:0,hitLean:0,dashTimer:rnd(.8,1.6),specialTimer:rnd(1.2,2.2)};
+ return {type:'boss',name:n,enName:en,x:rnd(arena.l+160,arena.r-160),y:rnd(arena.t+100,arena.b-100),hp,maxhp:hp,speed:44+w*2.4,r:25+((k===5)?7:0),hit:0,phase:rnd(0,TAU),attack:.65,kind:k,lunge:0,stage:1,hitT:0,hitLean:0,dashTimer:rnd(.8,1.6),specialTimer:rnd(1.2,2.2),nextTaunt:0};
 }
 function spawnEnemy(){
  const edge=rndi(0,3);let x,y;if(edge===0){x=arena.l+4;y=rnd(arena.t+5,arena.b-5)}else if(edge===1){x=arena.r-4;y=rnd(arena.t+5,arena.b-5)}else if(edge===2){x=rnd(arena.l+5,arena.r-5);y=arena.t+4}else{x=rnd(arena.l+5,arena.r-5);y=arena.b-4}
@@ -911,6 +916,7 @@ function togglePause(){
  if(state==='pause'){state='game';setMobileControls(true);document.getElementById('pauseOverlay').style.display='none';initAudio();return;}
 }
 function update(dt){
+ if(state==='game'&&boss)bossDialogue(boss);
  if(onlineMode&&isOnlineGuest){sendNet({t:'input',mx:touchInput.moveX||((keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0)),my:touchInput.moveY||((keys.has('ArrowDown')?1:0)-(keys.has('ArrowUp')?1:0)),ax:touchInput.aimX,ay:touchInput.aimY,aa:touchInput.aimActive,weapon:player2.weapon});return}
  if(onlineMode&&isOnlineHost){netSendTimer-=dt;if(netSendTimer<=0){netSendTimer=.067;sendNet({t:'state',s:netState()})}}
 
