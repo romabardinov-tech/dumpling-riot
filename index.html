@@ -339,7 +339,7 @@ function wireNet(c){
  });
  c.on('data',m=>{
   if(m.t==='hello'){netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;setOnlineStatus('Подключено. Ждём запуска игры.');}
-  if(m.t==='input'&&isOnlineHost){touchInput.p2MoveX=Number(m.mx)||0;touchInput.p2MoveY=Number(m.my)||0;player2.weapon=clamp(Number(m.weapon)||0,0,3)}
+  if(m.t==='input'&&isOnlineHost){touchInput.p2MoveX=Number(m.mx)||0;touchInput.p2MoveY=Number(m.my)||0;player2.remoteAimActive=!!m.aa;if(player2.remoteAimActive){const ax=Number(m.ax)||0,ay=Number(m.ay)||0;if(Math.hypot(ax,ay)>.01)player2.aim=Math.atan2(ay,ax)}player2.weapon=clamp(Number(m.weapon)||0,0,3)}
   if(m.t==='dash'&&isOnlineHost)dashFor(player2);
   if(m.t==='bomb'&&isOnlineHost)bombFor(player2);
   if(m.t==='start'&&isOnlineGuest){selectedMap=m.map;startGame(true)}
@@ -558,7 +558,7 @@ function bindMobileButton(el,down,up){if(!el)return;let active=false;const press
 function setupMobile(){
  bindTouchStick('movePad','move');bindTouchStick('aimPad','aim');bindTouchStick('p2Pad','p2move');
  document.querySelectorAll('[data-action]').forEach(b=>bindMobileButton(b,()=>{initAudio();const a=b.dataset.action;if(a==='dash')dash();if(a==='bomb')bomb();if(a==='p2dash'){if(onlineMode&&isOnlineGuest)dashForOnlineGuest();else dashFor(player2)}if(a==='p2bomb'){if(onlineMode&&isOnlineGuest)bombOnlineGuest();else bombFor(player2)}if(a==='pause'){togglePause();}},null));
- document.querySelectorAll('.mw').forEach(b=>bindMobileButton(b,()=>{weapon=+b.dataset.weapon;initAudio();document.querySelectorAll('.mw').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')},null));
+ document.querySelectorAll('.mw').forEach(b=>bindMobileButton(b,()=>{const wi=+b.dataset.weapon;if(onlineMode&&isOnlineGuest)player2.weapon=wi;else weapon=wi;initAudio();document.querySelectorAll('.mw').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')},null));
  const resume=document.getElementById('resumeBtn');if(resume)resume.onclick=()=>togglePause();
  const pauseMenu=document.getElementById('pauseMenuBtn');if(pauseMenu)pauseMenu.onclick=goMenu;const pauseRestart=document.getElementById('pauseRestartBtn');if(pauseRestart)pauseRestart.onclick=()=>{initAudio();startGame();};const mobileMenu=document.getElementById('menuMobileBtn');if(mobileMenu)mobileMenu.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();goMenu();},{passive:false});
 
@@ -568,7 +568,7 @@ function togglePause(){
  if(state==='pause'){state='game';setMobileControls(true);document.getElementById('pauseOverlay').style.display='none';initAudio();return;}
 }
 function update(dt){
- if(onlineMode&&isOnlineGuest){sendNet({t:'input',mx:touchInput.moveX||((keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0)),my:touchInput.moveY||((keys.has('ArrowDown')?1:0)-(keys.has('ArrowUp')?1:0)),weapon:player2.weapon});return}
+ if(onlineMode&&isOnlineGuest){sendNet({t:'input',mx:touchInput.moveX||((keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0)),my:touchInput.moveY||((keys.has('ArrowDown')?1:0)-(keys.has('ArrowUp')?1:0)),ax:touchInput.aimX,ay:touchInput.aimY,aa:touchInput.aimActive,weapon:player2.weapon});return}
  if(onlineMode&&isOnlineHost){netSendTimer-=dt;if(netSendTimer<=0){netSendTimer=.067;sendNet({t:'state',s:netState()})}}
 
  if(state==='death'){updateDeath(dt);updateFx(dt);return;}
@@ -583,7 +583,7 @@ function update(dt){
   const p2l=Math.hypot(p2mx,p2my)||1;
   if(Math.abs(p2mx)+Math.abs(p2my)>.001){player2.vx=p2mx/p2l*player2.speed*player2.boost.move;player2.vy=p2my/p2l*player2.speed*player2.boost.move}else{player2.vx=player2.vy=0}
   if(!player2.dead){player2.x+=player2.vx*dt;player2.y+=player2.vy*dt;player2.x=clamp(player2.x,arena.l+9,arena.r-9);player2.y=clamp(player2.y,arena.t+13,arena.b-9)}
-  const ne=nearestEnemy(player2);if(ne&&!player2.dead){player2.aim=Math.atan2(ne.y-player2.y,ne.x-player2.x);attackFor(player2,player2.weapon,ne)}
+  const ne=nearestEnemy(player2);if(!player2.dead){if(onlineMode&&isOnlineHost&&player2.remoteAimActive){const tx=player2.x+Math.cos(player2.aim)*120,ty=player2.y+Math.sin(player2.aim)*120;attackFor(player2,player2.weapon,{x:tx,y:ty})}else if(ne){player2.aim=Math.atan2(ne.y-player2.y,ne.x-player2.x);attackFor(player2,player2.weapon,ne)}}
  }
  const live=alivePlayers();
  if(live.length){const cx=live.reduce((a,p)=>a+p.x,0)/live.length,cy=live.reduce((a,p)=>a+p.y,0)/live.length;camera.x=lerp(camera.x,cx,camera.smooth);camera.y=lerp(camera.y,cy,camera.smooth)}
