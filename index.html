@@ -204,18 +204,21 @@ function scheduleHorrorMusic(){
  musicTimer=setTimeout(scheduleHorrorMusic,beat*1000);
 }
 function startHorrorMusic(){
- if(!audioCtx||!musicGain)return;
- stopMenuMusic();
- if(musicStarted)return;
- musicStarted=true;
- musicGain.gain.setValueAtTime(.0001,audioCtx.currentTime);
- musicGain.gain.exponentialRampToValueAtTime(.36,audioCtx.currentTime+1.0);
- const mk=(freq,vol,type='sine')=>{
-   const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-   o.type=type;o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(musicGain);o.start();return o
- };
- if(!drone1){drone1=mk(36.71,.24,'sine');drone2=mk(55,.075,'triangle');}
- scheduleHorrorMusic();
+ initAudio().then(()=>{
+  if(!audioCtx||!musicGain)return;
+  stopMenuMusic();
+  if(musicStarted)return;
+  musicStarted=true;
+  musicGain.gain.cancelScheduledValues(audioCtx.currentTime);
+  musicGain.gain.setValueAtTime(.0001,audioCtx.currentTime);
+  musicGain.gain.exponentialRampToValueAtTime(.48,audioCtx.currentTime+.65);
+  const mk=(freq,vol,type='sine')=>{
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type=type;o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(musicGain);o.start();return o
+  };
+  if(!drone1){drone1=mk(36.71,.30,'sine');drone2=mk(55,.10,'triangle');}
+  scheduleHorrorMusic();
+ }).catch(()=>{});
 }
 function stopMenuMusic(){
  if(menuMusicTimer){clearTimeout(menuMusicTimer);menuMusicTimer=null}
@@ -236,27 +239,31 @@ function scheduleMenuMusic(){
  menuMusicTimer=setTimeout(scheduleMenuMusic,beat*1000);
 }
 function startMenuMusic(){
- if(!audioCtx||!masterGain)return;
- if(!menuGain){menuGain=audioCtx.createGain();menuGain.gain.value=.0001;menuGain.connect(masterGain)}
- stopMenuMusic();
- musicGain.gain.cancelScheduledValues(audioCtx.currentTime);
- musicGain.gain.setTargetAtTime(.0001,audioCtx.currentTime,.05);
- menuGain.gain.setTargetAtTime(.32,audioCtx.currentTime,.18);
- scheduleMenuMusic();
+ initAudio().then(()=>{
+  if(!audioCtx||!masterGain)return;
+  if(!menuGain){menuGain=audioCtx.createGain();menuGain.gain.value=.0001;menuGain.connect(masterGain)}
+  stopMenuMusic();
+  musicGain.gain.cancelScheduledValues(audioCtx.currentTime);
+  musicGain.gain.setTargetAtTime(.0001,audioCtx.currentTime,.03);
+  menuGain.gain.cancelScheduledValues(audioCtx.currentTime);
+  menuGain.gain.setTargetAtTime(.42,audioCtx.currentTime,.08);
+  scheduleMenuMusic();
+ }).catch(()=>{});
 }
 function initAudio(){
  try{
   if(!audioCtx){
    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
    masterGain=audioCtx.createGain();
-   masterGain.gain.value=.38;
+   masterGain.gain.value=.48;
    masterGain.connect(audioCtx.destination);
    musicGain=audioCtx.createGain();
    musicGain.gain.value=.0;
    musicGain.connect(masterGain);
   }
-  if(audioCtx.state==='suspended')audioCtx.resume();
- }catch(e){audioCtx=null}
+  if(audioCtx.state==='suspended')return audioCtx.resume();
+  return Promise.resolve();
+ }catch(e){audioCtx=null;return Promise.reject(e)}
 }
 function sfx(kind){
  if(!audioCtx||!masterGain) return;
@@ -1073,7 +1080,7 @@ addEventListener('keydown',e=>{keys.add(e.code);if(e.code==='Digit7')player2.wea
 function screenToGame(clientX,clientY){const r=c.getBoundingClientRect();const scale=Math.min(r.width/W,r.height/H);const dw=W*scale,dh=H*scale;const ox=r.left+(r.width-dw)/2,oy=r.top+(r.height-dh)/2;return {x:clamp((clientX-ox)/scale,0,W),y:clamp((clientY-oy)/scale,0,H)}}
 c.addEventListener('mousemove',e=>{const p=screenToGame(e.clientX,e.clientY);mouse.x=p.x;mouse.y=p.y});c.addEventListener('mousedown',e=>{initAudio();if(e.button===0){mouse.down=true;if(state==='game')attack()}});addEventListener('mouseup',e=>{if(e.button===0)mouse.down=false});
 document.querySelectorAll('.langBtn').forEach(b=>b.addEventListener('click',()=>setLanguage(b.dataset.lang)));
-document.addEventListener('pointerdown',()=>{if(state==='menu'){initAudio();startMenuMusic()}},{passive:true});
+document.addEventListener('pointerdown',()=>{initAudio();if(state==='menu')startMenuMusic()},{passive:true});
 setupMobile();
 setLanguage(lang);
 document.getElementById('startBtn').onclick=()=>{initAudio();startGame()};
