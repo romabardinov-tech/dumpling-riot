@@ -37,7 +37,7 @@ canvas{display:block;width:100%;height:100%;background:#0b0910;image-rendering:p
 #aimPad{right:max(12px,env(safe-area-inset-right))}.aimKnob{border-color:rgba(213,79,135,.8)}
 .mobileBtn{position:absolute;pointer-events:auto;touch-action:none;user-select:none;border:2px solid #4b364e;background:rgba(18,13,21,.88);color:#f6efd9;font:900 12px ui-monospace,monospace;border-radius:50%;width:58px;height:58px;box-shadow:4px 4px 0 rgba(0,0,0,.45)}
 .mobileBtn.active{border-color:#f4b748;background:#32231f;transform:translate(2px,2px);box-shadow:2px 2px 0 rgba(0,0,0,.45)}
-#fireBtn{right:clamp(108px,18vw,160px);bottom:max(26px,calc(env(safe-area-inset-bottom) + 16px));width:clamp(64px,13vw,82px);height:clamp(64px,13vw,82px);border-color:#d8414d;background:rgba(109,24,33,.88)}
+#fireBtn{display:none}
 #dashBtn{right:clamp(76px,12vw,106px);bottom:clamp(104px,18vw,150px)}.bombBtn{right:18px;bottom:clamp(108px,19vw,154px)}.pauseBtn{right:14px;top:max(54px,env(safe-area-inset-top) + 14px);width:46px;height:46px;font-size:10px}.menuMobileBtn{right:66px;top:max(54px,env(safe-area-inset-top) + 14px);width:58px;height:46px;border-radius:6px;font-size:9px}
 #mobileWeapons{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:5px;pointer-events:auto;touch-action:none}
 .mw{width:38px;height:28px;border:2px solid #3a2c3e;background:rgba(19,15,24,.9);color:#ddd;font:900 9px ui-monospace;border-radius:4px;pointer-events:auto}.mw.sel{border-color:#f4b748;background:#2b201d}
@@ -108,7 +108,6 @@ canvas{display:block;width:100%;height:100%;background:#0b0910;image-rendering:p
 <div id="mobileControls" aria-hidden="true">
   <div id="movePad" class="mobilePad"><div class="mobileKnob"></div></div>
   <div id="aimPad" class="mobilePad"><div class="mobileKnob aimKnob"></div></div>
-  <button id="fireBtn" class="mobileBtn">FIRE</button>
   <button id="dashBtn" class="mobileBtn" data-action="dash">DASH</button>
   <button id="bombBtn" class="mobileBtn bombBtn" data-action="bomb">BOMB</button>
   <button id="pauseBtn" class="mobileBtn pauseBtn" data-action="pause" aria-label="Пауза">II</button><button id="menuMobileBtn" class="mobileBtn menuMobileBtn" aria-label="Главное меню">MENU</button>
@@ -437,7 +436,7 @@ function bindTouchStick(id,mode){
  const el=document.getElementById(id);if(!el)return;
  let pid=null,active=false;
  const apply=(clientX,clientY)=>{const r=el.getBoundingClientRect();let x=(clientX-(r.left+r.width/2))/(r.width*.38),y=(clientY-(r.top+r.height/2))/(r.height*.38);const m=Math.hypot(x,y);if(m>1){x/=m;y/=m};setKnob(id,x,y);if(mode==='move'){touchInput.moveX=x;touchInput.moveY=y}else{touchInput.aimX=x;touchInput.aimY=y;touchInput.aimActive=m>.10;const reach=Math.min(115,W*.30);mouse.x=W/2+x*reach;mouse.y=H/2+y*reach;touchInput.attack=touchInput.aimActive||fireBtnHeld;}};
- const end=()=>{active=false;pid=null;if(mode==='move'){touchInput.moveX=0;touchInput.moveY=0}else{touchInput.aimX=0;touchInput.aimY=0;touchInput.aimActive=false;if(!fireBtnHeld)touchInput.attack=false}resetKnob(id)};
+ const end=()=>{active=false;pid=null;if(mode==='move'){touchInput.moveX=0;touchInput.moveY=0}else{touchInput.aimX=0;touchInput.aimY=0;touchInput.aimActive=false;touchInput.attack=false}resetKnob(id)};
  const pdown=e=>{e.preventDefault();initAudio();active=true;pid=e.pointerId??'touch';apply(e.clientX,e.clientY);if(e.pointerId!=null&&el.setPointerCapture)try{el.setPointerCapture(e.pointerId)}catch(_){} };
  const pmove=e=>{if(!active)return;e.preventDefault();apply(e.clientX,e.clientY)};
  const pup=e=>{if(!active)return;e.preventDefault();end()};
@@ -451,7 +450,6 @@ let fireBtnHeld=false;
 function bindMobileButton(el,down,up){if(!el)return;let active=false;const press=e=>{e.preventDefault();if(active)return;active=true;down();el.classList.add('active')};const release=e=>{e.preventDefault();if(!active)return;active=false;up&&up();el.classList.remove('active')};el.addEventListener('pointerdown',press,{passive:false});el.addEventListener('pointerup',release,{passive:false});el.addEventListener('pointercancel',release,{passive:false});el.addEventListener('touchstart',press,{passive:false});el.addEventListener('touchend',release,{passive:false});el.addEventListener('touchcancel',release,{passive:false})}
 function setupMobile(){
  bindTouchStick('movePad','move');bindTouchStick('aimPad','aim');
- const fire=document.getElementById('fireBtn');bindMobileButton(fire,()=>{initAudio();fireBtnHeld=true;touchInput.attack=true},()=>{fireBtnHeld=false;touchInput.attack=false});
  document.querySelectorAll('[data-action]').forEach(b=>bindMobileButton(b,()=>{initAudio();const a=b.dataset.action;if(a==='dash')dash();if(a==='bomb')bomb();if(a==='pause'){togglePause();}},null));
  document.querySelectorAll('.mw').forEach(b=>bindMobileButton(b,()=>{weapon=+b.dataset.weapon;initAudio();document.querySelectorAll('.mw').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')},null));
  const resume=document.getElementById('resumeBtn');if(resume)resume.onclick=()=>togglePause();
