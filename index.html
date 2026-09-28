@@ -140,9 +140,12 @@ const rndi=(a,b)=>Math.floor(rnd(a,b+1));
 const pick=a=>a[rndi(0,a.length-1)];
 
 const chars=[
- {id:'scar',name:'СКАРФ',enName:'SCARF',desc:'Жёсткий ближний боец',enDesc:'Brutal close-range fighter',base:[42,36,44],speed:88,hp:110,dash:1.0,color:'#d94853'},
- {id:'vesa',name:'ВЕССА',enName:'VESSA',desc:'Кровавая охотница',enDesc:'Blood hunter',base:[35,43,44],speed:96,hp:95,dash:1.16,color:'#d54f8a'},
- {id:'nyx',name:'НИКС',enName:'NYX',desc:'Тихий убийца',enDesc:'Silent killer',base:[48,31,48],speed:101,hp:88,dash:1.25,color:'#8e5de7'}
+ {id:'scar',name:'СКАРФ',enName:'SCARF',desc:'Жёсткий ближний боец · тяжёлый клинок',enDesc:'Brutal close fighter · heavy blade',base:[42,36,44],speed:88,hp:110,dash:1.0,color:'#d94853',weaponNames:['КЛИНОК','МЯСНОЙ БУМЕРАНГ','ТЕСАК','КРОВАВЫЙ УДАР']},
+ {id:'vesa',name:'ВЕССА',enName:'VESSA',desc:'Кровавая охотница · дальний бой',enDesc:'Blood hunter · ranged fighter',base:[35,43,44],speed:96,hp:95,dash:1.16,color:'#d54f8a',weaponNames:['КРОВАВЫЕ ИГЛЫ','ОХОТНИЧЬИ КОСЫ','АЛЫЙ ВЫСТРЕЛ','КРОВАВЫЙ ДОЖДЬ']},
+ {id:'nyx',name:'НИКС',enName:'NYX',desc:'Тихий убийца · теневые снаряды',enDesc:'Silent killer · shadow shots',base:[48,31,48],speed:101,hp:88,dash:1.25,color:'#8e5de7',weaponNames:['ТЕНЕВОЙ ДАРТ','ТРИ ТЕНИ','РАЗРЕЗ ТЬМЫ','ПРОКЛЯТИЕ']},
+ {id:'pelmage',name:'МАГ ПЕЛЬМЕНЬ',enName:'DUMPLING MAGE',desc:'Маг хаоса · заклинания пельменной энергии',enDesc:'Chaos mage · dumpling energy spells',base:[28,50,38],speed:84,hp:92,dash:1.05,color:'#6e8cff',weaponNames:['ПЕЛЬМЕНЬ-ИСКРА','АРКАННЫЙ СОУС','МЕТЕОР ПЕЛЬМЕНЕЙ','ВИХРЬ ТЕСТА']},
+ {id:'assassin',name:'ШИВ',enName:'SHIV',desc:'Ассасин · скорость, яд и критические удары',enDesc:'Assassin · speed, poison and critical hits',base:[52,27,55],speed:116,hp:78,dash:1.45,color:'#4fe0a0',weaponNames:['КУНАЙ','ЯДОВИТЫЕ НОЖИ','ТЕНЕВОЙ РЫВОК','СМЕРТЕЛЬНЫЙ ЗАЛП']},
+ {id:'golem',name:'КОТЁЛ-ГОЛЕМ',enName:'CAULDRON GOLEM',desc:'Танк · медленный, но почти неубиваемый',enDesc:'Tank · slow but extremely durable',base:[58,18,70],speed:68,hp:170,dash:.78,color:'#d18a4d',weaponNames:['КИПЯЩИЙ КОТЁЛ','ПАРОВОЙ УДАР','ЧУГУННАЯ ВОЛНА','ПЕЧНОЙ ВЗРЫВ']}
 ];
 const maps=[
  {id:'kitchen',name:'КУХНЯ — КРОВЬ И СТАЛЬ',enName:'KITCHEN — BLOOD & STEEL',desc:'огромная кухня, сломанные плиты, вытяжки и мясные тени',enDesc:'huge kitchen, broken stoves, vents and meat-shadows',floor:'#100b10',tile:'#21151c',accent:'#a82f38'},
@@ -159,7 +162,13 @@ const weapons=[
  {key:'4',name:'ПЕРЕЦ',enName:'PEPPER',rate:.055,dmg:7,speed:205,spread:.16,pierce:0,color:'#8df06e',kind:'bullet'}
 ];
 const weaponLevels=[1,1,1,1];
-function weaponStats(i){const w=weapons[i],lv=weaponLevels[i];return {...w,dmg:w.dmg*(1+(lv-1)*.28),rate:w.rate*Math.pow(.93,lv-1),speed:w.speed*(1+(lv-1)*.055),pierce:w.pierce+Math.floor((lv-1)/3),level:lv};}
+const heroWeaponMods={scar:[1.45,1.18,1.55,1.12],vesa:[.9,1.15,1,.82],nyx:[1.15,1.05,1.4,1],pelmage:[1.05,1.3,1.55,1],assassin:[1.25,1,1.75,1.15],golem:[1.8,1.45,2,1.65]};
+function heroWeaponStats(p,i){
+ const base=weapons[i],lv=weaponLevels[i],ch=chars.find(c=>c.id===(p&&p.charId))||chars[0],mult=(heroWeaponMods[ch.id]||heroWeaponMods.scar)[i]||1;
+ const rateMod=ch.id==='assassin'?1.28:ch.id==='golem'?.72:ch.id==='pelmage'?1.08:1,speedMod=ch.id==='nyx'?1.32:ch.id==='assassin'?1.45:ch.id==='golem'?.78:ch.id==='pelmage'?1.2:1;
+ return {...base,name:ch.weaponNames?.[i]||base.name,enName:ch.weaponNames?.[i]||base.enName,dmg:base.dmg*mult*(1+(lv-1)*.28),rate:base.rate*Math.pow(.93,lv-1)/rateMod,speed:base.speed*speedMod*(1+(lv-1)*.055),pierce:base.pierce+Math.floor((lv-1)/3),level:lv};
+}
+function weaponStats(i){return heroWeaponStats(player,i);}
 
 let state='menu',selectedChar=chars[0].id,selectedMap=maps[0].id,weapon=0,last=0,acc=0;
 let coop=false,onlineMode=false,isOnlineHost=false,isOnlineGuest=false;let peer=null,netConn=null,netRoom='';let netSendTimer=0,peerReadyPromise=null;
@@ -357,7 +366,7 @@ function toast(s){const el=document.getElementById('toast');el.textContent=s;el.
 function setMobileControls(on){const mc=document.getElementById('mobileControls');if(!mc)return;mc.classList.toggle('game-active',!!on);mc.classList.toggle('coop-active',!!(on&&coop));mc.style.pointerEvents=on?'auto':'none';mc.setAttribute('aria-hidden',on?'false':'true')}
 function setHud(on){document.getElementById('hud').style.display=on?'block':'none';const p2h=document.getElementById('p2Hud');if(p2h)p2h.style.display=(on&&coop)?'block':'none';setMobileControls(on&&state==='game');document.documentElement.classList.toggle('inGame',!!on)}
 function requestMobileFullscreen(){try{if(!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}if(screen.orientation&&screen.orientation.lock){const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
-function resetPlayer(p,ch,x,y){p.charId=ch.id;p.x=x;p.y=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.hurtT=0;p.hurtLean=0;p.boost={dmg:1,rate:1,move:1,crit:0}}
+function resetPlayer(p,ch,x,y){p.charId=ch.id;p.x=x;p.y=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.hurtT=0;p.hurtLean=0;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[]}
 function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e)e.textContent=t}
 const makeRoomCode=()=>String(rndi(10000,99999));
 function setupPeer(hostMode=false){
@@ -533,21 +542,24 @@ function pauseLevelUp(){
  overlay.style.display='grid';
 }
 function pickUpgrades(){
- const pool=[
-  {title:'+25% ОБЩИЙ УРОН',desc:'Увеличивает урон всего оружия.',apply:()=>{for(const p of coopPlayers())p.boost.dmg*=1.25}},
-  {title:'БЫСТРАЯ СТРЕЛЬБА',desc:'Скорострельность +20%.',apply:()=>{for(const p of coopPlayers())p.boost.rate*=1.2}},
-  {title:'ЖЕСТКИЙ РАЗГОН',desc:'Скорость движения +16%.',apply:()=>{for(const p of coopPlayers())p.boost.move*=1.16}},
-  {title:'+35 HP',desc:'Максимальное здоровье +35 и лечение.',apply:()=>{for(const p of coopPlayers()){p.maxhp+=35;p.hp=p.maxhp}}},
-  {title:'+1 БОМБА',desc:'Добавляет заряд соусной бомбы.',apply:()=>{for(const p of coopPlayers())p.bomb++}},
-  {title:'КРИТИЧЕСКИЙ УКУС',desc:'8% шанс удвоить урон.',apply:()=>{for(const p of coopPlayers())p.boost.crit+=.08}}
- ];
- weapons.forEach((w,i)=>{if(weaponLevels[i]<8)pool.push({title:`${lang==='en'?(w.enName||w.name):w.name} · ${lang==='en'?'LV.':'УР.'} ${weaponLevels[i]+1}`,desc:`Урон +28% · скорострельность +7% · скорость снаряда +5.5%${weaponLevels[i]>=3?' · пробивание +1':''}.`,apply:()=>{weaponLevels[i]++;weapon=i;toast(`${w.name}: УР. ${weaponLevels[i]}`)}})});
+ const ch=chars.find(c=>c.id===player.charId)||chars[0];
+ const hero={
+ scar:[['ТЯЖЁЛЫЙ КЛИНОК','Ближнее оружие +35% урона.',()=>player.boost.dmg*=1.35],['КРОВАВАЯ БРОНЯ','+45 HP и полное лечение.',()=>{player.maxhp+=45;player.hp=player.maxhp}],['РАЗМАХ','Сильнее AOE оружия.',()=>player.heroUpgrades.push('wide')]],
+ vesa:[['КРОВОТОЧЕНИЕ','Криты получают ещё +45% урона.',()=>player.boost.crit+=.12],['ОХОТНИЧИЙ ИНСТИНКТ','Скорострельность +25%.',()=>player.boost.rate*=1.25],['ДОЖДЬ ИГЛ','Снаряды получают +2 пробивания.',()=>player.heroUpgrades.push('pierce')]],
+ nyx:[['ТЕНЕВОЙ ШАГ','Скорость +25%.',()=>player.boost.move*=1.25],['ЯД ТЕНИ','Урон +30%.',()=>player.boost.dmg*=1.3],['МНОЖЕСТВО ТЕНЕЙ','Снаряды получают +2 пробивания.',()=>player.heroUpgrades.push('pierce')]],
+ pelmage:[['АРКАННЫЙ ОТКАТ','Заклинания на 28% быстрее.',()=>player.boost.rate*=1.28],['МАНА ПЕЛЬМЕНЯ','Урон +35%.',()=>player.boost.dmg*=1.35],['МЕТЕОРИТНЫЙ ВИХРЬ','AOE оружия получают +40% радиуса.',()=>player.heroUpgrades.push('wide')]],
+ assassin:[['СМЕРТЕЛЬНЫЙ КРИТ','Критический шанс +18%.',()=>player.boost.crit+=.18],['ШЕПОТ','Скорость +30%.',()=>player.boost.move*=1.3],['ЯДОВИТЫЙ КЛИНОК','Урон +35%.',()=>player.boost.dmg*=1.35]],
+ golem:[['ЧУГУННАЯ КОЖА','+70 HP и полное лечение.',()=>{player.maxhp+=70;player.hp=player.maxhp}],['ПЕРЕГРЕВ','Урон +45%.',()=>player.boost.dmg*=1.45],['ПАРОВОЙ ТАНК','Урон +10% и усиленная защита.',()=>{player.boost.dmg*=1.1;player.heroUpgrades.push('armor')}]]
+ }[ch.id]||[];
+ const pool=[{title:'+25% ОБЩИЙ УРОН',desc:'Увеличивает урон всего оружия.',apply:()=>{for(const p of coopPlayers())p.boost.dmg*=1.25}},{title:'БЫСТРАЯ СТРЕЛЬБА',desc:'Скорострельность +20%.',apply:()=>{for(const p of coopPlayers())p.boost.rate*=1.2}},{title:'ЖЕСТКИЙ РАЗГОН',desc:'Скорость движения +16%.',apply:()=>{for(const p of coopPlayers())p.boost.move*=1.16}},{title:'+35 HP',desc:'Максимальное здоровье +35 и лечение.',apply:()=>{for(const p of coopPlayers()){p.maxhp+=35;p.hp=p.maxhp}}},{title:'+1 БОМБА',desc:'Добавляет заряд бомбы.',apply:()=>{for(const p of coopPlayers())p.bomb++}},{title:'КРИТИЧЕСКИЙ УКУС',desc:'8% шанс удвоить урон.',apply:()=>{for(const p of coopPlayers())p.boost.crit+=.08}}];
+ hero.forEach(([title,desc,apply])=>pool.push({title,desc,apply}));
+ weapons.forEach((w,i)=>{if(weaponLevels[i]<8)pool.push({title:(ch.weaponNames?.[i]||w.name)+' · УР. '+(weaponLevels[i]+1),desc:'Урон +28% · скорострельность +7% · скорость +5.5%.',apply:()=>{weaponLevels[i]++;weapon=i;toast((ch.weaponNames?.[i]||w.name)+': УР. '+weaponLevels[i])}})});
  return [...pool].sort(()=>Math.random()-.5).slice(0,3);
 }
 
 function attackFor(p,weaponIndex,target=null){
  if(!p||p.dead||p.fire>0||state!=='game')return;
- initAudio();const w=weaponStats(weaponIndex);
+ initAudio();const w=heroWeaponStats(p,weaponIndex);
  const tx=target?target.x:(mouse.x+camera.x-W/2),ty=target?target.y:(mouse.y+camera.y-H/2);
  const ang=Math.atan2(ty-p.y,tx-p.x);
  // Keep the weapon visually locked to the current target/aim even between shots.
@@ -1146,7 +1158,7 @@ function render(){ctx.save();if(shake>0){ctx.translate(rndi(-Math.ceil(shake*10)
 
 function updateHud(){const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&player.hp/player.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display=relicOwned?'block':'none';relicEl.classList.toggle('relic-pulse',relicOwned)}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(player.hp));document.getElementById('xpTxt').textContent=`${Math.floor(player.xp)}/${player.next}`;document.getElementById('lvlTxt').textContent=player.lvl;document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+enemies.length;document.getElementById('hpFill').style.width=clamp(player.hp/player.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(player.xp/player.next*100,0,100)+'%';
  if(boss){document.getElementById('bossHud').style.display='block';document.getElementById('bossName').textContent=(lang==='en'?(boss.enName||boss.name):boss.name)+' · '+T('boss');document.getElementById('bossFill').style.width=clamp(boss.hp/boss.maxhp*100,0,100)+'%'}else document.getElementById('bossHud').style.display='none';
- const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.innerHTML=`<b>${w.key}</b> <span class="wn">${locName(w)}</span><span class="wlv">УР. ${weaponLevels[i]} · ${Math.round(weaponStats(i).dmg)} DMG</span><i class="cd"></i>`;d.onclick=()=>{weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===weapon);d.querySelector('.wn').textContent=locName(weapons[i]);d.querySelector('.wlv').textContent=`${lang==='en'?'LV':'УР.'} ${weaponLevels[i]} · ${Math.round(weaponStats(i).dmg)} DMG`;d.querySelector('.cd').textContent=i===weapon&&player.fire>0?player.fire.toFixed(1):''})}
+ const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.innerHTML=`<b>${w.key}</b> <span class="wn">${chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(w)}</span><span class="wlv">УР. ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG</span><i class="cd"></i>`;d.onclick=()=>{weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===weapon);d.querySelector('.wn').textContent=chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(weapons[i]);d.querySelector('.wlv').textContent=`${lang==='en'?'LV':'УР.'} ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG`;d.querySelector('.cd').textContent=i===weapon&&player.fire>0?player.fire.toFixed(1):''})}
 
 addEventListener('keydown',e=>{keys.add(e.code);if(e.code==='Digit7')player2.weapon=0;if(e.code==='Digit8')player2.weapon=1;if(e.code==='Digit9')player2.weapon=2;if(e.code==='Digit0')player2.weapon=3;if(e.code==='ShiftLeft'||e.code==='ShiftRight')dashFor(player2);if(e.code==='Enter')bombFor(player2);if(e.code==='Escape'){e.preventDefault();if(state==='game'){togglePause()}else if(state==='pause'||state==='levelup'||state==='gameover'){goMenu()}return}if(state==='game'){if(e.code==='Digit1')weapon=0;if(e.code==='Digit2')weapon=1;if(e.code==='Digit3')weapon=2;if(e.code==='Digit4')weapon=3;if(e.code==='KeyE')bomb();if(e.code==='Space'){e.preventDefault();dash()}}});addEventListener('keyup',e=>keys.delete(e.code));
 function screenToGame(clientX,clientY){const r=c.getBoundingClientRect();const scale=Math.min(r.width/W,r.height/H);const dw=W*scale,dh=H*scale;const ox=r.left+(r.width-dw)/2,oy=r.top+(r.height-dh)/2;return {x:clamp((clientX-ox)/scale,0,W),y:clamp((clientY-oy)/scale,0,H)}}
