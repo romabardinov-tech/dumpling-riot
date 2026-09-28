@@ -179,6 +179,18 @@ function heroWeaponStats(p,i){
  return {...base,name:ch.weaponNames?.[i]||base.name,enName:ch.enWeaponNames?.[i]||base.enName,dmg:base.dmg*mult*tune.d*(1+(lv-1)*.22),rate:base.rate*tune.r*Math.pow(.95,lv-1)/rateMod,speed:base.speed*speedMod*(1+(lv-1)*.045),pierce:base.pierce+Math.floor((lv-1)/4),level:lv};
 }
 function weaponStats(i){return heroWeaponStats(player,i);}
+function weaponChargeDuration(p,i){
+ const w=heroWeaponStats(p,i);
+ let d=Math.max(.28,w.rate/p.boost.rate);
+ if(p.charId==='assassin'&&i===2)d=Math.max(d,2.8);
+ return d;
+}
+function rechargeWeapons(p,dt){
+ if(!p||p.dead)return;
+ if(!Array.isArray(p.weaponCharge)||p.weaponCharge.length!==4)p.weaponCharge=[1,1,1,1];
+ for(let i=0;i<4;i++)p.weaponCharge[i]=clamp(p.weaponCharge[i]+dt/weaponChargeDuration(p,i),0,1);
+ p.shivCharge=p.weaponCharge[2];
+}
 
 let state='menu',selectedChar=chars[0].id,selectedMap=maps[0].id,weapon=0,last=0,acc=0;
 let coop=false,onlineMode=false,isOnlineHost=false,isOnlineGuest=false;let peer=null,netConn=null,netRoom='';let netSendTimer=0,peerReadyPromise=null;
@@ -419,7 +431,7 @@ function toast(s){const el=document.getElementById('toast');el.textContent=s;el.
 function setMobileControls(on){const mc=document.getElementById('mobileControls');if(!mc)return;mc.classList.toggle('game-active',!!on);mc.classList.toggle('coop-active',!!(on&&coop));mc.style.pointerEvents=on?'auto':'none';mc.setAttribute('aria-hidden',on?'false':'true')}
 function setHud(on){document.getElementById('hud').style.display=on?'block':'none';const p2h=document.getElementById('p2Hud');if(p2h)p2h.style.display=(on&&coop)?'block':'none';setMobileControls(on&&state==='game');document.documentElement.classList.toggle('inGame',!!on)}
 function requestMobileFullscreen(){try{if(!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}if(screen.orientation&&screen.orientation.lock){const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
-function resetPlayer(p,ch,x,y){p.charId=ch.id;p.x=x;p.y=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.hurtT=0;p.hurtLean=0;p.shivCharge=1;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[]}
+function resetPlayer(p,ch,x,y){p.charId=ch.id;p.x=x;p.y=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.hurtT=0;p.hurtLean=0;p.weaponCharge=[1,1,1,1];p.shivCharge=1;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[]}
 function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e)e.textContent=t}
 const makeRoomCode=()=>String(rndi(10000,99999));
 function setupPeer(hostMode=false){
@@ -483,11 +495,11 @@ function wireNet(c){
 }
 function applyNetState(s){
  if(!s)return;
- const cp=p=>{if(!p)return;Object.assign(p,{x:p.x,y:p.y,hp:p.hp,maxhp:p.maxhp,dead:p.dead,aim:p.aim,weapon:p.weapon,lvl:p.lvl,bomb:p.bomb,shivCharge:p.shivCharge})};
+ const cp=p=>{if(!p)return;Object.assign(p,{x:p.x,y:p.y,hp:p.hp,maxhp:p.maxhp,dead:p.dead,aim:p.aim,weapon:p.weapon,lvl:p.lvl,bomb:p.bomb,shivCharge:p.shivCharge});if(Array.isArray(p.weaponCharge))p.weaponCharge=p.weaponCharge.slice(0,4);else p.weaponCharge=[1,1,1,1];p.shivCharge=p.weaponCharge[2]??p.shivCharge??1};
  cp(s.p1);cp(s.p2);enemies=s.enemies||[];projectiles=s.projectiles||[];drops=s.drops||[];boss=s.boss||null;wave=s.wave||1;score=s.score||0;combo=s.combo||1;waveState=s.waveState||'fighting';camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;
 }
 function netState(){
- return {p1:{x:player.x,y:player.y,hp:player.hp,maxhp:player.maxhp,dead:player.dead,aim:player.aim,weapon:weapon,lvl:player.lvl,bomb:player.bomb,shivCharge:player.shivCharge},p2:{x:player2.x,y:player2.y,hp:player2.hp,maxhp:player2.maxhp,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,shivCharge:player2.shivCharge},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,hit:e.hit,dead:e.dead,stage:e.stage})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type}:null,wave,score,combo,waveState}
+ return {p1:{x:player.x,y:player.y,hp:player.hp,maxhp:player.maxhp,dead:player.dead,aim:player.aim,weapon:weapon,lvl:player.lvl,bomb:player.bomb,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge},p2:{x:player2.x,y:player2.y,hp:player2.hp,maxhp:player2.maxhp,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,hit:e.hit,dead:e.dead,stage:e.stage})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type}:null,wave,score,combo,waveState}
 }
 function sendNet(m){if(netConn&&netConn.open)try{netConn.send(m)}catch(e){}}
 function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus('Сначала создай комнату и дождись игрока.');return false}sendNet({t:'start',map:selectedMap});return true}
@@ -637,13 +649,15 @@ function pickUpgrades(){
 
 function attackFor(p,weaponIndex,target=null){
  if(!p||p.dead||p.fire>0||state!=='game')return;
+ if(!Array.isArray(p.weaponCharge)||p.weaponCharge.length!==4)p.weaponCharge=[1,1,1,1];
+ if((p.weaponCharge[weaponIndex]||0)<1)return;
  const isShivCharge= p.charId==='assassin' && weaponIndex===2;
- if(isShivCharge && (p.shivCharge||0)<1)return;
  initAudio();
  const w=heroWeaponStats(p,weaponIndex),ch=chars.find(c=>c.id===p.charId)||chars[0];
  const tx=target?target.x:(mouse.x+camera.x-W/2),ty=target?target.y:(mouse.y+camera.y-H/2);
  const ang=Math.atan2(ty-p.y,tx-p.x);p.aim=ang;
- if(isShivCharge)p.shivCharge=0;
+ p.weaponCharge[weaponIndex]=0;
+ p.shivCharge=p.weaponCharge[2];
  p.fire=w.rate/p.boost.rate;
  const damage=w.dmg*p.boost.dmg*(Math.random()<p.boost.crit?2:1);
  const wide=p.heroUpgrades?.includes('wide'),pierceBonus=p.heroUpgrades?.includes('pierce')?2:0;
@@ -934,9 +948,7 @@ function togglePause(){
 function update(dt){
  if(state==='game'&&boss)bossDialogue(boss);
  if(state==='game'){
-   for(const cp of coopPlayers()){
-     if(cp.charId==='assassin')cp.shivCharge=clamp((cp.shivCharge||0)+dt/2.8,0,1);
-   }
+   for(const cp of coopPlayers())rechargeWeapons(cp,dt);
  }
  if(onlineMode&&isOnlineGuest){sendNet({t:'input',mx:touchInput.moveX||((keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0)),my:touchInput.moveY||((keys.has('ArrowDown')?1:0)-(keys.has('ArrowUp')?1:0)),ax:touchInput.aimX,ay:touchInput.aimY,aa:touchInput.aimActive,weapon:player2.weapon});return}
  if(onlineMode&&isOnlineHost){netSendTimer-=dt;if(netSendTimer<=0){netSendTimer=.067;sendNet({t:'state',s:netState()})}}
@@ -1361,12 +1373,7 @@ function render(){ctx.save();if(shake>0){ctx.translate(rndi(-Math.ceil(shake*10)
 
 function updateHud(){const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&player.hp/player.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display=relicOwned?'block':'none';relicEl.classList.toggle('relic-pulse',relicOwned)}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(player.hp));document.getElementById('xpTxt').textContent=`${Math.floor(player.xp)}/${player.next}`;document.getElementById('lvlTxt').textContent=player.lvl;document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+enemies.length;document.getElementById('hpFill').style.width=clamp(player.hp/player.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(player.xp/player.next*100,0,100)+'%';
  if(boss){document.getElementById('bossHud').style.display='block';document.getElementById('bossName').textContent=(lang==='en'?(boss.enName||boss.name):boss.name)+' · '+T('boss');document.getElementById('bossFill').style.width=clamp(boss.hp/boss.maxhp*100,0,100)+'%'}else document.getElementById('bossHud').style.display='none';
- const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.innerHTML=`<b>${w.key}</b> <span class="wn">${chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(w)}</span><span class="wlv">УР. ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG</span>${player.charId==='assassin'&&i===2?'<span class="weaponCharge"><i></i></span>':''}<i class="cd"></i>`;d.onclick=()=>{weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===weapon);d.querySelector('.wn').textContent=chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(weapons[i]);d.querySelector('.wlv').textContent=`${lang==='en'?'LV':'УР.'} ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG`;
-   const chargeEl=d.querySelector('.weaponCharge i');
-   const isShiv=player.charId==='assassin'&&i===2;
-   if(chargeEl)chargeEl.style.width=clamp(player.shivCharge||0,0,1)*100+'%';
-   d.classList.toggle('charging',!!(isShiv&&player.shivCharge<1));
-   d.querySelector('.cd').textContent=i===weapon&&player.fire>0?player.fire.toFixed(1):''})}
+ const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.innerHTML=\`<b>\${w.key}</b> <span class="wn">\${chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(w)}</span><span class="wlv">УР. \${weaponLevels[i]} · \${Math.round(heroWeaponStats(player,i).dmg)} DMG</span><span class="weaponCharge"><i></i></span><i class="cd"></i>\`;d.onclick=()=>{weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===weapon);d.querySelector('.wn').textContent=chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(weapons[i]);d.querySelector('.wlv').textContent=\`\${lang==='en'?'LV':'УР.'} \${weaponLevels[i]} · \${Math.round(heroWeaponStats(player,i).dmg)} DMG\`;const chargeEl=d.querySelector('.weaponCharge i');const charge=clamp(player.weaponCharge?.[i]??1,0,1);chargeEl.style.width=(charge*100)+'%';d.classList.toggle('charging',charge<.999);d.querySelector('.cd').textContent=i===weapon&&player.fire>0?player.fire.toFixed(1):''})}
 
 addEventListener('keydown',e=>{keys.add(e.code);if(e.code==='Digit7')player2.weapon=0;if(e.code==='Digit8')player2.weapon=1;if(e.code==='Digit9')player2.weapon=2;if(e.code==='Digit0')player2.weapon=3;if(e.code==='ShiftLeft'||e.code==='ShiftRight')dashFor(player2);if(e.code==='Enter')bombFor(player2);if(e.code==='Escape'){e.preventDefault();if(state==='game'){togglePause()}else if(state==='pause'||state==='levelup'||state==='gameover'){goMenu()}return}if(state==='game'){if(e.code==='Digit1')weapon=0;if(e.code==='Digit2')weapon=1;if(e.code==='Digit3')weapon=2;if(e.code==='Digit4')weapon=3;if(e.code==='KeyE')bomb();if(e.code==='Space'){e.preventDefault();dash()}}});addEventListener('keyup',e=>keys.delete(e.code));
 function screenToGame(clientX,clientY){const r=c.getBoundingClientRect();const scale=Math.min(r.width/W,r.height/H);const dw=W*scale,dh=H*scale;const ox=r.left+(r.width-dw)/2,oy=r.top+(r.height-dh)/2;return {x:clamp((clientX-ox)/scale,0,W),y:clamp((clientY-oy)/scale,0,H)}}
