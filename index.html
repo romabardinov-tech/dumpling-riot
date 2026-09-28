@@ -107,7 +107,7 @@ canvas{display:block;width:100%;height:100%;background:#0b0910;image-rendering:p
     <div class="card"><h3>ВЫБЕРИ ПЕРСОНАЖА</h3><div id="charChoices" class="choices"></div></div>
     <div class="card"><h3>ВЫБЕРИ КАРТУ</h3><div id="mapChoices" class="choices"></div></div>
   </div>
-  <div class="card modeCard"><h3 id="modeTitle">РЕЖИМ ИГРЫ</h3><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div></div>
+  <div class="card modeCard"><h3 id="modeTitle">РЕЖИМ ИГРЫ</h3><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info">Онлайн: создай комнату или введи код друга.</div></div></div>
   <button id="startBtn" class="btn">НАЧАТЬ НОЧНУЮ СМЕНУ</button>
   <div class="hint">WASD — движение · МЫШЬ — прицел · ЛКМ — атака · 1–4 — оружие · SPACE — рывок · E — бомба · ESC — главное меню</div><div class="hint">Босс появляется каждые 5 волн и оставляет уникальную реликвию. Оружие улучшается при повышении уровня.</div>
 </div></div>
@@ -128,7 +128,7 @@ canvas{display:block;width:100%;height:100%;background:#0b0910;image-rendering:p
   <button id="pauseBtn" class="mobileBtn pauseBtn" data-action="pause" aria-label="Пауза">II</button><button id="menuMobileBtn" class="mobileBtn menuMobileBtn" aria-label="Главное меню">MENU</button>
   <div id="mobileWeapons"><button class="mw" data-weapon="0">1</button><button class="mw" data-weapon="1">2</button><button class="mw" data-weapon="2">3</button><button class="mw" data-weapon="3">4</button></div>
 </div>
-<script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script><script>
 'use strict';
 const c=document.getElementById('game'),ctx=c.getContext('2d',{alpha:false});ctx.imageSmoothingEnabled=false;
 const W=480,H=270, TAU=Math.PI*2;
@@ -162,7 +162,7 @@ const weaponLevels=[1,1,1,1];
 function weaponStats(i){const w=weapons[i],lv=weaponLevels[i];return {...w,dmg:w.dmg*(1+(lv-1)*.28),rate:w.rate*Math.pow(.93,lv-1),speed:w.speed*(1+(lv-1)*.055),pierce:w.pierce+Math.floor((lv-1)/3),level:lv};}
 
 let state='menu',selectedChar=chars[0].id,selectedMap=maps[0].id,weapon=0,last=0,acc=0;
-let coop=false;
+let coop=false,onlineMode=false,isOnlineHost=false,isOnlineGuest=false;let peer=null,netConn=null,netRoom='';let netSendTimer=0;
 let lang=localStorage.getItem('dumpling-riot-lang')||'ru';
 const world={w:1920,h:1080};
 const camera={x:960,y:540,smooth:0.12};
@@ -255,8 +255,8 @@ let toastTimer=0;
 const arena={l:52,r:1868,t:58,b:1022};
 
 const I18N={
- ru:{language:'ЯЗЫК',chooseChar:'ВЫБЕРИ ПЕРСОНАЖА',chooseMap:'ВЫБЕРИ КАРТУ',mode:'РЕЖИМ ИГРЫ',onePlayer:'1 ИГРОК',twoPlayers:'2 ИГРОКА',modeOneDesc:'Обычный одиночный режим.',modeTwoDesc:'Локальный кооператив на одном экране.',p2Info:'P2: стрелки · 7–0 оружие · SHIFT рывок · ENTER бомба · авто-стрельба',start:'НАЧАТЬ НОЧНУЮ СМЕНУ',controls:'P1: WASD · мышь · 1–4 оружие · SPACE рывок · E бомба · ESC меню · P2: стрелки · 7–0 оружие · SHIFT рывок · ENTER бомба',guide:'Босс появляется каждые 5 волн и оставляет уникальную реликвию. Оружие улучшается при повышении уровня.',levelPause:'ИГРА ОСТАНОВЛЕНА · УРОВЕНЬ ПОВЫШЕН',pickUpgrade:'ВЫБЕРИ ОДНО УЛУЧШЕНИЕ',dead:'ТЕБЯ СЪЕЛИ',retry:'ЕЩЁ РАЗ',menu:'В МЕНЮ',hp:'HP',xp:'XP',lvl:'УР.',wave:'ВОЛНА',score:'ОЧКИ',enemies:'ВРАГОВ',boss:'БОСС',relic:'УНИКАЛЬНАЯ РЕЛИКВИЯ',run:'RUN ENDED'},
- en:{language:'LANGUAGE',chooseChar:'CHOOSE CHARACTER',chooseMap:'CHOOSE MAP',mode:'GAME MODE',onePlayer:'1 PLAYER',twoPlayers:'2 PLAYERS',modeOneDesc:'Classic solo mode.',modeTwoDesc:'Local co-op on one screen.',p2Info:'P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb · auto-fire',start:'START NIGHT SHIFT',controls:'P1: WASD · mouse · 1–4 weapons · SPACE dash · E bomb · ESC menu · P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb',guide:'A boss appears every 5 waves and leaves a unique relic. Weapons upgrade when you level up.',levelPause:'GAME PAUSED · LEVEL UP',pickUpgrade:'CHOOSE ONE UPGRADE',dead:'YOU GOT EATEN',retry:'TRY AGAIN',menu:'MAIN MENU',hp:'HP',xp:'XP',lvl:'LV.',wave:'WAVE',score:'SCORE',enemies:'ENEMIES',boss:'BOSS',relic:'UNIQUE RELIC',run:'RUN ENDED'}
+ ru:{language:'ЯЗЫК',chooseChar:'ВЫБЕРИ ПЕРСОНАЖА',mode:'РЕЖИМ ИГРЫ',onePlayer:'1 ИГРОК',twoPlayers:'2 ИГРОКА',modeOneDesc:'Обычный одиночный режим.',modeTwoDesc:'Локальный кооператив.',onlinePlayers:'ОНЛАЙН 2 ИГРОКА',onlineDesc:'Два устройства через комнату.',p2Info:'P2: стрелки · 7–0 оружие · SHIFT рывок · ENTER бомба · авто-стрельба',start:'НАЧАТЬ НОЧНУЮ СМЕНУ',controls:'P1: WASD · мышь · 1–4 оружие · SPACE рывок · E бомба · ESC меню · P2: стрелки · 7–0 оружие · SHIFT рывок · ENTER бомба',guide:'Босс появляется каждые 5 волн и оставляет уникальную реликвию. Оружие улучшается при повышении уровня.',levelPause:'ИГРА ОСТАНОВЛЕНА · УРОВЕНЬ ПОВЫШЕН',pickUpgrade:'ВЫБЕРИ ОДНО УЛУЧШЕНИЕ',dead:'ТЕБЯ СЪЕЛИ',retry:'ЕЩЁ РАЗ',menu:'В МЕНЮ',hp:'HP',xp:'XP',lvl:'УР.',wave:'ВОЛНА',score:'ОЧКИ',enemies:'ВРАГОВ',boss:'БОСС',relic:'УНИКАЛЬНАЯ РЕЛИКВИЯ',run:'RUN ENDED'},
+ en:{language:'LANGUAGE',chooseChar:'CHOOSE CHARACTER',mode:'GAME MODE',onePlayer:'1 PLAYER',twoPlayers:'2 PLAYERS',modeOneDesc:'Classic solo mode.',modeTwoDesc:'Local co-op.',onlinePlayers:'ONLINE 2 PLAYERS',onlineDesc:'Two devices via a room.',p2Info:'P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb · auto-fire',start:'START NIGHT SHIFT',controls:'P1: WASD · mouse · 1–4 weapons · SPACE dash · E bomb · ESC menu · P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb',guide:'A boss appears every 5 waves and leaves a unique relic. Weapons upgrade when you level up.',levelPause:'GAME PAUSED · LEVEL UP',pickUpgrade:'CHOOSE ONE UPGRADE',dead:'YOU GOT EATEN',retry:'TRY AGAIN',menu:'MAIN MENU',hp:'HP',xp:'XP',lvl:'LV.',wave:'WAVE',score:'SCORE',enemies:'ENEMIES',boss:'BOSS',relic:'UNIQUE RELIC',run:'RUN ENDED'}
 };
 const T=k=>(I18N[lang]&&I18N[lang][k])||I18N.ru[k]||k;
 function locName(o){return lang==='en'?(o.enName||o.name):(o.name)}
@@ -274,7 +274,7 @@ function applyLanguageStatic(){
 function makeMenu(){
  const cc=document.getElementById('charChoices');cc.innerHTML='';
  for(const ch of chars){const d=document.createElement('div');d.className='choice'+(ch.id===selectedChar?' sel':'');d.innerHTML=`<b>${locName(ch)}</b><p>${locDesc(ch)}<br>HP ${ch.hp} · SPD ${ch.speed}</p>`;d.onclick=()=>{selectedChar=ch.id;makeMenu()};cc.appendChild(d)}
- const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:false,title:T('onePlayer'),desc:T('modeOneDesc')},{id:true,title:T('twoPlayers'),desc:T('modeTwoDesc')}];for(const md of modes){const d=document.createElement('div');d.className='modeChoice'+(md.id===coop?' sel':'');d.innerHTML=`<b>${md.title}</b><p>${md.desc}</p>`;d.onclick=()=>{coop=md.id;makeMenu()};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):''}
+ const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:T('onePlayer'),desc:T('modeOneDesc')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes){const d=document.createElement('div');d.className='modeChoice'+((md.id==='solo'&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.innerHTML=`<b>${md.title}</b><p>${md.desc}</p>`;d.onclick=()=>{onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu()};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||'нет комнаты'):'')}
  const mc=document.getElementById('mapChoices');mc.innerHTML='';
  for(const m of maps){const d=document.createElement('div');d.className='choice'+(m.id===selectedMap?' sel':'');d.innerHTML=`<b>${locName(m)}</b><p>${locDesc(m)}</p>`;d.onclick=()=>{selectedMap=m.id;makeMenu()};mc.appendChild(d)}
  applyLanguageStatic();
@@ -286,8 +286,40 @@ function setMobileControls(on){const mc=document.getElementById('mobileControls'
 function setHud(on){document.getElementById('hud').style.display=on?'block':'none';const p2h=document.getElementById('p2Hud');if(p2h)p2h.style.display=(on&&coop)?'block':'none';setMobileControls(on&&state==='game');document.documentElement.classList.toggle('inGame',!!on)}
 function requestMobileFullscreen(){try{if(!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}if(screen.orientation&&screen.orientation.lock){const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
 function resetPlayer(p,ch,x,y){p.charId=ch.id;p.x=x;p.y=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.hurtT=0;p.hurtLean=0;p.boost={dmg:1,rate:1,move:1,crit:0}}
-function startGame(){
+function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e)e.textContent=t}
+function setupPeer(){
+ if(peer)return;
+ if(typeof Peer==='undefined'){setOnlineStatus('Не удалось загрузить онлайн-модуль. Обнови страницу.');return}
+ peer=new Peer();
+ peer.on('open',id=>{netRoom=id;setOnlineStatus('Код комнаты: '+id);const i=document.getElementById('roomCodeInput');if(i)i.value=id});
+ peer.on('connection',c=>{if(netConn){c.close();return}netConn=c;isOnlineHost=true;isOnlineGuest=false;wireNet(c);setOnlineStatus('Игрок подключился. Нажмите НАЧАТЬ ИГРУ.')});
+ peer.on('error',e=>setOnlineStatus('Онлайн: '+(e.type||'ошибка')));
+}
+function wireNet(c){
+ c.on('open',()=>setOnlineStatus(isOnlineHost?'Игрок подключён.':'Подключено к комнате '+netRoom));
+ c.on('data',m=>{
+  if(m.t==='hello'){netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;setOnlineStatus('Подключено. Ждём старта хоста.')}
+  if(m.t==='input'&&isOnlineHost){touchInput.p2MoveX=Number(m.mx)||0;touchInput.p2MoveY=Number(m.my)||0;player2.weapon=clamp(Number(m.weapon)||0,0,3)}
+  if(m.t==='dash'&&isOnlineHost)dashFor(player2);
+  if(m.t==='bomb'&&isOnlineHost)bombFor(player2);
+  if(m.t==='start'&&isOnlineGuest){selectedMap=m.map;startGame(true)}
+  if(m.t==='state'&&isOnlineGuest)applyNetState(m.s);
+ });
+ c.on('close',()=>{setOnlineStatus('Соединение закрыто.');if(isOnlineGuest){state='menu';goMenu()}});
+}
+function applyNetState(s){
+ if(!s)return;
+ const cp=p=>{if(!p)return;Object.assign(p,{x:p.x,y:p.y,hp:p.hp,maxhp:p.maxhp,dead:p.dead,aim:p.aim,weapon:p.weapon,lvl:p.lvl,bomb:p.bomb})};
+ cp(s.p1);cp(s.p2);enemies=s.enemies||[];projectiles=s.projectiles||[];drops=s.drops||[];boss=s.boss||null;wave=s.wave||1;score=s.score||0;combo=s.combo||1;waveState=s.waveState||'fighting';camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;
+}
+function netState(){
+ return {p1:{x:player.x,y:player.y,hp:player.hp,maxhp:player.maxhp,dead:player.dead,aim:player.aim,weapon:weapon,lvl:player.lvl,bomb:player.bomb},p2:{x:player2.x,y:player2.y,hp:player2.hp,maxhp:player2.maxhp,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,hit:e.hit,dead:e.dead,stage:e.stage})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type}:null,wave,score,combo,waveState}
+}
+function sendNet(m){if(netConn&&netConn.open)try{netConn.send(m)}catch(e){}}
+function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus('Сначала создай комнату и дождись игрока.');return false}sendNet({t:'start',map:selectedMap});return true}
+function startGame(fromNetwork=false){
  initAudio();
+ if(onlineMode&&!isOnlineHost&&!fromNetwork){if(!startOnlineHost())return}
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
  resetPlayer(player,ch,world.w/2-18,world.h/2);resetPlayer(player2,ch2,world.w/2+18,world.h/2);
  player.weapon=0;player2.weapon=coop?1:0;
@@ -360,6 +392,8 @@ function attackFor(p,weaponIndex,target=null){
 function attack(){attackFor(player,weapon,null)}
 function bombFor(p){if(!p||p.dead||state!=='game'||p.bomb<=0)return;initAudio();sfx('bomb');p.bomb--;ring(p.x,p.y,42,'#ff5c4e',.42,55);ring(p.x,p.y,20,'#ffd36a',.28,33);spawnParticles(p.x,p.y,34,'#ff5c4e',1.8);spawnParticles(p.x,p.y,18,'#ffd36a',1.2);bloodBurst(p.x,p.y,24,1.3);for(const e of enemies){if(dist(p,e)<58){damageEnemy(e,170*p.boost.dmg);const d=dist(p,e)||1;e.x+=((e.x-p.x)/d)*18;e.y+=((e.y-p.y)/d)*18}}p.inv=.35;shake=.22;toast(p===player?'БОМБА!':'P2 БОМБА!')}
 function bomb(){bombFor(player)}
+function dashForOnlineGuest(){sendNet({t:'dash'})}
+function bombOnlineGuest(){sendNet({t:'bomb'})}
 function dashFor(p){if(!p||p.dead||p.dash>0||state!=='game')return;initAudio();sfx('dash');p.dash=1.0;p.inv=.28;const len=Math.hypot(p.vx,p.vy)||1;let dx=p.vx/len,dy=p.vy/len;if(Math.abs(dx)+Math.abs(dy)<.2){dx=Math.cos(p.aim);dy=Math.sin(p.aim)}p.x+=dx*34;p.y+=dy*34;spawnParticles(p.x,p.y,14,'#e2d29f',.8)}
 function dash(){dashFor(player)}
 function damageEnemy(e,d){
@@ -483,7 +517,7 @@ let fireBtnHeld=false;
 function bindMobileButton(el,down,up){if(!el)return;let active=false;const press=e=>{e.preventDefault();if(active)return;active=true;down();el.classList.add('active')};const release=e=>{e.preventDefault();if(!active)return;active=false;up&&up();el.classList.remove('active')};el.addEventListener('pointerdown',press,{passive:false});el.addEventListener('pointerup',release,{passive:false});el.addEventListener('pointercancel',release,{passive:false});el.addEventListener('touchstart',press,{passive:false});el.addEventListener('touchend',release,{passive:false});el.addEventListener('touchcancel',release,{passive:false})}
 function setupMobile(){
  bindTouchStick('movePad','move');bindTouchStick('aimPad','aim');bindTouchStick('p2Pad','p2move');
- document.querySelectorAll('[data-action]').forEach(b=>bindMobileButton(b,()=>{initAudio();const a=b.dataset.action;if(a==='dash')dash();if(a==='bomb')bomb();if(a==='p2dash')dashFor(player2);if(a==='p2bomb')bombFor(player2);if(a==='pause'){togglePause();}},null));
+ document.querySelectorAll('[data-action]').forEach(b=>bindMobileButton(b,()=>{initAudio();const a=b.dataset.action;if(a==='dash')dash();if(a==='bomb')bomb();if(a==='p2dash'){if(onlineMode&&isOnlineGuest)dashForOnlineGuest();else dashFor(player2)}if(a==='p2bomb'){if(onlineMode&&isOnlineGuest)bombOnlineGuest();else bombFor(player2)}if(a==='pause'){togglePause();}},null));
  document.querySelectorAll('.mw').forEach(b=>bindMobileButton(b,()=>{weapon=+b.dataset.weapon;initAudio();document.querySelectorAll('.mw').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')},null));
  const resume=document.getElementById('resumeBtn');if(resume)resume.onclick=()=>togglePause();
  const pauseMenu=document.getElementById('pauseMenuBtn');if(pauseMenu)pauseMenu.onclick=goMenu;const pauseRestart=document.getElementById('pauseRestartBtn');if(pauseRestart)pauseRestart.onclick=()=>{initAudio();startGame();};const mobileMenu=document.getElementById('menuMobileBtn');if(mobileMenu)mobileMenu.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();goMenu();},{passive:false});
@@ -494,6 +528,9 @@ function togglePause(){
  if(state==='pause'){state='game';setMobileControls(true);document.getElementById('pauseOverlay').style.display='none';initAudio();return;}
 }
 function update(dt){
+ if(onlineMode&&isOnlineGuest){netSend({t:'input',mx:touchInput.moveX||((keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0)),my:touchInput.moveY||((keys.has('ArrowDown')?1:0)-(keys.has('ArrowUp')?1:0)),weapon:player2.weapon});return}
+ if(onlineMode&&isOnlineHost){netSendTimer-=dt;if(netSendTimer<=0){netSendTimer=.067;sendNet({t:'state',s:netState()})}}
+
  if(state==='death'){updateDeath(dt);updateFx(dt);return;}
  if(state!=='game')return;
  const kmx=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0),kmy=(keys.has('KeyS')?1:0)-(keys.has('KeyW')?1:0);
@@ -897,7 +934,9 @@ c.addEventListener('mousemove',e=>{const p=screenToGame(e.clientX,e.clientY);mou
 document.querySelectorAll('.langBtn').forEach(b=>b.addEventListener('click',()=>setLanguage(b.dataset.lang)));
 setupMobile();
 setLanguage(lang);
-document.getElementById('startBtn').onclick=()=>{initAudio();startGame()};document.getElementById('retryBtn').onclick=()=>{initAudio();startGame()};document.getElementById('menuBtn').onclick=goMenu;
+document.getElementById('startBtn').onclick=()=>{initAudio();startGame()};
+document.getElementById('createRoomBtn')?.addEventListener('click',()=>{setupPeer();isOnlineHost=true;isOnlineGuest=false;setOnlineStatus('Создаём комнату...')});
+document.getElementById('joinRoomBtn')?.addEventListener('click',()=>{setupPeer();const code=(document.getElementById('roomCodeInput')?.value||'').trim();if(!code){setOnlineStatus('Введи код комнаты.');return}const c=peer.connect(code);netConn=c;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;wireNet(c);c.on('open',()=>c.send({t:'hello',room:code}));setOnlineStatus('Подключаемся...')});document.getElementById('retryBtn').onclick=()=>{initAudio();startGame()};document.getElementById('menuBtn').onclick=goMenu;
 
 window.addEventListener('error',e=>{const msg=(e&&e.error&&e.error.message)||e.message||'Неизвестная ошибка';const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
 window.addEventListener('unhandledrejection',e=>{const msg=(e&&e.reason&&e.reason.message)||String(e.reason||'Promise error');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
