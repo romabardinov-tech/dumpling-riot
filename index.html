@@ -15,7 +15,7 @@
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#09070b;color:#f6efd9;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 body{display:grid;place-items:center}
 #wrap{position:relative;width:min(100vw,177.78vh);height:min(100vh,56.25vw);image-rendering:pixelated;image-rendering:crisp-edges;filter:contrast(1.06) saturate(.88)}
-canvas{display:block;width:100%;height:100%;background:#0b0910;image-rendering:pixelated;image-rendering:crisp-edges;cursor:crosshair}
+canvas{filter:brightness(1.16) saturate(1.08);display:block;width:100%;height:100%;background:#0b0910;image-rendering:pixelated;image-rendering:crisp-edges;cursor:crosshair}
 .low-hp{animation:hpbeat .82s steps(2,end) infinite}@keyframes hpbeat{50%{filter:contrast(1.18) saturate(1.18)}}
 .panel{position:absolute;left:10px;top:10px;padding:7px 9px;background:rgba(10,8,14,.92);border:2px solid #3a2c3e;box-shadow:4px 4px 0 #000;pointer-events:none}
 .hud{display:flex;gap:9px;align-items:center;font-size:9px;text-transform:uppercase;letter-spacing:.5px}.stat{min-width:95px}.bar{height:7px;background:#1a1420;border:1px solid #4b3b50;margin-top:3px}.fill{height:100%}
@@ -192,12 +192,12 @@ function playMusicPulse(when,freq=52){
 function scheduleHorrorMusic(){
  if(!audioCtx||!musicGain)return;
  // Dark minor-key loop: lead + low pulse + occasional dissonant accent.
- const notes=[146.83,174.61,196,174.61,130.81,146.83,164.81,123.47,146.83,174.61,220,196,164.81,146.83,130.81,110];
- const now=audioCtx.currentTime+.04,beat=.46,n=notes[musicStep%notes.length];
- playMusicNote(n,now,.39,.036,'triangle');
- if(musicStep%2===0)playMusicNote(n*2,now,.18,.010,'sine');
- if(musicStep%4===0)playMusicPulse(now,n/3);
- if(musicStep%8===7)playMusicNote(n*1.414,now+.12,.22,.012,'sawtooth');
+ const notes=[110,130.81,138.59,110,92.5,103.83,123.47,82.41,98,116.54,87.31,103.83,77.78,92.5,69.3,82.41];
+ const now=audioCtx.currentTime+.04,beat=.52,n=notes[musicStep%notes.length];
+ playMusicNote(n,now,.46,.048,'triangle');
+ if(musicStep%2===0)playMusicNote(n*2,now,.22,.012,'sine');
+ if(musicStep%2===0)playMusicPulse(now,n/2.6);
+ if(musicStep%4===3)playMusicNote(n*1.414,now+.16,.28,.018,'sawtooth');
  musicStep++;
  musicTimer=setTimeout(scheduleHorrorMusic,beat*1000);
 }
@@ -207,12 +207,12 @@ function startHorrorMusic(){
  if(musicStarted)return;
  musicStarted=true;
  musicGain.gain.setValueAtTime(.0001,audioCtx.currentTime);
- musicGain.gain.exponentialRampToValueAtTime(.32,audioCtx.currentTime+1.0);
+ musicGain.gain.exponentialRampToValueAtTime(.36,audioCtx.currentTime+1.0);
  const mk=(freq,vol,type='sine')=>{
    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
    o.type=type;o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(musicGain);o.start();return o
  };
- if(!drone1){drone1=mk(43.65,.18,'sine');drone2=mk(65.41,.055,'triangle');}
+ if(!drone1){drone1=mk(36.71,.24,'sine');drone2=mk(55,.075,'triangle');}
  scheduleHorrorMusic();
 }
 function stopMenuMusic(){
@@ -225,11 +225,11 @@ function stopMenuMusic(){
 }
 function scheduleMenuMusic(){
  if(!audioCtx||!menuGain)return;
- const notes=[110,130.81,146.83,130.81,98,116.54,130.81,87.31,98,123.47,146.83,123.47,92.5,110,130.81,103.83];
+ const notes=[82.41,98,92.5,73.42,87.31,103.83,77.78,69.3,82.41,92.5,61.74,73.42,65.41,77.78,58.27,69.3];
  const now=audioCtx.currentTime+.03,beat=.62,n=notes[menuMusicStep%notes.length];
- playMusicNote(n,now,.52,.050,'triangle');
- if(menuMusicStep%2===0)playMusicNote(n*1.5,now,.28,.014,'sine');
- if(menuMusicStep%4===3)playMusicPulse(now,n/2);
+ playMusicNote(n,now,.58,.060,'triangle');
+ if(menuMusicStep%2===0)playMusicNote(n*1.5,now,.32,.018,'sine');
+ if(menuMusicStep%2===0)playMusicPulse(now,n/2.2);
  menuMusicStep++;
  menuMusicTimer=setTimeout(scheduleMenuMusic,beat*1000);
 }
@@ -239,7 +239,7 @@ function startMenuMusic(){
  stopMenuMusic();
  musicGain.gain.cancelScheduledValues(audioCtx.currentTime);
  musicGain.gain.setTargetAtTime(.0001,audioCtx.currentTime,.05);
- menuGain.gain.setTargetAtTime(.28,audioCtx.currentTime,.18);
+ menuGain.gain.setTargetAtTime(.32,audioCtx.currentTime,.18);
  scheduleMenuMusic();
 }
 function initAudio(){
