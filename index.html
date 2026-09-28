@@ -202,10 +202,12 @@ function scheduleHorrorMusic(){
  musicTimer=setTimeout(scheduleHorrorMusic,beat*1000);
 }
 function startHorrorMusic(){
- if(musicStarted||!audioCtx||!musicGain)return;
+ if(!audioCtx||!musicGain)return;
+ stopMenuMusic();
+ if(musicStarted)return;
  musicStarted=true;
  musicGain.gain.setValueAtTime(.0001,audioCtx.currentTime);
- musicGain.gain.exponentialRampToValueAtTime(.22,audioCtx.currentTime+1.0);
+ musicGain.gain.exponentialRampToValueAtTime(.32,audioCtx.currentTime+1.0);
  const mk=(freq,vol,type='sine')=>{
    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
    o.type=type;o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(musicGain);o.start();return o
@@ -213,19 +215,45 @@ function startHorrorMusic(){
  if(!drone1){drone1=mk(43.65,.18,'sine');drone2=mk(65.41,.055,'triangle');}
  scheduleHorrorMusic();
 }
+function stopMenuMusic(){
+ if(menuMusicTimer){clearTimeout(menuMusicTimer);menuMusicTimer=null}
+ menuMusicStep=0;
+ if(menuGain&&audioCtx){
+  menuGain.gain.cancelScheduledValues(audioCtx.currentTime);
+  menuGain.gain.setTargetAtTime(.0001,audioCtx.currentTime,.08);
+ }
+}
+function scheduleMenuMusic(){
+ if(!audioCtx||!menuGain)return;
+ const notes=[110,130.81,146.83,130.81,98,116.54,130.81,87.31,98,123.47,146.83,123.47,92.5,110,130.81,103.83];
+ const now=audioCtx.currentTime+.03,beat=.62,n=notes[menuMusicStep%notes.length];
+ playMusicNote(n,now,.52,.050,'triangle');
+ if(menuMusicStep%2===0)playMusicNote(n*1.5,now,.28,.014,'sine');
+ if(menuMusicStep%4===3)playMusicPulse(now,n/2);
+ menuMusicStep++;
+ menuMusicTimer=setTimeout(scheduleMenuMusic,beat*1000);
+}
+function startMenuMusic(){
+ if(!audioCtx||!masterGain)return;
+ if(!menuGain){menuGain=audioCtx.createGain();menuGain.gain.value=.0001;menuGain.connect(masterGain)}
+ stopMenuMusic();
+ musicGain.gain.cancelScheduledValues(audioCtx.currentTime);
+ musicGain.gain.setTargetAtTime(.0001,audioCtx.currentTime,.05);
+ menuGain.gain.setTargetAtTime(.28,audioCtx.currentTime,.18);
+ scheduleMenuMusic();
+}
 function initAudio(){
  try{
   if(!audioCtx){
    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
    masterGain=audioCtx.createGain();
-   masterGain.gain.value=.28;
+   masterGain.gain.value=.38;
    masterGain.connect(audioCtx.destination);
    musicGain=audioCtx.createGain();
    musicGain.gain.value=.0;
    musicGain.connect(masterGain);
   }
   if(audioCtx.state==='suspended')audioCtx.resume();
-  startHorrorMusic();
  }catch(e){audioCtx=null}
 }
 function sfx(kind){
@@ -376,6 +404,7 @@ function sendNet(m){if(netConn&&netConn.open)try{netConn.send(m)}catch(e){}}
 function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus('Сначала создай комнату и дождись игрока.');return false}sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false){
  initAudio();
+ stopMenuMusic();
  if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
  resetPlayer(player,ch,world.w/2-18,world.h/2);resetPlayer(player2,ch2,world.w/2+18,world.h/2);
@@ -393,8 +422,8 @@ function makeBoss(w){
   ['МЯСНИК БЕЗ ЛИЦА','THE FACELESS BUTCHER',0],['КОТЁЛ ПЫТКИ','THE TORTURE CAULDRON',1],['КРАСНЫЙ ПОВАР','THE RED CHEF',2],
   ['МАТЬ ПЕЛЬМЕНЕЙ','MOTHER OF DUMPLINGS',3],['ШЕФ ИЗ НОЖЕЙ','THE KNIFE CHEF',4],['ПОЖИРАТЕЛЬ ТАРЕЛОК','PLATE DEVOURER',5]
  ];
- const [n,en,k]=bosses[idx%bosses.length];const hp=1250+w*205;
- return {type:'boss',name:n,enName:en,x:rnd(arena.l+160,arena.r-160),y:rnd(arena.t+100,arena.b-100),hp,maxhp:hp,speed:28+w*1.4,r:25+((k===5)?7:0),hit:0,phase:rnd(0,TAU),attack:1.0,kind:k,lunge:0,stage:1,hitT:0,hitLean:0};
+ const [n,en,k]=bosses[idx%bosses.length];const hp=1750+w*265;
+ return {type:'boss',name:n,enName:en,x:rnd(arena.l+160,arena.r-160),y:rnd(arena.t+100,arena.b-100),hp,maxhp:hp,speed:32+w*1.8,r:25+((k===5)?7:0),hit:0,phase:rnd(0,TAU),attack:1.0,kind:k,lunge:0,stage:1,hitT:0,hitLean:0};
 }
 function spawnEnemy(){
  const edge=rndi(0,3);let x,y;if(edge===0){x=arena.l+4;y=rnd(arena.t+5,arena.b-5)}else if(edge===1){x=arena.r-4;y=rnd(arena.t+5,arena.b-5)}else if(edge===2){x=rnd(arena.l+5,arena.r-5);y=arena.t+4}else{x=rnd(arena.l+5,arena.r-5);y=arena.b-4}
@@ -535,30 +564,30 @@ function updateEnemies(dt){
   const dx=tp.x-e.x,dy=tp.y-e.y,d=Math.hypot(dx,dy)||1,nx=dx/d,ny=dy/d;
   if(e.type==='boss'){
    const ratio=e.hp/e.maxhp;
-   e.stage=ratio<.34?3:(ratio<.67?2:1);
+   e.stage=ratio<.25?3:(ratio<.55?2:1);
    e.attack-=dt;
-   const rage=e.stage===3?1.22:e.stage===2?1.08:1;
+   const rage=e.stage===3?1.48:e.stage===2?1.22:1.08;
    if(e.attack<=0){
-    e.attack=(.72+Math.random()*.65)/rage;
+    e.attack=(.52+Math.random()*.46)/rage;
     if(e.kind===0){
-      const count=e.stage+2;for(let i=0;i<count;i++){const a=i*TAU/count+e.phase;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*105,vy:Math.sin(a)*105,life:2,r:3,damage:18+e.stage*2,pierce:99,color:'#ff5252',enemy:true})}
+      const count=e.stage+2;for(let i=0;i<count;i++){const a=i*TAU/count+e.phase;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*105,vy:Math.sin(a)*105,life:2,r:3,damage:23+e.stage*3,pierce:99,color:'#ff5252',enemy:true})}
       if(e.stage>=2)ring(e.x,e.y,42,'#ff4658',.35,55);
     }else if(e.kind===1){
-      ring(e.x,e.y,28,'#ffb04f',.34,48);const count=6+e.stage*2;for(let i=0;i<count;i++){const a=i*TAU/count+e.phase*.3;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*118,vy:Math.sin(a)*118,life:1.8,r:3,damage:14+e.stage*3,pierce:99,color:'#ffb04f',enemy:true})}
+      ring(e.x,e.y,28,'#ffb04f',.34,48);const count=6+e.stage*2;for(let i=0;i<count;i++){const a=i*TAU/count+e.phase*.3;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*118,vy:Math.sin(a)*118,life:1.8,r:3,damage:18+e.stage*4,pierce:99,color:'#ffb04f',enemy:true})}
     }else if(e.kind===2){
-      const a=Math.atan2(dy,dx);for(let s=-2;s<=2;s++){const aa=a+s*.11;projectiles.push({x:e.x,y:e.y,vx:Math.cos(aa)*165,vy:Math.sin(aa)*165,life:1.6,r:3,damage:12+e.stage*2,pierce:99,color:'#ff6a6a',enemy:true})}if(e.stage>=2)for(let i=0;i<2;i++)spawnEnemy();
+      const a=Math.atan2(dy,dx);for(let s=-2;s<=2;s++){const aa=a+s*.11;projectiles.push({x:e.x,y:e.y,vx:Math.cos(aa)*165,vy:Math.sin(aa)*165,life:1.6,r:3,damage:16+e.stage*3,pierce:99,color:'#ff6a6a',enemy:true})}if(e.stage>=2)for(let i=0;i<2;i++)spawnEnemy();
     }else if(e.kind===3){
-      ring(e.x,e.y,34,'#c96cff',.45,58);for(let i=0;i<4+e.stage;i++){const a=i*TAU/(4+e.stage)+e.phase;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*92,vy:Math.sin(a)*92,life:2.2,r:4,damage:16+e.stage*2,pierce:99,color:'#c66cff',enemy:true})}if(e.stage>=2){spawnEnemy();spawnEnemy();}
+      ring(e.x,e.y,34,'#c96cff',.45,58);for(let i=0;i<4+e.stage;i++){const a=i*TAU/(4+e.stage)+e.phase;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*92,vy:Math.sin(a)*92,life:2.2,r:4,damage:20+e.stage*3,pierce:99,color:'#c66cff',enemy:true})}if(e.stage>=2){spawnEnemy();spawnEnemy();}
     }else if(e.kind===4){
-      const a=Math.atan2(dy,dx);for(let s=-3;s<=3;s++){const aa=a+s*.07;projectiles.push({x:e.x,y:e.y,vx:Math.cos(aa)*190,vy:Math.sin(aa)*190,life:1.4,r:2.5,damage:10+e.stage*2,pierce:99,color:'#dfe7f2',enemy:true})}
+      const a=Math.atan2(dy,dx);for(let s=-3;s<=3;s++){const aa=a+s*.07;projectiles.push({x:e.x,y:e.y,vx:Math.cos(aa)*190,vy:Math.sin(aa)*190,life:1.4,r:2.5,damage:14+e.stage*3,pierce:99,color:'#dfe7f2',enemy:true})}
       if(e.stage===3)e.lunge=.42;
     }else{
-      ring(e.x,e.y,52,'#ef5862',.3,66);for(let i=0;i<8+e.stage*2;i++){const a=i*TAU/(8+e.stage*2)+e.phase*.2;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*78,vy:Math.sin(a)*78,life:2.3,r:4,damage:13+e.stage*3,pierce:99,color:'#ef5862',enemy:true})}
+      ring(e.x,e.y,52,'#ef5862',.3,66);for(let i=0;i<8+e.stage*2;i++){const a=i*TAU/(8+e.stage*2)+e.phase*.2;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*78,vy:Math.sin(a)*78,life:2.3,r:4,damage:18+e.stage*4,pierce:99,color:'#ef5862',enemy:true})}
     }
    }
    const bm=e.stage===3?1.35:1;
    if(e.kind===4&&e.lunge>0)e.x+=nx*170*dt,e.y+=ny*170*dt;else{e.x+=nx*e.speed*bm*dt;e.y+=ny*e.speed*bm*dt}
-   if(d<35)hurtPlayer(tp,dt*(11+e.stage*2),e.x,e.y);
+   if(d<38)hurtPlayer(tp,dt*(15+e.stage*3),e.x,e.y);
   }else if(e.type==='eye'){
    const desired=d>185?1:-1;e.x+=nx*e.speed*dt*desired;e.y+=ny*e.speed*dt*desired;e.attack-=dt;
    if(e.attack<=0){e.attack=1.0+Math.random()*.45;const a=Math.atan2(dy,dx);for(let q=-1;q<=1;q++){const aa=a+q*.08;projectiles.push({x:e.x,y:e.y,vx:Math.cos(aa)*150,vy:Math.sin(aa)*150,life:1.8,r:3,damage:9,pierce:99,color:'#e64b62',enemy:true})}}
@@ -1041,6 +1070,7 @@ addEventListener('keydown',e=>{keys.add(e.code);if(e.code==='Digit7')player2.wea
 function screenToGame(clientX,clientY){const r=c.getBoundingClientRect();const scale=Math.min(r.width/W,r.height/H);const dw=W*scale,dh=H*scale;const ox=r.left+(r.width-dw)/2,oy=r.top+(r.height-dh)/2;return {x:clamp((clientX-ox)/scale,0,W),y:clamp((clientY-oy)/scale,0,H)}}
 c.addEventListener('mousemove',e=>{const p=screenToGame(e.clientX,e.clientY);mouse.x=p.x;mouse.y=p.y});c.addEventListener('mousedown',e=>{initAudio();if(e.button===0){mouse.down=true;if(state==='game')attack()}});addEventListener('mouseup',e=>{if(e.button===0)mouse.down=false});
 document.querySelectorAll('.langBtn').forEach(b=>b.addEventListener('click',()=>setLanguage(b.dataset.lang)));
+document.addEventListener('pointerdown',()=>{if(state==='menu'){initAudio();startMenuMusic()}},{passive:true});
 setupMobile();
 setLanguage(lang);
 document.getElementById('startBtn').onclick=()=>{initAudio();startGame()};
