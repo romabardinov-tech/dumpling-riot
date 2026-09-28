@@ -7,9 +7,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="./manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="Dumpling Riot">
-<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">
 <title>DUMPLING RIOT — Pixel Horror</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#09070b;color:#f6efd9;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
@@ -25,9 +25,9 @@ canvas{display:block;width:100%;height:100%;background:#0b0910;image-rendering:p
 .weapon{width:78px;height:34px;border:2px solid #3a2c3e;background:#130f18;position:relative;padding:4px 5px;pointer-events:auto;cursor:pointer;user-select:none}.weapon.sel{border-color:#f4b748;background:#251b18;box-shadow:2px 2px 0 #000}.weapon b{font-size:10px}.weapon span{display:block;font-size:7px;color:#8f8295;margin-top:2px}.cd{position:absolute;right:3px;top:3px;font-size:7px;color:#ff7a78}
 .relic-card{border:2px solid #c78cff;background:#1b1122;box-shadow:3px 3px 0 #000;padding:7px 9px;color:#ecd8ff;font-size:8px;text-transform:uppercase;letter-spacing:.4px}.relic-card b{display:block;color:#d59cff;font-size:10px;margin-bottom:2px}.relic-pulse{animation:relicpulse .75s steps(2,end) infinite}@keyframes relicpulse{50%{filter:brightness(1.7)}}
 #toast{position:absolute;top:41px;left:50%;transform:translateX(-50%);padding:5px 9px;background:#120d15;border:2px solid #4b364e;color:#ffd76b;font-size:9px;opacity:0;transition:opacity .08s;pointer-events:none}.show{opacity:1!important}
-#menu,#levelup,#pauseOverlay,#gameover{position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,rgba(76,28,38,.3),rgba(7,5,9,.96) 65%);display:grid;place-items:center;z-index:80}
+#menu,#levelup,#pauseOverlay,#gameover{position:absolute;inset:0;pointer-events:auto;touch-action:manipulation;background:radial-gradient(circle at 50% 35%,rgba(76,28,38,.3),rgba(7,5,9,.96) 65%);display:grid;place-items:center;z-index:80}
 .box{width:min(800px,90%);background:#110d15;border:3px solid #3d2d43;box-shadow:10px 10px 0 #000;padding:18px}.title{font-size:clamp(30px,7vw,62px);font-weight:1000;line-height:.83;letter-spacing:-1px}.title .red{color:#d63f4b}.tag{color:#9f8aa5;font-size:9px;letter-spacing:2px;margin:7px 0 14px}.menuGrid{display:grid;grid-template-columns:1.1fr 1fr;gap:12px}.card{border:2px solid #2f2235;background:#0d0a10;padding:10px}.card h3{margin:0 0 8px;font-size:12px;color:#f0d9ba}.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.choice{border:2px solid #2c2230;background:#17111c;min-height:85px;padding:7px;cursor:pointer}.choice.sel{border-color:#f4b748;background:#24191a}.choice b{font-size:10px}.choice p{margin:5px 0 0;font-size:7px;color:#a998ac;line-height:1.35}.mini{display:flex;justify-content:space-between;align-items:center}.btn{margin-top:11px;width:100%;padding:10px;border:0;background:#d8414d;color:#fff4e5;font:900 11px ui-monospace;cursor:pointer;box-shadow:4px 4px 0 #5b1821}.btn:hover{filter:brightness(1.07)}.hint{font-size:8px;color:#8e8194;line-height:1.55;margin-top:10px}
-.levelChoices{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.upgrade{border:2px solid #4a354f;background:#17111c;padding:12px;cursor:pointer;min-height:120px}.upgrade:hover{border-color:#f4b748}.upgrade h4{margin:0 0 7px;font-size:11px;color:#f3cf8b}.upgrade p{margin:0;color:#a997aa;font-size:8px;line-height:1.5}.pauseBadge{margin-bottom:8px;color:#5fe0a5;font-size:9px;letter-spacing:1px}
+.levelChoices{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.upgrade{border:2px solid #4a354f;background:#17111c;padding:12px;cursor:pointer;min-height:120px;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-appearance:none;appearance:none;text-align:left;width:100%;color:inherit;font:inherit;display:block;position:relative;z-index:200}.upgrade:hover{border-color:#f4b748}.upgrade h4{margin:0 0 7px;font-size:11px;color:#f3cf8b}.upgrade p{margin:0;color:#a997aa;font-size:8px;line-height:1.5}.pauseBadge{margin-bottom:8px;color:#5fe0a5;font-size:9px;letter-spacing:1px}
 @media(max-width:650px){.menuGrid{grid-template-columns:1fr}.choices{grid-template-columns:1fr}.choice{min-height:65px}.levelChoices{grid-template-columns:1fr}.box{padding:12px}.panel{font-size:8px}.weapon{width:48px}}
 
 /* MOBILE / TOUCH */
@@ -153,12 +153,45 @@ const world={w:1920,h:1080};
 const camera={x:960,y:540,smooth:0.12};
 let relicOwned=false;
 let horrorTime=0;
-let audioCtx=null, masterGain=null;
+let audioCtx=null, masterGain=null, musicGain=null, musicTimer=null, musicStep=0, musicStarted=false;
+function playMusicNote(freq,when,dur=.52,vol=.028){
+ if(!audioCtx||!musicGain)return;
+ const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+ o.type='triangle'; o.frequency.setValueAtTime(freq,when); o.connect(g); g.connect(musicGain);
+ g.gain.setValueAtTime(.0001,when);
+ g.gain.exponentialRampToValueAtTime(vol,when+.025);
+ g.gain.exponentialRampToValueAtTime(.0001,when+dur);
+ o.start(when); o.stop(when+dur+.03);
+}
+function scheduleHorrorMusic(){
+ if(!audioCtx||!musicGain)return;
+ const notes=[146.83,174.61,220,261.63,220,174.61,164.81,130.81,146.83,174.61,220,293.66,261.63,220,174.61,130.81];
+ const now=audioCtx.currentTime+.04, beat=.62, n=notes[musicStep%notes.length];
+ playMusicNote(n,now,.52,.028);
+ if(musicStep%4===0)playMusicNote(n/2,now,.85,.010);
+ musicStep++;
+ musicTimer=setTimeout(scheduleHorrorMusic,beat*1000);
+}
+function startHorrorMusic(){
+ if(musicStarted||!audioCtx||!musicGain)return;
+ musicStarted=true;
+ musicGain.gain.setValueAtTime(.0001,audioCtx.currentTime);
+ musicGain.gain.exponentialRampToValueAtTime(.055,audioCtx.currentTime+.8);
+ scheduleHorrorMusic();
+}
 function initAudio(){
- if(audioCtx) return;
  try{
-  audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-  masterGain=audioCtx.createGain(); masterGain.gain.value=.12; masterGain.connect(audioCtx.destination);
+  if(!audioCtx){
+   audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+   masterGain=audioCtx.createGain();
+   masterGain.gain.value=.12;
+   masterGain.connect(audioCtx.destination);
+   musicGain=audioCtx.createGain();
+   musicGain.gain.value=.0;
+   musicGain.connect(masterGain);
+  }
+  if(audioCtx.state==='suspended')audioCtx.resume();
+  startHorrorMusic();
  }catch(e){audioCtx=null}
 }
 function sfx(kind){
@@ -228,6 +261,7 @@ function toast(s){const el=document.getElementById('toast');el.textContent=s;el.
 function setHud(on){document.getElementById('hud').style.display=on?'block':'none';const mc=document.getElementById('mobileControls');if(mc){mc.style.display=on?'':'none';mc.style.pointerEvents=on?'auto':'none';document.documentElement.classList.toggle('inGame',!!on);mc.setAttribute('aria-hidden',on?'false':'true')}}
 function requestMobileFullscreen(){try{if(!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}if(screen.orientation&&screen.orientation.lock){const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
 function startGame(){
+ initAudio();
  const ch=chars.find(x=>x.id===selectedChar);player.x=world.w/2;player.y=world.h/2;player.hp=player.maxhp=ch.hp;player.xp=0;player.next=100;player.lvl=1;player.speed=ch.speed;player.dash=0;player.bomb=3;player.inv=0;player.fire=0;player.boost={dmg:1,rate:1,move:1,crit:0};
  weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];deathTimer=0;deathPhase=0;player.dead=false;player.hurtT=0;player.hurtLean=0;relicOwned=false;horrorTime=0;camera.x=player.x;camera.y=player.y;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast('ВОЛНА 1');if(location.protocol!=='file:')requestMobileFullscreen();}
 function goMenu(){state='menu';document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu()}
@@ -272,7 +306,7 @@ function updateDeath(dt){deathTimer+=dt;deathPhase+=dt*3.2;for(const e of enemie
 function ring(x,y,r,color,life=.25,max=28){rings.push({x,y,r:2,max,color,life,maxlife:life})}
 function floatText(x,y,s,color='#ffd76b'){texts.push({x,y,s,life:.7,color})}
 function gainXP(v){player.xp+=v;while(player.xp>=player.next){player.xp-=player.next;player.next=Math.floor(player.next*1.18);player.lvl++;pauseLevelUp()}}
-function pauseLevelUp(){state='levelup';document.getElementById('levelUpNum').textContent=player.lvl;const opts=pickUpgrades();const box=document.getElementById('upgradeChoices');box.innerHTML='';for(const o of opts){const d=document.createElement('div');d.className='upgrade';d.innerHTML=`<h4>${o.title}</h4><p>${o.desc}</p>`;d.onclick=()=>{o.apply();document.getElementById('levelup').style.display='none';state='game';toast('УЛУЧШЕНИЕ: '+o.title)};box.appendChild(d)}document.getElementById('levelup').style.display='grid'}
+function pauseLevelUp(){state='levelup';document.getElementById('levelUpNum').textContent=player.lvl;const opts=pickUpgrades();const box=document.getElementById('upgradeChoices');box.innerHTML='';for(const o of opts){const d=document.createElement('button');d.type='button';d.className='upgrade';d.innerHTML=`<h4>${o.title}</h4><p>${o.desc}</p>`;const activate=()=>{o.apply();document.getElementById('levelup').style.display='none';state='game';toast('УЛУЧШЕНИЕ: '+o.title)};d.onclick=e=>{if(d.dataset.touchHandled==='1'){d.dataset.touchHandled='0';e.preventDefault();return}activate()};d.addEventListener('touchend',e=>{e.preventDefault();d.dataset.touchHandled='1';activate()},{passive:false});box.appendChild(d)}document.getElementById('levelup').style.display='grid'}
 function pickUpgrades(){
  const pool=[
   {title:'+25% ОБЩИЙ УРОН',desc:'Увеличивает урон всего оружия.',apply:()=>player.boost.dmg*=1.25},
@@ -826,6 +860,5 @@ window.addEventListener('unhandledrejection',e=>{const msg=(e&&e.reason&&e.reaso
 function frame(now){const raw=Math.min(.1,(now-last)/1000||0);last=now;acc+=raw;const step=1/60;while(acc>=step){update(step);acc-=step}shake=Math.max(0,shake-raw);if(state==='game')updateHud();render();requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 </script>
-<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}</script>
 </body>
 </html>
