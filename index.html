@@ -317,7 +317,7 @@ function setupPeer(hostMode=false){
          netConn=c;
          isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;
          wireNet(c);
-         setOnlineStatus('Игрок подключён. Можно начинать игру.');
+         setOnlineStatus('Игрок подключён. Запускаем игру.'); if(state==='menu') startGame();
        });
        peer.on('error',fail);
        peer.on('disconnected',()=>setOnlineStatus('Онлайн: сервер отключён. Попробуй ещё раз.'));
@@ -331,7 +331,7 @@ function setupPeer(hostMode=false){
 function wireNet(c){
  c.on('open',()=>setOnlineStatus(isOnlineHost?'Игрок подключён.':'Подключено к комнате '+netRoom));
  c.on('data',m=>{
-  if(m.t==='hello'){netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;setOnlineStatus('Подключено. Ждём старта хоста.')}
+  if(m.t==='hello'){netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;setOnlineStatus('Подключено. Ждём запуска игры.');}
   if(m.t==='input'&&isOnlineHost){touchInput.p2MoveX=Number(m.mx)||0;touchInput.p2MoveY=Number(m.my)||0;player2.weapon=clamp(Number(m.weapon)||0,0,3)}
   if(m.t==='dash'&&isOnlineHost)dashFor(player2);
   if(m.t==='bomb'&&isOnlineHost)bombFor(player2);
@@ -352,7 +352,7 @@ function sendNet(m){if(netConn&&netConn.open)try{netConn.send(m)}catch(e){}}
 function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus('Сначала создай комнату и дождись игрока.');return false}sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false){
  initAudio();
- if(onlineMode&&!isOnlineHost&&!fromNetwork){if(!startOnlineHost())return}
+ if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
  resetPlayer(player,ch,world.w/2-18,world.h/2);resetPlayer(player2,ch2,world.w/2+18,world.h/2);
  player.weapon=0;player2.weapon=coop?1:0;
