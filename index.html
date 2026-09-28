@@ -317,7 +317,7 @@ function setupPeer(hostMode=false){
          netConn=c;
          isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;
          wireNet(c);
-         setOnlineStatus('Игрок подключён. Запускаем игру.'); if(state==='menu') startGame();
+         setOnlineStatus('Игрок подключён. Запускаем игру.'); if(state==='menu'){sendNet({t:'start',map:selectedMap});startGame();}
        });
        peer.on('error',fail);
        peer.on('disconnected',()=>setOnlineStatus('Онлайн: сервер отключён. Попробуй ещё раз.'));
