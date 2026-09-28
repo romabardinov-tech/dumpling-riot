@@ -162,7 +162,7 @@ const weaponLevels=[1,1,1,1];
 function weaponStats(i){const w=weapons[i],lv=weaponLevels[i];return {...w,dmg:w.dmg*(1+(lv-1)*.28),rate:w.rate*Math.pow(.93,lv-1),speed:w.speed*(1+(lv-1)*.055),pierce:w.pierce+Math.floor((lv-1)/3),level:lv};}
 
 let state='menu',selectedChar=chars[0].id,selectedMap=maps[0].id,weapon=0,last=0,acc=0;
-let coop=false,onlineMode=false,isOnlineHost=false,isOnlineGuest=false;let peer=null,netConn=null,netRoom='';let netSendTimer=0;
+let coop=false,onlineMode=false,isOnlineHost=false,isOnlineGuest=false;let peer=null,netConn=null,netRoom='';let netSendTimer=0,peerReadyPromise=null;
 let lang=localStorage.getItem('dumpling-riot-lang')||'ru';
 const world={w:1920,h:1080};
 const camera={x:960,y:540,smooth:0.12};
@@ -288,12 +288,38 @@ function requestMobileFullscreen(){try{if(!(window.matchMedia&&window.matchMedia
 function resetPlayer(p,ch,x,y){p.charId=ch.id;p.x=x;p.y=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.hurtT=0;p.hurtLean=0;p.boost={dmg:1,rate:1,move:1,crit:0}}
 function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e)e.textContent=t}
 function setupPeer(){
- if(peer)return;
- if(typeof Peer==='undefined'){setOnlineStatus('Не удалось загрузить онлайн-модуль. Обнови страницу.');return}
- peer=new Peer();
- peer.on('open',id=>{netRoom=id;setOnlineStatus('Код комнаты: '+id);const i=document.getElementById('roomCodeInput');if(i)i.value=id});
- peer.on('connection',c=>{if(netConn){c.close();return}netConn=c;isOnlineHost=true;isOnlineGuest=false;wireNet(c);setOnlineStatus('Игрок подключился. Нажмите НАЧАТЬ ИГРУ.')});
- peer.on('error',e=>setOnlineStatus('Онлайн: '+(e.type||'ошибка')));
+ if(typeof Peer==='undefined'){setOnlineStatus('Не удалось загрузить онлайн-модуль. Обнови страницу.');return Promise.reject(new Error('PeerJS не загружен'))}
+ if(peerReadyPromise)return peerReadyPromise;
+ peerReadyPromise=new Promise((resolve,reject)=>{
+   try{
+     peer=new Peer(undefined,{host:'0.peerjs.com',port:443,path:'/',secure:true,debug:0});
+     let settled=false;
+     const fail=e=>{
+       const type=e&&e.type?e.type:'ошибка';
+       const msg=e&&e.message?e.message:'';
+       setOnlineStatus('Онлайн: ошибка '+type+(msg?' — '+msg:''));
+       if(!settled){settled=true;reject(e||new Error(type))}
+     };
+     peer.on('open',id=>{
+       settled=true;
+       netRoom=id;
+       setOnlineStatus('Код комнаты: '+id);
+       const i=document.getElementById('roomCodeInput');if(i)i.value=id;
+       resolve(id);
+     });
+     peer.on('connection',c=>{
+       if(netConn){c.close();return}
+       netConn=c;
+       isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;
+       wireNet(c);
+       setOnlineStatus('Игрок подключился. Нажмите НАЧАТЬ ИГРУ.');
+     });
+     peer.on('error',fail);
+     peer.on('disconnected',()=>setOnlineStatus('Онлайн: соединение с сервером разорвано. Нажми подключиться снова.'));
+     peer.on('close',()=>setOnlineStatus('Онлайн: соединение закрыто.'));
+   }catch(e){peer=null;peerReadyPromise=null;reject(e)}
+ });
+ return peerReadyPromise;
 }
 function wireNet(c){
  c.on('open',()=>setOnlineStatus(isOnlineHost?'Игрок подключён.':'Подключено к комнате '+netRoom));
@@ -935,8 +961,23 @@ document.querySelectorAll('.langBtn').forEach(b=>b.addEventListener('click',()=>
 setupMobile();
 setLanguage(lang);
 document.getElementById('startBtn').onclick=()=>{initAudio();startGame()};
-document.getElementById('createRoomBtn')?.addEventListener('click',()=>{setupPeer();isOnlineHost=true;isOnlineGuest=false;setOnlineStatus('Создаём комнату...')});
-document.getElementById('joinRoomBtn')?.addEventListener('click',()=>{setupPeer();const code=(document.getElementById('roomCodeInput')?.value||'').trim();if(!code){setOnlineStatus('Введи код комнаты.');return}const c=peer.connect(code);netConn=c;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;wireNet(c);c.on('open',()=>c.send({t:'hello',room:code}));setOnlineStatus('Подключаемся...')});document.getElementById('retryBtn').onclick=()=>{initAudio();startGame()};document.getElementById('menuBtn').onclick=goMenu;
+document.getElementById('createRoomBtn')?.addEventListener('click',async()=>{
+ setOnlineStatus('Создаём комнату...');
+ try{await setupPeer();isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;setOnlineStatus('Код комнаты: '+netRoom)}
+ catch(e){}
+});
+document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
+ const code=(document.getElementById('roomCodeInput')?.value||'').trim();
+ if(!code){setOnlineStatus('Введи код комнаты.');return}
+ setOnlineStatus('Подключаемся к '+code+'...');
+ try{
+   await setupPeer();
+   const c=peer.connect(code,{reliable:true});
+   netConn=c;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;wireNet(c);
+   c.on('open',()=>{c.send({t:'hello',room:netRoom||code});setOnlineStatus('Подключено. Ждём старта хоста.')});
+   c.on('error',e=>setOnlineStatus('Онлайн: ошибка подключения '+(e&&e.type?e.type:'unknown')+(e&&e.message?' — '+e.message:'')));
+ }catch(e){}
+});document.getElementById('retryBtn').onclick=()=>{initAudio();startGame()};document.getElementById('menuBtn').onclick=goMenu;
 
 window.addEventListener('error',e=>{const msg=(e&&e.error&&e.error.message)||e.message||'Неизвестная ошибка';const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
 window.addEventListener('unhandledrejection',e=>{const msg=(e&&e.reason&&e.reason.message)||String(e.reason||'Promise error');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
