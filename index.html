@@ -829,11 +829,16 @@ function updateProjectiles(dt){
 }
 function updateRings(dt){
  for(const r of rings){
-  r.life-=dt;r.r=lerp(r.r,r.max,.3);
-  if(r.damage&&!r.hit){
-   r.hit=new Set();
+  r.life-=dt;
+  r.r=lerp(r.r,r.max,.3);
+  if(r.damage){
+   if(!r.hit)r.hit=new Set();
    for(const e of enemies){
-    if(Math.hypot(r.x-e.x,r.y-e.y)<r.r+e.r&&!r.hit.has(e)){damageEnemy(e,r.damage);r.hit.add(e)}
+    if(e.dead||r.hit.has(e))continue;
+    if(Math.hypot(r.x-e.x,r.y-e.y)<r.r+e.r){
+     damageEnemy(e,r.damage);
+     r.hit.add(e);
+    }
    }
   }
  }
