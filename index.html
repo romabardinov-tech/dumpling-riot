@@ -439,8 +439,16 @@ function startGame(fromNetwork=false){
 }
 function goMenu(){state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu()}
 function beginWave(){
- waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];targetCount=wave%5===0?1:Math.min(7+Math.floor(wave*1.5),18);document.getElementById('bossHud').style.display='none';
- if(wave%5===0){boss=makeBoss(wave);enemies.push(boss);targetCount=1;initAudio();sfx('boss');toast('БОСС: '+boss.name)} else for(let i=0;i<targetCount;i++)spawnEnemy();
+ waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];
+ // Enemy count ramps hard: later waves become crowded, not just tougher individually.
+ const bossWave=wave%5===0;
+ targetCount=bossWave?1+Math.min(7+Math.floor(wave*.9),22):Math.min(10+Math.floor(wave*2.35),42);
+ document.getElementById('bossHud').style.display='none';
+ if(bossWave){
+   boss=makeBoss(wave);enemies.push(boss);
+   for(let i=1;i<targetCount;i++)spawnEnemy();
+   initAudio();sfx('boss');toast('БОСС: '+boss.name);
+ }else for(let i=0;i<targetCount;i++)spawnEnemy();
 }
 function makeBoss(w){
  const idx=((w/5-1)|0);
@@ -453,14 +461,15 @@ function makeBoss(w){
 }
 function spawnEnemy(){
  const edge=rndi(0,3);let x,y;if(edge===0){x=arena.l+4;y=rnd(arena.t+5,arena.b-5)}else if(edge===1){x=arena.r-4;y=rnd(arena.t+5,arena.b-5)}else if(edge===2){x=rnd(arena.l+5,arena.r-5);y=arena.t+4}else{x=rnd(arena.l+5,arena.r-5);y=arena.b-4}
- const pool=['fork','pepper','knife','plate'];
- if(wave>=2)pool.push('crawler','butcher','slicer');
- if(wave>=3)pool.push('stalker','maw','boiler');
- if(wave>=4)pool.push('eye','spitter','parasite');
- if(wave>=5)pool.push('siren','hands');
- if(wave>=7)pool.push('wretch');
- if(wave>=9)pool.push('feaster');
- const t=pick(pool);
+ const base=['fork','pepper','knife','plate'];
+ // Every wave unlocks another enemy family. New types are weighted heavily on their debut wave,
+ // then become part of the growing pool so the roster keeps getting more dangerous.
+ const unlocks={2:'crawler',3:'stalker',4:'eye',5:'siren',6:'wretch',7:'spitter',8:'parasite',9:'feaster',10:'hands',11:'butcher',12:'slicer',13:'boiler',14:'maw'};
+ const unlocked=[];
+ for(let w=2;w<=wave;w++)if(unlocks[w])unlocked.push(unlocks[w]);
+ const pool=base.concat(unlocked);
+ const fresh=unlocks[wave];
+ const t=fresh&&Math.random()<.42?fresh:pick(pool);
  const stats={
   fork:[36,48,8],pepper:[38,42,8],knife:[45,54,9],plate:[62,34,10],
   crawler:[30,78,7],stalker:[52,70,9],eye:[44,30,10],butcher:[105,25,14],wretch:[72,50,12],
@@ -468,7 +477,8 @@ function spawnEnemy(){
   siren:[68,34,12],hands:[46,82,9],feaster:[125,38,15]
  }[t];
  const mul=1+wave*.07;
- enemies.push({type:t,x,y,hp:stats[0]*mul,maxhp:stats[0]*mul,speed:stats[1]+wave*.7,r:stats[2],hit:0,phase:rnd(0,TAU),attack:rnd(.2,1.2),lunge:0,orbit:rnd(-1,1),hitT:0,hitLean:0});
+ const eliteBoost=wave>=8?1+(wave-7)*.035:1;
+ enemies.push({type:t,x,y,hp:stats[0]*mul*eliteBoost,maxhp:stats[0]*mul*eliteBoost,speed:stats[1]+wave*.7+(wave>=6?(wave-5)*.8:0),r:stats[2],hit:0,phase:rnd(0,TAU),attack:rnd(.2,1.2),lunge:0,orbit:rnd(-1,1),hitT:0,hitLean:0});
 }
 
 function spawnParticles(x,y,n,color,force=1){for(let i=0;i<n;i++){const a=rnd(0,TAU),s=rnd(20,90)*force;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.25,.7),max:.7,size:rndi(1,3),color})}}
@@ -587,7 +597,9 @@ function finishEnemyDeath(e){
    ring(e.x,e.y,60,'#ff4c52',.8,80);ring(e.x,e.y,92,'#b56cff',1.1,116);
    spawnParticles(e.x,e.y,50,'#ff4c52',2);spawnParticles(e.x,e.y,28,'#c67aff',1.8);
    drops.push({x:e.x,y:e.y-4,type:'relic',life:24,pulse:0});
-   boss=null;toast('БОСС ПОВЕРЖЕН — СЕРДЦЕ КУХНИ ЖДЁТ');waveState='clear';between=2.2;
+   boss=null;toast('БОСС ПОВЕРЖЕН — СЕРДЦЕ КУХНИ ЖДЁТ');
+   // On boss waves the minions must also be cleared before the next wave starts.
+   if(enemies.every(x=>x.dead||x===e)) {waveState='clear';between=2.2}
  }else{
    drops.push({x:e.x,y:e.y,type:Math.random()<.18?'bomb':'xp',life:8});
  }
