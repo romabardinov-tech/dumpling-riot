@@ -168,7 +168,7 @@ const world={w:1920,h:1080};
 const camera={x:960,y:540,smooth:0.12};
 let relicOwned=false;
 let horrorTime=0;
-let audioCtx=null, masterGain=null, musicGain=null, musicTimer=null, musicStep=0, musicStarted=false; let drone1=null,drone2=null,menuMusicTimer=null,menuMusicStep=0,menuGain=null;
+let audioCtx=null, masterGain=null, musicGain=null, musicTimer=null, musicStep=0, musicStarted=false; let drone1=null,drone2=null,menuMusicTimer=null,menuMusicStep=0,menuGain=null,musicMode='off';
 function playMusicNote(freq,when,dur=.56,vol=.035,type='triangle',outGain=null){
  const out=outGain||musicGain;
  if(!audioCtx||!out)return;
@@ -203,9 +203,21 @@ function scheduleHorrorMusic(){
  musicStep++;
  musicTimer=setTimeout(scheduleHorrorMusic,beat*1000);
 }
+function stopHorrorMusic(){
+ if(musicTimer){clearTimeout(musicTimer);musicTimer=null}
+ musicStep=0;
+ if(audioCtx&&musicGain){
+  const now=audioCtx.currentTime;
+  musicGain.gain.cancelScheduledValues(now);
+  musicGain.gain.setTargetAtTime(.0001,now,.04);
+ }
+ [drone1,drone2].forEach(o=>{try{o&&o.stop()}catch(_){}});
+ drone1=null;drone2=null;musicStarted=false;
+}
 function startHorrorMusic(){
+ musicMode='game';
  initAudio().then(()=>{
-  if(!audioCtx||!musicGain)return;
+  if(musicMode!=='game'||!audioCtx||!musicGain)return;
   stopMenuMusic();
   if(musicStarted)return;
   musicStarted=true;
@@ -239,8 +251,10 @@ function scheduleMenuMusic(){
  menuMusicTimer=setTimeout(scheduleMenuMusic,beat*1000);
 }
 function startMenuMusic(){
+ musicMode='menu';
  initAudio().then(()=>{
-  if(!audioCtx||!masterGain)return;
+  if(musicMode!=='menu'||!audioCtx||!masterGain)return;
+  stopHorrorMusic();
   if(!menuGain){menuGain=audioCtx.createGain();menuGain.gain.value=.0001;menuGain.connect(masterGain)}
   stopMenuMusic();
   musicGain.gain.cancelScheduledValues(audioCtx.currentTime);
@@ -412,8 +426,6 @@ function netState(){
 function sendNet(m){if(netConn&&netConn.open)try{netConn.send(m)}catch(e){}}
 function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus('Сначала создай комнату и дождись игрока.');return false}sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false){
- initAudio();
- stopMenuMusic();
  startHorrorMusic();
  if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
@@ -421,7 +433,7 @@ function startGame(fromNetwork=false){
  player.weapon=0;player2.weapon=coop?1:0;
  weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast(coop?'2 ИГРОКА · ВОЛНА 1':'ВОЛНА 1');if(location.protocol!=='file:')requestMobileFullscreen();
 }
-function goMenu(){state='menu';document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu()}
+function goMenu(){state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu()}
 function beginWave(){
  waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];targetCount=wave%5===0?1:Math.min(7+Math.floor(wave*1.5),18);document.getElementById('bossHud').style.display='none';
  if(wave%5===0){boss=makeBoss(wave);enemies.push(boss);targetCount=1;initAudio();sfx('boss');toast('БОСС: '+boss.name)} else for(let i=0;i<targetCount;i++)spawnEnemy();
@@ -1080,7 +1092,7 @@ addEventListener('keydown',e=>{keys.add(e.code);if(e.code==='Digit7')player2.wea
 function screenToGame(clientX,clientY){const r=c.getBoundingClientRect();const scale=Math.min(r.width/W,r.height/H);const dw=W*scale,dh=H*scale;const ox=r.left+(r.width-dw)/2,oy=r.top+(r.height-dh)/2;return {x:clamp((clientX-ox)/scale,0,W),y:clamp((clientY-oy)/scale,0,H)}}
 c.addEventListener('mousemove',e=>{const p=screenToGame(e.clientX,e.clientY);mouse.x=p.x;mouse.y=p.y});c.addEventListener('mousedown',e=>{initAudio();if(e.button===0){mouse.down=true;if(state==='game')attack()}});addEventListener('mouseup',e=>{if(e.button===0)mouse.down=false});
 document.querySelectorAll('.langBtn').forEach(b=>b.addEventListener('click',()=>setLanguage(b.dataset.lang)));
-document.addEventListener('pointerdown',()=>{initAudio();if(state==='menu')startMenuMusic()},{passive:true});
+document.addEventListener('pointerdown',()=>{if(state==='menu')startMenuMusic();else initAudio()},{passive:true});
 setupMobile();
 setLanguage(lang);
 document.getElementById('startBtn').onclick=()=>{initAudio();startGame()};
