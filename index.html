@@ -312,7 +312,7 @@ function setupPeer(){
        netConn=c;
        isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;
        wireNet(c);
-       setOnlineStatus('Игрок подключился. Нажмите НАЧАТЬ ИГРУ.');
+       setOnlineStatus('Игрок подключён. Оба игрока в комнате — можно начинать игру.');
      });
      peer.on('error',fail);
      peer.on('disconnected',()=>setOnlineStatus('Онлайн: соединение с сервером разорвано. Нажми подключиться снова.'));
@@ -324,7 +324,7 @@ function setupPeer(){
 function wireNet(c){
  c.on('open',()=>setOnlineStatus(isOnlineHost?'Игрок подключён.':'Подключено к комнате '+netRoom));
  c.on('data',m=>{
-  if(m.t==='hello'){netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;setOnlineStatus('Подключено. Ждём старта хоста.')}
+  if(m.t==='hello'){netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;setOnlineStatus('Подключено. Ждём второго игрока / старта хоста.')}
   if(m.t==='input'&&isOnlineHost){touchInput.p2MoveX=Number(m.mx)||0;touchInput.p2MoveY=Number(m.my)||0;player2.weapon=clamp(Number(m.weapon)||0,0,3)}
   if(m.t==='dash'&&isOnlineHost)dashFor(player2);
   if(m.t==='bomb'&&isOnlineHost)bombFor(player2);
@@ -554,7 +554,7 @@ function togglePause(){
  if(state==='pause'){state='game';setMobileControls(true);document.getElementById('pauseOverlay').style.display='none';initAudio();return;}
 }
 function update(dt){
- if(onlineMode&&isOnlineGuest){netSend({t:'input',mx:touchInput.moveX||((keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0)),my:touchInput.moveY||((keys.has('ArrowDown')?1:0)-(keys.has('ArrowUp')?1:0)),weapon:player2.weapon});return}
+ if(onlineMode&&isOnlineGuest){sendNet({t:'input',mx:touchInput.moveX||((keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0)),my:touchInput.moveY||((keys.has('ArrowDown')?1:0)-(keys.has('ArrowUp')?1:0)),weapon:player2.weapon});return}
  if(onlineMode&&isOnlineHost){netSendTimer-=dt;if(netSendTimer<=0){netSendTimer=.067;sendNet({t:'state',s:netState()})}}
 
  if(state==='death'){updateDeath(dt);updateFx(dt);return;}
