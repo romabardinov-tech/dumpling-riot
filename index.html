@@ -169,23 +169,25 @@ const camera={x:960,y:540,smooth:0.12};
 let relicOwned=false;
 let horrorTime=0;
 let audioCtx=null, masterGain=null, musicGain=null, musicTimer=null, musicStep=0, musicStarted=false; let drone1=null,drone2=null,menuMusicTimer=null,menuMusicStep=0,menuGain=null;
-function playMusicNote(freq,when,dur=.56,vol=.035,type='triangle'){
- if(!audioCtx||!musicGain)return;
+function playMusicNote(freq,when,dur=.56,vol=.035,type='triangle',outGain=null){
+ const out=outGain||musicGain;
+ if(!audioCtx||!out)return;
  const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();
  o.type=type;o.frequency.setValueAtTime(freq,when);
  f.type='lowpass';f.frequency.setValueAtTime(type==='sawtooth'?1250:2200,when);f.Q.value=1.2;
- o.connect(f);f.connect(g);g.connect(musicGain);
+ o.connect(f);f.connect(g);g.connect(out);
  g.gain.setValueAtTime(.0001,when);
  g.gain.exponentialRampToValueAtTime(vol,when+.035);
  g.gain.setValueAtTime(vol*.72,when+dur*.55);
  g.gain.exponentialRampToValueAtTime(.0001,when+dur);
  o.start(when);o.stop(when+dur+.04);
 }
-function playMusicPulse(when,freq=52){
- if(!audioCtx||!musicGain)return;
+function playMusicPulse(when,freq=52,outGain=null){
+ const out=outGain||musicGain;
+ if(!audioCtx||!out)return;
  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
  o.type='sine';o.frequency.setValueAtTime(freq,when);o.frequency.exponentialRampToValueAtTime(freq*.72,when+.22);
- o.connect(g);g.connect(musicGain);g.gain.setValueAtTime(.0001,when);
+ o.connect(g);g.connect(out);g.gain.setValueAtTime(.0001,when);
  g.gain.exponentialRampToValueAtTime(.045,when+.012);g.gain.exponentialRampToValueAtTime(.0001,when+.28);
  o.start(when);o.stop(when+.3);
 }
@@ -227,9 +229,9 @@ function scheduleMenuMusic(){
  if(!audioCtx||!menuGain)return;
  const notes=[82.41,98,92.5,73.42,87.31,103.83,77.78,69.3,82.41,92.5,61.74,73.42,65.41,77.78,58.27,69.3];
  const now=audioCtx.currentTime+.03,beat=.62,n=notes[menuMusicStep%notes.length];
- playMusicNote(n,now,.58,.060,'triangle');
- if(menuMusicStep%2===0)playMusicNote(n*1.5,now,.32,.018,'sine');
- if(menuMusicStep%2===0)playMusicPulse(now,n/2.2);
+ playMusicNote(n,now,.58,.060,'triangle',menuGain);
+ if(menuMusicStep%2===0)playMusicNote(n*1.5,now,.32,.018,'sine',menuGain);
+ if(menuMusicStep%2===0)playMusicPulse(now,n/2.2,menuGain);
  menuMusicStep++;
  menuMusicTimer=setTimeout(scheduleMenuMusic,beat*1000);
 }
@@ -405,6 +407,7 @@ function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus('Снач
 function startGame(fromNetwork=false){
  initAudio();
  stopMenuMusic();
+ startHorrorMusic();
  if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
  resetPlayer(player,ch,world.w/2-18,world.h/2);resetPlayer(player2,ch2,world.w/2+18,world.h/2);
