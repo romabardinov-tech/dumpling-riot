@@ -423,8 +423,50 @@ function startDeath(p){if(!p||p.dead)return;p.dead=true;p.hp=0;p.inv=999;p.vx=0;
 function updateDeath(dt){deathTimer+=dt;deathPhase+=dt*3.2;const deadPlayers=coopPlayers();for(const e of enemies){if(e.dead)continue;const t=deadPlayers.reduce((best,p)=>{const db=Math.hypot(best.x-e.x,best.y-e.y),dp=Math.hypot(p.x-e.x,p.y-e.y);return dp<db?p:best},deadPlayers[0]);const dx=t.x-e.x,dy=t.y-e.y,d=Math.hypot(dx,dy)||1;if(d>17){e.x+=(dx/d)*Math.min(34,d*1.4)*dt;e.y+=(dy/d)*Math.min(34,d*1.4)*dt}else{e.x+=Math.cos(e.phase+deathTimer*8)*.35;e.y+=Math.sin(e.phase+deathTimer*8)*.35}}if(deathTimer>.72&&Math.floor(deathTimer*8)!==Math.floor((deathTimer-dt)*8)){for(const p of deadPlayers)bloodBurst(p.x+rnd(-5,5),p.y+rnd(-5,5),12,1)}if(deathTimer>2.9)endGame()}
 function ring(x,y,r,color,life=.25,max=28){rings.push({x,y,r:2,max,color,life,maxlife:life})}
 function floatText(x,y,s,color='#ffd76b'){texts.push({x,y,s,life:.7,color})}
-function gainXP(v){player.xp+=v;while(player.xp>=player.next){player.xp-=player.next;player.next=Math.floor(player.next*1.18);player.lvl++;pauseLevelUp()}}
-function pauseLevelUp(){state='levelup';setMobileControls(false);document.getElementById('levelUpNum').textContent=player.lvl;const opts=pickUpgrades();const box=document.getElementById('upgradeChoices');box.innerHTML='';for(const o of opts){const d=document.createElement('button');d.type='button';d.className='upgrade';d.innerHTML=`<h4>${o.title}</h4><p>${o.desc}</p>`;d.addEventListener('pointerdown',e=>{e.stopPropagation()},{passive:false});d.addEventListener('touchstart',e=>{e.stopPropagation()},{passive:false});d.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();o.apply();document.getElementById('levelup').style.display='none';state='game';setMobileControls(true);toast('УЛУЧШЕНИЕ: '+o.title)},{passive:false});box.appendChild(d)}}
+let levelupBusy=false;
+function gainXP(v){
+ if(!Number.isFinite(v)||v<=0)return;
+ player.xp+=v;
+ if(state==='levelup')return;
+ if(player.xp>=player.next){
+   player.xp-=player.next;
+   player.next=Math.floor(player.next*1.18);
+   player.lvl++;
+   pauseLevelUp();
+ }
+}
+function pauseLevelUp(){
+ if(levelupBusy)return;
+ levelupBusy=true;
+ state='levelup';
+ setMobileControls(false);
+ const overlay=document.getElementById('levelup');
+ const num=document.getElementById('levelUpNum');
+ const box=document.getElementById('upgradeChoices');
+ if(!overlay||!box){levelupBusy=false;state='game';return}
+ if(num)num.textContent=player.lvl;
+ const opts=pickUpgrades();
+ box.innerHTML='';
+ for(const o of opts){
+   const d=document.createElement('button');
+   d.type='button';d.className='upgrade';
+   d.innerHTML=`<h4>${o.title}</h4><p>${o.desc}</p>`;
+   const choose=e=>{
+     e.preventDefault();e.stopPropagation();
+     if(!levelupBusy||state!=='levelup')return;
+     levelupBusy=false;
+     o.apply();
+     overlay.style.display='none';
+     state='game';
+     setMobileControls(true);
+     toast('УЛУЧШЕНИЕ: '+o.title);
+   };
+   d.addEventListener('pointerup',choose,{passive:false});
+   d.addEventListener('click',e=>{e.preventDefault();e.stopPropagation()},{passive:false});
+   box.appendChild(d);
+ }
+ overlay.style.display='grid';
+}
 function pickUpgrades(){
  const pool=[
   {title:'+25% ОБЩИЙ УРОН',desc:'Увеличивает урон всего оружия.',apply:()=>{for(const p of coopPlayers())p.boost.dmg*=1.25}},
