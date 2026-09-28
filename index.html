@@ -492,7 +492,15 @@ function spawnEnemy(){
 
 function spawnParticles(x,y,n,color,force=1){for(let i=0;i<n;i++){const a=rnd(0,TAU),s=rnd(20,90)*force;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.25,.7),max:.7,size:rndi(1,3),color})}}
 function bloodBurst(x,y,n=12,force=1){for(let i=0;i<n;i++){const a=rnd(0,TAU),s=rnd(22,105)*force;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.35,1.05),max:1.05,size:rndi(1,3),color:pick(['#8e1624','#b51f31','#d73545','#5a0d18'])})}blood.push({x:x+rnd(-2,2),y:y+rnd(-2,2),r:rnd(4,11),a:rnd(.45,.9)});if(blood.length>70)blood.shift()}
-function hurtPlayer(p,dmg,x=p.x,y=p.y){if(state!=='game'||!p||p.inv>0||p.dead)return;p.hp-=dmg;p.inv=.16;p.hurtT=.24;p.hurtLean=(Math.random()<.5?-1:1)*(.16+Math.random()*.12);initAudio();sfx('hurt');sfx('pain');bloodBurst(p.x,p.y,5,.45);shake=Math.max(shake,.07);if(p.hp<=0)startDeath(p)}
+function hurtPlayer(p,dmg,x=p.x,y=p.y){
+ if(state!=='game'||!p||p.inv>0||p.dead)return;
+ const ch=chars.find(c=>c.id===p.charId)||chars[0];
+ if(p.heroUpgrades?.includes('armor'))dmg*=.72;
+ if(ch.id==='golem')dmg*=.78;
+ p.hp-=dmg;p.inv=.16;p.hurtT=.24;p.hurtLean=(Math.random()<.5?-1:1)*(.16+Math.random()*.12);
+ initAudio();sfx('hurt');sfx('pain');bloodBurst(p.x,p.y,5,.45);shake=Math.max(shake,.07);
+ if(p.hp<=0)startDeath(p)
+}
 function startDeath(p){if(!p||p.dead)return;p.dead=true;p.hp=0;p.inv=999;p.vx=0;p.vy=0;shake=.28;bloodBurst(p.x,p.y,70,2.4);blood.push({x:p.x,y:p.y,r:18,a:.95});toast(coop&&!alivePlayers().length?'ОБА ПЕЛЬМЕНЯ ПОВЕРЖЕНЫ':(p===player?'P1 ПОВЕРЖЕН':'P2 ПОВЕРЖЕН'));if(!alivePlayers().length){state='death';deathTimer=0;deathPhase=0;for(const e of enemies){if(e.dead)continue;e.attack=99;e.speed*=.7}}}
 function updateDeath(dt){deathTimer+=dt;deathPhase+=dt*3.2;const deadPlayers=coopPlayers();for(const e of enemies){if(e.dead)continue;const t=deadPlayers.reduce((best,p)=>{const db=Math.hypot(best.x-e.x,best.y-e.y),dp=Math.hypot(p.x-e.x,p.y-e.y);return dp<db?p:best},deadPlayers[0]);const dx=t.x-e.x,dy=t.y-e.y,d=Math.hypot(dx,dy)||1;if(d>17){e.x+=(dx/d)*Math.min(34,d*1.4)*dt;e.y+=(dy/d)*Math.min(34,d*1.4)*dt}else{e.x+=Math.cos(e.phase+deathTimer*8)*.35;e.y+=Math.sin(e.phase+deathTimer*8)*.35}}if(deathTimer>.72&&Math.floor(deathTimer*8)!==Math.floor((deathTimer-dt)*8)){for(const p of deadPlayers)bloodBurst(p.x+rnd(-5,5),p.y+rnd(-5,5),12,1)}if(deathTimer>2.9)endGame()}
 function ring(x,y,r,color,life=.25,max=28){rings.push({x,y,r:2,max,color,life,maxlife:life})}
@@ -546,10 +554,10 @@ function pickUpgrades(){
  const hero={
  scar:[['ТЯЖЁЛЫЙ КЛИНОК','Ближнее оружие +35% урона.',()=>player.boost.dmg*=1.35],['КРОВАВАЯ БРОНЯ','+45 HP и полное лечение.',()=>{player.maxhp+=45;player.hp=player.maxhp}],['РАЗМАХ','Сильнее AOE оружия.',()=>player.heroUpgrades.push('wide')]],
  vesa:[['КРОВОТОЧЕНИЕ','Криты получают ещё +45% урона.',()=>player.boost.crit+=.12],['ОХОТНИЧИЙ ИНСТИНКТ','Скорострельность +25%.',()=>player.boost.rate*=1.25],['ДОЖДЬ ИГЛ','Снаряды получают +2 пробивания.',()=>player.heroUpgrades.push('pierce')]],
- nyx:[['ТЕНЕВОЙ ШАГ','Скорость +25%.',()=>player.boost.move*=1.25],['ЯД ТЕНИ','Урон +30%.',()=>player.boost.dmg*=1.3],['МНОЖЕСТВО ТЕНЕЙ','Снаряды получают +2 пробивания.',()=>player.heroUpgrades.push('pierce')]],
- pelmage:[['АРКАННЫЙ ОТКАТ','Заклинания на 28% быстрее.',()=>player.boost.rate*=1.28],['МАНА ПЕЛЬМЕНЯ','Урон +35%.',()=>player.boost.dmg*=1.35],['МЕТЕОРИТНЫЙ ВИХРЬ','AOE оружия получают +40% радиуса.',()=>player.heroUpgrades.push('wide')]],
+ nyx:[['ТЕНЕВОЙ ШАГ','Скорость +25%.',()=>player.boost.move*=1.25],['ЯД ТЕНИ','Урон +30%.',()=>player.boost.dmg*=1.3],['МНОЖЕСТВО ТЕНЕЙ','Теневые снаряды пробивают ещё 2 цели.',()=>player.heroUpgrades.push('pierce')]],
+ pelmage:[['АРКАННЫЙ ОТКАТ','Заклинания на 28% быстрее.',()=>player.boost.rate*=1.28],['МАНА ПЕЛЬМЕНЯ','Урон +35%.',()=>player.boost.dmg*=1.35],['МЕТЕОРИТНЫЙ ВИХРЬ','Заклинания взрываются на 40% дальше.',()=>player.heroUpgrades.push('wide')]],
  assassin:[['СМЕРТЕЛЬНЫЙ КРИТ','Критический шанс +18%.',()=>player.boost.crit+=.18],['ШЕПОТ','Скорость +30%.',()=>player.boost.move*=1.3],['ЯДОВИТЫЙ КЛИНОК','Урон +35%.',()=>player.boost.dmg*=1.35]],
- golem:[['ЧУГУННАЯ КОЖА','+70 HP и полное лечение.',()=>{player.maxhp+=70;player.hp=player.maxhp}],['ПЕРЕГРЕВ','Урон +45%.',()=>player.boost.dmg*=1.45],['ПАРОВОЙ ТАНК','Урон +10% и усиленная защита.',()=>{player.boost.dmg*=1.1;player.heroUpgrades.push('armor')}]]
+ golem:[['ЧУГУННАЯ КОЖА','+70 HP и полное лечение.',()=>{player.maxhp+=70;player.hp=player.maxhp}],['ПЕРЕГРЕВ','Урон +45%.',()=>player.boost.dmg*=1.45],['ПАРОВОЙ ТАНК','Урон +10% и получаемый урон −28%.',()=>{player.boost.dmg*=1.1;player.heroUpgrades.push('armor')}]]
  }[ch.id]||[];
  const pool=[{title:'+25% ОБЩИЙ УРОН',desc:'Увеличивает урон всего оружия.',apply:()=>{for(const p of coopPlayers())p.boost.dmg*=1.25}},{title:'БЫСТРАЯ СТРЕЛЬБА',desc:'Скорострельность +20%.',apply:()=>{for(const p of coopPlayers())p.boost.rate*=1.2}},{title:'ЖЕСТКИЙ РАЗГОН',desc:'Скорость движения +16%.',apply:()=>{for(const p of coopPlayers())p.boost.move*=1.16}},{title:'+35 HP',desc:'Максимальное здоровье +35 и лечение.',apply:()=>{for(const p of coopPlayers()){p.maxhp+=35;p.hp=p.maxhp}}},{title:'+1 БОМБА',desc:'Добавляет заряд бомбы.',apply:()=>{for(const p of coopPlayers())p.bomb++}},{title:'КРИТИЧЕСКИЙ УКУС',desc:'8% шанс удвоить урон.',apply:()=>{for(const p of coopPlayers())p.boost.crit+=.08}}];
  hero.forEach(([title,desc,apply])=>pool.push({title,desc,apply}));
@@ -559,18 +567,93 @@ function pickUpgrades(){
 
 function attackFor(p,weaponIndex,target=null){
  if(!p||p.dead||p.fire>0||state!=='game')return;
- initAudio();const w=heroWeaponStats(p,weaponIndex);
+ initAudio();
+ const w=heroWeaponStats(p,weaponIndex);
+ const ch=chars.find(c=>c.id===p.charId)||chars[0];
  const tx=target?target.x:(mouse.x+camera.x-W/2),ty=target?target.y:(mouse.y+camera.y-H/2);
  const ang=Math.atan2(ty-p.y,tx-p.x);
- // Keep the weapon visually locked to the current target/aim even between shots.
  p.aim=ang;
- sfx(w.kind==='wave'?'heavy':'shoot');p.fire=w.rate/p.boost.rate;
- const damage=w.dmg*p.boost.dmg*(Math.random()<p.boost.crit?2:1);
- if(w.kind==='wave'){rings.push({x:p.x,y:p.y,r:6,max:64,color:w.color,life:.24,maxlife:.24,damage,hit:new Set()});spawnParticles(p.x+Math.cos(ang)*10,p.y+Math.sin(ang)*10,7,w.color,.8);return}
- const pellets=w.kind==='fork'?2:1;for(let i=0;i<pellets;i++){const aa=ang+(i-(pellets-1)/2)*w.spread;projectiles.push({x:p.x+Math.cos(aa)*11,y:p.y+Math.sin(aa)*11,vx:Math.cos(aa)*w.speed,vy:Math.sin(aa)*w.speed,life:1.2,r:2.2,damage,pierce:w.pierce,color:w.color,kind:w.kind,owner:p===player?'p1':'p2'})}
- spawnParticles(p.x+Math.cos(ang)*10,p.y+Math.sin(ang)*10,3,w.color,.5);
-}
-function attack(){attackFor(player,weapon,null)}
+ sfx(w.kind==='wave'?'heavy':'shoot');
+ p.fire=w.rate/p.boost.rate;
+
+ let damage=w.dmg*p.boost.dmg*(Math.random()<p.boost.crit?2:1);
+ const wide=p.heroUpgrades?.includes('wide');
+ const pierceBonus=p.heroUpgrades?.includes('pierce')?2:0;
+
+ // Every hero now has a genuinely different combat identity.
+ if(ch.id==='scar'){
+   // Heavy blade: short-range shockwaves instead of generic bullets.
+   if(weaponIndex===0||weaponIndex===2||w.kind==='wave'){
+     const max=wide?92:72;
+     rings.push({x:p.x+Math.cos(ang)*18,y:p.y+Math.sin(ang)*18,r:7,max,color:w.color,life:.25,maxlife:.25,damage,hit:new Set()});
+     spawnParticles(p.x+Math.cos(ang)*16,p.y+Math.sin(ang)*16,10,'#ff5c5e',1.0);
+     shake=Math.max(shake,.08);
+     return;
+   }
+ }
+ if(ch.id==='nyx'&&weaponIndex===2){
+   // Shadow cut: a short blink through enemies.
+   p.x=clamp(p.x+Math.cos(ang)*30,arena.l+18,arena.r-18);
+   p.y=clamp(p.y+Math.sin(ang)*30,arena.t+18,arena.b-18);
+   p.inv=.16;
+   spawnParticles(p.x,p.y,18,'#9c6cff',1.2);
+ }
+ if(ch.id==='assassin'&&weaponIndex===2){
+   // Assassin's signature attack is a lethal dash.
+   p.x=clamp(p.x+Math.cos(ang)*42,arena.l+18,arena.r-18);
+   p.y=clamp(p.y+Math.sin(ang)*42,arena.t+18,arena.b-18);
+   p.inv=.22;
+   spawnParticles(p.x,p.y,20,'#4fe0a0',1.0);
+   const ar=wide?58:46;
+   rings.push({x:p.x,y:p.y,r:5,max:ar,color:'#4fe0a0',life:.18,maxlife:.18,damage:damage*1.35,hit:new Set()});
+   return;
+ }
+ if(ch.id==='pelmage'&&weaponIndex===3){
+   const ar=wide?105:82;
+   rings.push({x:p.x+Math.cos(ang)*18,y:p.y+Math.sin(ang)*18,r:4,max:ar,color:'#8d72ff',life:.42,maxlife:.42,damage:damage*.75,hit:new Set()});
+   spawnParticles(p.x,p.y,16,'#7c8cff',1.3);
+   return;
+ }
+ if(ch.id==='golem'&&weaponIndex===0){
+   const ar=wide?96:76;
+   rings.push({x:p.x+Math.cos(ang)*14,y:p.y+Math.sin(ang)*14,r:7,max:ar,color:'#d18a4d',life:.32,maxlife:.32,damage:damage*1.25,hit:new Set()});
+   shake=Math.max(shake,.12);
+   return;
+ }
+ if(ch.id==='vesa'&&weaponIndex===3){
+   // Blood rain: fan of fast bleeding needles.
+   const count=7;
+   for(let i=0;i<count;i++){
+     const aa=ang+(i-(count-1)/2)*.12;
+     projectiles.push({x:p.x+Math.cos(aa)*11,y:p.y+Math.sin(aa)*11,vx:Math.cos(aa)*w.speed*1.15,vy:Math.sin(aa)*w.speed*1.15,life:1.25,r:2.2,damage:damage*.62,pierce:w.pierce+1+pierceBonus,color:'#ff557f',kind:'blood',owner:p===player?'p1':'p2',bleed:.8});
+   }
+   spawnParticles(p.x+Math.cos(ang)*10,p.y+Math.sin(ang)*10,8,'#ff557f',.8);
+   return;
+ }
+
+ if(w.kind==='wave'){
+   const max=wide?Math.round(64*1.4):64;
+   rings.push({x:p.x,y:p.y,r:6,max,color:w.color,life:.24,maxlife:.24,damage,hit:new Set()});
+   spawnParticles(p.x+Math.cos(ang)*10,p.y+Math.sin(ang)*10,7,w.color,.8);
+   return;
+ }
+ const pellets=w.kind==='fork'?2:1;
+ for(let i=0;i<pellets;i++){
+   const aa=ang+(i-(pellets-1)/2)*w.spread;
+   const explosive=ch.id==='pelmage'&&(weaponIndex===2||weaponIndex===3);
+   const poison=ch.id==='assassin';
+   projectiles.push({
+     x:p.x+Math.cos(aa)*11,y:p.y+Math.sin(aa)*11,
+     vx:Math.cos(aa)*w.speed,vy:Math.sin(aa)*w.speed,
+     life:1.2,r:ch.id==='golem'?3.8:2.2,
+     damage, pierce:w.pierce+((ch.id==='nyx'?1:0))+pierceBonus,
+     color:w.color,kind:w.kind,owner:p===player?'p1':'p2',
+     bleed:ch.id==='vesa'?.65:0, poison:poison?.9:0,
+     explosive,explosionRadius:explosive?(wide?64:48):0
+   });
+ }
+ spawnParticles(p.x+Math.cos(ang)*10,p.y+Math.sin(ang)*10,ch.id==='pelmage'?6:3,w.color,.5);
+}function attack(){attackFor(player,weapon,null)}
 function bombFor(p){
  if(!p||p.dead||state!=='game'||p.bomb<=0)return;
  initAudio();sfx('bomb');p.bomb--;
@@ -620,6 +703,8 @@ function finishEnemyDeath(e){
 function updateEnemies(dt){
  for(const e of enemies){
   if(e.dead)continue;
+  if(e.bleed>0){e.bleed-=dt;e._bleedTick=(e._bleedTick||0)-dt;if(e._bleedTick<=0){e._bleedTick=.32;damageEnemy(e,3.5)}}
+  if(e.poison>0){e.poison-=dt;e._poisonTick=(e._poisonTick||0)-dt;if(e._poisonTick<=0){e._poisonTick=.24;damageEnemy(e,4.5)}}
   e.phase+=dt*4;e.hit=Math.max(0,e.hit-dt);e.hitT=Math.max(0,(e.hitT||0)-dt);
   const tp=targetPlayer(e);if(!tp)continue;tp.hurtT=Math.max(0,(tp.hurtT||0)-dt);
   if(e.lunge>0)e.lunge-=dt;
@@ -716,8 +801,43 @@ function updateEnemies(dt){
  }
 }
 
-function updateProjectiles(dt){for(const p of projectiles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.enemy){const tp=targetPlayer(p);if(tp&&Math.hypot(p.x-tp.x,p.y-tp.y)<8)hurtPlayer(tp,p.damage,p.x,p.y)}else{for(const e of enemies){if(e.dead)continue;if(Math.hypot(p.x-e.x,p.y-e.y)<e.r+4){damageEnemy(e,p.damage);if(p.pierce>0)p.pierce--;else p.life=0}}}}projectiles=projectiles.filter(p=>p.life>0&&p.x>arena.l-80&&p.x<arena.r+80&&p.y>arena.t-80&&p.y<arena.b+80)}
-function updateRings(dt){for(const r of rings){r.life-=dt;r.r=lerp(r.r,r.max,.3);if(r.damage&&!r.hit){r.hit=new Set();for(const e of enemies){if(Math.hypot(r.x-e.x,r.y-e.y)<r.r+e.r&&!r.hit.has(e)){damageEnemy(e,r.damage);r.hit.add(e)}}}}rings=rings.filter(r=>r.life>0)}
+function updateProjectiles(dt){
+ for(const p of projectiles){
+  p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;
+  if(p.enemy){
+   const tp=targetPlayer(p);
+   if(tp&&Math.hypot(p.x-tp.x,p.y-tp.y)<8)hurtPlayer(tp,p.damage,p.x,p.y);
+  }else{
+   for(const e of enemies){
+    if(e.dead)continue;
+    if(Math.hypot(p.x-e.x,p.y-e.y)<e.r+4){
+      damageEnemy(e,p.damage);
+      if(p.bleed)e.bleed=Math.max(e.bleed||0,p.bleed);
+      if(p.poison)e.poison=Math.max(e.poison||0,p.poison);
+      if(p.explosive&&p.explosionRadius){
+        ring(p.x,p.y,5,p.color,.25,p.explosionRadius).damage=p.damage*.58;
+        rings[rings.length-1].hit=new Set();
+        spawnParticles(p.x,p.y,14,p.color,1.1);
+      }
+      if(p.pierce>0)p.pierce--;else p.life=0;
+    }
+   }
+  }
+ }
+ projectiles=projectiles.filter(p=>p.life>0&&p.x>arena.l-80&&p.x<arena.r+80&&p.y>arena.t-80&&p.y<arena.b+80)
+}
+function updateRings(dt){
+ for(const r of rings){
+  r.life-=dt;r.r=lerp(r.r,r.max,.3);
+  if(r.damage&&!r.hit){
+   r.hit=new Set();
+   for(const e of enemies){
+    if(Math.hypot(r.x-e.x,r.y-e.y)<r.r+e.r&&!r.hit.has(e)){damageEnemy(e,r.damage);r.hit.add(e)}
+   }
+  }
+ }
+ rings=rings.filter(r=>r.life>0)
+}
 function updateDrops(dt){for(const d of drops){d.life-=dt;d.pulse=(d.pulse||0)+dt;const cps=alivePlayers();const cp=cps.find(p=>Math.hypot(p.x-d.x,p.y-d.y)<18);if(d.type==='relic'&&d.life>0&&cp){relicOwned=true;for(const p of coopPlayers()){p.maxhp+=50;p.hp=p.maxhp;p.boost.dmg*=1.28;p.boost.rate*=1.12;p.boost.move*=1.12;p.bomb=Math.min(9,p.bomb+2)}d.life=0;spawnParticles(d.x,d.y,30,'#cf79ff',1.8);ring(d.x,d.y,18,'#cf79ff',.65,55);floatText(d.x,d.y-15,'РЕЛИКВИЯ ПОЛУЧЕНА','#e0a6ff');toast('СЕРДЦЕ КУХНИ: КОМАНДА УСИЛЕНА')}else if(cp&&Math.hypot(cp.x-d.x,cp.y-d.y)<13){if(d.type==='xp')gainXP(15);else cp.bomb++;d.life=0;spawnParticles(d.x,d.y,8,d.type==='xp'?'#5fe0a5':'#f0b04e',.6)}}drops=drops.filter(d=>d.life>0)}
 
 function updateFx(dt){for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.92;p.vy*=.92;p.life-=dt}particles=particles.filter(p=>p.life>0);for(const t of texts){t.y-=18*dt;t.life-=dt}texts=texts.filter(t=>t.life>0);if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)document.getElementById('toast').classList.remove('show')}}
@@ -831,6 +951,20 @@ function drawHero(p=player,ch=chars.find(x=>x.id===selectedChar),isP2=false){
    ctx.fillStyle='#7950bd';ctx.beginPath();ctx.moveTo(-11,-7);ctx.lineTo(9,-9);ctx.lineTo(12,7);ctx.lineTo(6,12);ctx.lineTo(-5,9);ctx.lineTo(-13,3);ctx.closePath();ctx.fill();
    ctx.fillStyle='#241732';ctx.fillRect(-6,-1,12,7);
    ctx.fillStyle='#3e2a68';ctx.fillRect(-11,7,-4,8);ctx.fillRect(7,7,4,8);
+ }else if(ch.id==='pelmage'){
+   ctx.fillStyle='#526bd1';ctx.fillRect(-12,-5,24,17);ctx.fillRect(-15,2,30,5);
+   ctx.fillStyle='#28345f';ctx.fillRect(-8,-2,16,10);ctx.fillStyle='#9bb0ff';ctx.fillRect(-6,-7,12,4);
+   ctx.fillStyle='#d6c3b4';ctx.fillRect(-4,-15,8,8);ctx.fillStyle='#5f73e8';ctx.fillRect(-11,-17,22,5);ctx.fillRect(-7,-21,14,5);
+   ctx.fillStyle='#b9c8ff';ctx.fillRect(-2,-26,4,8);ctx.fillRect(-5,-24,10,3);
+ }else if(ch.id==='assassin'){
+   ctx.fillStyle='#214d3e';ctx.beginPath();ctx.moveTo(-10,-8);ctx.lineTo(10,-8);ctx.lineTo(8,11);ctx.lineTo(-8,11);ctx.closePath();ctx.fill();
+   ctx.fillStyle='#10241e';ctx.fillRect(-7,-2,14,10);ctx.fillStyle='#4fe0a0';ctx.fillRect(-13,1,6,3);ctx.fillRect(7,1,6,3);
+   ctx.fillStyle='#161d1b';ctx.fillRect(-12,-17,24,8);ctx.fillRect(-9,-21,18,5);ctx.fillStyle='#8dffcb';ctx.fillRect(-6,-12,4,2);ctx.fillRect(3,-12,4,2);
+ }else if(ch.id==='golem'){
+   ctx.fillStyle='#9a633d';ctx.fillRect(-13,-7,26,19);ctx.fillRect(-16,-2,5,11);ctx.fillRect(11,-2,5,11);
+   ctx.fillStyle='#d18a4d';ctx.fillRect(-10,-14,20,9);ctx.fillRect(-7,-19,14,6);
+   ctx.fillStyle='#3a2924';ctx.fillRect(-7,-10,4,3);ctx.fillRect(3,-10,4,3);ctx.fillRect(-3,-4,7,3);
+   ctx.fillStyle='#e2a563';ctx.fillRect(-4,-22,8,3);
  }else{
    ctx.fillStyle=ch.color;ctx.beginPath();ctx.moveTo(-11,-7);ctx.lineTo(9,-9);ctx.lineTo(12,5);ctx.lineTo(5,10);ctx.lineTo(-9,8);ctx.lineTo(-13,2);ctx.closePath();ctx.fill();
    ctx.fillStyle='#211820';ctx.fillRect(-5,-2,10,8);
@@ -843,6 +977,12 @@ function drawHero(p=player,ch=chars.find(x=>x.id===selectedChar),isP2=false){
    ctx.fillRect(-12,-16,20,6);ctx.fillRect(-10,-20,14,5);
    ctx.fillRect(7,-17,6,13);ctx.fillRect(10,-20,5,7); // ponytail
    ctx.fillStyle='#e7d4cb';ctx.fillRect(-13,-7,6,3);ctx.fillStyle='#d54f8a';ctx.fillRect(-16,-5,5,7);
+ }else if(ch.id==='pelmage'){
+   ctx.fillStyle='#d9c5b5';ctx.fillRect(-9,-17,18,11);ctx.fillStyle='#4c55a5';ctx.fillRect(-12,-20,24,6);ctx.fillRect(-8,-24,16,5);ctx.fillStyle='#9aa8ff';ctx.fillRect(-4,-13,3,3);ctx.fillRect(3,-13,3,3);
+ }else if(ch.id==='assassin'){
+   ctx.fillStyle='#d0b9ab';ctx.fillRect(-8,-17,16,11);ctx.fillStyle='#17231f';ctx.fillRect(-13,-21,26,7);ctx.fillRect(-9,-25,18,5);ctx.fillStyle='#4fe0a0';ctx.fillRect(-7,-13,4,2);ctx.fillRect(3,-13,4,2);
+ }else if(ch.id==='golem'){
+   ctx.fillStyle='#9b694b';ctx.fillRect(-10,-17,20,12);ctx.fillStyle='#70452f';ctx.fillRect(-13,-21,26,7);ctx.fillRect(-8,-25,16,5);ctx.fillStyle='#ffb35c';ctx.fillRect(-6,-13,4,3);ctx.fillRect(3,-13,4,3);
  }else if(ch.id==='nyx'){
    ctx.fillStyle='#1c1230';ctx.fillRect(-12,-17,22,9);ctx.fillRect(-10,-21,17,5);ctx.fillRect(-13,-12,5,12);ctx.fillRect(8,-13,5,12);
    ctx.fillStyle='#6e58a8';ctx.fillRect(-14,-7,5,3);ctx.fillRect(8,-7,5,3);
