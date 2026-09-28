@@ -162,11 +162,19 @@ const weapons=[
  {key:'4',name:'ПЕРЕЦ',enName:'PEPPER',rate:.055,dmg:7,speed:205,spread:.16,pierce:0,color:'#8df06e',kind:'bullet'}
 ];
 const weaponLevels=[1,1,1,1];
-const heroWeaponMods={scar:[1.45,1.18,1.55,1.12],vesa:[.9,1.15,1,.82],nyx:[1.15,1.05,1.4,1],pelmage:[1.05,1.3,1.55,1],assassin:[1.25,1,1.75,1.15],golem:[1.8,1.45,2,1.65]};
+const heroWeaponMods={scar:[1.08,.95,1.05,.92],vesa:[.82,.92,.98,.72],nyx:[.95,.88,1.02,.9],pelmage:[.9,1.0,1.02,.82],assassin:[1.0,.88,1.05,.92],golem:[1.0,.92,1.02,.98]};
+const heroWeaponTune={
+ scar:[{d:1.0,r:1.12},{d:1.0,r:1.08},{d:.95,r:1.18},{d:.95,r:1.12}],
+ vesa:[{d:1.0,r:1.08},{d:.95,r:1.12},{d:.9,r:1.18},{d:.82,r:1.15}],
+ nyx:[{d:1.0,r:1.08},{d:.92,r:1.12},{d:.9,r:1.22},{d:.9,r:1.12}],
+ pelmage:[{d:.95,r:1.12},{d:.9,r:1.1},{d:.86,r:1.2},{d:.8,r:1.18}],
+ assassin:[{d:1.0,r:1.12},{d:.82,r:1.16},{d:.88,r:1.3},{d:.82,r:1.2}],
+ golem:[{d:.9,r:1.18},{d:.88,r:1.18},{d:.82,r:1.22},{d:.72,r:1.3}]
+};
 function heroWeaponStats(p,i){
- const base=weapons[i],lv=weaponLevels[i],ch=chars.find(c=>c.id===(p&&p.charId))||chars[0],mult=(heroWeaponMods[ch.id]||heroWeaponMods.scar)[i]||1;
+ const base=weapons[i],lv=weaponLevels[i],ch=chars.find(c=>c.id===(p&&p.charId))||chars[0],mult=(heroWeaponMods[ch.id]||heroWeaponMods.scar)[i]||1,tune=(heroWeaponTune[ch.id]||heroWeaponTune.scar)[i]||{d:1,r:1};
  const rateMod=ch.id==='assassin'?1.28:ch.id==='golem'?.72:ch.id==='pelmage'?1.08:1,speedMod=ch.id==='nyx'?1.32:ch.id==='assassin'?1.45:ch.id==='golem'?.78:ch.id==='pelmage'?1.2:1;
- return {...base,name:ch.weaponNames?.[i]||base.name,enName:ch.weaponNames?.[i]||base.enName,dmg:base.dmg*mult*(1+(lv-1)*.28),rate:base.rate*Math.pow(.93,lv-1)/rateMod,speed:base.speed*speedMod*(1+(lv-1)*.055),pierce:base.pierce+Math.floor((lv-1)/3),level:lv};
+ return {...base,name:ch.weaponNames?.[i]||base.name,enName:ch.enWeaponNames?.[i]||base.enName,dmg:base.dmg*mult*tune.d*(1+(lv-1)*.22),rate:base.rate*tune.r*Math.pow(.95,lv-1)/rateMod,speed:base.speed*speedMod*(1+(lv-1)*.045),pierce:base.pierce+Math.floor((lv-1)/4),level:lv};
 }
 function weaponStats(i){return heroWeaponStats(player,i);}
 
@@ -582,40 +590,40 @@ function attackFor(p,weaponIndex,target=null){
  const fx=(color,n=7)=>spawnParticles(p.x+Math.cos(ang)*10,p.y+Math.sin(ang)*10,n,color,.8);
 
  if(ch.id==='scar'){
-  if(weaponIndex===0){ringHit(p.x+Math.cos(ang)*18,p.y+Math.sin(ang)*18,74,'#e34d55',.25,damage*1.18);fx('#ff6668',10);shake=Math.max(shake,.08);return}
-  if(weaponIndex===1){proj(ang,damage*1.12,{speed:w.speed*.72,life:1.7,r:3.8,pierce:w.pierce+2,color:'#f09a58'});fx('#f09a58',5);return}
-  if(weaponIndex===2){ringHit(p.x,p.y,82,'#c93e47',.32,damage*1.3);fx('#d94853',12);shake=Math.max(shake,.12);return}
-  if(weaponIndex===3){for(let i=-2;i<=2;i++)proj(ang+i*.13,damage*.58,{speed:w.speed*1.08,pierce:w.pierce+1,bleed:.65,color:'#ff4e58'});fx('#ff4e58',10);return}
+  if(weaponIndex===0){ringHit(p.x+Math.cos(ang)*18,p.y+Math.sin(ang)*18,68,'#e34d55',.25,damage*.92);fx('#ff6668',10);shake=Math.max(shake,.08);return}
+  if(weaponIndex===1){proj(ang,damage*.9,{speed:w.speed*.72,life:1.7,r:3.8,pierce:w.pierce+2,color:'#f09a58'});fx('#f09a58',5);return}
+  if(weaponIndex===2){ringHit(p.x,p.y,76,'#c93e47',.32,damage*1.05);fx('#d94853',12);shake=Math.max(shake,.12);return}
+  if(weaponIndex===3){for(let i=-2;i<=2;i++)proj(ang+i*.13,damage*.45,{speed:w.speed*1.08,pierce:w.pierce+1,bleed:.65,color:'#ff4e58'});fx('#ff4e58',10);return}
  }
  if(ch.id==='vesa'){
-  if(weaponIndex===0){for(let i=-1;i<=1;i++)proj(ang+i*.075,damage*.72,{speed:w.speed*1.25,pierce:w.pierce+1,bleed:.55,color:'#ff5d87'});fx('#ff5d87',7);return}
-  if(weaponIndex===1){for(const side of [-1,1])proj(ang+side*.18,damage*.92,{speed:w.speed*.92,pierce:w.pierce+1,bleed:.8,r:3,color:'#e64f91'});fx('#e64f91',8);return}
-  if(weaponIndex===2){proj(ang,damage*1.8,{speed:w.speed*.82,pierce:w.pierce+3,life:1.55,r:3.5,bleed:1.15,color:'#ff365f'});fx('#ff365f',8);return}
-  if(weaponIndex===3){for(let i=-3;i<=3;i++)proj(ang+i*.11,damage*.55,{speed:w.speed*1.12,pierce:w.pierce+1,bleed:1,color:'#ff557f'});fx('#ff557f',12);return}
+  if(weaponIndex===0){for(let i=-1;i<=1;i++)proj(ang+i*.075,damage*.52,{speed:w.speed*1.25,pierce:w.pierce+1,bleed:.55,color:'#ff5d87'});fx('#ff5d87',7);return}
+  if(weaponIndex===1){for(const side of [-1,1])proj(ang+side*.18,damage*.68,{speed:w.speed*.92,pierce:w.pierce+1,bleed:.8,r:3,color:'#e64f91'});fx('#e64f91',8);return}
+  if(weaponIndex===2){proj(ang,damage*1.35,{speed:w.speed*.82,pierce:w.pierce+3,life:1.55,r:3.5,bleed:1.15,color:'#ff365f'});fx('#ff365f',8);return}
+  if(weaponIndex===3){for(let i=-2;i<=2;i++)proj(ang+i*.11,damage*.42,{speed:w.speed*1.12,pierce:w.pierce+1,bleed:1,color:'#ff557f'});fx('#ff557f',12);return}
  }
  if(ch.id==='nyx'){
-  if(weaponIndex===0){proj(ang,damage*1.15,{speed:w.speed*1.45,pierce:w.pierce+2,r:2,color:'#b07cff'});fx('#9c6cff',4);return}
-  if(weaponIndex===1){for(let i=-1;i<=1;i++)proj(ang+i*.09,damage*.8,{speed:w.speed*1.18,pierce:w.pierce+2,color:'#6f50c9'});fx('#7657e8',7);return}
-  if(weaponIndex===2){p.x=clamp(p.x+Math.cos(ang)*42,arena.l+18,arena.r-18);p.y=clamp(p.y+Math.sin(ang)*42,arena.t+18,arena.b-18);p.inv=.24;ringHit(p.x,p.y,52,'#9c6cff',.2,damage*1.45);spawnParticles(p.x,p.y,20,'#9c6cff',1.1);return}
-  if(weaponIndex===3){proj(ang,damage*1.05,{speed:w.speed*.78,pierce:w.pierce+1,explosive:true,explosionRadius:wide?78:58,color:'#c05cff'});fx('#c05cff',9);return}
+  if(weaponIndex===0){proj(ang,damage*.92,{speed:w.speed*1.45,pierce:w.pierce+2,r:2,color:'#b07cff'});fx('#9c6cff',4);return}
+  if(weaponIndex===1){for(let i=-1;i<=1;i++)proj(ang+i*.09,damage*.58,{speed:w.speed*1.18,pierce:w.pierce+2,color:'#6f50c9'});fx('#7657e8',7);return}
+  if(weaponIndex===2){p.x=clamp(p.x+Math.cos(ang)*42,arena.l+18,arena.r-18);p.y=clamp(p.y+Math.sin(ang)*42,arena.t+18,arena.b-18);p.inv=.24;ringHit(p.x,p.y,46,'#9c6cff',.2,damage*1.08);spawnParticles(p.x,p.y,20,'#9c6cff',1.1);return}
+  if(weaponIndex===3){proj(ang,damage*.82,{speed:w.speed*.78,pierce:w.pierce+1,explosive:true,explosionRadius:wide?78:58,color:'#c05cff'});fx('#c05cff',9);return}
  }
  if(ch.id==='pelmage'){
-  if(weaponIndex===0){for(let i=-1;i<=1;i++)proj(ang+i*.14,damage*.62,{speed:w.speed*1.1,pierce:w.pierce+1,color:'#7e9cff'});fx('#8d9fff',8);return}
-  if(weaponIndex===1){for(let i=-2;i<=2;i++)proj(ang+i*.12,damage*.52,{speed:w.speed*.9,pierce:w.pierce,color:'#ffb24c',bleed:.35});fx('#ffb24c',9);return}
-  if(weaponIndex===2){proj(ang,damage*1.65,{speed:w.speed*.68,pierce:w.pierce+1,r:4.5,explosive:true,explosionRadius:wide?92:68,color:'#ff6d4f'});fx('#ff6d4f',12);return}
-  if(weaponIndex===3){ringHit(p.x+Math.cos(ang)*18,p.y+Math.sin(ang)*18,84,'#8d72ff',.45,damage*.82);fx('#8d72ff',14);return}
+  if(weaponIndex===0){for(let i=-1;i<=1;i++)proj(ang+i*.14,damage*.46,{speed:w.speed*1.1,pierce:w.pierce+1,color:'#7e9cff'});fx('#8d9fff',8);return}
+  if(weaponIndex===1){for(let i=-2;i<=2;i++)proj(ang+i*.12,damage*.38,{speed:w.speed*.9,pierce:w.pierce,color:'#ffb24c',bleed:.35});fx('#ffb24c',9);return}
+  if(weaponIndex===2){proj(ang,damage*1.15,{speed:w.speed*.68,pierce:w.pierce+1,r:4.5,explosive:true,explosionRadius:wide?92:68,color:'#ff6d4f'});fx('#ff6d4f',12);return}
+  if(weaponIndex===3){ringHit(p.x+Math.cos(ang)*18,p.y+Math.sin(ang)*18,78,'#8d72ff',.45,damage*.58);fx('#8d72ff',14);return}
  }
  if(ch.id==='assassin'){
-  if(weaponIndex===0){proj(ang,damage*1.25,{speed:w.speed*1.55,pierce:w.pierce+2,r:2,color:'#d9f5e8'});fx('#4fe0a0',4);return}
-  if(weaponIndex===1){for(let i=-2;i<=2;i++)proj(ang+i*.1,damage*.52,{speed:w.speed*1.05,pierce:w.pierce+1,poison:1.1,color:'#4fe0a0'});fx('#4fe0a0',9);return}
-  if(weaponIndex===2){p.x=clamp(p.x+Math.cos(ang)*50,arena.l+18,arena.r-18);p.y=clamp(p.y+Math.sin(ang)*50,arena.t+18,arena.b-18);p.inv=.28;ringHit(p.x,p.y,wide?66:52,'#4fe0a0',.2,damage*1.55);spawnParticles(p.x,p.y,24,'#4fe0a0',1.1);return}
-  if(weaponIndex===3){for(let i=-2;i<=2;i++)proj(ang+i*.055,damage*.78,{speed:w.speed*1.3,pierce:w.pierce+3,poison:1.25,color:'#a8ffcf'});fx('#a8ffcf',11);return}
+  if(weaponIndex===0){proj(ang,damage*.98,{speed:w.speed*1.55,pierce:w.pierce+2,r:2,color:'#d9f5e8'});fx('#4fe0a0',4);return}
+  if(weaponIndex===1){for(let i=-2;i<=2;i++)proj(ang+i*.1,damage*.38,{speed:w.speed*1.05,pierce:w.pierce+1,poison:1.1,color:'#4fe0a0'});fx('#4fe0a0',9);return}
+  if(weaponIndex===2){p.x=clamp(p.x+Math.cos(ang)*50,arena.l+18,arena.r-18);p.y=clamp(p.y+Math.sin(ang)*50,arena.t+18,arena.b-18);p.inv=.28;ringHit(p.x,p.y,wide?58:46,'#4fe0a0',.2,damage*1.05);spawnParticles(p.x,p.y,24,'#4fe0a0',1.1);return}
+  if(weaponIndex===3){for(let i=-2;i<=2;i++)proj(ang+i*.055,damage*.56,{speed:w.speed*1.3,pierce:w.pierce+3,poison:1.25,color:'#a8ffcf'});fx('#a8ffcf',11);return}
  }
  if(ch.id==='golem'){
-  if(weaponIndex===0){ringHit(p.x+Math.cos(ang)*15,p.y+Math.sin(ang)*15,82,'#d18a4d',.34,damage*1.4);shake=Math.max(shake,.13);fx('#d18a4d',12);return}
-  if(weaponIndex===1){for(let i=-2;i<=2;i++)proj(ang+i*.16,damage*.78,{speed:w.speed*.72,pierce:w.pierce+2,r:3.8,color:'#d7b07a'});fx('#d7b07a',12);return}
-  if(weaponIndex===2){ringHit(p.x,p.y,68,'#9c6a42',.3,damage*1.55);shake=Math.max(shake,.15);fx('#9c6a42',14);return}
-  if(weaponIndex===3){ringHit(p.x,p.y,92,'#ff7048',.48,damage*1.9);spawnParticles(p.x,p.y,26,'#ff7048',1.5);shake=Math.max(shake,.2);return}
+  if(weaponIndex===0){ringHit(p.x+Math.cos(ang)*15,p.y+Math.sin(ang)*15,76,'#d18a4d',.34,damage*.92);shake=Math.max(shake,.13);fx('#d18a4d',12);return}
+  if(weaponIndex===1){for(let i=-2;i<=2;i++)proj(ang+i*.16,damage*.56,{speed:w.speed*.72,pierce:w.pierce+2,r:3.8,color:'#d7b07a'});fx('#d7b07a',12);return}
+  if(weaponIndex===2){ringHit(p.x,p.y,62,'#9c6a42',.3,damage*1.05);shake=Math.max(shake,.15);fx('#9c6a42',14);return}
+  if(weaponIndex===3){ringHit(p.x,p.y,86,'#ff7048',.48,damage*1.18);spawnParticles(p.x,p.y,26,'#ff7048',1.5);shake=Math.max(shake,.2);return}
  }
  if(w.kind==='wave'){ringHit(p.x,p.y,64,w.color,.24,damage);fx(w.color,7);return}
  proj(ang,damage,{});fx(w.color,3);
@@ -803,7 +811,9 @@ function updateRings(dt){
    for(const e of enemies){
     if(e.dead||r.hit.has(e))continue;
     if(Math.hypot(r.x-e.x,r.y-e.y)<r.r+e.r){
-     damageEnemy(e,r.damage);
+     const d=Math.hypot(r.x-e.x,r.y-e.y), edge=Math.max(1,r.max);
+     const fall=r.falloff===false?1:clamp(1-(d/edge)*.55,.45,1);
+     damageEnemy(e,r.damage*fall);
      r.hit.add(e);
     }
    }
