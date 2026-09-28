@@ -169,21 +169,35 @@ const camera={x:960,y:540,smooth:0.12};
 let relicOwned=false;
 let horrorTime=0;
 let audioCtx=null, masterGain=null, musicGain=null, musicTimer=null, musicStep=0, musicStarted=false; let drone1=null,drone2=null;
-function playMusicNote(freq,when,dur=.52,vol=.028){
+function playMusicNote(freq,when,dur=.56,vol=.035,type='triangle'){
  if(!audioCtx||!musicGain)return;
- const o=audioCtx.createOscillator(), g=audioCtx.createGain();
- o.type='triangle'; o.frequency.setValueAtTime(freq,when); o.connect(g); g.connect(musicGain);
+ const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();
+ o.type=type;o.frequency.setValueAtTime(freq,when);
+ f.type='lowpass';f.frequency.setValueAtTime(type==='sawtooth'?1250:2200,when);f.Q.value=1.2;
+ o.connect(f);f.connect(g);g.connect(musicGain);
  g.gain.setValueAtTime(.0001,when);
- g.gain.exponentialRampToValueAtTime(vol,when+.025);
+ g.gain.exponentialRampToValueAtTime(vol,when+.035);
+ g.gain.setValueAtTime(vol*.72,when+dur*.55);
  g.gain.exponentialRampToValueAtTime(.0001,when+dur);
- o.start(when); o.stop(when+dur+.03);
+ o.start(when);o.stop(when+dur+.04);
+}
+function playMusicPulse(when,freq=52){
+ if(!audioCtx||!musicGain)return;
+ const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+ o.type='sine';o.frequency.setValueAtTime(freq,when);o.frequency.exponentialRampToValueAtTime(freq*.72,when+.22);
+ o.connect(g);g.connect(musicGain);g.gain.setValueAtTime(.0001,when);
+ g.gain.exponentialRampToValueAtTime(.045,when+.012);g.gain.exponentialRampToValueAtTime(.0001,when+.28);
+ o.start(when);o.stop(when+.3);
 }
 function scheduleHorrorMusic(){
  if(!audioCtx||!musicGain)return;
- const notes=[146.83,174.61,220,261.63,220,174.61,164.81,130.81,146.83,174.61,220,293.66,261.63,220,174.61,130.81];
- const now=audioCtx.currentTime+.04, beat=.62, n=notes[musicStep%notes.length];
- playMusicNote(n,now,.52,.028);
- if(musicStep%4===0)playMusicNote(n/2,now,.85,.010);
+ // Dark minor-key loop: lead + low pulse + occasional dissonant accent.
+ const notes=[146.83,174.61,196,174.61,130.81,146.83,164.81,123.47,146.83,174.61,220,196,164.81,146.83,130.81,110];
+ const now=audioCtx.currentTime+.04,beat=.46,n=notes[musicStep%notes.length];
+ playMusicNote(n,now,.39,.036,'triangle');
+ if(musicStep%2===0)playMusicNote(n*2,now,.18,.010,'sine');
+ if(musicStep%4===0)playMusicPulse(now,n/3);
+ if(musicStep%8===7)playMusicNote(n*1.414,now+.12,.22,.012,'sawtooth');
  musicStep++;
  musicTimer=setTimeout(scheduleHorrorMusic,beat*1000);
 }
@@ -191,9 +205,12 @@ function startHorrorMusic(){
  if(musicStarted||!audioCtx||!musicGain)return;
  musicStarted=true;
  musicGain.gain.setValueAtTime(.0001,audioCtx.currentTime);
- musicGain.gain.exponentialRampToValueAtTime(.16,audioCtx.currentTime+.8);
- const mk=(freq,vol)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(musicGain);o.start();return o};
- if(!drone1){drone1=mk(48,.22);drone2=mk(73.42,.10);}
+ musicGain.gain.exponentialRampToValueAtTime(.22,audioCtx.currentTime+1.0);
+ const mk=(freq,vol,type='sine')=>{
+   const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+   o.type=type;o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(musicGain);o.start();return o
+ };
+ if(!drone1){drone1=mk(43.65,.18,'sine');drone2=mk(65.41,.055,'triangle');}
  scheduleHorrorMusic();
 }
 function initAudio(){
@@ -423,8 +440,13 @@ function pickUpgrades(){
 
 function attackFor(p,weaponIndex,target=null){
  if(!p||p.dead||p.fire>0||state!=='game')return;
- initAudio();const w=weaponStats(weaponIndex);sfx(w.kind==='wave'?'heavy':'shoot');p.fire=w.rate/p.boost.rate;
- const tx=target?target.x:(mouse.x+camera.x-W/2),ty=target?target.y:(mouse.y+camera.y-H/2),damage=w.dmg*p.boost.dmg*(Math.random()<p.boost.crit?2:1),ang=Math.atan2(ty-p.y,tx-p.x);
+ initAudio();const w=weaponStats(weaponIndex);
+ const tx=target?target.x:(mouse.x+camera.x-W/2),ty=target?target.y:(mouse.y+camera.y-H/2);
+ const ang=Math.atan2(ty-p.y,tx-p.x);
+ // Keep the weapon visually locked to the current target/aim even between shots.
+ p.aim=ang;
+ sfx(w.kind==='wave'?'heavy':'shoot');p.fire=w.rate/p.boost.rate;
+ const damage=w.dmg*p.boost.dmg*(Math.random()<p.boost.crit?2:1);
  if(w.kind==='wave'){rings.push({x:p.x,y:p.y,r:6,max:64,color:w.color,life:.24,maxlife:.24,damage,hit:new Set()});spawnParticles(p.x+Math.cos(ang)*10,p.y+Math.sin(ang)*10,7,w.color,.8);return}
  const pellets=w.kind==='fork'?2:1;for(let i=0;i<pellets;i++){const aa=ang+(i-(pellets-1)/2)*w.spread;projectiles.push({x:p.x+Math.cos(aa)*11,y:p.y+Math.sin(aa)*11,vx:Math.cos(aa)*w.speed,vy:Math.sin(aa)*w.speed,life:1.2,r:2.2,damage,pierce:w.pierce,color:w.color,kind:w.kind,owner:p===player?'p1':'p2'})}
  spawnParticles(p.x+Math.cos(ang)*10,p.y+Math.sin(ang)*10,3,w.color,.5);
@@ -573,6 +595,11 @@ function update(dt){
 
  if(state==='death'){updateDeath(dt);updateFx(dt);return;}
  if(state!=='game')return;
+ // P1 weapon follows the pointer continuously, not only while firing.
+ if(!player.dead){
+   const tx=mouse.x+camera.x-W/2,ty=mouse.y+camera.y-H/2;
+   if(Math.hypot(tx-player.x,ty-player.y)>0.5) player.aim=Math.atan2(ty-player.y,tx-player.x);
+ }
  const kmx=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0),kmy=(keys.has('KeyS')?1:0)-(keys.has('KeyW')?1:0);
  const mx=(Math.abs(touchInput.moveX)>0.001?touchInput.moveX:kmx),my=(Math.abs(touchInput.moveY)>0.001?touchInput.moveY:kmy),l=Math.hypot(mx,my)||1;
  player.vx=mx/l*player.speed*player.boost.move;player.vy=my/l*player.speed*player.boost.move;player.x+=player.vx*dt;player.y+=player.vy*dt;
