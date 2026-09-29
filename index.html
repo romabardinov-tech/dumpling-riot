@@ -575,6 +575,7 @@ function wireNet(c){
   if(m.t==='levelupRequest'&&isOnlineHost){openLevelUpFor(player2,m.options||[]);}
   if(m.t==='upgradeChoice'&&isOnlineHost&&pendingUpgradePlayer===player2){finishLevelUp(player2,Number(m.index)||0);}
   if(m.t==='upgradeApplied'&&isOnlineGuest){const p=m.owner==='p2'?player2:player;const opt=pendingUpgradeOptions.find(o=>o.id===m.option);if(levelupBusy&&pendingUpgradePlayer===p&&opt){applyUpgrade(p,opt);levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];document.getElementById('levelup').style.display='none';state='game';setMobileControls(true);}}
+  if(m.t==='gameover'&&isOnlineGuest){score=Number(m.score)||score;wave=Number(m.wave)||wave;endGame(false);}
 
  });
  c.on('close',()=>{setOnlineStatus('Соединение закрыто.');if(isOnlineGuest){state='menu';goMenu()}});
@@ -628,7 +629,10 @@ function beginWave(){
  waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];
  // Enemy count ramps hard: later waves become crowded, not just tougher individually.
  const bossWave=wave%5===0;
- targetCount=bossWave?1+Math.min(7+Math.floor(wave*.9),22):Math.min(10+Math.floor(wave*2.35),42);
+ // In two-player mode the arena gets a real co-op population boost.
+ targetCount=coop
+   ? (bossWave?1+Math.min(11+Math.floor(wave*1.2),28):Math.min(16+Math.floor(wave*3.2),56))
+   : (bossWave?1+Math.min(7+Math.floor(wave*.9),22):Math.min(10+Math.floor(wave*2.35),42));
  document.getElementById('bossHud').style.display='none';
  if(bossWave){
    boss=makeBoss(wave);enemies.push(boss);
@@ -784,13 +788,18 @@ function openLevelUpFor(p,remoteOptions=null){
  if(num)num.textContent=p.lvl;
  const badge=overlay.querySelector('.pauseBadge');if(badge)badge.textContent=(p===player?'P1':'P2')+' · ИГРА ОСТАНОВЛЕНА · ВЫБЕРИ ПРОКАЧКУ';
  box.innerHTML='';
- pendingUpgradeOptions.forEach((o,i)=>{
-   const d=document.createElement('button');d.type='button';d.className='upgrade';
-   d.innerHTML='<h4>'+o.title+'</h4><p>'+o.desc+'</p>';if(!canChoose){d.disabled=true;d.style.opacity='.48';d.style.cursor='default'}
-   const choose=e=>{e.preventDefault();e.stopPropagation();if(!canChoose)return;if(onlineMode&&isOnlineGuest&&p===player2){sendNet({t:'upgradeChoice',index:i});}else finishLevelUp(p,i)};
-   d.addEventListener('pointerup',choose,{passive:false});d.addEventListener('click',e=>{e.preventDefault();e.stopPropagation()},{passive:false});box.appendChild(d);
- });
- overlay.style.display='grid';
+ // Online level-up choices are private: only the player who owns the level sees the overlay.
+ if(canChoose){
+   pendingUpgradeOptions.forEach((o,i)=>{
+     const d=document.createElement('button');d.type='button';d.className='upgrade';
+     d.innerHTML='<h4>'+o.title+'</h4><p>'+o.desc+'</p>';
+     const choose=e=>{e.preventDefault();e.stopPropagation();if(onlineMode&&isOnlineGuest&&p===player2){sendNet({t:'upgradeChoice',index:i});}else finishLevelUp(p,i)};
+     d.addEventListener('pointerup',choose,{passive:false});d.addEventListener('click',e=>{e.preventDefault();e.stopPropagation()},{passive:false});box.appendChild(d);
+   });
+   overlay.style.display='grid';
+ }else{
+   overlay.style.display='none';
+ }
 }
 function pauseLevelUp(){openLevelUpFor(player)}
 function pickUpgrades(){return buildUpgradeOptions(player)}
@@ -1159,7 +1168,17 @@ function update(dt){
  if(waveState==='clear'){between-=dt;if(between<=0){wave++;beginWave()}}
  combo=Math.max(1,combo-dt*.12);
 }
-function endGame(){state='gameover';document.getElementById('finalScore').textContent=Math.floor(score);document.getElementById('finalLevel').textContent=player.lvl;document.getElementById('finalWave').textContent=wave;document.getElementById('gameover').style.display='grid';}
+function endGame(broadcast=true){
+ state='gameover';
+ levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
+ document.getElementById('levelup').style.display='none';
+ document.getElementById('finalScore').textContent=Math.floor(score);
+ document.getElementById('finalLevel').textContent=player.lvl;
+ document.getElementById('finalWave').textContent=wave;
+ document.getElementById('gameover').style.display='grid';
+ setMobileControls(false);
+ if(broadcast&&onlineMode)sendNet({t:'gameover',score:Math.floor(score),wave,level:player.lvl});
+}
 
 function drawPixelText(text,x,y,size=8,color='#f6efd9',align='left'){ctx.fillStyle=color;ctx.font=`bold ${size}px ui-monospace,monospace`;ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(text,x,y)}
 function drawHero(p=player,ch=chars.find(x=>x.id===selectedChar),isP2=false){
