@@ -1514,7 +1514,7 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
  try{
    await setupPeer(false);
    if(!peer||peer.destroyed){throw new Error('PeerJS не готов')}
-   const c=peer.connect('dr-'+code,{reliable:false,serialization:'json',metadata:{room:code}});
+   const c=peer.connect('dr-'+code,{reliable:true,serialization:'json',metadata:{room:code}});
    netConn=c;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;
    wireNet(c);
    const timeout=setTimeout(()=>{
