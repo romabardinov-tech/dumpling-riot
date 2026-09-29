@@ -785,51 +785,6 @@ function openLevelUpFor(p,remoteOptions=null){
 function pauseLevelUp(){openLevelUpFor(player)}
 function pickUpgrades(){return buildUpgradeOptions(player)}
 
- if(levelupBusy)return;
- levelupBusy=true;
- state='levelup';
- setMobileControls(false);
- const overlay=document.getElementById('levelup');
- const num=document.getElementById('levelUpNum');
- const box=document.getElementById('upgradeChoices');
- if(!overlay||!box){levelupBusy=false;state='game';return}
- if(num)num.textContent=player.lvl;
- const opts=pickUpgrades();
- box.innerHTML='';
- for(const o of opts){
-   const d=document.createElement('button');
-   d.type='button';d.className='upgrade';
-   d.innerHTML=`<h4>${o.title}</h4><p>${o.desc}</p>`;
-   const choose=e=>{
-     e.preventDefault();e.stopPropagation();
-     if(!levelupBusy||state!=='levelup')return;
-     levelupBusy=false;
-     o.apply();
-     overlay.style.display='none';
-     state='game';
-     setMobileControls(true);
-     toast('УЛУЧШЕНИЕ: '+o.title);
-   };
-   d.addEventListener('pointerup',choose,{passive:false});
-   d.addEventListener('click',e=>{e.preventDefault();e.stopPropagation()},{passive:false});
-   box.appendChild(d);
- }
- overlay.style.display='grid';
-}
-function pickUpgrades(){
- const ch=chars.find(c=>c.id===player.charId)||chars[0];
- const hero={
- scar:[['ТЯЖЁЛЫЙ КЛИНОК','Ближнее оружие +35% урона.',()=>player.boost.dmg*=1.35],['КРОВАВАЯ БРОНЯ','+45 HP и полное лечение.',()=>{player.maxhp+=45;player.hp=player.maxhp}],['РАЗМАХ','Сильнее AOE оружия.',()=>player.heroUpgrades.push('wide')]],
- vesa:[['КРОВОТОЧЕНИЕ','Криты получают ещё +45% урона.',()=>player.boost.crit+=.12],['ОХОТНИЧИЙ ИНСТИНКТ','Скорострельность +25%.',()=>player.boost.rate*=1.25],['ДОЖДЬ ИГЛ','Снаряды получают +2 пробивания.',()=>player.heroUpgrades.push('pierce')]],
- nyx:[['ТЕНЕВОЙ ШАГ','Скорость +25%.',()=>player.boost.move*=1.25],['ЯД ТЕНИ','Урон +30%.',()=>player.boost.dmg*=1.3],['МНОЖЕСТВО ТЕНЕЙ','Теневые снаряды пробивают ещё 2 цели.',()=>player.heroUpgrades.push('pierce')]],
- pelmage:[['АРКАННЫЙ ОТКАТ','Заклинания на 28% быстрее.',()=>player.boost.rate*=1.28],['МАНА ПЕЛЬМЕНЯ','Урон +35%.',()=>player.boost.dmg*=1.35],['МЕТЕОРИТНЫЙ ВИХРЬ','Заклинания взрываются на 40% дальше.',()=>player.heroUpgrades.push('wide')]],
- assassin:[['СМЕРТЕЛЬНЫЙ КРИТ','Критический шанс +18%.',()=>player.boost.crit+=.18],['ШЕПОТ','Скорость +30%.',()=>player.boost.move*=1.3],['ЯДОВИТЫЙ КЛИНОК','Урон +35%.',()=>player.boost.dmg*=1.35]],
- golem:[['ЧУГУННАЯ КОЖА','+70 HP и полное лечение.',()=>{player.maxhp+=70;player.hp=player.maxhp}],['ПЕРЕГРЕВ','Урон +45%.',()=>player.boost.dmg*=1.45],['ПАРОВОЙ ТАНК','Урон +10% и получаемый урон −28%.',()=>{player.boost.dmg*=1.1;player.heroUpgrades.push('armor')}]]
- }[ch.id]||[];
- 
- hero.forEach(([title,desc,apply])=>pool.push({title,desc,apply}));
- return pool;
-}
 
 function attackFor(p,weaponIndex,target=null){
  if(!p||p.dead||p.fire>0||state!=='game')return;
