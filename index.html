@@ -193,7 +193,7 @@ function rechargeWeapons(p,dt){
 }
 
 let state='menu',selectedChar=chars[0].id,selectedMap=maps[0].id,weapon=0,last=0,acc=0;
-let coop=false,onlineMode=false,isOnlineHost=false,isOnlineGuest=false;let peer=null,netConn=null,netRoom='';let netSendTimer=0,guestNetTimer=0,peerReadyPromise=null,netSeq=0,lastNetSeq=0;
+let coop=false,onlineMode=false,isOnlineHost=false,isOnlineGuest=false;let peer=null,netConn=null,netStateConn=null,netRoom='';let netSendTimer=0,guestNetTimer=0,peerReadyPromise=null,netSeq=0,lastNetSeq=0;
 let lang=localStorage.getItem('dumpling-riot-lang')||'ru';
 const world={w:1920,h:1080};
 const camera={x:960,y:540,smooth:0.12};
@@ -507,6 +507,14 @@ function setupPeer(hostMode=false){
          resolve(peerId);
        });
        peer.on('connection',c=>{
+         const channel=c.metadata&&c.metadata.channel;
+         if(channel==='state'){
+           if(netStateConn){try{c.close()}catch(_){};return}
+           netStateConn=c;
+           c.on('open',()=>setOnlineStatus('Канал синхронизации подключён.'));
+           wireStateNet(c);
+           return;
+         }
          if(netConn){try{c.close()}catch(_){};return}
          netConn=c;
          isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;
@@ -583,7 +591,20 @@ function applyNetState(s){
 function netState(){
  return {p1:{x:player.x,y:player.y,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:weapon,lvl:player.lvl,bomb:player.bomb,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge},p2:{x:player2.x,y:player2.y,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,hit:e.hit,dead:e.dead,stage:e.stage})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type}:null,wave,score,combo,waveState}
 }
-function sendNet(m){if(!netConn||!netConn.open)return;try{const dc=netConn.dataChannel;if(m&&m.t==='state'&&dc&&typeof dc.bufferedAmount==='number'&&dc.bufferedAmount>28000)return;netConn.send(m)}catch(e){}}
+function sendNet(m){
+ const c=m&&m.t==='state'?netStateConn:netConn;
+ if(!c||!c.open)return;
+ try{
+   if(m.t==='state'&&c.dataChannel&&typeof c.dataChannel.bufferedAmount==='number'&&c.dataChannel.bufferedAmount>18000)return;
+   c.send(m);
+ }catch(e){}
+}
+function wireStateNet(c){
+ c.on('data',m=>{
+   if(m&&m.t==='state'&&isOnlineGuest&&((m.n||0)>lastNetSeq)){lastNetSeq=m.n||0;applyNetState(m.s)}
+ });
+ c.on('error',()=>{});
+}
 function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus('Сначала создай комнату и дождись игрока.');return false}sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false){
  startHorrorMusic();
@@ -1514,7 +1535,7 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
  try{
    await setupPeer(false);
    if(!peer||peer.destroyed){throw new Error('PeerJS не готов')}
-   const c=peer.connect('dr-'+code,{reliable:false,serialization:'json',metadata:{room:code}});
+   const c=peer.connect('dr-'+code,{reliable:true,serialization:'json',metadata:{room:code,channel:'control'}});
    netConn=c;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;
    wireNet(c);
    const timeout=setTimeout(()=>{
@@ -1523,6 +1544,10 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
    c.on('open',()=>{
      clearTimeout(timeout);
      try{c.send({t:'hello',room:code});setTimeout(()=>{try{if(c.open)c.send({t:'hello',room:code})}catch(_){}},250)}catch(_){}
+     const sc=peer.connect('dr-'+code,{reliable:false,serialization:'json',metadata:{room:code,channel:'state'}});
+     netStateConn=sc;
+     wireStateNet(sc);
+     sc.on('open',()=>{});
      setOnlineStatus('ИГРОК 2 ПОДКЛЮЧАЕТСЯ · ЖДЁМ СТАРТА...');
    });
    c.on('error',e=>{
