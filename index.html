@@ -53,7 +53,8 @@ canvas{filter:brightness(1.10) saturate(1.03);display:block;width:100%;height:10
 #langBar span{font-size:8px;color:#8e8194;margin-right:3px}
 .langBtn{border:2px solid #3a2c3e;background:#17111c;color:#bcaebe;font:900 9px ui-monospace;padding:5px 8px;cursor:pointer}.langBtn.sel{border-color:#f4b748;color:#f6efd9;background:#24191a}
 .modeCard{margin-top:10px}.modeChoices{display:grid;grid-template-columns:1fr 1fr;gap:7px}.modeChoice{border:2px solid #2c2230;background:#17111c;padding:8px;cursor:pointer;min-height:58px}.modeChoice.sel{border-color:#5fe0a5;background:#17231d}.modeChoice b{font-size:10px}.modeChoice p{margin:4px 0 0;font-size:7px;color:#a998ac;line-height:1.35}.modeP2Info{margin-top:7px;font-size:7px;color:#6fe1a2}
-#p2Hud{left:10px;top:50px;display:none}#localLevelPanel{left:10px;top:52px;display:none}.localLevelTitle{font-size:8px;color:#6fe1a2}.localLevelRow{display:flex;gap:8px;align-items:center}.localXp{width:118px;height:6px;background:#17111c;border:1px solid #4b3b50}.localXp i{display:block;height:100%;background:#5fe0a5;width:0%}.remoteArrow{position:absolute;left:50%;top:50%;width:0;height:0;display:none;z-index:40;pointer-events:none}.remoteArrow i{display:block;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:14px solid #6fe1a2;filter:drop-shadow(2px 2px 0 #000);transform-origin:0 50%}.remoteArrow b{position:absolute;left:8px;top:-7px;font-size:7px;color:#6fe1a2;text-shadow:2px 2px #000;white-space:nowrap}
+#p2Hud{left:10px;top:50px;display:none}#localLevelPanel{left:10px;top:52px;display:none}.localLevelTitle{font-size:8px;color:#6fe1a2}.localLevelRow{display:flex;gap:8px;align-items:center}.localXp{width:118px;height:6px;background:#17111c;border:1px solid #4b3b50}.localXp i{display:block;height:100%;background:#5fe0a5;width:0%}#remoteDeathVignette{position:absolute;inset:0;z-index:39;display:none;pointer-events:none;box-shadow:inset 0 0 0 999px rgba(185,18,28,.24)}
+.remoteArrow{position:absolute;left:50%;top:50%;width:0;height:0;display:none;z-index:40;pointer-events:none}.remoteArrow i{display:block;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:14px solid #6fe1a2;filter:drop-shadow(2px 2px 0 #000);transform-origin:0 50%}.remoteArrow b{position:absolute;left:8px;top:-7px;font-size:7px;color:#6fe1a2;text-shadow:2px 2px #000;white-space:nowrap}
 .mobileOnly{display:none}
 @media(max-width:900px), (pointer:coarse){
   body{place-items:center;background:#050309;touch-action:none;overscroll-behavior:none}
@@ -119,7 +120,7 @@ canvas{filter:brightness(1.10) saturate(1.03);display:block;width:100%;height:10
 <div id="fatalError" style="display:none;position:fixed;inset:0;z-index:999;background:#08060b;color:#f6efd9;place-items:center;padding:24px;font:12px ui-monospace,monospace"><div style="max-width:720px;width:100%;border:2px solid #a82f38;background:#140c12;padding:18px;box-shadow:6px 6px 0 #000"><h2 style="margin:0 0 10px;color:#ff6874">ОШИБКА ИГРЫ</h2><p style="margin:0 0 10px">Браузер остановил игру. Перезапусти страницу.</p><code style="display:block;white-space:pre-wrap;color:#ffd76b"></code><button onclick="location.reload()" style="margin-top:16px;padding:12px 16px;background:#d8414d;color:#fff;border:0;font:900 12px ui-monospace">ПЕРЕЗАПУСТИТЬ</button></div></div>
 </div>
 <div id="mobileRotateHint">МОБИЛЬНЫЙ РЕЖИМ: играть можно вертикально, но горизонтально удобнее. Левый круг — P1 движение, правый — P1 прицел. В режиме 2P сверху слева — P2 движение.</div>
-<div id="remoteArrow" aria-hidden="true"><i></i><b id="remoteArrowLabel">P2</b></div><div id="mobileControls" aria-hidden="true">
+<div id="remoteArrow" aria-hidden="true"><i></i><b id="remoteArrowLabel">P2</b></div><div id="remoteDeathVignette" aria-hidden="true"></div><div id="mobileControls" aria-hidden="true">
   <div id="movePad" class="mobilePad"><div class="mobileKnob"></div></div>
   <div id="aimPad" class="mobilePad"><div class="mobileKnob aimKnob"></div></div>
   <div id="p2Pad" class="mobilePad"><div class="mobileKnob p2Knob"></div><div class="p2Tag">P2</div></div>
@@ -444,7 +445,7 @@ function setHud(on){
  document.documentElement.classList.toggle('inGame',!!on)
 }
 function requestMobileFullscreen(){try{if(!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}if(screen.orientation&&screen.orientation.lock){const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
-function resetPlayer(p,ch,x,y){p.weaponLevels=[1,1,1,1];p.charId=ch.id;p.x=x;p.y=y;p.serverX=x;p.serverY=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.hurtT=0;p.hurtLean=0;p.weaponCharge=[1,1,1,1];p.shivCharge=1;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[]}
+function resetPlayer(p,ch,x,y){p.weaponLevels=[1,1,1,1];p.charId=ch.id;p.x=x;p.y=y;p.serverX=x;p.serverY=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.canRevive=false;p.hurtT=0;p.hurtLean=0;p.weaponCharge=[1,1,1,1];p.shivCharge=1;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[]}
 function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e)e.textContent=t}
 const makeRoomCode=()=>String(rndi(10000,99999));
 function setupPeer(hostMode=false){
@@ -568,6 +569,7 @@ function wireNet(c){
   if(m.t==='input'&&isOnlineHost){touchInput.p2MoveX=Number(m.mx)||0;touchInput.p2MoveY=Number(m.my)||0;player2.remoteAimActive=!!m.aa;if(player2.remoteAimActive){const ax=Number(m.ax)||0,ay=Number(m.ay)||0;if(Math.hypot(ax,ay)>.01)player2.aim=Math.atan2(ay,ax)}player2.weapon=clamp(Number(m.weapon)||0,0,3)}
   if(m.t==='dash'&&isOnlineHost)dashFor(player2);
   if(m.t==='bomb'&&isOnlineHost)bombFor(player2);
+  if(m.t==='reviveOrBomb'&&isOnlineHost){if(!reviveNearby(player2))bombFor(player2);}
   if(m.t==='start'&&isOnlineGuest){selectedMap=m.map;startGame(true)}
   if(m.t==='state'&&isOnlineGuest){if((m.n||0)>lastNetSeq){lastNetSeq=m.n||0;applyNetState(m.s)}}
   if(m.t==='p2level'&&isOnlineGuest){player2.lvl=Number(m.lvl)||player2.lvl;player2.xp=Number(m.xp)||player2.xp;player2.next=Number(m.next)||player2.next;}
@@ -699,7 +701,13 @@ function hurtPlayer(p,dmg,x=p.x,y=p.y){
  initAudio();sfx('hurt');playPainVoice(p);bloodBurst(p.x,p.y,5,.45);shake=Math.max(shake,.07);
  if(p.hp<=0)startDeath(p)
 }
-function startDeath(p){if(!p||p.dead)return;p.dead=true;p.hp=0;p.inv=999;p.vx=0;p.vy=0;shake=.28;bloodBurst(p.x,p.y,70,2.4);blood.push({x:p.x,y:p.y,r:18,a:.95});toast(coop&&!alivePlayers().length?'ОБА ПЕЛЬМЕНЯ ПОВЕРЖЕНЫ':(p===player?'P1 ПОВЕРЖЕН':'P2 ПОВЕРЖЕН'));if(!alivePlayers().length){state='death';deathTimer=0;deathPhase=0;for(const e of enemies){if(e.dead)continue;e.attack=99;e.speed*=.7}}}
+function startDeath(p){
+ if(!p||p.dead)return;
+ p.dead=true;p.hp=0;p.inv=999;p.vx=0;p.vy=0;p.canRevive=true;
+ shake=.28;bloodBurst(p.x,p.y,70,2.4);blood.push({x:p.x,y:p.y,r:18,a:.95});
+ toast(coop&&!alivePlayers().length?'ОБА ПЕЛЬМЕНЯ ПОВЕРЖЕНЫ':(p===player?'P1 ПОВЕРЖЕН':'P2 ПОВЕРЖЕН'));
+ if(!alivePlayers().length){state='death';deathTimer=0;deathPhase=0;for(const e of enemies){if(e.dead)continue;e.attack=99;e.speed*=.7}}
+}
 function updateDeath(dt){deathTimer+=dt;deathPhase+=dt*3.2;const deadPlayers=coopPlayers();for(const e of enemies){if(e.dead)continue;const t=deadPlayers.reduce((best,p)=>{const db=Math.hypot(best.x-e.x,best.y-e.y),dp=Math.hypot(p.x-e.x,p.y-e.y);return dp<db?p:best},deadPlayers[0]);const dx=t.x-e.x,dy=t.y-e.y,d=Math.hypot(dx,dy)||1;if(d>17){e.x+=(dx/d)*Math.min(34,d*1.4)*dt;e.y+=(dy/d)*Math.min(34,d*1.4)*dt}else{e.x+=Math.cos(e.phase+deathTimer*8)*.35;e.y+=Math.sin(e.phase+deathTimer*8)*.35}}if(deathTimer>.72&&Math.floor(deathTimer*8)!==Math.floor((deathTimer-dt)*8)){for(const p of deadPlayers)bloodBurst(p.x+rnd(-5,5),p.y+rnd(-5,5),12,1)}if(deathTimer>2.9)endGame()}
 function ring(x,y,r,color,life=.25,max=28,owner=null){rings.push({x,y,r:2,max,color,life,maxlife:life,owner})}
 function floatText(x,y,s,color='#ffd76b'){texts.push({x,y,s,life:.7,color})}
@@ -886,9 +894,21 @@ function bombFor(p){
  for(const e of enemies){const d=dist(p,e);if(d<88){damageEnemy(e,dmg*.45);const n=d||1;e.x+=((e.x-p.x)/n)*28;e.y+=((e.y-p.y)/n)*28}}
  p.inv=.42;shake=.3;toast(p===player?'ВЗРЫВНАЯ ЗОНА!':'P2 ВЗРЫВНАЯ ЗОНА!')
 }
-function bomb(){bombFor(player)}
+function tryReviveFor(p,target){
+ if(!p||!target||state!=='game'||p.dead||!target.dead||target.canRevive!==true)return false;
+ if(dist(p,target)>48)return false;
+ target.dead=false;target.hp=Math.max(35,Math.floor(target.maxhp*.45));target.inv=1.15;target.canRevive=false;
+ target.x=p.x+18;target.y=p.y;target.serverX=target.x;target.serverY=target.y;
+ spawnParticles(target.x,target.y,28,'#6fe1a2',1.6);ring(target.x,target.y,22,'#6fe1a2',.5,58);toast('ВОЗРОЖДЕНИЕ · '+(target===player?'P1':'P2'));
+ return true;
+}
+function reviveNearby(p){
+ const target=p===player?player2:player;
+ return tryReviveFor(p,target);
+}
+function bomb(){if(reviveNearby(player))return;bombFor(player)}
 function dashForOnlineGuest(){sendNet({t:'dash'})}
-function bombOnlineGuest(){sendNet({t:'bomb'})}
+function bombOnlineGuest(){sendNet({t:'reviveOrBomb'})}
 function dashFor(p){if(!p||p.dead||p.dash>0||state!=='game')return;initAudio();sfx('dash');p.dash=1.0;p.inv=.28;const len=Math.hypot(p.vx,p.vy)||1;let dx=p.vx/len,dy=p.vy/len;if(Math.abs(dx)+Math.abs(dy)<.2){dx=Math.cos(p.aim);dy=Math.sin(p.aim)}p.x+=dx*34;p.y+=dy*34;spawnParticles(p.x,p.y,14,'#e2d29f',.8)}
 function dash(){dashFor(player)}
 function damageEnemy(e,d,owner){
@@ -1561,23 +1581,25 @@ function draw(){
  if(relicOwned){ctx.fillStyle='#cf79ff';ctx.fillRect(W-30,H-31,15,15);ctx.fillStyle='#f2d6ff';ctx.fillRect(W-26,H-28,7,9);drawPixelText('РЕЛИКВИЯ',W-102,H-23,7,'#d9a8ff','left')}
 }
 function drawRemoteArrow(){
- const el=document.getElementById('remoteArrow');if(!el||state!=='game'||!coop||!onlineMode){if(el)el.style.display='none';return}
- const local= isOnlineGuest?player2:player, remote=isOnlineGuest?player:player2;
- const dx=remote.x-local.x,dy=remote.y-local.y;
- const sx=dx+W/2,sy=dy+H/2;
- const margin=28;
- if(sx>=margin&&sx<=W-margin&&sy>=margin&&sy<=H-margin){el.style.display='none';return}
- const ang=Math.atan2(dy,dx);
- const r=Math.min(W,H)*.43;
- const cx=W/2+Math.cos(ang)*r,cy=H/2+Math.sin(ang)*r;
- el.style.display='block';
- el.style.left=(50+((cx-W/2)/W)*100)+'%';
- el.style.top=(50+((cy-H/2)/H)*100)+'%';
+ const el=document.getElementById('remoteArrow');
+ if(!el||state!=='game'||!coop||!onlineMode){if(el)el.style.display='none';return}
+ const local=isOnlineGuest?player2:player,remote=isOnlineGuest?player:player2;
+ const dx=remote.x-local.x,dy=remote.y-local.y,ang=Math.atan2(dy,dx);
+ const sx=dx+W/2,sy=dy+H/2,margin=26;
+ // Always show the teammate indicator. Off-screen: pin it to the nearest edge.
+ // On-screen: place it part-way toward the teammate so it remains readable.
+ let cx,cy;
+ if(sx>=margin&&sx<=W-margin&&sy>=margin&&sy<=H-margin){
+   const k=.58;cx=W/2+dx*k;cy=H/2+dy*k;
+ }else{
+   const r=Math.min(W,H)*.43;cx=W/2+Math.cos(ang)*r;cy=H/2+Math.sin(ang)*r;
+ }
+ el.style.display='block';el.style.left=(50+((cx-W/2)/W)*100)+'%';el.style.top=(50+((cy-H/2)/H)*100)+'%';
  el.querySelector('i').style.transform='rotate('+ang+'rad)';
  const label=document.getElementById('remoteArrowLabel');if(label)label.textContent=isOnlineGuest?'P1':'P2';
 }function render(){drawRemoteArrow();ctx.save();if(shake>0){ctx.translate(rndi(-Math.ceil(shake*10),Math.ceil(shake*10)),rndi(-Math.ceil(shake*10),Math.ceil(shake*10)))}draw();ctx.restore();}
 
-function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&localP.hp/localP.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display=relicOwned?'block':'none';relicEl.classList.toggle('relic-pulse',relicOwned)}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(localP.hp));document.getElementById('xpTxt').textContent=`${Math.floor(localP.xp)}/${localP.next}`;document.getElementById('lvlTxt').textContent=localP.lvl;const lp=document.getElementById('localLevelPanel');if(lp)lp.style.display=onlineMode?'block':'none';const ll=document.getElementById('localLvlTxt');if(ll)ll.textContent=localP.lvl;const lx=document.getElementById('localXpTxt');if(lx)lx.textContent=`${Math.floor(localP.xp)}/${localP.next}`;const lf=document.getElementById('localXpFill');if(lf)lf.style.width=clamp(localP.xp/localP.next*100,0,100)+'%';document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+enemies.length;document.getElementById('hpFill').style.width=clamp(localP.hp/localP.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(localP.xp/localP.next*100,0,100)+'%';
+function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;const remoteP=onlineMode&&isOnlineGuest?player:player2;const deathV=document.getElementById('remoteDeathVignette');if(deathV)deathV.style.display=(state==='game'&&coop&&remoteP.dead&&alivePlayers().length>0)?'block':'none';const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&localP.hp/localP.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display=relicOwned?'block':'none';relicEl.classList.toggle('relic-pulse',relicOwned)}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(localP.hp));document.getElementById('xpTxt').textContent=`${Math.floor(localP.xp)}/${localP.next}`;document.getElementById('lvlTxt').textContent=localP.lvl;const lp=document.getElementById('localLevelPanel');if(lp)lp.style.display=onlineMode?'block':'none';const ll=document.getElementById('localLvlTxt');if(ll)ll.textContent=localP.lvl;const lx=document.getElementById('localXpTxt');if(lx)lx.textContent=`${Math.floor(localP.xp)}/${localP.next}`;const lf=document.getElementById('localXpFill');if(lf)lf.style.width=clamp(localP.xp/localP.next*100,0,100)+'%';document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+enemies.length;document.getElementById('hpFill').style.width=clamp(localP.hp/localP.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(localP.xp/localP.next*100,0,100)+'%';
  if(boss){document.getElementById('bossHud').style.display='block';document.getElementById('bossName').textContent=(lang==='en'?(boss.enName||boss.name):boss.name)+' · '+T('boss');document.getElementById('bossFill').style.width=clamp(boss.hp/boss.maxhp*100,0,100)+'%'}else document.getElementById('bossHud').style.display='none';
  const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.innerHTML=`<b>${w.key}</b> <span class="wn">${chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(w)}</span><span class="wlv">УР. ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG</span><span class="weaponCharge"><i></i></span><i class="cd"></i>`;d.onclick=()=>{weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===weapon);d.querySelector('.wn').textContent=chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(weapons[i]);d.querySelector('.wlv').textContent=`${lang==='en'?'LV':'УР.'} ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG`;const chargeEl=d.querySelector('.weaponCharge i');const charge=clamp(player.weaponCharge?.[i]??1,0,1);chargeEl.style.width=(charge*100)+'%';d.classList.toggle('charging',charge<.999);d.querySelector('.cd').textContent=i===weapon&&player.fire>0?player.fire.toFixed(1):''})}
 
