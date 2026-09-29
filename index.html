@@ -71,7 +71,6 @@ canvas{filter:brightness(1.10) saturate(1.03);display:block;width:100%;height:10
   .mobileBtn{width:clamp(56px,14vw,72px);height:clamp(56px,14vw,72px);font-size:clamp(9px,2.4vw,12px)}
 }
 @media(max-width:900px) and (orientation:portrait){
-  #mobileControls{display:none}
   #menu .box{max-height:90svh}
   #mobileRotateHint{display:block!important;position:absolute;left:12px;right:12px;top:12px;z-index:51}
   #movePad{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 8px);left:max(12px,env(safe-area-inset-left))}
@@ -85,9 +84,10 @@ canvas{filter:brightness(1.10) saturate(1.03);display:block;width:100%;height:10
 }
 #mobileRotateHint{display:none;color:#d7c8b7;font-size:8px;line-height:1.5;border:2px solid #3d2d43;padding:7px;background:#0d0a10}
 
-@media(max-width:900px) and (orientation:landscape){#mobileControls{display:none}.box{max-width:96vw}.menuGrid{gap:8px}.choice{min-height:58px}.hint{font-size:7px}}
+@media(max-width:900px) and (orientation:landscape){.box{max-width:96vw}.menuGrid{gap:8px}.choice{min-height:58px}.hint{font-size:7px}}
 
 #gameScreen{width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;border-radius:0!important}
+@media(max-width:900px), (pointer:coarse){#mobileControls.game-active{display:block!important}}
 </style>
 </head>
 <body>
@@ -985,7 +985,7 @@ let fireBtnHeld=false;
 function bindMobileButton(el,down,up){if(!el)return;let active=false;const press=e=>{e.preventDefault();if(active)return;active=true;down();el.classList.add('active')};const release=e=>{e.preventDefault();if(!active)return;active=false;up&&up();el.classList.remove('active')};el.addEventListener('pointerdown',press,{passive:false});el.addEventListener('pointerup',release,{passive:false});el.addEventListener('pointercancel',release,{passive:false});el.addEventListener('touchstart',press,{passive:false});el.addEventListener('touchend',release,{passive:false});el.addEventListener('touchcancel',release,{passive:false})}
 function setupMobile(){
  bindTouchStick('movePad','move');bindTouchStick('aimPad','aim');bindTouchStick('p2Pad','p2move');
- document.querySelectorAll('[data-action]').forEach(b=>bindMobileButton(b,()=>{initAudio();const a=b.dataset.action;if(a==='dash')dash();if(a==='bomb')bomb();if(a==='p2dash'){if(onlineMode&&isOnlineGuest)dashForOnlineGuest();else dashFor(player2)}if(a==='p2bomb'){if(onlineMode&&isOnlineGuest)bombOnlineGuest();else bombFor(player2)}if(a==='pause'){togglePause();}},null));
+ document.querySelectorAll('[data-action]').forEach(b=>bindMobileButton(b,()=>{initAudio();const a=b.dataset.action;if(a==='dash'){if(onlineMode&&isOnlineGuest)dashForOnlineGuest();else dash()}if(a==='bomb'){if(onlineMode&&isOnlineGuest)bombOnlineGuest();else bomb()}if(a==='p2dash'){if(onlineMode&&isOnlineGuest)dashForOnlineGuest();else dashFor(player2)}if(a==='p2bomb'){if(onlineMode&&isOnlineGuest)bombOnlineGuest();else bombFor(player2)}if(a==='pause'){togglePause();}},null));
  document.querySelectorAll('.mw').forEach(b=>bindMobileButton(b,()=>{const wi=+b.dataset.weapon;if(onlineMode&&isOnlineGuest)player2.weapon=wi;else weapon=wi;initAudio();document.querySelectorAll('.mw').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')},null));
  const resume=document.getElementById('resumeBtn');if(resume)resume.onclick=()=>togglePause();
  const pauseMenu=document.getElementById('pauseMenuBtn');if(pauseMenu)pauseMenu.onclick=goMenu;const pauseRestart=document.getElementById('pauseRestartBtn');if(pauseRestart)pauseRestart.onclick=()=>{initAudio();startGame();};const mobileMenu=document.getElementById('menuMobileBtn');if(mobileMenu)mobileMenu.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();goMenu();},{passive:false});
