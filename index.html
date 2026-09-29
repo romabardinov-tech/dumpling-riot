@@ -174,7 +174,7 @@ const heroWeaponTune={
  golem:[{d:.9,r:1.18},{d:.88,r:1.18},{d:.82,r:1.22},{d:.72,r:1.3}]
 };
 function heroWeaponStats(p,i){
- const base=weapons[i],lv=weaponLevels[i],ch=chars.find(c=>c.id===(p&&p.charId))||chars[0],mult=(heroWeaponMods[ch.id]||heroWeaponMods.scar)[i]||1,tune=(heroWeaponTune[ch.id]||heroWeaponTune.scar)[i]||{d:1,r:1};
+ const base=weapons[i],lv=(p&&Array.isArray(p.weaponLevels)?p.weaponLevels[i]:weaponLevels[i])||1,ch=chars.find(c=>c.id===(p&&p.charId))||chars[0],mult=(heroWeaponMods[ch.id]||heroWeaponMods.scar)[i]||1,tune=(heroWeaponTune[ch.id]||heroWeaponTune.scar)[i]||{d:1,r:1};
  const rateMod=ch.id==='assassin'?1.28:ch.id==='golem'?.72:ch.id==='pelmage'?1.08:1,speedMod=ch.id==='nyx'?1.32:ch.id==='assassin'?1.45:ch.id==='golem'?.78:ch.id==='pelmage'?1.2:1;
  return {...base,name:ch.weaponNames?.[i]||base.name,enName:ch.enWeaponNames?.[i]||base.enName,dmg:base.dmg*mult*tune.d*(1+(lv-1)*.22),rate:base.rate*tune.r*Math.pow(.95,lv-1)/rateMod,speed:base.speed*speedMod*(1+(lv-1)*.045),pierce:base.pierce+Math.floor((lv-1)/4),level:lv};
 }
@@ -387,8 +387,8 @@ function enemyDeathVoice(type){
 }
 
 const keys=new Set();const mouse={x:240,y:135,down:false};
-const player={x:240,y:145,vx:0,vy:0,aim:0,hp:100,maxhp:100,xp:0,next:100,lvl:1,speed:88,fire:0,dash:0,bomb:3,inv:0,shots:0,dead:false,boost:{dmg:1,rate:1,move:1,crit:0},weapon:0,charId:chars[0].id};
-const player2={x:260,y:145,vx:0,vy:0,aim:0,hp:100,maxhp:100,xp:0,next:100,lvl:1,speed:92,fire:0,dash:0,bomb:3,inv:0,shots:0,dead:false,boost:{dmg:1,rate:1,move:1,crit:0},weapon:1,charId:chars[1].id,serverX:260,serverY:145,remoteAimActive:false};
+const player={weaponLevels:[1,1,1,1],x:240,y:145,vx:0,vy:0,aim:0,hp:100,maxhp:100,xp:0,next:100,lvl:1,speed:88,fire:0,dash:0,bomb:3,inv:0,shots:0,dead:false,boost:{dmg:1,rate:1,move:1,crit:0},weapon:0,charId:chars[0].id};
+const player2={weaponLevels:[1,1,1,1],x:260,y:145,vx:0,vy:0,aim:0,hp:100,maxhp:100,xp:0,next:100,lvl:1,speed:92,fire:0,dash:0,bomb:3,inv:0,shots:0,dead:false,boost:{dmg:1,rate:1,move:1,crit:0},weapon:1,charId:chars[1].id,serverX:260,serverY:145,remoteAimActive:false};
 const coopPlayers=()=>coop?[player,player2]:[player];
 const alivePlayers=()=>coopPlayers().filter(p=>!p.dead&&p.hp>0);
 function otherCharId(){const order=chars.map(c=>c.id);const i=order.indexOf(selectedChar);return order[(i+1)%order.length]}
@@ -444,7 +444,7 @@ function setHud(on){
  document.documentElement.classList.toggle('inGame',!!on)
 }
 function requestMobileFullscreen(){try{if(!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}if(screen.orientation&&screen.orientation.lock){const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
-function resetPlayer(p,ch,x,y){p.charId=ch.id;p.x=x;p.y=y;p.serverX=x;p.serverY=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.hurtT=0;p.hurtLean=0;p.weaponCharge=[1,1,1,1];p.shivCharge=1;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[]}
+function resetPlayer(p,ch,x,y){p.weaponLevels=[1,1,1,1];p.charId=ch.id;p.x=x;p.y=y;p.serverX=x;p.serverY=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.hurtT=0;p.hurtLean=0;p.weaponCharge=[1,1,1,1];p.shivCharge=1;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[]}
 function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e)e.textContent=t}
 const makeRoomCode=()=>String(rndi(10000,99999));
 function setupPeer(hostMode=false){
@@ -570,7 +570,11 @@ function wireNet(c){
   if(m.t==='bomb'&&isOnlineHost)bombFor(player2);
   if(m.t==='start'&&isOnlineGuest){selectedMap=m.map;startGame(true)}
   if(m.t==='state'&&isOnlineGuest){if((m.n||0)>lastNetSeq){lastNetSeq=m.n||0;applyNetState(m.s)}}
-  if(m.t==='p2level'&&isOnlineGuest){player2.lvl=Number(m.lvl)||player2.lvl;player2.xp=Number(m.xp)||player2.xp;player2.next=Number(m.next)||player2.next;toast('ТВОЙ УРОВЕНЬ: '+player2.lvl);}
+  if(m.t==='p2level'&&isOnlineGuest){player2.lvl=Number(m.lvl)||player2.lvl;player2.xp=Number(m.xp)||player2.xp;player2.next=Number(m.next)||player2.next;}
+  if(m.t==='levelup'&&isOnlineGuest){openLevelUpFor(m.owner==='p2'?player2:player,m.options||[]);}
+  if(m.t==='upgradeChoice'&&isOnlineHost&&pendingUpgradePlayer===player2){finishLevelUp(player2,Number(m.index)||0);}
+  if(m.t==='upgradeApplied'&&isOnlineGuest){const p=m.owner==='p2'?player2:player;const opt=pendingUpgradeOptions.find(o=>o.id===m.option);if(levelupBusy&&pendingUpgradePlayer===p&&opt){applyUpgrade(p,opt);levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];document.getElementById('levelup').style.display='none';state='game';setMobileControls(true);}}
+
  });
  c.on('close',()=>{setOnlineStatus('Соединение закрыто.');if(isOnlineGuest){state='menu';goMenu()}});
 }
@@ -581,7 +585,7 @@ function applyNetState(s){
    p.serverX=data.x;p.serverY=data.y;
    if(!isLocal && !isOnlineGuest){p.x=data.x;p.y=data.y}
    Object.assign(p,{hp:data.hp,maxhp:data.maxhp,dead:data.dead,aim:data.aim,weapon:data.weapon,lvl:data.lvl,xp:data.xp??p.xp,next:data.next??p.next,bomb:data.bomb,shivCharge:data.shivCharge});
-   if(Array.isArray(data.weaponCharge))p.weaponCharge=data.weaponCharge.slice(0,4);else p.weaponCharge=[1,1,1,1];
+   if(Array.isArray(data.weaponCharge))p.weaponCharge=data.weaponCharge.slice(0,4);else p.weaponCharge=[1,1,1,1];if(Array.isArray(data.weaponLevels))p.weaponLevels=data.weaponLevels.slice(0,4);
    p.shivCharge=p.weaponCharge[2]??p.shivCharge??1;
  };
  cp(player,s.p1,false);
@@ -589,7 +593,7 @@ function applyNetState(s){
  enemies=s.enemies||[];projectiles=s.projectiles||[];drops=s.drops||[];boss=s.boss||null;wave=s.wave||1;score=s.score||0;combo=s.combo||1;waveState=s.waveState||'fighting';
 }
 function netState(){
- return {p1:{x:player.x,y:player.y,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:weapon,lvl:player.lvl,bomb:player.bomb,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge},p2:{x:player2.x,y:player2.y,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,hit:e.hit,dead:e.dead,stage:e.stage})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type}:null,wave,score,combo,waveState}
+ return {p1:{x:player.x,y:player.y,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:player.weapon,lvl:player.lvl,bomb:player.bomb,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,hit:e.hit,dead:e.dead,stage:e.stage})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type}:null,wave,score,combo,waveState}
 }
 function sendNet(m){
  const c=m&&m.t==='state'?netStateConn:netConn;
@@ -612,7 +616,7 @@ function startGame(fromNetwork=false){
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
  resetPlayer(player,ch,world.w/2-18,world.h/2);resetPlayer(player2,ch2,world.w/2+18,world.h/2);
  player.weapon=0;player2.weapon=coop?1:0;
- weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast(coop?'2 ИГРОКА · ВОЛНА 1':'ВОЛНА 1');if(location.protocol!=='file:')requestMobileFullscreen();
+ weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast(coop?'2 ИГРОКА · ВОЛНА 1':'ВОЛНА 1');if(location.protocol!=='file:')requestMobileFullscreen();
 }
 function goMenu(){state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu()}
 function beginWave(){
@@ -691,6 +695,9 @@ function updateDeath(dt){deathTimer+=dt;deathPhase+=dt*3.2;const deadPlayers=coo
 function ring(x,y,r,color,life=.25,max=28,owner=null){rings.push({x,y,r:2,max,color,life,maxlife:life,owner})}
 function floatText(x,y,s,color='#ffd76b'){texts.push({x,y,s,life:.7,color})}
 let levelupBusy=false;
+let levelupBusy=false;
+let pendingUpgradePlayer=null;
+let pendingUpgradeOptions=[];
 function gainXPFor(p,v,showUpgrade=true){
  if(!p||!Number.isFinite(v)||v<=0)return;
  p.xp+=v;
@@ -698,12 +705,86 @@ function gainXPFor(p,v,showUpgrade=true){
    p.xp-=p.next;
    p.next=Math.floor(p.next*1.18);
    p.lvl++;
-   if(p===player&&showUpgrade&&state!=='levelup')pauseLevelUp();
-   if(p===player2&&onlineMode&&isOnlineHost)sendNet({t:'p2level',lvl:p.lvl,xp:p.xp,next:p.next});
+   if(showUpgrade){openLevelUpFor(p);if(onlineMode&&isOnlineHost)sendNet({t:'levelup',owner:p===player?'p1':'p2',options:pendingUpgradeOptions.map(o=>({id:o.id,title:o.title,desc:o.desc}))});}
  }
 }
 function gainXP(v){gainXPFor(player,v,true)}
-function pauseLevelUp(){
+function buildUpgradeOptions(p){
+ const ch=chars.find(c=>c.id===p.charId)||chars[0];
+ const hero={
+  scar:[['scar_blade','ТЯЖЁЛЫЙ КЛИНОК','Ближнее оружие +35% урона.'],['scar_armor','КРОВАВАЯ БРОНЯ','+45 HP и полное лечение.'],['scar_wide','РАЗМАХ','Сильнее AOE оружия.']],
+  vesa:[['vesa_bleed','КРОВОТОЧЕНИЕ','Криты получают ещё +12%.'],['vesa_rate','ОХОТНИЧИЙ ИНСТИНКТ','Скорострельность +25%.'],['vesa_pierce','ДОЖДЬ ИГЛ','Снаряды получают +2 пробивания.']],
+  nyx:[['nyx_move','ТЕНЕВОЙ ШАГ','Скорость +25%.'],['nyx_dmg','ЯД ТЕНИ','Урон +30%.'],['nyx_pierce','МНОЖЕСТВО ТЕНЕЙ','Теневые снаряды пробивают ещё 2 цели.']],
+  pelmage:[['pel_rate','АРКАННЫЙ ОТКАТ','Заклинания на 28% быстрее.'],['pel_dmg','МАНА ПЕЛЬМЕНЯ','Урон +35%.'],['pel_wide','МЕТЕОРИТНЫЙ ВИХРЬ','Заклинания взрываются на 40% дальше.']],
+  assassin:[['ass_crit','СМЕРТЕЛЬНЫЙ КРИТ','Критический шанс +18%.'],['ass_move','ШЕПОТ','Скорость +30%.'],['ass_dmg','ЯДОВИТЫЙ КЛИНОК','Урон +35%.']],
+  golem:[['gol_armor','ЧУГУННАЯ КОЖА','+70 HP и полное лечение.'],['gol_dmg','ПЕРЕГРЕВ','Урон +45%.'],['gol_tank','ПАРОВОЙ ТАНК','Урон +10% и получаемый урон −28%.']]
+ }[ch.id]||[];
+ const pool=[
+  {id:'dmg',title:'+25% УРОН',desc:'Увеличивает урон только этого игрока.'},
+  {id:'rate',title:'БЫСТРАЯ СТРЕЛЬБА',desc:'Скорострельность +20% только этому игроку.'},
+  {id:'move',title:'ЖЕСТКИЙ РАЗГОН',desc:'Скорость движения +16% только этому игроку.'},
+  {id:'hp',title:'+35 HP',desc:'Максимальное здоровье +35 и лечение этого игрока.'},
+  {id:'bomb',title:'+1 БОМБА',desc:'Добавляет заряд бомбы этому игроку.'},
+  {id:'crit',title:'КРИТИЧЕСКИЙ УКУС',desc:'+8% критического урона этому игроку.'}
+ ];
+ for(const [id,title,desc] of hero)pool.push({id,title,desc});
+ for(let i=0;i<weapons.length;i++){
+   const lv=(p.weaponLevels||weaponLevels)[i]||1;
+   if(lv<8)pool.push({id:'weapon_'+i,title:(ch.weaponNames?.[i]||weapons[i].name)+' · УР. '+(lv+1),desc:'Урон +22% · скорострельность +5% · скорость +4.5%.',weapon:i});
+ }
+ return pool.sort(()=>Math.random()-.5).slice(0,3);
+}
+function applyUpgrade(p,o){
+ if(!p||!o)return;
+ switch(o.id){
+  case'dmg':p.boost.dmg*=1.25;break;
+  case'rate':p.boost.rate*=1.2;break;
+  case'move':p.boost.move*=1.16;break;
+  case'hp':p.maxhp+=35;p.hp=p.maxhp;break;
+  case'bomb':p.bomb++;break;
+  case'crit':p.boost.crit+=.08;break;
+  case'scar_blade':p.boost.dmg*=1.35;break;case'scar_armor':p.maxhp+=45;p.hp=p.maxhp;break;case'scar_wide':p.heroUpgrades.push('wide');break;
+  case'vesa_bleed':p.boost.crit+=.12;break;case'vesa_rate':p.boost.rate*=1.25;break;case'vesa_pierce':p.heroUpgrades.push('pierce');break;
+  case'nyx_move':p.boost.move*=1.25;break;case'nyx_dmg':p.boost.dmg*=1.3;break;case'nyx_pierce':p.heroUpgrades.push('pierce');break;
+  case'pel_rate':p.boost.rate*=1.28;break;case'pel_dmg':p.boost.dmg*=1.35;break;case'pel_wide':p.heroUpgrades.push('wide');break;
+  case'ass_crit':p.boost.crit+=.18;break;case'ass_move':p.boost.move*=1.3;break;case'ass_dmg':p.boost.dmg*=1.35;break;
+  case'gol_armor':p.maxhp+=70;p.hp=p.maxhp;break;case'gol_dmg':p.boost.dmg*=1.45;break;case'gol_tank':p.boost.dmg*=1.1;p.heroUpgrades.push('armor');break;
+  default: if(o.id.startsWith('weapon_')){const i=Number(o.id.split('_')[1]);p.weaponLevels[i]=Math.min(8,(p.weaponLevels[i]||1)+1);p.weapon=i;}
+ }
+}
+function finishLevelUp(p,opt){
+ if(!levelupBusy||state!=='levelup'||p!==pendingUpgradePlayer)return;
+ const chosen=pendingUpgradeOptions[opt];
+ if(!chosen)return;
+ applyUpgrade(p,chosen);
+ levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
+ document.getElementById('levelup').style.display='none';
+ state='game';setMobileControls(true);
+ if(onlineMode)sendNet({t:'upgradeApplied',owner:p===player?'p1':'p2',option:chosen.id});
+ toast((p===player?'P1':'P2')+' УЛУЧШЕНИЕ: '+chosen.title);
+}
+function openLevelUpFor(p,remoteOptions=null){
+ if(!p||p.dead)return;
+ if(levelupBusy)return;
+ levelupBusy=true;pendingUpgradePlayer=p;
+ state='levelup';setMobileControls(false);
+ const overlay=document.getElementById('levelup'),num=document.getElementById('levelUpNum'),box=document.getElementById('upgradeChoices');
+ if(!overlay||!box){levelupBusy=false;state='game';return}
+ pendingUpgradeOptions=remoteOptions||buildUpgradeOptions(p);
+ if(num)num.textContent=p.lvl;
+ const badge=overlay.querySelector('.pauseBadge');if(badge)badge.textContent=(p===player?'P1':'P2')+' · ИГРА ОСТАНОВЛЕНА · ВЫБЕРИ ПРОКАЧКУ';
+ box.innerHTML='';
+ pendingUpgradeOptions.forEach((o,i)=>{
+   const d=document.createElement('button');d.type='button';d.className='upgrade';
+   d.innerHTML='<h4>'+o.title+'</h4><p>'+o.desc+'</p>';
+   const choose=e=>{e.preventDefault();e.stopPropagation();if(onlineMode&&isOnlineGuest&&p===player2){sendNet({t:'upgradeChoice',index:i});}else finishLevelUp(p,i)};
+   d.addEventListener('pointerup',choose,{passive:false});d.addEventListener('click',e=>{e.preventDefault();e.stopPropagation()},{passive:false});box.appendChild(d);
+ });
+ overlay.style.display='grid';
+}
+function pauseLevelUp(){openLevelUpFor(player)}
+function pickUpgrades(){return buildUpgradeOptions(player)}
+
  if(levelupBusy)return;
  levelupBusy=true;
  state='levelup';
@@ -745,10 +826,9 @@ function pickUpgrades(){
  assassin:[['СМЕРТЕЛЬНЫЙ КРИТ','Критический шанс +18%.',()=>player.boost.crit+=.18],['ШЕПОТ','Скорость +30%.',()=>player.boost.move*=1.3],['ЯДОВИТЫЙ КЛИНОК','Урон +35%.',()=>player.boost.dmg*=1.35]],
  golem:[['ЧУГУННАЯ КОЖА','+70 HP и полное лечение.',()=>{player.maxhp+=70;player.hp=player.maxhp}],['ПЕРЕГРЕВ','Урон +45%.',()=>player.boost.dmg*=1.45],['ПАРОВОЙ ТАНК','Урон +10% и получаемый урон −28%.',()=>{player.boost.dmg*=1.1;player.heroUpgrades.push('armor')}]]
  }[ch.id]||[];
- const pool=[{title:'+25% ОБЩИЙ УРОН',desc:'Увеличивает урон всего оружия.',apply:()=>{for(const p of coopPlayers())p.boost.dmg*=1.25}},{title:'БЫСТРАЯ СТРЕЛЬБА',desc:'Скорострельность +20%.',apply:()=>{for(const p of coopPlayers())p.boost.rate*=1.2}},{title:'ЖЕСТКИЙ РАЗГОН',desc:'Скорость движения +16%.',apply:()=>{for(const p of coopPlayers())p.boost.move*=1.16}},{title:'+35 HP',desc:'Максимальное здоровье +35 и лечение.',apply:()=>{for(const p of coopPlayers()){p.maxhp+=35;p.hp=p.maxhp}}},{title:'+1 БОМБА',desc:'Добавляет заряд бомбы.',apply:()=>{for(const p of coopPlayers())p.bomb++}},{title:'КРИТИЧЕСКИЙ УКУС',desc:'8% шанс удвоить урон.',apply:()=>{for(const p of coopPlayers())p.boost.crit+=.08}}];
+ 
  hero.forEach(([title,desc,apply])=>pool.push({title,desc,apply}));
- weapons.forEach((w,i)=>{if(weaponLevels[i]<8)pool.push({title:(ch.weaponNames?.[i]||w.name)+' · УР. '+(weaponLevels[i]+1),desc:'Урон +28% · скорострельность +7% · скорость +5.5%.',apply:()=>{weaponLevels[i]++;weapon=i;toast((ch.weaponNames?.[i]||w.name)+': УР. '+weaponLevels[i])}})});
- return [...pool].sort(()=>Math.random()-.5).slice(0,3);
+ return pool;
 }
 
 function attackFor(p,weaponIndex,target=null){
