@@ -435,41 +435,78 @@ function resetPlayer(p,ch,x,y){p.charId=ch.id;p.x=x;p.y=y;p.vx=0;p.vy=0;p.hp=p.m
 function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e)e.textContent=t}
 const makeRoomCode=()=>String(rndi(10000,99999));
 function setupPeer(hostMode=false){
- if(typeof Peer==='undefined'){setOnlineStatus('Не удалось загрузить онлайн-модуль. Обнови страницу.');return Promise.reject(new Error('PeerJS не загружен'))}
+ if(typeof Peer==='undefined'){
+   setOnlineStatus('Онлайн: библиотека PeerJS не загрузилась.');
+   return Promise.reject(new Error('PeerJS не загружен'));
+ }
  if(peerReadyPromise)return peerReadyPromise;
  peerReadyPromise=new Promise((resolve,reject)=>{
    const openPeer=(attempt=0)=>{
      const roomCode=netRoom||makeRoomCode();
-       const id=hostMode?('dr-'+roomCode):undefined;
+     const id=hostMode?('dr-'+roomCode):undefined;
      try{
-       peer=new Peer(id);
+       setOnlineStatus(hostMode?'Подключаемся к серверу комнат...':'Подключаемся к онлайн-серверу...');
+       peer=new Peer(id,{
+         host:'0.peerjs.com',
+         port:443,
+         path:'/',
+         secure:true,
+         debug:1,
+         config:{
+           iceServers:[
+             {urls:'stun:stun.l.google.com:19302'}
+           ],
+           sdpSemantics:'unified-plan'
+         }
+       });
        let settled=false;
        const fail=e=>{
          const type=e&&e.type?e.type:'ошибка',msg=e&&e.message?e.message:'';
-         if(hostMode&&type==='unavailable-id'&&attempt<5){try{peer.destroy()}catch(_){};setTimeout(()=>openPeer(attempt+1),120);return}
-         setOnlineStatus('Онлайн: ошибка '+type+(msg?' — '+msg:''));
-         if(!settled){settled=true;peer=null;peerReadyPromise=null;reject(e||new Error(type))}
+         if(hostMode&&type==='unavailable-id'&&attempt<8){
+           try{peer.destroy()}catch(_){}
+           netRoom='';
+           setTimeout(()=>openPeer(attempt+1),150);
+           return;
+         }
+         const readable={
+           'peer-unavailable':'Комната не найдена или игрок уже вышел.',
+           'network':'Нет связи с сервером онлайн-игры.',
+           'server-error':'Сервер онлайн-игры недоступен.',
+           'socket-error':'Соединение с сервером прервано.',
+           'unavailable-id':'Код комнаты уже занят, создаём новый.'
+         }[type]||('Ошибка '+type);
+         setOnlineStatus('Онлайн: '+readable);
+         if(!settled){
+           settled=true;peer=null;peerReadyPromise=null;
+           reject(e||new Error(type));
+         }
        };
        peer.on('open',peerId=>{
          settled=true;
          if(hostMode){
            netRoom=String(peerId).replace(/^dr-/,'');
-           setOnlineStatus('Код комнаты: '+netRoom);
            const i=document.getElementById('roomCodeInput');if(i)i.value=netRoom;
+           setOnlineStatus('Комната создана: '+netRoom+' · ждём второго игрока');
+         }else{
+           setOnlineStatus('Онлайн-сервер подключён · соединяемся с комнатой...');
          }
          resolve(peerId);
        });
        peer.on('connection',c=>{
-         if(netConn){c.close();return}
+         if(netConn){try{c.close()}catch(_){};return}
          netConn=c;
          isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;
+         setOnlineStatus('Игрок найден · устанавливаем соединение...');
          wireNet(c);
-         setOnlineStatus('Игрок подключён. Запускаем игру.'); if(state==='menu'){setOnlineStatus('Игрок подключён. Запускаем игру...');}
        });
        peer.on('error',fail);
-       peer.on('disconnected',()=>setOnlineStatus('Онлайн: сервер отключён. Попробуй ещё раз.'));
+       peer.on('disconnected',()=>{
+         if(!onlineMode||!netConn||!netConn.open)setOnlineStatus('Онлайн: сервер отключён. Нажми подключиться ещё раз.');
+       });
        peer.on('close',()=>setOnlineStatus('Онлайн: соединение закрыто.'));
-     }catch(e){peer=null;peerReadyPromise=null;reject(e)}
+     }catch(e){
+       peer=null;peerReadyPromise=null;reject(e);
+     }
    };
    openPeer();
  });
@@ -1389,16 +1426,31 @@ document.getElementById('createRoomBtn')?.addEventListener('click',async()=>{
  catch(e){}
 });
 document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
- const code=(document.getElementById('roomCodeInput')?.value||'').trim();
- if(!code){setOnlineStatus('Введи код комнаты.');return}
- setOnlineStatus('Подключаемся к '+code+'...');
+ const code=(document.getElementById('roomCodeInput')?.value||'').replace(/\\s/g,'').trim();
+ if(!/^\\d{5}$/.test(code)){setOnlineStatus('Введи 5-значный код комнаты.');return}
+ setOnlineStatus('Подключаемся к комнате '+code+'...');
  try{
    await setupPeer(false);
-   const c=peer.connect('dr-'+code,{reliable:true});
-   netConn=c;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;wireNet(c);
-   c.on('open',()=>{c.send({t:'hello',room:code});setOnlineStatus('Подключено. Запускаем игру...')});
-   c.on('error',e=>setOnlineStatus('Онлайн: ошибка подключения '+(e&&e.type?e.type:'unknown')+(e&&e.message?' — '+e.message:'')));
- }catch(e){}
+   if(!peer||peer.destroyed){throw new Error('PeerJS не готов')}
+   const c=peer.connect('dr-'+code,{reliable:true,serialization:'json',metadata:{room:code}});
+   netConn=c;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;
+   wireNet(c);
+   const timeout=setTimeout(()=>{
+     if(!c.open)setOnlineStatus('Онлайн: не удалось подключиться к '+code+' за 12 сек. Проверь код.');
+   },12000);
+   c.on('open',()=>{
+     clearTimeout(timeout);
+     try{c.send({t:'hello',room:code})}catch(_){}
+     setOnlineStatus('Подключено · ждём запуска игры...');
+   });
+   c.on('error',e=>{
+     clearTimeout(timeout);
+     const type=e&&e.type?e.type:'unknown';
+     setOnlineStatus(type==='peer-unavailable'?'Онлайн: комната не найдена.':'Онлайн: ошибка '+type+(e&&e.message?' — '+e.message:''));
+   });
+ }catch(e){
+   setOnlineStatus('Онлайн: '+(e&&e.message?e.message:'не удалось подключиться'));
+ }
 });document.getElementById('retryBtn').onclick=()=>{startHorrorMusic();startGame()};document.getElementById('menuBtn').onclick=goMenu;
 
 window.addEventListener('error',e=>{const msg=(e&&e.error&&e.error.message)||e.message||'Неизвестная ошибка';const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
