@@ -500,7 +500,7 @@ function setupPeer(hostMode=false){
          if(hostMode){
            netRoom=String(peerId).replace(/^dr-/,'');
            const i=document.getElementById('roomCodeInput');if(i)i.value=netRoom;
-           setOnlineStatus('Комната создана: '+netRoom+' · ждём второго игрока');
+           setOnlineStatus('КОМНАТА СОЗДАНА · ТЫ ИГРОК 1 · КОД: '+netRoom+' · ЖДЁМ ИГРОКА 2');
          }else{
            setOnlineStatus('Онлайн-сервер подключён · соединяемся с комнатой...');
          }
@@ -539,13 +539,20 @@ function wireNet(c){
        };
      }
    }catch(_){}
-   if(isOnlineHost&&state==='menu'){
-     sendNet({t:'start',map:selectedMap});
-     startGame();
+   if(isOnlineHost){
+     setOnlineStatus('ВТОРОЙ ИГРОК ПОДКЛЮЧЁН · ЗАПУСКАЕМ ИГРУ...');
+     if(state==='menu'){
+       sendNet({t:'start',map:selectedMap});
+       startGame();
+     }
    }
  });
  c.on('data',m=>{
-  if(m.t==='hello'){netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;setOnlineStatus('Подключено. Ждём запуска игры.');}
+  if(m.t==='hello'){
+    netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;
+    setOnlineStatus('ВТОРОЙ ИГРОК ПОДКЛЮЧЁН · ЗАПУСКАЕМ ИГРУ...');
+    if(isOnlineHost&&state==='menu'){sendNet({t:'start',map:selectedMap});startGame();}
+  }
   if(m.t==='input'&&isOnlineHost){touchInput.p2MoveX=Number(m.mx)||0;touchInput.p2MoveY=Number(m.my)||0;player2.remoteAimActive=!!m.aa;if(player2.remoteAimActive){const ax=Number(m.ax)||0,ay=Number(m.ay)||0;if(Math.hypot(ax,ay)>.01)player2.aim=Math.atan2(ay,ax)}player2.weapon=clamp(Number(m.weapon)||0,0,3)}
   if(m.t==='dash'&&isOnlineHost)dashFor(player2);
   if(m.t==='bomb'&&isOnlineHost)bombFor(player2);
@@ -1447,7 +1454,7 @@ document.getElementById('startBtn').onclick=()=>{startHorrorMusic();startGame()}
 document.getElementById('createRoomBtn')?.addEventListener('click',async()=>{
  setOnlineStatus('Создаём комнату...');
  try{await setupPeer(true);isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;if(document.getElementById('roomCodeInput'))document.getElementById('roomCodeInput').value=netRoom;
- setOnlineStatus('КОМНАТА ГОТОВА · КОД: '+netRoom+' · Введи этот код на втором устройстве');}
+ setOnlineStatus('ИГРОК 1 ПОДКЛЮЧЕН · ЖДЁМ ИГРОКА 2 · КОД: '+netRoom);}
  catch(e){}
 });
 document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
@@ -1469,7 +1476,7 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
    c.on('open',()=>{
      clearTimeout(timeout);
      try{c.send({t:'hello',room:code})}catch(_){}
-     setOnlineStatus('Подключено · ждём запуска игры...');
+     setOnlineStatus('ИГРОК 2 ПОДКЛЮЧАЕТСЯ · ЖДЁМ СТАРТА...');
    });
    c.on('error',e=>{
      clearTimeout(timeout);
