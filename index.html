@@ -1435,12 +1435,16 @@ setLanguage(lang);
 document.getElementById('startBtn').onclick=()=>{startHorrorMusic();startGame()};
 document.getElementById('createRoomBtn')?.addEventListener('click',async()=>{
  setOnlineStatus('Создаём комнату...');
- try{await setupPeer(true);isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;setOnlineStatus('Код комнаты: '+netRoom)}
+ try{await setupPeer(true);isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;if(document.getElementById('roomCodeInput'))document.getElementById('roomCodeInput').value=netRoom;
+ setOnlineStatus('КОМНАТА ГОТОВА · КОД: '+netRoom+' · Введи этот код на втором устройстве');}
  catch(e){}
 });
 document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
- const code=(document.getElementById('roomCodeInput')?.value||'').replace(/\\s/g,'').trim();
- if(!/^\\d{5}$/.test(code)){setOnlineStatus('Введи 5-значный код комнаты.');return}
+ const input=document.getElementById('roomCodeInput');
+ const code=String(input?.value||netRoom||'').replace(/\D/g,'').slice(0,5);
+ if(input)input.value=code;
+ if(!/^\d{5}$/.test(code)){setOnlineStatus('Введи код комнаты из 5 цифр с устройства хоста.');return}
+ if(isOnlineHost){setOnlineStatus('Ты уже создал комнату. Этот код нужно ввести на втором устройстве.');return}
  setOnlineStatus('Подключаемся к комнате '+code+'...');
  try{
    await setupPeer(false);
