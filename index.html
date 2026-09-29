@@ -16,14 +16,14 @@
 body{display:grid;place-items:center}
 #wrap{position:relative;width:min(100vw,177.78vh);height:min(100vh,56.25vw);image-rendering:pixelated;image-rendering:crisp-edges;filter:contrast(1.06) saturate(.88)}
 canvas{filter:brightness(1.10) saturate(1.03);display:block;width:100%;height:100%;background:#0b0910;image-rendering:pixelated;image-rendering:crisp-edges;cursor:crosshair}
-.low-hp{animation:hpbeat .82s steps(2,end) infinite}@keyframes hpbeat{50%{filter:contrast(1.18) saturate(1.18)}}
+
 .panel{position:absolute;left:10px;top:10px;padding:7px 9px;background:rgba(10,8,14,.92);border:2px solid #3a2c3e;box-shadow:4px 4px 0 #000;pointer-events:none}
 .hud{display:flex;gap:9px;align-items:center;font-size:9px;text-transform:uppercase;letter-spacing:.5px}.stat{min-width:95px}.bar{height:7px;background:#1a1420;border:1px solid #4b3b50;margin-top:3px}.fill{height:100%}
 #bossHud{left:50%;top:9px;transform:translateX(-50%);min-width:44%;text-align:center;display:none}.bossTitle{font-size:11px;font-weight:900;color:#ff6c71}.bossbar{height:10px;background:#1c1117;border:2px solid #6d313b;margin-top:4px}.bossfill{height:100%;background:#d52e40}
 #rightHud{left:auto;right:10px;top:10px;text-align:right}.small{font-size:9px;color:#b9aebb;line-height:1.5}
 #weaponHud{left:10px;top:auto;bottom:10px;display:flex;gap:5px;padding:0;background:none;border:0;box-shadow:none}
 .weapon{width:78px;height:38px;border:2px solid #3a2c3e;background:#130f18;position:relative;padding:4px 5px;pointer-events:auto;cursor:pointer;user-select:none}.weapon.sel{border-color:#f4b748;background:#251b18;box-shadow:2px 2px 0 #000}.weapon b{font-size:10px}.weapon span{display:block;font-size:7px;color:#8f8295;margin-top:2px}.weaponCharge{position:absolute;left:4px;right:4px;bottom:3px;height:3px;background:#241820;border:1px solid #3d2832}.weaponCharge i{display:block;height:100%;width:100%;background:#4fe0a0;transform-origin:left center}.weapon.charging{border-color:#5fe0a5;box-shadow:0 0 5px rgba(95,224,165,.28)}.cd{position:absolute;right:3px;top:3px;font-size:7px;color:#ff7a78}
-.relic-card{border:2px solid #c78cff;background:#1b1122;box-shadow:3px 3px 0 #000;padding:7px 9px;color:#ecd8ff;font-size:8px;text-transform:uppercase;letter-spacing:.4px}.relic-card b{display:block;color:#d59cff;font-size:10px;margin-bottom:2px}.relic-pulse{animation:relicpulse .75s steps(2,end) infinite}@keyframes relicpulse{50%{filter:brightness(1.7)}}
+.relic-card{border:2px solid #c78cff;background:#1b1122;box-shadow:3px 3px 0 #000;padding:7px 9px;color:#ecd8ff;font-size:8px;text-transform:uppercase;letter-spacing:.4px}.relic-card b{display:block;color:#d59cff;font-size:10px;margin-bottom:2px}
 #toast{position:absolute;top:41px;left:50%;transform:translateX(-50%);padding:5px 9px;background:#120d15;border:2px solid #4b364e;color:#ffd76b;font-size:9px;opacity:0;transition:opacity .08s;pointer-events:none}.show{opacity:1!important}
 #menu,#levelup,#pauseOverlay,#gameover{position:absolute;inset:0;pointer-events:auto;touch-action:auto;background:radial-gradient(circle at 50% 35%,rgba(76,28,38,.3),rgba(7,5,9,.96) 65%);display:grid;place-items:center;z-index:80}
 .box{width:min(800px,90%);background:#110d15;border:3px solid #3d2d43;box-shadow:10px 10px 0 #000;padding:18px}.title{font-size:clamp(30px,7vw,62px);font-weight:1000;line-height:.83;letter-spacing:-1px}.title .red{color:#d63f4b}.tag{color:#9f8aa5;font-size:9px;letter-spacing:2px;margin:7px 0 14px}.menuGrid{display:grid;grid-template-columns:1.1fr 1fr;gap:12px}.card{border:2px solid #2f2235;background:#0d0a10;padding:10px}.card h3{margin:0 0 8px;font-size:12px;color:#f0d9ba}.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.choice{border:2px solid #2c2230;background:#17111c;min-height:85px;padding:7px;cursor:pointer}.choice.sel{border-color:#f4b748;background:#24191a}.choice b{font-size:10px}.choice p{margin:5px 0 0;font-size:7px;color:#a998ac;line-height:1.35}.mini{display:flex;justify-content:space-between;align-items:center}.btn{margin-top:11px;width:100%;padding:10px;border:0;background:#d8414d;color:#fff4e5;font:900 11px ui-monospace;cursor:pointer;box-shadow:4px 4px 0 #5b1821}.btn:hover{filter:brightness(1.07)}.hint{font-size:8px;color:#8e8194;line-height:1.55;margin-top:10px}
@@ -699,7 +699,6 @@ function startDeath(p){if(!p||p.dead)return;p.dead=true;p.hp=0;p.inv=999;p.vx=0;
 function updateDeath(dt){deathTimer+=dt;deathPhase+=dt*3.2;const deadPlayers=coopPlayers();for(const e of enemies){if(e.dead)continue;const t=deadPlayers.reduce((best,p)=>{const db=Math.hypot(best.x-e.x,best.y-e.y),dp=Math.hypot(p.x-e.x,p.y-e.y);return dp<db?p:best},deadPlayers[0]);const dx=t.x-e.x,dy=t.y-e.y,d=Math.hypot(dx,dy)||1;if(d>17){e.x+=(dx/d)*Math.min(34,d*1.4)*dt;e.y+=(dy/d)*Math.min(34,d*1.4)*dt}else{e.x+=Math.cos(e.phase+deathTimer*8)*.35;e.y+=Math.sin(e.phase+deathTimer*8)*.35}}if(deathTimer>.72&&Math.floor(deathTimer*8)!==Math.floor((deathTimer-dt)*8)){for(const p of deadPlayers)bloodBurst(p.x+rnd(-5,5),p.y+rnd(-5,5),12,1)}if(deathTimer>2.9)endGame()}
 function ring(x,y,r,color,life=.25,max=28,owner=null){rings.push({x,y,r:2,max,color,life,maxlife:life,owner})}
 function floatText(x,y,s,color='#ffd76b'){texts.push({x,y,s,life:.7,color})}
-let levelupBusy=false;
 let levelupBusy=false;
 let pendingUpgradePlayer=null;
 let pendingUpgradeOptions=[];
@@ -1518,7 +1517,7 @@ function draw(){
  const hpRatio=clamp(Math.min(...coopPlayers().map(p=>p.hp/p.maxhp)),0,1);
  if(state==='game' && hpRatio<.55){
    const danger=clamp((.55-hpRatio)/.55,0,1);
-   const pulse=.72+.28*(.5+.5*Math.sin(horrorTime*8.5));
+   const pulse=1;
    ctx.save();
    ctx.globalAlpha=.11+danger*.38*pulse;
    ctx.fillStyle='#8d0f1b';ctx.fillRect(0,0,W,H);
@@ -1536,9 +1535,6 @@ function draw(){
  // fixed border HUD-like frame, still pixel
  ctx.fillStyle='rgba(0,0,0,.34)';ctx.fillRect(0,0,W,18);ctx.fillRect(0,H-16,W,16);ctx.fillRect(0,0,12,H);ctx.fillRect(W-12,0,12,H);
  if(relicOwned){ctx.fillStyle='#cf79ff';ctx.fillRect(W-30,H-31,15,15);ctx.fillStyle='#f2d6ff';ctx.fillRect(W-26,H-28,7,9);drawPixelText('РЕЛИКВИЯ',W-102,H-23,7,'#d9a8ff','left')}
- // CRT-like pixel scanlines and rare flicker for horror atmosphere
- ctx.globalAlpha=.055;ctx.fillStyle='#000';for(let y=19;y<H-17;y+=3)ctx.fillRect(12,y,W-24,1);ctx.globalAlpha=1;
- if(Math.sin(horrorTime*17.0)>0.992){ctx.globalAlpha=.08;ctx.fillStyle='#ff3046';ctx.fillRect(12,18,W-24,H-35);ctx.globalAlpha=1}
 }
 function drawRemoteArrow(){
  const el=document.getElementById('remoteArrow');if(!el||state!=='game'||!coop||!onlineMode){if(el)el.style.display='none';return}
