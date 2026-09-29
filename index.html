@@ -897,7 +897,7 @@ function finishEnemyDeath(e){
  e.hp=0;e.dead=true;
  enemyDeathVoice(e.type);
  score+=e.type==='boss'?3200:(['butcher','maw','feaster'].includes(e.type)?220:(['wretch','boiler','siren'].includes(e.type)?170:100));
- combo=Math.min(9,combo+.25);gainXPFor(e.lastOwner==='p2'?player2:player,e.type==='boss'?150:(['butcher','maw','feaster'].includes(e.type)?38:(['wretch','boiler','siren'].includes(e.type)?30:22)),false);
+ combo=Math.min(9,combo+.25);gainXPFor(e.lastOwner==='p2'?player2:player,e.type==='boss'?150:(['butcher','maw','feaster'].includes(e.type)?38:(['wretch','boiler','siren'].includes(e.type)?30:22)),true);
  if(e.type==='parasite'){for(let i=0;i<2;i++){const ang=rnd(0,TAU);spawnEnemy();const s=enemies[enemies.length-1];s.type='crawler';s.x=e.x+Math.cos(ang)*10;s.y=e.y+Math.sin(ang)*10;}}
  bloodBurst(e.x,e.y,e.type==='boss'?34:(e.type==='butcher'||e.type==='wretch'?22:15),e.type==='boss'?1.6:1.0);
  if(e.type==='boss'){
@@ -1096,11 +1096,16 @@ function togglePause(){
  if(state==='pause'){state='game';setMobileControls(true);document.getElementById('pauseOverlay').style.display='none';initAudio();return;}
 }
 function update(dt){
+ const smoothAlpha=1-Math.exp(-dt*13);
  if(state==='game'&&boss)bossDialogue(boss);
  if(state==='game'){
    for(const cp of coopPlayers())rechargeWeapons(cp,dt);
  }
  if(onlineMode&&isOnlineGuest){
+   if(state!=='game'){
+     guestNetTimer=0;
+     return;
+   }
    const gmx=(Math.abs(touchInput.moveX)>0.001?touchInput.moveX:(keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0));
    const gmy=(Math.abs(touchInput.moveY)>0.001?touchInput.moveY:(keys.has('ArrowDown')?1:0)-(keys.has('ArrowUp')?1:0));
    const gl=Math.hypot(gmx,gmy)||1;
