@@ -1072,7 +1072,7 @@ function update(dt){
    updateFx(dt);
    return
 }
- if(onlineMode&&isOnlineHost){netSendTimer-=dt;if(netSendTimer<=0){netSendTimer=.067;sendNet({t:'state',n:++netSeq,s:netState()})}}
+ if(onlineMode&&isOnlineHost){netSendTimer-=dt;if(netSendTimer<=0){netSendTimer=.083;sendNet({t:'state',n:++netSeq,s:netState()})}}
 
  if(state==='death'){updateDeath(dt);updateFx(dt);return;}
  if(state!=='game')return;
@@ -1544,7 +1544,7 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
    c.on('open',()=>{
      clearTimeout(timeout);
      try{c.send({t:'hello',room:code});setTimeout(()=>{try{if(c.open)c.send({t:'hello',room:code})}catch(_){}},250)}catch(_){}
-     const sc=peer.connect('dr-'+code,{reliable:false,serialization:'json',metadata:{room:code,channel:'state'}});
+     const sc=peer.connect('dr-'+code,{reliable:false,serialization:'json',metadata:{room:code,channel:'state'},serialization:'binary'});
      netStateConn=sc;
      wireStateNet(sc);
      sc.on('open',()=>{});
