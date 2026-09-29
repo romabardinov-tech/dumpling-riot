@@ -549,9 +549,13 @@ function wireNet(c){
  });
  c.on('data',m=>{
   if(m.t==='hello'){
-    netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;
-    setOnlineStatus('ВТОРОЙ ИГРОК ПОДКЛЮЧЁН · ЗАПУСКАЕМ ИГРУ...');
-    if(isOnlineHost&&state==='menu'){sendNet({t:'start',map:selectedMap});startGame();}
+    if(isOnlineHost){
+      setOnlineStatus('ВТОРОЙ ИГРОК ПОДКЛЮЧЁН · ЗАПУСКАЕМ ИГРУ...');
+      if(state==='menu'){sendNet({t:'start',map:selectedMap});startGame();}
+    }else{
+      netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;
+      setOnlineStatus('ИГРОК 2 ПОДКЛЮЧЁН · ЖДЁМ АВТОМАТИЧЕСКОГО СТАРТА...');
+    }
   }
   if(m.t==='input'&&isOnlineHost){touchInput.p2MoveX=Number(m.mx)||0;touchInput.p2MoveY=Number(m.my)||0;player2.remoteAimActive=!!m.aa;if(player2.remoteAimActive){const ax=Number(m.ax)||0,ay=Number(m.ay)||0;if(Math.hypot(ax,ay)>.01)player2.aim=Math.atan2(ay,ax)}player2.weapon=clamp(Number(m.weapon)||0,0,3)}
   if(m.t==='dash'&&isOnlineHost)dashFor(player2);
