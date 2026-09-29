@@ -571,19 +571,19 @@ function applyNetState(s){
  const cp=(p,data,isLocal)=>{
    if(!p||!data)return;
    p.serverX=data.x;p.serverY=data.y;
-   if(!isLocal){p.x=data.x;p.y=data.y}
+   if(!isLocal && !isOnlineGuest){p.x=data.x;p.y=data.y}
    Object.assign(p,{hp:data.hp,maxhp:data.maxhp,dead:data.dead,aim:data.aim,weapon:data.weapon,lvl:data.lvl,xp:data.xp??p.xp,next:data.next??p.next,bomb:data.bomb,shivCharge:data.shivCharge});
    if(Array.isArray(data.weaponCharge))p.weaponCharge=data.weaponCharge.slice(0,4);else p.weaponCharge=[1,1,1,1];
    p.shivCharge=p.weaponCharge[2]??p.shivCharge??1;
  };
- cp(player,s.p1,!!isOnlineGuest);
- cp(player2,s.p2,!isOnlineGuest);
+ cp(player,s.p1,false);
+ cp(player2,s.p2,!!isOnlineGuest);
  enemies=s.enemies||[];projectiles=s.projectiles||[];drops=s.drops||[];boss=s.boss||null;wave=s.wave||1;score=s.score||0;combo=s.combo||1;waveState=s.waveState||'fighting';
 }
 function netState(){
  return {p1:{x:player.x,y:player.y,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:weapon,lvl:player.lvl,bomb:player.bomb,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge},p2:{x:player2.x,y:player2.y,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,hit:e.hit,dead:e.dead,stage:e.stage})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type}:null,wave,score,combo,waveState}
 }
-function sendNet(m){if(netConn&&netConn.open)try{netConn.send(m)}catch(e){}}
+function sendNet(m){if(!netConn||!netConn.open)return;try{const dc=netConn.dataChannel;if(m&&m.t==='state'&&dc&&typeof dc.bufferedAmount==='number'&&dc.bufferedAmount>28000)return;netConn.send(m)}catch(e){}}
 function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus('Сначала создай комнату и дождись игрока.');return false}sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false){
  startHorrorMusic();
@@ -1041,6 +1041,7 @@ function update(dt){
    player2.vx=gmx/gl*player2.speed*player2.boost.move;player2.vy=gmy/gl*player2.speed*player2.boost.move;
    if(Math.abs(gmx)+Math.abs(gmy)>.001&&!player2.dead){player2.x+=player2.vx*dt;player2.y+=player2.vy*dt;player2.x=clamp(player2.x,arena.l+9,arena.r-9);player2.y=clamp(player2.y,arena.t+13,arena.b-9)}
    if(touchInput.aimActive){player2.aim=Math.atan2(touchInput.aimY,touchInput.aimX);player2.remoteAimActive=true}else player2.remoteAimActive=false;
+   if(isOnlineGuest){player.x=lerp(player.x,player.serverX??player.x,.24);player.y=lerp(player.y,player.serverY??player.y,.24)}
    guestNetTimer-=dt;
    if(guestNetTimer<=0){guestNetTimer=.05;sendNet({t:'input',mx:gmx,my:gmy,ax:touchInput.aimX,ay:touchInput.aimY,aa:touchInput.aimActive,weapon:player2.weapon})}
    const corrX=(player2.serverX??player2.x)-player2.x,corrY=(player2.serverY??player2.y)-player2.y;
