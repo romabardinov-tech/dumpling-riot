@@ -428,8 +428,21 @@ function makeMenu(){
 makeMenu();
 
 function toast(s){const el=document.getElementById('toast');el.textContent=s;el.classList.add('show');toastTimer=.9}
-function setMobileControls(on){const mc=document.getElementById('mobileControls');if(!mc)return;mc.classList.toggle('game-active',!!on);mc.classList.toggle('coop-active',!!(on&&coop));mc.style.pointerEvents=on?'auto':'none';mc.setAttribute('aria-hidden',on?'false':'true')}
-function setHud(on){document.getElementById('hud').style.display=on?'block':'none';const p2h=document.getElementById('p2Hud');if(p2h)p2h.style.display=(on&&coop)?'block':'none';setMobileControls(on&&state==='game');document.documentElement.classList.toggle('inGame',!!on)}
+function setMobileControls(on){
+ const mc=document.getElementById('mobileControls');if(!mc)return;
+ const localTwoPlayer=!!(on&&coop&&!onlineMode);
+ mc.classList.toggle('game-active',!!on);
+ mc.classList.toggle('coop-active',localTwoPlayer);
+ mc.style.pointerEvents=on?'auto':'none';
+ mc.setAttribute('aria-hidden',on?'false':'true')
+}
+function setHud(on){
+ document.getElementById('hud').style.display=on?'block':'none';
+ const p2h=document.getElementById('p2Hud');
+ if(p2h)p2h.style.display=(on&&coop&&!onlineMode)?'block':'none';
+ setMobileControls(on&&state==='game');
+ document.documentElement.classList.toggle('inGame',!!on)
+}
 function requestMobileFullscreen(){try{if(!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}if(screen.orientation&&screen.orientation.lock){const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
 function resetPlayer(p,ch,x,y){p.charId=ch.id;p.x=x;p.y=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.hurtT=0;p.hurtLean=0;p.weaponCharge=[1,1,1,1];p.shivCharge=1;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[]}
 function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e)e.textContent=t}
