@@ -193,7 +193,7 @@ function rechargeWeapons(p,dt){
 }
 
 let state='menu',selectedChar=chars[0].id,selectedMap=maps[0].id,weapon=0,last=0,acc=0;
-let coop=false,onlineMode=false,isOnlineHost=false,isOnlineGuest=false;let peer=null,netConn=null,netRoom='';let netSendTimer=0,guestNetTimer=0,peerReadyPromise=null;
+let coop=false,onlineMode=false,isOnlineHost=false,isOnlineGuest=false;let peer=null,netConn=null,netRoom='';let netSendTimer=0,guestNetTimer=0,peerReadyPromise=null,netSeq=0,lastNetSeq=0;
 let lang=localStorage.getItem('dumpling-riot-lang')||'ru';
 const world={w:1920,h:1080};
 const camera={x:960,y:540,smooth:0.12};
@@ -551,7 +551,7 @@ function wireNet(c){
   if(m.t==='hello'){
     if(isOnlineHost){
       setOnlineStatus('ВТОРОЙ ИГРОК ПОДКЛЮЧЁН · ЗАПУСКАЕМ ИГРУ...');
-      if(state==='menu'){sendNet({t:'start',map:selectedMap});startGame();}
+      if(state==='menu'){sendNet({t:'start',map:selectedMap});setTimeout(()=>sendNet({t:'start',map:selectedMap}),180);setTimeout(()=>sendNet({t:'start',map:selectedMap}),500);startGame();}
     }else{
       netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;
       setOnlineStatus('ИГРОК 2 ПОДКЛЮЧЁН · ЖДЁМ АВТОМАТИЧЕСКОГО СТАРТА...');
@@ -561,7 +561,7 @@ function wireNet(c){
   if(m.t==='dash'&&isOnlineHost)dashFor(player2);
   if(m.t==='bomb'&&isOnlineHost)bombFor(player2);
   if(m.t==='start'&&isOnlineGuest){selectedMap=m.map;startGame(true)}
-  if(m.t==='state'&&isOnlineGuest)applyNetState(m.s);
+  if(m.t==='state'&&isOnlineGuest){if((m.n||0)>lastNetSeq){lastNetSeq=m.n||0;applyNetState(m.s)}}
   if(m.t==='p2level'&&isOnlineGuest){player2.lvl=Number(m.lvl)||player2.lvl;player2.xp=Number(m.xp)||player2.xp;player2.next=Number(m.next)||player2.next;toast('ТВОЙ УРОВЕНЬ: '+player2.lvl);}
  });
  c.on('close',()=>{setOnlineStatus('Соединение закрыто.');if(isOnlineGuest){state='menu';goMenu()}});
@@ -1051,7 +1051,7 @@ function update(dt){
    updateFx(dt);
    return
 }
- if(onlineMode&&isOnlineHost){netSendTimer-=dt;if(netSendTimer<=0){netSendTimer=.10;sendNet({t:'state',s:netState()})}}
+ if(onlineMode&&isOnlineHost){netSendTimer-=dt;if(netSendTimer<=0){netSendTimer=.067;sendNet({t:'state',n:++netSeq,s:netState()})}}
 
  if(state==='death'){updateDeath(dt);updateFx(dt);return;}
  if(state!=='game')return;
@@ -1514,7 +1514,7 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
  try{
    await setupPeer(false);
    if(!peer||peer.destroyed){throw new Error('PeerJS не готов')}
-   const c=peer.connect('dr-'+code,{reliable:true,serialization:'json',metadata:{room:code}});
+   const c=peer.connect('dr-'+code,{reliable:false,serialization:'json',metadata:{room:code}});
    netConn=c;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;
    wireNet(c);
    const timeout=setTimeout(()=>{
@@ -1522,7 +1522,7 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
    },20000);
    c.on('open',()=>{
      clearTimeout(timeout);
-     try{c.send({t:'hello',room:code})}catch(_){}
+     try{c.send({t:'hello',room:code});setTimeout(()=>{try{if(c.open)c.send({t:'hello',room:code})}catch(_){}},250)}catch(_){}
      setOnlineStatus('ИГРОК 2 ПОДКЛЮЧАЕТСЯ · ЖДЁМ СТАРТА...');
    });
    c.on('error',e=>{
