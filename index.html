@@ -467,7 +467,8 @@ function setupPeer(hostMode=false){
          debug:1,
          config:{
            iceServers:[
-             {urls:'stun:stun.l.google.com:19302'}
+             {urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']},
+             {urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turns:openrelay.metered.ca:443'],username:'openrelayproject',credential:'openrelayproject'}
            ],
            sdpSemantics:'unified-plan'
          }
@@ -528,6 +529,16 @@ function setupPeer(hostMode=false){
 function wireNet(c){
  c.on('open',()=>{
    setOnlineStatus(isOnlineHost?'Игрок подключён. Запускаем игру.':'Подключено. Запускаем игру.');
+   try{
+     const pc=c.peerConnection;
+     if(pc){
+       pc.oniceconnectionstatechange=()=>{
+         const ice=pc.iceConnectionState;
+         if(ice==='failed')setOnlineStatus('Онлайн: WebRTC не соединил устройства. Пробуем TURN...');
+         else if(ice==='connected'||ice==='completed')setOnlineStatus(isOnlineHost?'Игрок подключён. Запускаем игру.':'Подключено. Запускаем игру.');
+       };
+     }
+   }catch(_){}
    if(isOnlineHost&&state==='menu'){
      sendNet({t:'start',map:selectedMap});
      startGame();
@@ -1453,8 +1464,8 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
    netConn=c;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;
    wireNet(c);
    const timeout=setTimeout(()=>{
-     if(!c.open)setOnlineStatus('Онлайн: не удалось подключиться к '+code+' за 12 сек. Проверь код.');
-   },12000);
+     if(!c.open)setOnlineStatus('Онлайн: устройство не установило WebRTC-соединение за 20 сек. Проверь код и попробуй ещё раз.');
+   },20000);
    c.on('open',()=>{
      clearTimeout(timeout);
      try{c.send({t:'hello',room:code})}catch(_){}
