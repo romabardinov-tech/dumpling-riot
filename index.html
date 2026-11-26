@@ -568,6 +568,17 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 @media(max-width:360px){#levelup .upgrade{grid-template-columns:34px minmax(0,1fr) auto;gap:6px}#levelup .upgradeArrow{display:none}#levelup .upgradeIcon{width:32px;height:32px}#levelup .upgradeIcon svg{width:27px;height:27px}}
 @media(prefers-reduced-motion:reduce){#menu *,#levelup *{transition:none!important;animation:none!important}}
 #npcSubtitle[hidden]{display:none!important}#npcSubtitle{position:absolute;left:50%;top:25%;transform:translateX(-50%);width:max-content;max-width:min(56%,360px);pointer-events:none;z-index:45;padding:5px 10px;background:#120d1be8;border-left:2px solid #e76d76;border-radius:2px;color:#fff0d5;text-align:center;font:600 11px/1.3 system-ui,sans-serif;box-shadow:0 2px 7px #0008}#npcSubtitle b{display:block;color:#ffb18a;font:700 9px/1.2 system-ui,sans-serif}#npcWords{display:block;overflow-wrap:anywhere}#npcVoiceToggle{min-width:70px;flex-shrink:0;white-space:normal}#soundPanel{flex-wrap:wrap}@media(max-height:520px) and (orientation:landscape){#npcSubtitle{top:23%;max-width:45%;font-size:10px;padding:3px 7px}} 
+/* V45: dedicated pixel portrait stage, not an arena crop. */
+#menu .heroStage{--hero-accent:#d94853;background:#18131e;border-color:#51404d;border-left:3px solid var(--hero-accent);overflow:hidden}
+#menu #heroStageCanvas,#menu #homeHeroCanvas{image-rendering:pixelated;filter:none;object-fit:contain;background:#110e18}
+#menu #heroStageCanvas{width:100%;height:auto;aspect-ratio:200/108;max-height:190px;align-self:center}
+#menu .heroStage .stageInfo{min-width:0}
+#menu .heroStage .stageInfo h2{color:#fff0dc;overflow-wrap:anywhere}
+#menu #heroStageStats{color:#e4cdb0}
+#menu #charChoices .heroPortrait{background:#16111d;border-bottom:1px solid var(--accent,#60404f)}
+#menu #charChoices .choice.sel{border-color:var(--accent,#e7a26f);box-shadow:inset 0 -2px var(--accent,#e7a26f)}
+@media(max-width:650px) and (orientation:portrait){#menu #heroStageCanvas{max-height:185px}}
+@media(max-height:520px) and (orientation:landscape){#menu #heroStageCanvas{max-height:110px}}
 </style>
 </head>
 <body>
@@ -1258,10 +1269,42 @@ function paintMenuKeyArt(g,hero,map){
  g.restore();
 }
 
+// V45: native pixel stage; map selection cannot alter the portrait background.
+function paintHeroSelection(g,hero){
+ const art=heroArt[hero.id]||heroArt.scar,w=200,h=108;
+ const rect=(color,x,y,ww,hh)=>{g.fillStyle=color;g.fillRect(x,y,ww,hh)};
+ const shape=(color,pts)=>{g.fillStyle=color;g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill()};
+ g.save();g.imageSmoothingEnabled=false;
+ rect('#110e18',0,0,w,h);
+ // Three subdued, hard-edged pools of light, in the existing hero palette.
+ g.globalAlpha=.55;
+ shape(art.dark,[40,4,146,4,170,28,170,80,146,102,40,102,16,80,16,28]);
+ shape(art.mid,[56,10,130,10,150,30,150,76,130,96,56,96,36,76,36,30]);
+ g.globalAlpha=.23;
+ shape(art.lit,[66,18,120,18,136,34,136,72,120,88,66,88,50,72,50,34]);
+ g.globalAlpha=1;
+ // Quiet pixel grid, rather than fog or blurred game scenery.
+ for(let x=8;x<w;x+=12)rect('#120e19',x,0,1,96);
+ for(let y=8;y<96;y+=12)rect('#120e19',0,y,w,1);
+ // Frame and small off-center markings, leaving the silhouette unobstructed.
+ rect('#28202d',3,3,194,1);rect('#28202d',3,104,194,1);
+ rect('#28202d',3,4,1,100);rect('#28202d',196,4,1,100);
+ g.globalAlpha=.75;
+ for(const x of [7,181]){rect(art.mid,x,8,12,2);rect(art.mid,x,10,2,6)}
+ rect(art.mid,7,94,12,2);rect(art.mid,181,94,12,2);
+ g.globalAlpha=1;
+ // Floor shadow and thin rim under the actual in-game sprite.
+ shape('#0b0910',[49,99,61,94,106,94,125,99,113,104,60,104]);
+ g.globalAlpha=.55;rect(art.mid,60,103,53,1);g.globalAlpha=1;
+ // Whole-number scaling preserves the original sprite pixels and weapon.
+ g.save();g.translate(84,74);g.scale(2,2);
+ pixelHeroBody(g,hero.id,0,0,0);pixelHeroWeapon(g,hero.id,0,0,0);
+ g.restore();g.restore();
+}
 function paintMenuStage(hero,map){
- const g=document.getElementById('heroStageCanvas').getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,200,108);// A crop of the real arena behind the actual character model.
- g.save();g.translate(-860,-486);paintTerrain(g,map.id,860,486,200,108);paintArenaAtmosphere(g,map.id,{x:860,y:486,w:200,h:108},0);g.restore();
- g.fillStyle='rgba(13,12,15,.35)';g.fillRect(0,0,200,108);g.save();g.translate(100,72);g.scale(1.75,1.75);pixelHeroBody(g,hero.id,0,0,0);pixelHeroWeapon(g,hero.id,0,-.35,0);g.restore();
+ const canvas=document.getElementById('heroStageCanvas');
+ paintHeroSelection(canvas.getContext('2d'),hero);
+ canvas.closest('.heroStage').style.setProperty('--hero-accent',hero.color);
  document.getElementById('heroStageName').textContent=locName(hero);document.getElementById('heroStageStats').textContent=(L("Health ","Здоровье "))+hero.hp+' / '+(L("Speed ","Скорость "))+hero.speed;
  const mg=document.getElementById('mapStageCanvas').getContext('2d');mg.save();mg.translate(-720,-405);paintTerrain(mg,map.id,720,405,480,270);paintArenaAtmosphere(mg,map.id,{x:720,y:405,w:480,h:270},0);mg.restore();
  document.getElementById('mapStageName').textContent=locName(map).split(' — ')[0];
