@@ -973,6 +973,13 @@ function elitePattern(e,tp){
 const CAMPAIGN_MAPS=['kitchen','basement','foodcourt','slaughter','cemetery','forest'];
 const FINAL_WAVE=15;
 const finalBossProfile={id:12,name:'Source of the Nightmare',ru:'Источник кошмара',kind:5,pattern:'source',color:'#dfb4ff',line:'All roads lead to me.',lineRu:'Все дороги ведут ко мне.',hp:1.22,speed:.88};
+// V57 optional bosses
+const hiddenBosses=[{id:13,map:'basement',name:'The Bellkeeper',ru:'Хранитель колокола',kind:4,pattern:'bell',color:'#f1c67f',line:'The bell tolls for you.',lineRu:'Колокол звонит по тебе.',hp:.72,speed:.74,rewardEn:'18 shards · +15% attack speed',rewardRu:'18 осколков · +15% скорости атаки'},{id:14,map:'forest',name:'The Veiled Widow',ru:'Вдова под вуалью',kind:3,pattern:'veil',color:'#9fd9ce',line:'You cannot outrun the veil.',lineRu:'От вуали не убежать.',hp:.62,speed:.92,rewardEn:'18 shards · +15% damage',rewardRu:'18 осколков · +15% урона'}];
+function hiddenOffer(run,w,random=Math.random){if(!run||run.closed||w<7||w%5!==2||run.cleared!==w||run.nextHidden)return null;const pool=hiddenBosses.filter(b=>!(run.hiddenSummoned||[]).includes(b.id));return pool.length?pool[Math.min(pool.length-1,Math.floor(random()*pool.length))]:null}
+function queueHidden(run,w,id){if(!run||run.closed||run.cleared!==w||w<7||w%5!==2||run.nextHidden||run.coins<15||!hiddenBosses.some(b=>b.id===id)||(run.hiddenSummoned||[]).includes(id))return false;run.coins-=15;run.coinsSpent+=15;run.hiddenSummoned=[...(run.hiddenSummoned||[]),id];run.nextHidden={id,w:w+1};return true}
+function takeHidden(run,w){const q=run?.nextHidden;if(!q||q.w!==w||run.closed)return null;run.nextHidden=null;return hiddenBosses.find(b=>b.id===q.id)||null}
+function hiddenReward(data,run,p,id){if(!run||run.closed||!(run.hiddenSummoned||[]).includes(id)||(run.hiddenDefeated||[]).includes(id)||!hiddenBosses.some(b=>b.id===id))return 0;run.hiddenDefeated=[...(run.hiddenDefeated||[]),id];run.earned+=18;data.shards=metaInt(data.shards+18);if(id===13)p.boost.rate*=1.15;else p.boost.dmg*=1.15;return 18}
+function hiddenPattern(e,tp,area){const stage=e.stage||1,x=tp.x,y=tp.y,a=Math.atan2(y-e.y,x-e.x),out=[];const mark=(xx,yy,r,delay)=>out.push({x:Math.max(area.l+20,Math.min(area.r-20,xx)),y:Math.max(area.t+20,Math.min(area.b-20,yy)),radius:r,damage:14+stage*4,delay});if(e.bossId===13){for(let i=1;i<=stage+2;i++)mark(e.x+Math.cos(a)*i*42,e.y+Math.sin(a)*i*42,20,1.15+i*.24);mark(x,y,26,2.2)}else if(e.bossId===14){for(let i=0;i<4;i++){const b=a+i*Math.PI/2;mark(x+Math.cos(b)*48,y+Math.sin(b)*48,22,1.35+i*.18)}if(stage>=2)mark(x,y,30,2.3)}return out}
 function newCampaign(start){return CAMPAIGN_MAPS.includes(start)?{start,visited:[start],chapter:1,gate:0,options:[],finalKilled:false,won:false}:null}
 function routeOptions(c,round,random=Math.random){
  if(!c||c.won||round!==c.chapter*5||round>=FINAL_WAVE||c.gate===round)return [];
@@ -1067,6 +1074,7 @@ function createEncounter(run,w,random=Math.random){
 function encounterReason(run,p,n,event,id){
  if(!run||run.closed||!p||p.dead||p.hp<=0||!event||event.closed||event.w!==run.cleared||event.w!==run.lastEncounter)return 'unavailable';
  if(id==='leave')return '';
+ if(id==='summon')return event.hiddenId!=null&&run.coins>=15?'':run.coins<15?'coins':'unavailable';
  if(!event.room.choices.some(q=>q.id===id))return 'unavailable';
  if(id==='shatter'&&p.hp<=Math.ceil(p.maxhp*.2))return 'health';
  if(id==='sacrifice'&&p.maxhp-Math.ceil(p.maxhp*.1)<35)return 'health';
@@ -1094,6 +1102,7 @@ function resolveEncounter(run,p,n,event,id,random=Math.random,unclaimed=[]){
  case 'wind':p.boost.rate*=1.1;break;
  case 'break':addCoins(run,18);run.nextRoomEffect={speed:1.15};break;
  case 'force':case 'trade':{const a=chooseArtifact([...p.artifacts,...unclaimed],random);if(!a||!applyArtifact(p,a.id))return false;if(id==='force')p.bomb-=2;break}
+ case 'summon':if(!queueHidden(run,event.w,event.hiddenId))return false;break;
  case 'leave':break;
  default:return false;
  }
@@ -1252,7 +1261,7 @@ function bossVoice(kind){
 }
 const bossRoster=[{"id":0,"map":"kitchen","name":"Faceless Butcher","kind":0,"pattern":"cleaver","color":"#f76e65","line":"The kitchen is mine.","hp":1.02,"speed":1.05},{"id":1,"map":"kitchen","name":"Furnace Cauldron","kind":1,"pattern":"furnace","color":"#ffb36c","line":"The pot is boiling.","hp":1.12,"speed":0.83},{"id":2,"map":"basement","name":"Circuit Warden","kind":4,"pattern":"circuit","color":"#80d8ff","line":"The lights are dying.","hp":0.94,"speed":1.04},{"id":3,"map":"basement","name":"Pipe Horror","kind":1,"pattern":"pipes","color":"#78c4c7","line":"I hear you in the pipes.","hp":1.08,"speed":0.88},{"id":4,"map":"foodcourt","name":"Neon Chef","kind":2,"pattern":"neon","color":"#ff8cdb","line":"We are closed forever.","hp":0.95,"speed":1.15},{"id":5,"map":"foodcourt","name":"Vending Mimic","kind":5,"pattern":"vending","color":"#f4d36b","line":"No refunds.","hp":1.15,"speed":0.78},{"id":6,"map":"slaughter","name":"Blade Foreman","kind":4,"pattern":"blade","color":"#f3d7ad","line":"The blades are ready.","hp":0.99,"speed":1.12},{"id":7,"map":"slaughter","name":"Conveyor Maw","kind":5,"pattern":"conveyor","color":"#e96c62","line":"The line never stops.","hp":1.16,"speed":0.85},{"id":8,"map":"cemetery","name":"Grave Matron","kind":3,"pattern":"grave","color":"#d8aaff","line":"The graves are hungry.","hp":1.03,"speed":0.94},{"id":9,"map":"cemetery","name":"Bone Keeper","kind":0,"pattern":"bone","color":"#e8e2b7","line":"You woke the dead.","hp":1.09,"speed":0.88},{"id":10,"map":"forest","name":"Spore Mother","kind":3,"pattern":"spore","color":"#b6ed91","line":"Breathe the spores.","hp":1.04,"speed":0.9},{"id":11,"map":"forest","name":"Root Stalker","kind":2,"pattern":"root","color":"#8fcb75","line":"The roots can feel you.","hp":0.92,"speed":1.18}];
 function bossForMap(id,w){const roster=bossRoster.filter(b=>b.map===id);return roster.length?roster[Math.max(0,Math.floor(w/5)-1)%roster.length]:bossRoster[0]}
-function bossProfile(e){return e?.bossId===12?finalBossProfile:bossRoster[e?.bossId]||bossRoster[0]}
+function bossProfile(e){return e?.bossId===12?finalBossProfile:hiddenBosses.find(b=>b.id===e?.bossId)||bossRoster[e?.bossId]||bossRoster[0]}
 const npcGeneric=['You cannot hide.','I smell fear.','Come closer.','Behind you!','You look weak.','More are coming.'];
 const npcMapLines={kitchen:'You will not survive the shift.',basement:'We are not alone here.',foodcourt:"The lights won't save you.",slaughter:'The machine is hungry.',cemetery:'The dead are watching.',forest:'Do not trust the trees.'};
 // V46: each arena has its own exclusive four enemy families.
@@ -1273,7 +1282,7 @@ const arenaStories={
 };
 const enemyNotes={fork:['Slow melee pursuer.','Медленный преследователь ближнего боя.'],pepper:['Close-range swarm attacker.','Атакует в ближнем бою.'],boiler:['Keeps distance and fires three shots.','Держит дистанцию и стреляет очередью из трёх снарядов.'],butcher:['Warns before a heavy area strike.','Предупреждает перед тяжёлым ударом по площади.'],crawler:['Fast, erratic movement.','Быстро движется рывками.'],cableMite:['Circles and fires electric shots.','Движется вокруг цели и стреляет электрическими снарядами.'],eye:['Retreats while firing a spread.','Отступает и стреляет веером.'],wretch:['Approaches while firing purple bolts.','Приближается и стреляет фиолетовыми снарядами.'],plate:['Tough close-range pursuer.','Крепкий преследователь ближнего боя.'],neonGhost:['Marks a delayed trap under the hero.','Ставит ловушку под героем с задержкой.'],vendingDrone:['Fires paired shots from a distance.','Стреляет парными снарядами с расстояния.'],siren:['Creates wide delayed danger zones.','Создаёт широкие опасные зоны с задержкой.'],knife:['Throws blades while pursuing.','Преследует и бросает лезвия.'],chainHound:['Sudden close-range charge.','Резкий рывок на близкой дистанции.'],slicer:['Very fast charge. Dodge sideways.','Быстрый рывок. Уклоняйся в сторону.'],maw:['Heavy, slow, wide area strike.','Медленный и тяжёлый удар по площади.'],boneWalker:['Approaches and marks a close-range blast.','Приближается и отмечает область взрыва.'],hands:['Circles the hero from the side.','Обходит героя сбоку.'],stalker:['Accelerates when close.','Ускоряется при сближении.'],feaster:['Slow approach and wide attacks.','Медленно сближается и атакует по площади.'],sporeBeetle:['Fast zigzag pursuit.','Быстро преследует зигзагами.'],rootHorror:['Marks a delayed blast at the hero.','Отмечает взрыв под героем с задержкой.'],spitter:['Slow, heavy ranged projectiles.','Медленные тяжёлые снаряды.'],parasite:['Splits into two beetles on death.','После смерти распадается на двух жуков.']};
 const JOURNAL_KEY='dumpling-riot-journal-v1';
-function journalIds(){return [...Object.keys(arenaEnemyNames).map(k=>'enemy:'+k),...bossRoster.map(b=>'boss:'+b.id),'boss:12',...Object.keys(eliteProfiles).map(k=>'elite:'+k),...Object.keys(arenaStories).map(k=>'story:'+k)]}
+function journalIds(){return [...Object.keys(arenaEnemyNames).map(k=>'enemy:'+k),...bossRoster.map(b=>'boss:'+b.id),'boss:12',...hiddenBosses.map(b=>'boss:'+b.id),...Object.keys(eliteProfiles).map(k=>'elite:'+k),...Object.keys(arenaStories).map(k=>'story:'+k)]}
 function normalizeJournal(raw){const allowed=new Set(journalIds());return Array.isArray(raw)?[...new Set(raw.filter(k=>typeof k==='string'&&allowed.has(k)))]:[]}
 function readJournal(){try{return normalizeJournal(JSON.parse(readStorage(JOURNAL_KEY,'[]')))}catch(_){return []}}
 let journal=readJournal(),journalMap='all',secretEncounter=null;
@@ -1296,7 +1305,7 @@ function speakNpc(line,isBoss){
 function clearNpc(){npcEvent=null;npcLineTimer=0;npcLastLine='';npcNext=7;npcSequence=0;npcSeen=0;npcBossSeen='';document.getElementById('npcSubtitle').hidden=true;try{window.speechSynthesis?.cancel()}catch(_){}}
 function displayNpc(event){
  if(!event||!event.line||event.n<=npcSeen)return;
- npcSeen=event.n;npcLineTimer=3.8;const echo=event.bossId==null&&event.enemyType==null?Object.values(nightmareThemes).find(q=>q.line===event.line):null;const line=echo?L(echo.line,echo.lineRu):event.bossId===12&&event.line===finalBossProfile.line?L(finalBossProfile.line,finalBossProfile.lineRu):L(event.line),speaker=echo?L('Whisper','Шёпот'):event.bossId===12?L(finalBossProfile.name,finalBossProfile.ru):event.bossId!=null?L(bossRoster[event.bossId]?.name||'Enemy'):arenaEnemyName(event.enemyType);
+ npcSeen=event.n;npcLineTimer=3.8;const echo=event.bossId==null&&event.enemyType==null?Object.values(nightmareThemes).find(q=>q.line===event.line):null;const line=echo?L(echo.line,echo.lineRu):event.bossId>=12&&event.line===bossProfile(event).line?L(event.line,bossProfile(event).lineRu):L(event.line),speaker=echo?L('Whisper','Шёпот'):event.bossId>=12?L(bossProfile(event).name,bossProfile(event).ru):event.bossId!=null?L(bossRoster[event.bossId]?.name||'Enemy'):arenaEnemyName(event.enemyType);
  document.getElementById('npcSpeaker').textContent=speaker;document.getElementById('npcWords').textContent=line;document.getElementById('npcSubtitle').hidden=false;speakNpc(line,event.bossId!=null);
 }
 function emitNpc(line,bossId=null,enemyType=null){if(onlineMode&&isOnlineGuest)return;npcEvent={n:++npcSequence,line,bossId,enemyType};npcLastLine=line;displayNpc(npcEvent)}
@@ -1313,7 +1322,7 @@ function updateNpc(dt){
  emitNpc(pick(options.length?options:npcGeneric),null,speaker.type);npcNext=8+Math.random()*7;
 }
 function bossSpecialPattern(e,tp){
- if(e.bossId===12)return finalPattern(e,tp,arena);
+ if(e.bossId===12)return finalPattern(e,tp,arena);if(e.bossId>=13)return hiddenPattern(e,tp,arena);
  const profile=bossProfile(e),stage=e.stage||1,base=18+stage*5,x=tp.x,y=tp.y,a=Math.atan2(y-e.y,x-e.x),out=[];
  const mark=(xx,yy,r,dmg,delay)=>out.push({x:clamp(xx,arena.l+20,arena.r-20),y:clamp(yy,arena.t+20,arena.b-20),radius:r,damage:dmg,delay});
  switch(profile.pattern){
@@ -1786,6 +1795,7 @@ function renderJournal(){
   for(const t of arenaEnemyRoster[m.id]){const n=enemyNotes[t];add('enemy:'+t,arenaEnemyName(t),L(n[0],n[1])+' · '+L('Resistance','Сопротивление')+': '+metaLabel(elements[arenaAffinity[m.id].resist]),g=>pixelEnemy(g,t,0,0,1))}
   const e=eliteProfiles[m.id];add('elite:'+m.id,metaLabel(e),L('Elite · telegraphed special attacks.','Элита · особые атаки с предупреждением.'),g=>{g.scale(1.2,1.2);pixelEnemy(g,arenaEnemyRoster[m.id][3],0,0,1)});
   for(const b of bossRoster.filter(b=>b.map===m.id))add('boss:'+b.id,L(b.name),L(b.line),g=>{g.scale(.85,.85);pixelBoss(g,b.kind,1,0,false)});if(m.id==='forest')add('boss:12',L(finalBossProfile.name,finalBossProfile.ru),L('Campaign finale · can appear in any arena · three phases.','Финал кампании · на любой арене · три фазы.'),g=>{g.scale(.8,.8);paintFinalBoss(g,1,0,false)});
+  for(const b of hiddenBosses.filter(b=>b.map===m.id))add('boss:'+b.id,L(b.name,b.ru),L('Optional side-room summon · any arena · ','Призыв в тайной комнате · любая арена · ')+L(b.rewardEn,b.rewardRu),g=>{g.scale(.8,.8);paintHiddenBoss(g,b,1,0,false)});
   const s=arenaStories[m.id];add('story:'+m.id,metaLabel(s),L(s.textEn,s.textRu),null);section.append(grid);container.append(section);
  }
 }
@@ -1891,7 +1901,8 @@ function openEncounter(){
  const scene=document.createElement('div');scene.className='encounterScene';const cv=document.createElement('canvas');cv.width=128;cv.height=64;cv.setAttribute('aria-hidden','true');paintEncounterRoom(cv,event.room);
  const line=document.createElement('span');line.textContent=L(event.room.lineEn,event.room.lineRu);scene.append(cv,line);box.append(scene);
  const unclaimed=drops.filter(d=>d.type==='artifact'&&d.life>0).map(d=>d.artifact);
- for(const q of [...event.room.choices,{id:'leave',en:'Walk away',ru:'Уйти',descEn:'No cost, no reward',descRu:'Без затрат и награды'}]){
+ const hidden=hiddenOffer(soloRun,wave);event.hiddenId=hidden?.id;const summon=hidden?[{id:'summon',en:'Summon: '+hidden.name,ru:'Призвать: '+hidden.ru,descEn:'15 coins · boss next wave · '+hidden.rewardEn,descRu:'15 монет · босс в следующей волне · '+hidden.rewardRu}]:[];
+ for(const q of [...event.room.choices,...summon,{id:'leave',en:'Walk away',ru:'Уйти',descEn:'No cost, no reward',descRu:'Без затрат и награды'}]){
   const b=document.createElement('button');b.type='button';b.className='ritualOption';const h=document.createElement('b'),d=document.createElement('small');h.textContent=metaLabel(q);d.textContent=metaDesc(q);
   let reason=encounterReason(soloRun,player,nightmare,event,q.id);
   if(!reason&&['force','trade'].includes(q.id)&&!runArtifacts.some(a=>!player.artifacts.includes(a.id)&&!unclaimed.includes(a.id)))reason='full';
@@ -1903,7 +1914,7 @@ function openEncounter(){
 function leaveEncounter(id='leave',event=encounter,unclaimed=[]){
  if(state!=='encounter'||!event||event!==encounter||!resolveEncounter(soloRun,player,nightmare,event,id,Math.random,unclaimed))return false;
  encounter=null;document.getElementById('ritualOverlay').hidden=true;state='game';setMobileControls(true);wave++;beginWave();
- if(id!=='leave'){initAudio();sfx('pickup');toast(L('CHOICE SEALED','ВЫБОР СДЕЛАН')+' · '+metaLabel(event.room));toastTimer=2.5}return true;
+ if(id!=='leave'&&id!=='summon'){initAudio();sfx('pickup');toast(L('CHOICE SEALED','ВЫБОР СДЕЛАН')+' · '+metaLabel(event.room));toastTimer=2.5}return true;
 }
 function openCampaignRoute(){
  const c=soloRun?.campaign;if(!c||state!=='ritual')return false;const choices=routeOptions(c,wave);if(!choices.length)return false;
@@ -2172,7 +2183,7 @@ function startGame(fromNetwork=false){
  encounter=null;
  if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
  secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;
- if(soloRun?.campaign)selectedMap=soloRun.campaign.start;closeSoloRun();soloRun=!coop&&!onlineMode?{hero:selectedChar,startMap:selectedMap,campaign:campaignMode?newCampaign(selectedMap):null,contract:selectedContract,cleared:0,earned:0,kills:0,closed:false,coins:0,coinsEarned:0,coinsSpent:0,purchases:0,lastShop:0,pact:null,lastEncounter:0,seenRooms:[],roomChoices:0,nextRoomEffect:null}:null;document.getElementById('ritualOverlay').hidden=true;
+ if(soloRun?.campaign)selectedMap=soloRun.campaign.start;closeSoloRun();soloRun=!coop&&!onlineMode?{hero:selectedChar,startMap:selectedMap,campaign:campaignMode?newCampaign(selectedMap):null,contract:selectedContract,cleared:0,earned:0,kills:0,closed:false,coins:0,coinsEarned:0,coinsSpent:0,purchases:0,lastShop:0,pact:null,lastEncounter:0,seenRooms:[],roomChoices:0,nextRoomEffect:null,hiddenSummoned:[],hiddenDefeated:[],nextHidden:null}:null;document.getElementById('ritualOverlay').hidden=true;
  startHorrorMusic();clearNpc();try{window.speechSynthesis?.getVoices()}catch(_){}clearLocalInput();levelupBusy=false;upgradeQueue.length=0;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
  resetPlayer(player,ch,world.w/2-18,world.h/2);resetPlayer(player2,ch2,world.w/2+18,world.h/2);
@@ -2187,7 +2198,7 @@ function beginWave(){
  if(nightmare)resetNightmareWave(nightmare,chooseShelter(arenaLights[selectedMap],player,arena));
  waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];hazards=[];
  // Enemy count ramps hard: later waves become crowded, not just tougher individually.
- const bossWave=wave%5===0;
+ const bossWave=wave%5===0,hidden=takeHidden(soloRun,wave);
  activeOmen=applyRoomEffect(soloRun,nightmare,soloRun?chooseOmen(wave):waveOmens[0]);
  // In two-player mode the arena gets a real co-op population boost.
  targetCount=coop
@@ -2195,17 +2206,18 @@ function beginWave(){
    : (bossWave?1+Math.min(7+Math.floor(wave*.9),22):Math.min(10+Math.floor(wave*2.35),42));
  targetCount+=activeOmen.count;
  document.getElementById('bossHud').style.display='none';
- if(bossWave){
-   boss=makeBoss(wave);if(soloRun){const q=contractFor(soloRun.contract);boss.hp*=q.hp;boss.maxhp=boss.hp;boss.speed*=q.speed}enemies.push(boss);spawned=1;
+ if(bossWave||hidden){
+   if(hidden)targetCount=Math.max(5,Math.floor(targetCount*.55));
+   boss=makeBoss(wave,hidden);if(soloRun){const q=contractFor(soloRun.contract);boss.hp*=q.hp;boss.maxhp=boss.hp;boss.speed*=q.speed}enemies.push(boss);spawned=1;
    initAudio();bossDialogue(boss,true);
  }
  const first=waveSpawnBudget(wave,coop,targetCount);
  const localPool=arenaEnemyPool(selectedMap,wave);if(soloRun&&eliteWave(wave)&&spawned<first){const e=spawnEnemy(localPool[localPool.length-1]);empowerElite(e,selectedMap);spawned++;}let localIndex=0;while(spawned<first){spawnEnemy(localIndex<localPool.length?localPool[localIndex]:null);localIndex++;spawned++}
  waveTime=0;
- toast((L("WAVE ","ВОЛНА "))+wave+(bossWave?(L(" · BOSS INCOMING"," · БОСС")) : activeOmen.id!=='none'?' · '+metaLabel(activeOmen):''));if(activeOmen.id!=='none')toastTimer=3;if(secretEncounter){toast(L('HIDDEN CACHE NEARBY','ПОБЛИЗОСТИ ТАЙНИК'));toastTimer=3;}if(soloRun&&eliteWave(wave)){toast(L('ELITE HUNT','ОХОТА НА ЭЛИТУ')+' · '+metaLabel(eliteProfiles[selectedMap]));toastTimer=3.5;}
+ toast((L("WAVE ","ВОЛНА "))+wave+(bossWave?(L(" · BOSS INCOMING"," · БОСС")) : activeOmen.id!=='none'?' · '+metaLabel(activeOmen):''));if(activeOmen.id!=='none')toastTimer=3;if(secretEncounter){toast(L('HIDDEN CACHE NEARBY','ПОБЛИЗОСТИ ТАЙНИК'));toastTimer=3;}if(soloRun&&eliteWave(wave)){toast(L('ELITE HUNT','ОХОТА НА ЭЛИТУ')+' · '+metaLabel(eliteProfiles[selectedMap]));toastTimer=3.5;}if(hidden){toast(L('HIDDEN HORROR','СКРЫТЫЙ УЖАС')+' · '+L(hidden.name,hidden.ru));toastTimer=4;}
 }
-function makeBoss(w){
- const p=soloRun?.campaign&&w===FINAL_WAVE?finalBossProfile:bossForMap(selectedMap,w),hp=Math.round((1750+w*265)*p.hp),pos=enemySpawnPoint(camera,alivePlayers().length?alivePlayers():[player],arena);
+function makeBoss(w,hidden=null){
+ const p=hidden||(soloRun?.campaign&&w===FINAL_WAVE?finalBossProfile:bossForMap(selectedMap,w)),hp=Math.round((1750+w*265)*p.hp),pos=enemySpawnPoint(camera,alivePlayers().length?alivePlayers():[player],arena);
  return {type:'boss',bossId:p.id,name:p.ru||additionalRussian[p.name],enName:p.name,x:pos.x,y:pos.y,hp,maxhp:hp,speed:(44+w*2.4)*p.speed,r:25+(p.kind===5?7:0),hit:0,phase:rnd(0,TAU),attack:.65,kind:p.kind,lunge:0,stage:1,hitT:0,hitLean:0,dashTimer:rnd(.8,1.6),specialTimer:rnd(1.2,2.2),nextTaunt:0};
 }
 function enemySpawnPoint(focus,players,area,random=Math.random){
@@ -2542,8 +2554,8 @@ function finishEnemyDeath(e){
    initAudio();sfx('boss');
    ring(e.x,e.y,60,'#ff4c52',.8,80);ring(e.x,e.y,92,'#b56cff',1.1,116);
    spawnParticles(e.x,e.y,50,'#ff4c52',2);spawnParticles(e.x,e.y,28,'#c67aff',1.8);
-   drops.push({x:e.x,y:e.y-4,type:'relic',life:24,pulse:0});
-   boss=null;toast(L('BOSS DEFEATED','БОСС ПОВЕРЖЕН'));
+   if(e.bossId>=13){const reward=hiddenReward(meta,soloRun,player,e.bossId);if(reward)saveMeta();}else drops.push({x:e.x,y:e.y-4,type:'relic',life:24,pulse:0});
+   boss=null;toast(e.bossId>=13?L('HIDDEN HORROR DEFEATED · +18 shards','СКРЫТЫЙ УЖАС ПОВЕРЖЕН · +18 осколков'):L('BOSS DEFEATED','БОСС ПОВЕРЖЕН'));
    // On boss waves the minions must also be cleared before the next wave starts.
    hazards=hazards.filter(h=>h.source!==e);
  }else{
@@ -2655,7 +2667,8 @@ function updateEnemies(dt){
    }
    if(e.attack<=0){
     e.attack=(.48+Math.random()*.36)/Math.sqrt(rage);
-    if(e.bossId===12){e.attack=(.95+Math.random()*.25)/Math.sqrt(rage);const count=4+e.stage*2,offset=Math.atan2(dy,dx)+Math.PI/count;for(let i=0;i<count;i++){const a=offset+i*TAU/count;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*(90+e.stage*15),vy:Math.sin(a)*(90+e.stage*15),life:2,r:3,damage:14+e.stage*4,pierce:99,color:'#dfb4ff',enemy:true})}}
+    if(e.bossId>=13){e.attack=(1.1+Math.random()*.3)/Math.sqrt(rage);const a=Math.atan2(dy,dx),count=e.bossId===13?3+e.stage:5+e.stage;for(let i=0;i<count;i++){const b=e.bossId===13?a+(i-(count-1)/2)*.22:a+i*TAU/count;projectiles.push({x:e.x,y:e.y,vx:Math.cos(b)*115,vy:Math.sin(b)*115,life:2,r:3,damage:12+e.stage*3,pierce:99,color:bossProfile(e).color,enemy:true})}}
+    else if(e.bossId===12){e.attack=(.95+Math.random()*.25)/Math.sqrt(rage);const count=4+e.stage*2,offset=Math.atan2(dy,dx)+Math.PI/count;for(let i=0;i<count;i++){const a=offset+i*TAU/count;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*(90+e.stage*15),vy:Math.sin(a)*(90+e.stage*15),life:2,r:3,damage:14+e.stage*4,pierce:99,color:'#dfb4ff',enemy:true})}}
     else if(e.kind===0){
       const count=e.stage+2;for(let i=0;i<count;i++){const a=i*TAU/count+e.phase;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*105,vy:Math.sin(a)*105,life:2,r:3,damage:23+e.stage*3,pierce:99,color:'#ff5252',enemy:true})}
       if(e.stage>=2)ring(e.x,e.y,42,'#ff4658',.35,55);
@@ -2915,7 +2928,7 @@ function endGame(broadcast=true,escaped=false){encounter=null;nightmare=null;mer
  document.getElementById('finalScore').textContent=Math.floor(score);
  document.getElementById('finalLevel').textContent=player.lvl;
  document.getElementById('finalWave').textContent=wave;
- if(soloRun){const route=soloRun.campaign?.visited||[soloRun.startMap];document.getElementById('finalMeta').textContent+=' · '+L('Kills','Убийства')+' '+soloRun.kills+' · '+L('Cleared waves','Зачищено волн')+' '+soloRun.cleared+' · '+runRouteText(route)+' · '+L('Room choices','Решения в комнатах')+' '+soloRun.roomChoices;}
+ if(soloRun){const route=soloRun.campaign?.visited||[soloRun.startMap];document.getElementById('finalMeta').textContent+=' · '+L('Kills','Убийства')+' '+soloRun.kills+' · '+L('Cleared waves','Зачищено волн')+' '+soloRun.cleared+' · '+runRouteText(route)+' · '+L('Room choices','Решения в комнатах')+' '+soloRun.roomChoices+' · '+L('Hidden bosses','Скрытые боссы')+' '+soloRun.hiddenDefeated.length;}
  document.getElementById('gameover').style.display='grid';
  setMobileControls(false);
  if(broadcast&&onlineMode)sendNet({t:'gameover',score:Math.floor(score),wave,level:player.lvl});
@@ -3170,6 +3183,7 @@ function paintBossCrest(g,e){
  }
  g.fillRect(-12,-47,24,2);
 }
+function paintHiddenBoss(g,p,stage,phase,charging){g.save();const R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(x,y,w,h)},ink='#140f1d',col=p.color;if(p.id===13){R(ink,-25,-35,50,54);R('#5b4034',-19,-30,38,43);R('#a17b4b',-15,-26,30,31);R(col,-19,4,38,6);R('#3a2730',-10,10,20,13);R(col,-4,17,8,8);R(ink,-9,-19,18,8);R(col,-6,-17,3,3);R(col,3,-17,3,3);for(const k of [-1,1]){R('#423039',k*28-5,-20,10,35);R(col,k*28-3,-20,6,5)}}else{R(ink,-26,-34,52,57);R('#30474d',-20,-29,40,45);R('#50756d',-14,-34,28,35);R(ink,-9,-25,18,19);R(col,-6,-21,4,3);R(col,2,-21,4,3);for(const k of [-1,1]){R('#44655f',k*21-6,-14,12,34);R(col,k*25-2,9,4,12);R('#2b4249',k*15-5,16,10,11)}R(col,-2,-5,4,12)}if(stage>=2){R(col,-14,-39,28,3);R(col,-23,-8,4,7);R(col,19,-8,4,7)}if(stage===3)R('#e87b87',-8,1,16,3);if(charging){g.strokeStyle=col;g.beginPath();g.arc(0,0,39,0,TAU);g.stroke()}g.restore()}
 function paintFinalBoss(g,stage=1,phase=0,charging=false){
  g.save();const R=(col,x,y,w,h)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),w,h)},pulse=reduceMotion?0:Math.round(Math.sin(phase)*3);
  R('#130d1d',-24,-36,48,58);R('#34213d',-20,-32,40,49);R('#5c3967',-16,-28,32,35);R('#21152f',-11,-26,22,29);
@@ -3183,7 +3197,7 @@ function drawEnemy(e){
  const phase=Number.isFinite(e.phase)?e.phase:0,hit=Math.max(0,Math.min(1,(e.hitT||0)/.22)),wave=hit*Math.sin((1-hit)*Math.PI*2.6),boss=e.type==='boss';
  ctx.save();ctx.translate(Math.round(e.x),Math.round(e.y));const shadow=boss?31:Math.max(9,e.r||9);ctx.fillStyle='#100c15';ctx.fillRect(-shadow,Math.round(shadow*.65),shadow*2,4);
  ctx.translate(0,Math.round(Math.sin(phase)*(boss?1.5:1)));ctx.rotate((e.hitLean||0)*wave*.7);ctx.scale(1+.05*wave,1-.08*wave);
- if(boss){if(e.bossId===12)paintFinalBoss(ctx,e.stage||1,phase,!!e.charge);else{pixelBoss(ctx,e.kind??0,e.stage||1,phase,!!e.charge);paintBossCrest(ctx,e)}}else if(e.elite){const q=eliteProfiles[e.elite];ctx.save();ctx.scale(1.35,1.35);pixelEnemy(ctx,e.type,phase,e.lunge||0,e.attack??1);ctx.restore();ctx.fillStyle=q.color;ctx.fillRect(-10,-43,20,2);ctx.fillRect(-8,-47,4,4);ctx.fillRect(4,-47,4,4);ctx.fillRect(-2,-50,4,7);drawPixelText(metaLabel(q),0,-57,7,q.color,'center');}else pixelEnemy(ctx,e.type,phase,e.lunge||0,e.attack??1);
+ if(boss){if(e.bossId>=13)paintHiddenBoss(ctx,bossProfile(e),e.stage||1,phase,!!e.charge);else if(e.bossId===12)paintFinalBoss(ctx,e.stage||1,phase,!!e.charge);else{pixelBoss(ctx,e.kind??0,e.stage||1,phase,!!e.charge);paintBossCrest(ctx,e)}}else if(e.elite){const q=eliteProfiles[e.elite];ctx.save();ctx.scale(1.35,1.35);pixelEnemy(ctx,e.type,phase,e.lunge||0,e.attack??1);ctx.restore();ctx.fillStyle=q.color;ctx.fillRect(-10,-43,20,2);ctx.fillRect(-8,-47,4,4);ctx.fillRect(4,-47,4,4);ctx.fillRect(-2,-50,4,7);drawPixelText(metaLabel(q),0,-57,7,q.color,'center');}else pixelEnemy(ctx,e.type,phase,e.lunge||0,e.attack??1);
  if(!boss&&(e.hit>0||e.elite)&&e.maxhp>0){const w=e.elite?35:Math.max(12,Math.min(24,Math.round((e.r||9)*1.5))),y=e.elite?-40:-34;ctx.fillStyle='#1c111a';ctx.fillRect(-w/2,y,w,3);ctx.fillStyle=e.elite?eliteProfiles[e.elite].color:'#e56b67';ctx.fillRect(-w/2,y,w*Math.max(0,Math.min(1,e.hp/e.maxhp)),2)}
  if(soloRun){const active=[e.burnStatus?'fire':null,e.venomStatus?'poison':null,e.frozen>0?'frost':null,e.cursed>0?'curse':null,e.shockCooldown>0?'shock':null].filter(Boolean);active.forEach((k,i)=>{ctx.fillStyle=elements[k].color;ctx.fillRect(-active.length*2+i*4,10,3,3)})}
  ctx.restore();
