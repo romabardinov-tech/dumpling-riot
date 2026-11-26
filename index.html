@@ -173,6 +173,11 @@ button:focus-visible{outline:2px solid #6fe1a2;outline-offset:2px}
  #abilityHud{top:108px;bottom:auto}
 }
 @media(prefers-reduced-motion:reduce){#menu .choice{transition:none}#menu .choice:hover{transform:none}}
+#menu .choice:has(.heroPortrait){min-height:100px;display:grid;grid-template-columns:52px minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:5px;align-items:center}
+#menu .heroPortrait{grid-row:1/3;width:52px;height:auto;position:static;transform:none;filter:none;background:radial-gradient(ellipse,#392b38,#17111c 74%);object-fit:contain;image-rendering:pixelated}
+#menu .choice:has(.heroPortrait) b{grid-column:2}
+#menu .choice:has(.heroPortrait) p{grid-column:2;margin-top:3px}
+@media(max-width:650px) and (orientation:portrait){#menu .choice:has(.heroPortrait){grid-template-columns:1fr;grid-template-rows:auto auto 1fr;text-align:center}#menu .heroPortrait{grid-row:1;justify-self:center;width:88px}#menu .choice:has(.heroPortrait) b,#menu .choice:has(.heroPortrait) p{grid-column:1}}
 </style>
 </head>
 <body>
@@ -238,6 +243,14 @@ const chars=[
  {id:'assassin',name:'ШИВ',enName:'SHIV',desc:'Ассасин · скорость, яд и критические удары',enDesc:'Assassin · speed, poison and critical hits',base:[52,27,55],speed:116,hp:78,dash:1.45,color:'#4fe0a0',weaponNames:['КУНАЙ','ЯДОВИТЫЕ НОЖИ','ТЕНЕВОЙ РЫВОК','СМЕРТЕЛЬНЫЙ ЗАЛП'],enWeaponNames:['KUNAI','POISON KNIVES','SHADOW DASH','DEATH VOLLEY']},
  {id:'golem',name:'КОТЁЛ-ГОЛЕМ',enName:'CAULDRON GOLEM',desc:'Танк · медленный, но почти неубиваемый',enDesc:'Tank · slow but extremely durable',base:[58,18,70],speed:68,hp:170,dash:.78,color:'#d18a4d',weaponNames:['КИПЯЩИЙ КОТЁЛ','ПАРОВОЙ УДАР','ЧУГУННАЯ ВОЛНА','ПЕЧНОЙ ВЗРЫВ'],enWeaponNames:['BOILING CAULDRON','STEAM BURST','IRON WAVE','FURNACE BLAST']}
 ];
+const heroArt={
+scar:{dark:'#381720',mid:'#96313b',lit:'#d85650',metal:'#dbc3a5',glow:'#ffad68'},
+vesa:{dark:'#321529',mid:'#7b2b50',lit:'#db6489',metal:'#eac3b2',glow:'#ff9eb4'},
+nyx:{dark:'#19162e',mid:'#47376b',lit:'#8e75cf',metal:'#b7a6eb',glow:'#d9b6ff'},
+pelmage:{dark:'#1e2747',mid:'#405793',lit:'#758fda',metal:'#c4d9ff',glow:'#a9e5ff'},
+assassin:{dark:'#112a27',mid:'#275646',lit:'#5a9678',metal:'#c2dbb7',glow:'#8affbc'},
+golem:{dark:'#332721',mid:'#735140',lit:'#bc8658',metal:'#e9b47a',glow:'#ffbf65'}
+};
 const dashProfiles={
  scar:{name:'КРОВАВЫЙ РАЗРЕЗ',enName:'BLOOD SLASH',distance:38,cooldown:1.35,inv:.32,damage:28,radius:31},
  vesa:{name:'АЛЫЕ ИГЛЫ',enName:'CRIMSON NEEDLES',distance:43,cooldown:1.3,inv:.30,damage:13},
@@ -526,7 +539,7 @@ function applyLanguageStatic(){
 
 function makeMenu(){
  const cc=document.getElementById('charChoices');cc.innerHTML='';document.getElementById('recordLine').textContent=recordText(loadRecord());
- for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b><p>${locDesc(ch)}<br>HP ${ch.hp} · SPD ${ch.speed}<br><strong style="color:${ch.color}">${lang==='en'?'DASH':'РЫВОК'}: ${locName(dashProfiles[ch.id])}</strong></p>`;d.onclick=()=>{selectedChar=ch.id;makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
+ for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b><p>${locDesc(ch)}<br>HP ${ch.hp} · SPD ${ch.speed}<br><strong style="color:${ch.color}">${lang==='en'?'DASH':'РЫВОК'}: ${locName(dashProfiles[ch.id])}</strong></p>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);pixelHeroWeapon(pg,ch.id,0,0,0);d.prepend(portrait);d.onclick=()=>{selectedChar=ch.id;makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
  const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:T('onePlayer'),desc:T('modeOneDesc')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes){const d=document.createElement('button');d.type='button';d.className='modeChoice'+((md.id==='solo'&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.setAttribute('aria-pressed',String(d.classList.contains('sel')));d.innerHTML=`<b>${md.title}</b><p>${md.desc}</p>`;d.onclick=()=>{onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu();modeBox.querySelector('.sel')?.focus({preventScroll:true})};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||'нет комнаты'):'')}
  const mc=document.getElementById('mapChoices');mc.innerHTML='';
  for(const m of maps){const d=document.createElement('button');d.type='button';d.className='choice'+(m.id===selectedMap?' sel':'');d.style.setProperty('--accent',m.accent);d.style.setProperty('--card',m.tile);d.setAttribute('aria-pressed',String(m.id===selectedMap));d.innerHTML=`<b>${locName(m)}</b><p>${locDesc(m)}</p>`;d.onclick=()=>{selectedMap=m.id;makeMenu();mc.querySelector('.sel')?.focus({preventScroll:true})};mc.appendChild(d)}
@@ -1370,14 +1383,6 @@ function endGame(broadcast=true){
 
 function drawPixelText(text,x,y,size=8,color='#f6efd9',align='left'){ctx.fillStyle=color;ctx.font=`bold ${size}px ui-monospace,monospace`;ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(text,x,y)}
 // Pixel character models: native Canvas art, one world pixel per sprite pixel.
-const heroArt={
-scar:{dark:'#381720',mid:'#96313b',lit:'#d85650',metal:'#dbc3a5',glow:'#ffad68'},
-vesa:{dark:'#321529',mid:'#7b2b50',lit:'#db6489',metal:'#eac3b2',glow:'#ff9eb4'},
-nyx:{dark:'#19162e',mid:'#47376b',lit:'#8e75cf',metal:'#b7a6eb',glow:'#d9b6ff'},
-pelmage:{dark:'#1e2747',mid:'#405793',lit:'#758fda',metal:'#c4d9ff',glow:'#a9e5ff'},
-assassin:{dark:'#112a27',mid:'#275646',lit:'#5a9678',metal:'#c2dbb7',glow:'#8affbc'},
-golem:{dark:'#332721',mid:'#735140',lit:'#bc8658',metal:'#e9b47a',glow:'#ffbf65'}
-};
 function pixelHeroBody(g,id,step=0,phase=0,aim=0){
  const a=heroArt[id]||heroArt.scar;
  const ink='#100c17',cream='#e9c9a6',tan='#b88976',shade='#78535a';
