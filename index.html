@@ -2376,13 +2376,13 @@ async function setupPeer(hostMode=false){
        peer.on('connection',c=>{
          const channel=c.metadata&&c.metadata.channel;
          if(channel==='state'){
-           if(netStateConn){try{c.close()}catch(_){};return}
+           if(!netConn||c.peer!==netConn.peer||netStateConn){try{c.close()}catch(_){};return}
            netStateConn=c;
            c.on('open',()=>setOnlineStatus(L("Player connected. Starting…","Канал синхронизации подключён.")));
            wireStateNet(c);
            return;
          }
-         if(netConn){try{c.close()}catch(_){};return}
+         if(!hostMode||netConn){try{c.close()}catch(_){};return}
          netConn=c;
          isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;
          setOnlineStatus(L("Connecting…","Игрок найден · устанавливаем соединение..."));
@@ -2401,6 +2401,30 @@ async function setupPeer(hostMode=false){
  });
  return peerReadyPromise;
 }
+// V68: authoritative host, versioned runs, bounded input and connection watchdog.
+const NET_VERSION=68;
+let netRun=0,netUpgrade=0,guestUpgrade=0,remoteInputAt=0,remoteSeenAt=0,lastHeartbeatAt=0,netClosing=false;
+function netInput(m){const axis=v=>Number.isFinite(v)?Math.max(-1,Math.min(1,v)):0;let x=axis(m.mx),y=axis(m.my),n=Math.max(1,Math.hypot(x,y));const ax=axis(m.ax),ay=axis(m.ay);return {x:x/n,y:y/n,ax,ay,aim:m.aa===true&&Math.hypot(ax,ay)>.01,weapon:Number.isInteger(m.weapon)&&m.weapon>=0&&m.weapon<=3?m.weapon:0}}
+function acceptNetSequence(m,run,last){return !!m&&m.v===NET_VERSION&&m.run===run&&Number.isSafeInteger(m.n)&&m.n>last&&m.s&&Array.isArray(m.s.enemies)&&Array.isArray(m.s.projectiles)&&Array.isArray(m.s.drops)&&Array.isArray(m.s.hazards)&&m.s.p1&&m.s.p2}
+function clearRemoteInput(){touchInput.p2MoveX=touchInput.p2MoveY=0;player2.remoteAimActive=false}
+function disconnectOnline(message,notify=true){
+ if(netClosing)return;netClosing=true;
+ const control=netConn,fast=netStateConn,oldPeer=peer;
+ if(notify&&control?.open)try{control.send({t:'leave',v:NET_VERSION,run:netRun})}catch(_){}
+ netConn=netStateConn=peer=null;peerReadyPromise=null;netRoom='';netRun=0;netSeq=lastNetSeq=0;netUpgrade=guestUpgrade=0;remoteSeenAt=remoteInputAt=lastHeartbeatAt=0;isOnlineHost=isOnlineGuest=false;clearRemoteInput();
+ for(const c of [control,fast])try{c?.close()}catch(_){}try{oldPeer?.destroy()}catch(_){}
+ if(state!=='menu')goMenu();setOnlineStatus(message||L('Connection closed.','Соединение закрыто.'));netClosing=false;
+}
+function checkNetWatchdog(now){
+ if(!onlineMode||!netConn?.open||!netRun)return;
+ if(now-lastHeartbeatAt>=1000){lastHeartbeatAt=now;sendNet({t:'heartbeat'})}
+ if(isOnlineHost&&now-remoteInputAt>450)clearRemoteInput();
+ if(remoteSeenAt&&now-remoteSeenAt>15000)disconnectOnline(L('Connection lost. Create or join a new room.','Связь потеряна. Создай новую комнату или подключись снова.'),false);
+}
+function receiveSnapshot(m){
+ if(!isOnlineGuest||!acceptNetSequence(m,netRun,lastNetSeq)||state==='menu'||state==='gameover')return false;
+ lastNetSeq=m.n;remoteSeenAt=Date.now();applyNetState(m.s);return true;
+}
 function wireNet(c){
  c.on('open',()=>{
    setOnlineStatus(isOnlineHost?L("Player connected. Starting…","Игрок подключён. Запускаем игру."):L("Player connected. Starting…","Подключено. Запускаем игру."));
@@ -2414,45 +2438,37 @@ function wireNet(c){
        };
      }
    }catch(_){}
-   if(isOnlineHost){
-     setOnlineStatus(L("Player connected. Starting…","ВТОРОЙ ИГРОК ПОДКЛЮЧЁН · ЗАПУСКАЕМ ИГРУ..."));
-     if(state==='menu'){
-       sendNet({t:'start',map:selectedMap});
-       startGame();
-     }
-   }
+   if(isOnlineGuest)sendNet({t:'hello',room:netRoom});
  });
  c.on('data',m=>{
-  if(m.t==='hello'){
-    if(isOnlineHost){
-      setOnlineStatus(L("Player connected. Starting…","ВТОРОЙ ИГРОК ПОДКЛЮЧЁН · ЗАПУСКАЕМ ИГРУ..."));
-      if(state==='menu'){sendNet({t:'start',map:selectedMap});setTimeout(()=>sendNet({t:'start',map:selectedMap}),180);setTimeout(()=>sendNet({t:'start',map:selectedMap}),500);startGame();}
-    }else{
-      netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;
-      setOnlineStatus(L("Player connected. Starting…","ИГРОК 2 ПОДКЛЮЧЁН · ЖДЁМ АВТОМАТИЧЕСКОГО СТАРТА..."));
-    }
-  }
-  if(m.t==='input'&&isOnlineHost){touchInput.p2MoveX=Number(m.mx)||0;touchInput.p2MoveY=Number(m.my)||0;player2.remoteAimActive=!!m.aa;if(player2.remoteAimActive){const ax=Number(m.ax)||0,ay=Number(m.ay)||0;if(Math.hypot(ax,ay)>.01)player2.aim=Math.atan2(ay,ax)}player2.weapon=clamp(Math.floor(Number(m.weapon)||0),0,3)}
+  if(c!==netConn||!m||typeof m.t!=='string')return;
+  if(m.v!==NET_VERSION){if(m.t==='hello'||m.t==='start')disconnectOnline(L('Both players need version 68.','Оба игрока должны обновить игру до V68.'),false);return}
+  if(m.t==='hello'&&isOnlineHost){if(state==='menu'&&!netRun)startGame();return}
+  if(m.t==='start'&&isOnlineGuest&&Number.isSafeInteger(m.run)&&m.run>netRun&&maps.some(x=>x.id===m.map)){netRun=m.run;lastNetSeq=0;guestUpgrade=0;remoteSeenAt=Date.now();selectedMap=m.map;startGame(true);return}
+  if(m.run!==netRun||!netRun)return;
+  remoteSeenAt=Date.now();
+  if(m.t==='heartbeat')return;
+  if(m.t==='leave'){disconnectOnline(L('The other player left the room.','Второй игрок покинул комнату.'),false);return}
+  if(m.t==='input'&&isOnlineHost&&state==='game'){const q=netInput(m);remoteInputAt=Date.now();touchInput.p2MoveX=q.x;touchInput.p2MoveY=q.y;player2.remoteAimActive=q.aim;if(q.aim)player2.aim=Math.atan2(q.ay,q.ax);player2.weapon=q.weapon}
   if(m.t==='dash'&&isOnlineHost)dashFor(player2);
-  if(m.t==='bomb'&&isOnlineHost)bombFor(player2);
-  if(m.t==='reviveOrBomb'&&isOnlineHost){if(!reviveNearby(player2))bombFor(player2);}
-  if(m.t==='start'&&isOnlineGuest&&state==='menu'&&maps.some(x=>x.id===m.map)){selectedMap=m.map;lastNetSeq=0;startGame(true)}
-  if(m.t==='state'&&isOnlineGuest){if((m.n||0)>lastNetSeq){lastNetSeq=m.n||0;applyNetState(m.s)}}
-  if(m.t==='p2level'&&isOnlineGuest){player2.lvl=Number(m.lvl)||player2.lvl;player2.xp=Number(m.xp)||player2.xp;player2.next=Number(m.next)||player2.next;}
-  if(m.t==='levelup'&&isOnlineGuest){openLevelUpFor(m.owner==='p2'?player2:player,m.options||[]);}
-  if(m.t==='levelupRequest'&&isOnlineHost){openLevelUpFor(player2,m.options||[]);}
-  if(m.t==='upgradeChoice'&&isOnlineHost&&pendingUpgradePlayer===player2){finishLevelUp(player2,Number(m.index)||0);}
-  if(m.t==='upgradeApplied'&&isOnlineGuest){const p=m.owner==='p2'?player2:player;const opt=pendingUpgradeOptions.find(o=>o.id===m.option);if(levelupBusy&&pendingUpgradePlayer===p&&opt){applyUpgrade(p,opt);levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];document.getElementById('levelup').style.display='none';state='game';setMobileControls(true);}}
-  if(m.t==='gameover'&&isOnlineGuest){score=Number(m.score)||score;wave=Number(m.wave)||wave;endGame(false);}
-
+  if(m.t==='reviveOrBomb'&&isOnlineHost&&state==='game'){if(!reviveNearby(player2))bombFor(player2)}
+  if(m.t==='state')receiveSnapshot(m);
+  if(m.t==='pauseRequest'&&isOnlineHost&&(state==='game'||state==='pause'))togglePause();
+  if(m.t==='pauseState'&&isOnlineGuest&&(state==='game'||state==='pause'))setNetworkPause(m.paused===true);
+  if(m.t==='levelup'&&isOnlineGuest&&Number.isSafeInteger(m.upgrade)&&m.upgrade>guestUpgrade&&Array.isArray(m.options)&&m.options.length>0&&m.options.length<=3&&m.options.every(o=>o&&typeof o.id==='string')){guestUpgrade=m.upgrade;openLevelUpFor(m.owner==='p2'?player2:player,m.options)}
+  if(m.t==='upgradeChoice'&&isOnlineHost&&m.upgrade===netUpgrade&&pendingUpgradePlayer===player2&&Number.isInteger(m.index)&&m.index>=0&&m.index<pendingUpgradeOptions.length)finishLevelUp(player2,m.index);
+  if(m.t==='upgradeApplied'&&isOnlineGuest&&m.upgrade===guestUpgrade&&levelupBusy){levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];document.getElementById('levelup').style.display='none';state='game';setMobileControls(true)}
+  if(m.t==='gameover'&&isOnlineGuest&&state!=='gameover'){score=Number(m.score)||score;wave=Number(m.wave)||wave;endGame(false)}
  });
- c.on('close',()=>{setOnlineStatus(L('Connection closed.','Соединение закрыто.'));if(isOnlineGuest){state='menu';goMenu()}});
+ c.on('close',()=>{if(c===netConn)disconnectOnline(L('Connection closed.','Соединение закрыто.'),false)});
+ c.on('error',()=>{if(c===netConn&&netRun)disconnectOnline(L('Connection error','Ошибка подключения'),false)});
 }
+
 function applyNetState(s){
  if(!s)return;
  const cp=(p,data,isLocal)=>{
    if(!p||!data)return;
-   p.serverX=data.x;p.serverY=data.y;
+   p.serverX=data.x;p.serverY=data.y;if(data.boost&&['dmg','rate','move','crit'].every(k=>Number.isFinite(data.boost[k])))p.boost={...data.boost};if(Number.isFinite(data.speed))p.speed=data.speed;if(Array.isArray(data.heroUpgrades))p.heroUpgrades=data.heroUpgrades.slice(0,16);
    if(!isLocal && !isOnlineGuest){p.x=data.x;p.y=data.y}
    Object.assign(p,{hp:data.hp,maxhp:data.maxhp,charId:chars.some(ch=>ch.id===data.charId)?data.charId:p.charId,dead:data.dead,aim:data.aim,weapon:data.weapon,lvl:data.lvl,xp:data.xp??p.xp,next:data.next??p.next,bomb:data.bomb,dash:data.dash??p.dash,shivCharge:data.shivCharge});
    if(Array.isArray(data.weaponCharge))p.weaponCharge=data.weaponCharge.slice(0,4);else p.weaponCharge=[1,1,1,1];if(Array.isArray(data.weaponLevels))p.weaponLevels=data.weaponLevels.slice(0,4);
@@ -2465,14 +2481,15 @@ function applyNetState(s){
  drops=(s.drops||[]).map(d=>({...d,netX:d.x,netY:d.y}));
  boss=s.boss?({...s.boss,netX:s.boss.x,netY:s.boss.y}):null;
  hazards=(s.hazards||[]).map(h=>({...h}));if(s.npcEvent&&state==='game')displayNpc(s.npcEvent);
- wave=s.wave||1;score=s.score||0;combo=s.combo||1;waveState=s.waveState||'fighting';targetCount=s.targetCount??enemies.length;spawned=s.spawned??targetCount;
+ relicOwned=!!s.relicOwned;wave=s.wave||1;score=s.score||0;combo=s.combo||1;waveState=s.waveState||'fighting';targetCount=s.targetCount??enemies.length;spawned=s.spawned??targetCount;
 }
 function netState(){
- return {p1:{x:player.x,y:player.y,charId:player.charId,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:player.weapon,lvl:player.lvl,bomb:player.bomb,dash:player.dash,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,charId:player2.charId,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,dash:player2.dash,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,dead:e.dead,stage:e.stage,kind:e.kind,bossId:e.bossId,charge:e.charge,lunge:e.lunge,attack:e.attack})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy,kind:p.kind})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,value:d.value,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type,name:boss.name,enName:boss.enName,stage:boss.stage,kind:boss.kind,bossId:boss.bossId}:null,hazards:hazards.map(({x,y,radius,remaining,duration,kind})=>({x,y,radius,remaining,duration,kind})),wave,score,combo,waveState,targetCount,spawned,npcEvent}
+ return {p1:{x:player.x,y:player.y,boost:player.boost,speed:player.speed,heroUpgrades:player.heroUpgrades,charId:player.charId,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:player.weapon,lvl:player.lvl,bomb:player.bomb,dash:player.dash,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,boost:player2.boost,speed:player2.speed,heroUpgrades:player2.heroUpgrades,charId:player2.charId,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,dash:player2.dash,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,dead:e.dead,stage:e.stage,kind:e.kind,bossId:e.bossId,charge:e.charge,lunge:e.lunge,attack:e.attack})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy,kind:p.kind})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,value:d.value,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type,name:boss.name,enName:boss.enName,stage:boss.stage,kind:boss.kind,bossId:boss.bossId}:null,hazards:hazards.map(({x,y,radius,remaining,duration,kind})=>({x,y,radius,remaining,duration,kind})),wave,score,combo,waveState,targetCount,spawned,npcEvent,relicOwned}
 }
 function sendNet(m){
- const c=m&&m.t==='state'?netStateConn:netConn;
- if(!c||!c.open)return;
+ const c=m?.t==='state'&&netStateConn?.open?netStateConn:netConn;
+ if(!c||!c.open||!m)return;
+ m={...m,v:NET_VERSION,run:netRun};
  try{
    if(m.t==='state'&&c.dataChannel&&typeof c.dataChannel.bufferedAmount==='number'&&c.dataChannel.bufferedAmount>18000)return;
    c.send(m);
@@ -2480,14 +2497,14 @@ function sendNet(m){
 }
 function wireStateNet(c){
  c.on('data',m=>{
-   if(m&&m.t==='state'&&isOnlineGuest&&((m.n||0)>lastNetSeq)){lastNetSeq=m.n||0;applyNetState(m.s)}
+   if(c===netStateConn&&m?.t==='state')receiveSnapshot(m)
  });
- c.on('error',()=>{});
+ c.on('error',()=>{if(c===netStateConn)netStateConn=null});c.on('close',()=>{if(c===netStateConn)netStateConn=null});
 }
-function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus(L("Create or join a room first.","Сначала создай комнату и дождись игрока."));return false}sendNet({t:'start',map:selectedMap});return true}
+function startOnlineHost(){if(!netConn?.open){setOnlineStatus(L('Create or join a room first.','Сначала создай комнату и дождись игрока.'));return false}netRun++;netSeq=0;netUpgrade=0;remoteSeenAt=remoteInputAt=Date.now();sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false,checkpoint=null){
  touchAimMode=false;hudElapsed=1;if(savedCheckpoint&&!coop&&!onlineMode&&!checkpoint)return;saveAtBoundary=false;encounter=null;
- if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
+ if(onlineMode&&!fromNetwork&&(!isOnlineHost||!startOnlineHost()))return;
  if(!heroPlayable(chars.find(c=>c.id===selectedChar),meta,journal,coop||onlineMode))selectedChar=chars[0].id;
  secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;
  if(soloRun?.campaign)selectedMap=soloRun.campaign.start;closeSoloRun();soloRun=!coop&&!onlineMode?{hero:selectedChar,startMap:selectedMap,campaign:campaignMode?newCampaign(selectedMap):null,contract:selectedContract,cleared:0,earned:0,kills:0,closed:false,coins:0,coinsEarned:0,coinsSpent:0,purchases:0,lastShop:0,pact:null,lastEncounter:0,seenRooms:[],roomChoices:0,nextRoomEffect:null,hiddenSummoned:[],hiddenDefeated:[],nextHidden:null,stationUses:0}:null;document.getElementById('ritualOverlay').hidden=true;
@@ -2498,7 +2515,7 @@ function startGame(fromNetwork=false,checkpoint=null){
  player.weapon=0;player2.weapon=coop?1:0;
  weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;arenaEventTimer=8;arenaEventIndex=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';tutorial=makeTutorial(tutorialEnabled,!!soloRun);tutorialSignature='';if(checkpoint){soloRun=checkpoint.run;selectedMap=checkpoint.map;selectedChar=soloRun.hero;Object.assign(player,cpPick(checkpoint.player,checkpointPlayerFields));player.charId=selectedChar;player.weapon=weapon=checkpoint.weapon;player.dead=false;player.vx=player.vy=0;player.serverX=player.x;player.serverY=player.y;wave=checkpoint.wave;score=checkpoint.score;combo=checkpoint.combo;nightmare=newNightmare();nightmare.fear=checkpoint.fear;relicOwned=checkpoint.relic;drops=checkpoint.drops;camera.x=clamp(player.x,W/2,world.w-W/2);camera.y=clamp(player.y,H/2,world.h-H/2)}setHud(true);beginWave();if(!checkpoint)toast((coop?T('twoPlayers')+' · ':'')+T('wave')+' 1');else{toast(L('RUN RESUMED','ЗАБЕГ ВОССТАНОВЛЕН')+' · '+T('wave')+' '+wave);toastTimer=3;}if(location.protocol!=='file:')requestMobileFullscreen();
 }
-function goMenu(){saveAtBoundary=false;tutorial=null;renderTutorial();clearCombatPresentation();livingStations=[];encounter=null;if(soloRun?.campaign)selectedMap=soloRun.campaign.start;secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
+function goMenu(){if(onlineMode&&(netConn||peer)&&!netClosing){disconnectOnline(L('Left the room','Выход из комнаты'));return}saveAtBoundary=false;tutorial=null;renderTutorial();clearCombatPresentation();livingStations=[];encounter=null;if(soloRun?.campaign)selectedMap=soloRun.campaign.start;secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
 function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlayers?7:4)+Math.floor(round/4))}
 function beginWave(){
  if(suspendAtBoundary())return;
@@ -2618,11 +2635,8 @@ function gainXPFor(p,v,showUpgrade=true){
    p.next=Math.floor(p.next*1.18);
    p.lvl++;
    if(showUpgrade){
-  if(!onlineMode&&levelupBusy){upgradeQueue.push(p);continue}
-  openLevelUpFor(p);
-  const opts=pendingUpgradeOptions.map(o=>({id:o.id,title:o.title,desc:o.desc}));
-  if(onlineMode&&isOnlineHost)sendNet({t:'levelup',owner:p===player?'p1':'p2',options:opts});
-  if(onlineMode&&isOnlineGuest&&p===player2)sendNet({t:'levelupRequest',owner:'p2',options:opts});
+  if(onlineMode&&isOnlineGuest)continue;if(levelupBusy){upgradeQueue.push(p);continue}
+  openLevelUpFor(p);announceUpgrade(p);
 }
  }
 }
@@ -2671,6 +2685,7 @@ function applyUpgrade(p,o){
   default: if(o.id.startsWith('weapon_')){const i=Number(o.id.split('_')[1]);if(Number.isInteger(i)&&i>=0&&i<4){p.weaponLevels[i]=Math.min(8,(p.weaponLevels[i]||1)+1);p.weapon=i;if(p===player)weapon=i;}}
  }
 }
+function announceUpgrade(p){if(onlineMode&&isOnlineHost&&levelupBusy){netUpgrade++;sendNet({t:'levelup',upgrade:netUpgrade,owner:p===player?'p1':'p2',options:pendingUpgradeOptions.map(o=>({id:o.id,title:o.title,desc:o.desc}))})}}
 function finishLevelUp(p,opt){
  if(!levelupBusy||state!=='levelup'||p!==pendingUpgradePlayer)return;
  const chosen=pendingUpgradeOptions[opt];
@@ -2679,9 +2694,9 @@ function finishLevelUp(p,opt){
  levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
  document.getElementById('levelup').style.display='none';
  state='game';setMobileControls(true);
- if(onlineMode)sendNet({t:'upgradeApplied',owner:p===player?'p1':'p2',option:chosen.id});
+ if(onlineMode&&isOnlineHost)sendNet({t:'upgradeApplied',upgrade:netUpgrade,owner:p===player?'p1':'p2',option:chosen.id});
  toast((p===player?'P1':'P2')+' · '+L('Upgrade','Улучшение')+': '+upgradePresentation(p,chosen).title);
- if(!onlineMode){while(upgradeQueue.length){const next=upgradeQueue.shift();if(!next.dead){openLevelUpFor(next);break}}}
+ while(upgradeQueue.length){const next=upgradeQueue.shift();if(!next.dead){openLevelUpFor(next);announceUpgrade(next);break}}
 }
 function upgradePresentation(p,o){
  const id=o.id,en=lang==='en',ch=chars.find(x=>x.id===p.charId)||chars[0],w=/^weapon_([0-3])$/.exec(id),ev=/^evolve_([0-3])$/.exec(id);
@@ -2717,7 +2732,7 @@ function openLevelUpFor(p,remoteOptions=null){
    pendingUpgradeOptions.forEach((o,i)=>{
      const d=document.createElement('button');d.type='button';d.className='upgrade';
      renderUpgradeChoice(d,p,o,i);
-     const choose=e=>{e.preventDefault();e.stopPropagation();if(onlineMode&&isOnlineGuest&&p===player2){sendNet({t:'upgradeChoice',index:i});}else finishLevelUp(p,i)};
+     const choose=e=>{e.preventDefault();e.stopPropagation();if(onlineMode&&isOnlineGuest&&p===player2){sendNet({t:'upgradeChoice',upgrade:guestUpgrade,index:i});}else finishLevelUp(p,i)};
      d.addEventListener('click',choose,{passive:false});box.appendChild(d);
    });
    overlay.style.display='grid';
@@ -3196,7 +3211,10 @@ function setupMobile(){
 
 }
 function clearLocalInput(){keys.clear();mouse.down=false;touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=0;if(!onlineMode)touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;for(const el of document.querySelectorAll('#mobileControls .mobilePad,#mobileControls button'))el.dispatchEvent(new Event('inputreset'));for(const id of ['movePad','aimPad','p2Pad'])resetKnob(id)}
+function setNetworkPause(paused){if(paused&&state==='game'){clearLocalInput();state='pause';setMobileControls(false);document.getElementById('saveExitBtn').hidden=true;document.getElementById('pauseRestartBtn').hidden=!!isOnlineGuest;document.getElementById('pauseOverlay').style.display='grid'}else if(!paused&&state==='pause'){state='game';setMobileControls(true);document.getElementById('pauseOverlay').style.display='none';initAudio()}}
 function togglePause(){
+ if(onlineMode){if(isOnlineGuest){sendNet({t:'pauseRequest'});return}if(isOnlineHost&&(state==='game'||state==='pause')){const paused=state==='game';setNetworkPause(paused);sendNet({t:'pauseState',paused});return}}
+ document.getElementById('pauseRestartBtn').hidden=false;
  if(state==='game'){clearLocalInput();state='pause';setMobileControls(false);const b=document.getElementById('saveExitBtn');b.hidden=!soloRun||!!savedCheckpoint;b.textContent=saveAtBoundary?L('Save queued · resume to finish wave','Сохранение запланировано · заверши волну'):L('Save & exit after wave','Сохранить и выйти после волны');b.disabled=saveAtBoundary;document.getElementById('pauseOverlay').style.display='grid';return;}
  if(state==='pause'){state='game';setMobileControls(true);document.getElementById('pauseOverlay').style.display='none';initAudio();return;}
 }
@@ -3277,7 +3295,7 @@ function endGame(broadcast=true,escaped=false){saveAtBoundary=false;tutorial=nul
  document.getElementById('finalWave').textContent=wave;
  if(soloRun){const route=soloRun.campaign?.visited||[soloRun.startMap];document.getElementById('finalMeta').textContent+=' · '+L('Kills','Убийства')+' '+soloRun.kills+' · '+L('Cleared waves','Зачищено волн')+' '+soloRun.cleared+' · '+runRouteText(route)+' · '+L('Room choices','Решения в комнатах')+' '+soloRun.roomChoices+' · '+L('Hidden bosses','Скрытые боссы')+' '+soloRun.hiddenDefeated.length+' · '+L('Stations used','Объекты использованы')+' '+soloRun.stationUses;}
  document.getElementById('gameover').style.display='grid';
- setMobileControls(false);
+ document.getElementById('retryBtn').disabled=onlineMode&&isOnlineGuest;setMobileControls(false);
  if(broadcast&&onlineMode)sendNet({t:'gameover',score:Math.floor(score),wave,level:player.lvl});
 }
 
@@ -3775,11 +3793,11 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
    netConn=c;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;
    wireNet(c);
    const timeout=setTimeout(()=>{
-     if(!c.open)setOnlineStatus(L("Connection error","Онлайн: устройство не установило WebRTC-соединение за 20 сек. Проверь код и попробуй ещё раз."));
+     if(!c.open&&c===netConn)disconnectOnline(L('Connection timed out. Check the room code.','Соединение не установлено. Проверь код комнаты.'),false);
    },20000);
    c.on('open',()=>{
      clearTimeout(timeout);
-     try{c.send({t:'hello',room:code});setTimeout(()=>{try{if(c.open)c.send({t:'hello',room:code})}catch(_){}},250)}catch(_){}
+     netRoom=code;sendNet({t:'hello',room:code});
      const sc=peer.connect('dr-'+code,{reliable:false,serialization:'json',metadata:{room:code,channel:'state'},serialization:'binary'});
      netStateConn=sc;
      wireStateNet(sc);
@@ -3794,13 +3812,13 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
  }catch(e){
    setOnlineStatus(L('Connection error','Ошибка подключения')+(e&&e.message?' · '+e.message:''));
  }
-});document.getElementById('retryBtn').onclick=()=>{startHorrorMusic();startGame()};document.getElementById('menuBtn').onclick=goMenu;
+});document.getElementById('retryBtn').onclick=()=>{if(onlineMode&&isOnlineGuest){setOnlineStatus(L('Waiting for host restart','Ждём перезапуска от ведущего'));return}startHorrorMusic();startGame()};document.getElementById('menuBtn').onclick=goMenu;
 
 window.addEventListener('error',e=>{const msg=(e&&e.error&&e.error.message)||e.message||L('Unknown error','Неизвестная ошибка');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
 window.addEventListener('unhandledrejection',e=>{const msg=(e&&e.reason&&e.reason.message)||String(e.reason||'Promise error');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
 // Keep the fixed 60Hz simulation independent from display refresh/HUD cadence.
 let hudElapsed=1,previousFrameState='',previousFrameWave=0;
-function frame(now){if(document.hidden){last=now;acc=0;hudElapsed=1;requestAnimationFrame(frame);return}const raw=last?Math.max(0,Math.min(.1,(now-last)/1000||0)):0;last=now;const step=1/60;const active=state==='game'||state==='death'||(onlineMode&&isOnlineHost&&state==='pause');if(active){acc+=raw;while(acc>=step){update(step);acc-=step;if(state!=='game'&&state!=='death'&&!(onlineMode&&isOnlineHost&&state==='pause')){acc=0;break}}}else{acc=0;updateNpc(0)}shake=Math.max(0,shake-raw);hudElapsed+=raw;const changed=state!==previousFrameState||wave!==previousFrameWave;if(state==='game'&&(changed||hudElapsed>=1/20)){updateHud();hudElapsed=0}renderTutorial();if(state!=='menu'&&(state==='game'||state==='death'||changed))render();previousFrameState=state;previousFrameWave=wave;requestAnimationFrame(frame)}
+function frame(now){checkNetWatchdog(Date.now());if(document.hidden){last=now;acc=0;hudElapsed=1;requestAnimationFrame(frame);return}const raw=last?Math.max(0,Math.min(.1,(now-last)/1000||0)):0;last=now;const step=1/60;const active=state==='game'||state==='death'||(onlineMode&&isOnlineHost&&state==='pause');if(active){acc+=raw;while(acc>=step){update(step);acc-=step;if(state!=='game'&&state!=='death'&&!(onlineMode&&isOnlineHost&&state==='pause')){acc=0;break}}}else{acc=0;updateNpc(0)}shake=Math.max(0,shake-raw);hudElapsed+=raw;const changed=state!==previousFrameState||wave!==previousFrameWave;if(state==='game'&&(changed||hudElapsed>=1/20)){updateHud();hudElapsed=0}renderTutorial();if(state!=='menu'&&(state==='game'||state==='death'||changed))render();previousFrameState=state;previousFrameWave=wave;requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 if(!nativeMobile()&&'serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('./sw.js').then(reg=>reg.update()).catch(()=>{})}
 </script>
