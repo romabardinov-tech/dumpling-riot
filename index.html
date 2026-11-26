@@ -669,6 +669,48 @@ html.inGame body:has(#ritualOverlay:not([hidden])){touch-action:pan-y}
 html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 @media(max-width:420px) and (orientation:portrait){#merchantOffers{grid-template-columns:1fr}}
 @media(max-height:520px) and (orientation:landscape){#merchantOverlay .merchantBox{padding:7px}.merchantHeader{margin-bottom:4px}#merchantPortrait{width:48px;height:48px}#merchantTitle{font-size:15px}.merchantOffer{min-height:38px;padding:4px}#merchantLeave{min-height:36px}}
+/* V66: adaptive touch controls and user preferences */
+#touchSettings{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;text-align:left;margin:8px 0;padding:8px;border:1px solid #554752;border-radius:5px;color:#dfd2c0;font:12px/1.4 system-ui,sans-serif}
+#touchSettings label{align-self:center}
+#touchSettings select{min-height:38px;min-width:0;width:100%;color:#f2e7d3;background:#24202a;border:1px solid #71616a;border-radius:4px;padding:4px 6px;font:12px system-ui,sans-serif}
+#menuHelp{max-height:min(34dvh,224px);overscroll-behavior:contain;touch-action:pan-y}
+#mobileControls{--touch-scale:1;--pad-base:clamp(94px,27vh,118px);--pad-edge:14px;--action-size:52px;--weapon-size:46px;--pad-bottom:17px}
+#mobileControls[data-size="compact"]{--touch-scale:.88}
+#mobileControls[data-size="large"]{--touch-scale:1.12}
+#mobileControls:not(.coop-active) .mobilePad{--pad-size:calc(var(--pad-base) * var(--touch-scale));width:var(--pad-size);height:var(--pad-size)}
+#mobileControls:not(.coop-active) #movePad,#mobileControls:not(.coop-active) #aimPad{bottom:calc(max(8px,env(safe-area-inset-bottom)) + var(--pad-bottom))}
+#mobileControls:not(.coop-active) #movePad{left:max(var(--pad-edge),env(safe-area-inset-left));right:auto}
+#mobileControls:not(.coop-active) #aimPad{right:max(var(--pad-edge),env(safe-area-inset-right));left:auto}
+#mobileControls:not(.coop-active) #dashBtn,#mobileControls:not(.coop-active) #bombBtn{width:max(44px,calc(var(--action-size) * var(--touch-scale)));height:max(44px,calc(var(--action-size) * var(--touch-scale)));right:calc(max(var(--pad-edge),env(safe-area-inset-right)) + var(--pad-base) * var(--touch-scale) + 8px);left:auto}
+#mobileControls:not(.coop-active) #dashBtn{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 55px)}
+#mobileControls:not(.coop-active) #bombBtn{bottom:calc(max(8px,env(safe-area-inset-bottom)) + 63px + max(44px,calc(var(--action-size) * var(--touch-scale))))}
+#mobileControls:not(.coop-active) #mobileWeapons .mw{width:max(44px,calc(var(--weapon-size) * var(--touch-scale)));height:max(44px,calc(48px * var(--touch-scale)))}
+#mobileControls:not(.coop-active)[data-hand="left"] #movePad{right:max(var(--pad-edge),env(safe-area-inset-right));left:auto}
+#mobileControls:not(.coop-active)[data-hand="left"] #aimPad{left:max(var(--pad-edge),env(safe-area-inset-left));right:auto}
+#mobileControls:not(.coop-active)[data-hand="left"] #dashBtn,#mobileControls:not(.coop-active)[data-hand="left"] #bombBtn{left:calc(max(var(--pad-edge),env(safe-area-inset-left)) + var(--pad-base) * var(--touch-scale) + 8px);right:auto}
+@media(max-width:650px) and (orientation:portrait){
+ #mobileControls{--pad-base:clamp(92px,27vw,116px);--pad-bottom:72px;--weapon-size:48px;--action-size:48px;--pad-edge:12px}
+ #mobileControls:not(.coop-active) #dashBtn,#mobileControls:not(.coop-active) #bombBtn{bottom:calc(max(8px,env(safe-area-inset-bottom)) + var(--pad-bottom) + var(--pad-base) * var(--touch-scale) + 10px)}
+ #mobileControls:not(.coop-active) #bombBtn{right:max(12px,env(safe-area-inset-right))}
+ #mobileControls:not(.coop-active) #dashBtn{right:calc(max(12px,env(safe-area-inset-right)) + max(44px,calc(var(--action-size) * var(--touch-scale))) + 8px)}
+ #mobileControls:not(.coop-active)[data-hand="left"] #bombBtn{left:max(12px,env(safe-area-inset-left));right:auto}
+ #mobileControls:not(.coop-active)[data-hand="left"] #dashBtn{left:calc(max(12px,env(safe-area-inset-left)) + max(44px,calc(var(--action-size) * var(--touch-scale))) + 8px);right:auto}
+ #hud #rightHud{max-width:calc(100% - 68px);font-size:10px;padding:4px 6px}
+ #hud #rightHud .small{font-size:10px;line-height:1.25}
+ #hud .hud{top:calc(max(8px,env(safe-area-inset-top)) + 88px);gap:5px;flex-wrap:nowrap;padding:5px 6px}
+ #hud .hud .stat{min-width:0;flex:1}
+ #hud #bossHud{top:calc(max(8px,env(safe-area-inset-top)) + 135px)}
+ #toast{top:calc(max(8px,env(safe-area-inset-top)) + 175px)}
+}
+@media(max-width:740px) and (orientation:landscape){
+ #mobileControls{--pad-base:clamp(82px,25vh,100px);--pad-edge:8px;--weapon-size:44px;--action-size:46px}
+ #mobileControls:not(.coop-active) #dashBtn,#mobileControls:not(.coop-active) #bombBtn{bottom:calc(max(8px,env(safe-area-inset-bottom)) + var(--pad-bottom) + var(--pad-base) * var(--touch-scale) + 5px)}
+ #mobileControls:not(.coop-active) #bombBtn{right:max(var(--pad-edge),env(safe-area-inset-right))}
+ #mobileControls:not(.coop-active) #dashBtn{right:calc(max(var(--pad-edge),env(safe-area-inset-right)) + max(44px,calc(var(--action-size) * var(--touch-scale))) + 6px)}
+ #mobileControls:not(.coop-active)[data-hand="left"] #bombBtn{left:max(var(--pad-edge),env(safe-area-inset-left));right:auto}
+ #mobileControls:not(.coop-active)[data-hand="left"] #dashBtn{left:calc(max(var(--pad-edge),env(safe-area-inset-left)) + max(44px,calc(var(--action-size) * var(--touch-scale))) + 6px);right:auto}
+}
+#mobileControls .mw:focus-visible,#mobileControls .mobileBtn:focus-visible,#touchSettings select:focus-visible{outline:2px solid #f0c88e;outline-offset:2px}
 /* V65: checkpoint controls */
 #checkpointMenu[hidden],#saveExitBtn[hidden]{display:none!important}
 #checkpointMenu{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:center;padding:5px 0}
@@ -741,7 +783,7 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 <section class="menuSection" data-menu-panel="journal" hidden><div class="altarHeader"><h3 id="journalHeading"></h3><b id="journalCount"></b></div><p id="journalHint" class="selectionDetail"></p><label id="journalFilterLabel" for="journalFilter"></label><select id="journalFilter"></select><div id="journalEntries"></div></section>
 <section class="menuSection" data-menu-panel="altar" hidden><div class="altarHeader"><h3 id="altarHeading"></h3><b id="shardBalance"></b></div><p id="altarHint" class="selectionDetail"></p><h4 id="contractHeading"></h4><div id="contractChoices" class="altarGrid"></div><h4 id="perkHeading"></h4><div id="perkChoices" class="altarGrid"></div><p id="campaignWins" class="selectionDetail"></p><h4 id="endingHeading"></h4><div id="endingList" class="achievementGrid"></div><h4 id="runHistoryHeading"></h4><div id="runHistoryList" class="achievementGrid"></div><h4 id="comboHeading"></h4><div id="comboList" class="achievementGrid"></div><h4 id="achievementHeading"></h4><div id="achievementList" class="achievementGrid"></div></section>
 <section class="menuSection" data-menu-panel="mode" hidden><div class="sectionHead"><h3 id="modeTitle">Режим игры</h3></div><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info" data-initial="true">Create or join a room.</div></div></section>
-</div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary" aria-hidden="true"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div id="checkpointMenu" hidden><button type="button" id="continueRunBtn"></button><button type="button" id="discardRunBtn"></button></div><div id="checkpointNotice" role="status" hidden></div><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button><button id="privacyBtn" type="button" class="textBtn">Privacy</button></div><div id="soundPanel" hidden><button type="button" id="npcVoiceToggle" class="textBtn" aria-pressed="true">Voice: On</button><button type="button" id="horrorFxToggle" class="textBtn" aria-pressed="true">Horror effects: On</button><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div><button type="button" id="tutorialToggle" class="textBtn"></button></div></footer>
+</div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary" aria-hidden="true"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div id="checkpointMenu" hidden><button type="button" id="continueRunBtn"></button><button type="button" id="discardRunBtn"></button></div><div id="checkpointNotice" role="status" hidden></div><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button><button id="privacyBtn" type="button" class="textBtn">Privacy</button></div><div id="soundPanel" hidden><button type="button" id="npcVoiceToggle" class="textBtn" aria-pressed="true">Voice: On</button><button type="button" id="horrorFxToggle" class="textBtn" aria-pressed="true">Horror effects: On</button><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div><button type="button" id="tutorialToggle" class="textBtn"></button><div id="touchSettings"><label for="touchHand" id="touchHandLabel"></label><select id="touchHand"><option value="right"></option><option value="left"></option></select><label for="touchSize" id="touchSizeLabel"></label><select id="touchSize"><option value="compact"></option><option value="standard"></option><option value="large"></option></select><label for="touchResponse" id="touchResponseLabel"></label><select id="touchResponse"><option value="precise"></option><option value="normal"></option><option value="fast"></option></select></div></div></footer>
 </div></div>
 <div id="levelup" style="display:none"><div class="box"><header class="upgradeHead"><div><div class="pauseBadge">Уровень повышен</div><h2><span id="levelPrefix">Уровень</span> <span id="levelUpNum">2</span></h2><div class="tag">Выбери улучшение</div></div></header><div id="upgradeChoices" class="levelChoices"></div></div></div>
 <div id="pauseOverlay" style="display:none"><div class="box pauseBox"><div class="pauseBadge">ПЕЛЬМЕНЬ ВЗЯЛ ПАУЗУ</div><div class="title" style="font-size:44px">ПАУЗА</div><div class="hint">Игра остановлена. Выбери, что делать дальше.</div><button id="resumeBtn" class="btn">ПРОДОЛЖИТЬ</button><button id="saveExitBtn" class="btn" hidden>СОХРАНИТЬ ПОСЛЕ ВОЛНЫ</button><button id="pauseRestartBtn" class="btn">НАЧАТЬ ЗАНОВО</button><button id="pauseMenuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В ГЛАВНОЕ МЕНЮ</button></div></div>
@@ -856,6 +898,31 @@ let state='menu',selectedChar=chars[0].id,selectedMap=maps[0].id,weapon=0,last=0
 let campaignMode=false,coop=false,onlineMode=false,isOnlineHost=false,isOnlineGuest=false;let peer=null,netConn=null,netStateConn=null,netRoom='';let netSendTimer=0,guestNetTimer=0,peerReadyPromise=null,netSeq=0,lastNetSeq=0;
 function readStorage(key,fallback){try{return localStorage.getItem(key)??fallback}catch(_){return fallback}}
 function writeStorage(key,value){try{localStorage.setItem(key,value)}catch(_){}}
+// V66: saved touch options, radial deadzone and direct hero-relative aiming.
+const TOUCH_KEY='dumpling-riot-touch-v1',TOUCH_RESPONSE={precise:{dead:.18,reach:.45},normal:{dead:.12,reach:.38},fast:{dead:.08,reach:.30}};
+function normalizeTouch(raw){return {hand:['right','left'].includes(raw?.hand)?raw.hand:'right',size:['compact','standard','large'].includes(raw?.size)?raw.size:'standard',response:Object.hasOwn(TOUCH_RESPONSE,raw?.response)?raw.response:'normal'}}
+function readTouch(){try{return normalizeTouch(JSON.parse(readStorage(TOUCH_KEY,'{}')))}catch(_){return normalizeTouch(null)}}
+let touchPrefs=readTouch();
+function stickVector(dx,dy,width,height,response='normal'){
+ if(![dx,dy,width,height].every(Number.isFinite)||width<=0||height<=0)return {x:0,y:0,active:false};
+ const t=TOUCH_RESPONSE[response]||TOUCH_RESPONSE.normal,x=dx/(width*t.reach),y=dy/(height*t.reach),m=Math.hypot(x,y);
+ if(m<=t.dead)return {x:0,y:0,active:false};
+ const power=Math.min(1,(m-t.dead)/(1-t.dead));return {x:x/m*power,y:y/m*power,active:true};
+}
+function touchAimTarget(p,x,y){const m=Math.hypot(x,y);return m>.0001?{x:p.x+x/m*115,y:p.y+y/m*115}:null}
+function applyTouchPrefs(){
+ const mc=document.getElementById('mobileControls');mc.dataset.hand=touchPrefs.hand;mc.dataset.size=touchPrefs.size;
+ for(const [id,key] of [['touchHand','hand'],['touchSize','size'],['touchResponse','response']])document.getElementById(id).value=touchPrefs[key];
+}
+function renderTouchSettings(){
+ for(const [id,en,ru,options] of [
+ ['touchHand','Aim hand','Рука прицеливания',[['Right','Правая'],['Left','Левая']]],
+ ['touchSize','Control size','Размер кнопок',[['Compact','Компактный'],['Standard','Обычный'],['Large','Крупный']]],
+ ['touchResponse','Stick response','Чувствительность',[['Precise','Точная'],['Normal','Обычная'],['Fast','Быстрая']]]]){
+  document.getElementById(id+'Label').textContent=L(en,ru);const el=document.getElementById(id);options.forEach((o,i)=>el.options[i].textContent=L(...o))
+ }applyTouchPrefs();
+}
+
 // V64: local tutorial progress follows actual successful actions, never gates play.
 const TUTORIAL_KEY='dumpling-riot-tutorial-v1';
 let tutorialEnabled=readStorage(TUTORIAL_KEY,'on')!=='off',tutorial=null,tutorialSignature='';
@@ -1768,7 +1835,7 @@ function applyLanguageStatic(){
  const q=(id,key)=>{const el=document.getElementById(id);if(el)el.textContent=T(key)};
  q('languageLabel','language');q('finalScoreLabel','score');q('finalWaveLabel','wave');document.getElementById('finalLevelLabel').textContent=L('Level','Уровень');document.getElementById('mobileRotateHint').textContent=L('Mobile: left stick moves, right stick aims. Landscape is recommended.');document.querySelector('#fatalError h2').textContent=L('GAME ERROR');document.querySelector('#fatalError p').textContent=L('Reload the game.');document.querySelector('#fatalError button').textContent=L('RELOAD');document.getElementById('menuBack').setAttribute('aria-label',L('Back','Назад'));document.getElementById('movePad').setAttribute('aria-label',L('MOVE','Движение'));document.getElementById('aimPad').setAttribute('aria-label',L('AIM','Прицел'));q('modeTitle','mode');document.getElementById('startBtn').textContent=campaignMode&&!coop&&!onlineMode?L('START CAMPAIGN','НАЧАТЬ КАМПАНИЮ'):L('START RUN','В БОЙ');q('hpLabel','hp');q('xpLabel','xp');q('lvlLabel','lvl');q('waveLabel','wave');q('scoreLabel','score');q('relicLabel','relic');const resumeBtn=document.getElementById('resumeBtn');if(resumeBtn)resumeBtn.textContent=L("RESUME","ПРОДОЛЖИТЬ");const pauseMenu=document.getElementById('pauseMenuBtn');if(pauseMenu)pauseMenu.textContent=L("MAIN MENU","В ГЛАВНОЕ МЕНЮ");const pauseRestart=document.getElementById('pauseRestartBtn');if(pauseRestart)pauseRestart.textContent=L("RESTART","НАЧАТЬ ЗАНОВО");const fireL=document.getElementById('fireBtn');if(fireL)fireL.textContent=L("FIRE","ОГОНЬ");const dashL=document.getElementById('dashBtn');if(dashL){dashL.querySelector('.actionLabel').textContent=L("DASH","РЫВОК");dashL.setAttribute('aria-label',L("Dash","Рывок"))}const menuMobile=document.getElementById('menuMobileBtn');if(menuMobile)menuMobile.textContent=L("MENU","МЕНЮ");const bombL=document.getElementById('bombBtn');if(bombL){bombL.querySelector('.actionLabel').textContent=L("BOMB","БОМБА");bombL.setAttribute('aria-label',L("Bomb","Бомба"))}
  const hs=document.querySelectorAll('#menu .hint');if(hs[0])hs[0].textContent=T('controls');if(hs[1])hs[1].textContent=T('guide');
- const en=lang==='en';for(const [id,label] of [['heroTabLabel',L("Hero","Герой")],['mapTabLabel',L("Arena","Арена")],['modeTabLabel',L("Mode","Режим")],['heroHeading',L("Choose hero","Выбери героя")],['mapHeading',L("Choose arena","Выбери арену")],['helpToggle',L("Controls","Управление")],['movePadLabel',L("MOVE","ХОД")],['aimPadLabel',L("AIM","ПРИЦЕЛ")]])document.getElementById(id).textContent=label;document.getElementById('pauseBtn').setAttribute('aria-label',L('Pause','Пауза'));document.getElementById('languageSelect').value=lang;document.getElementById('languageSelect').setAttribute('aria-label',T('language'));document.getElementById('createRoomBtn').textContent=L('CREATE ROOM','СОЗДАТЬ КОМНАТУ');document.getElementById('joinRoomBtn').textContent=L('JOIN ROOM','ПОДКЛЮЧИТЬСЯ');document.getElementById('roomCodeInput').placeholder=L('ROOM CODE','КОД КОМНАТЫ');const status=document.getElementById('onlineStatus');if(status.dataset.initial==='true')status.textContent=L('Create or join a room.','Создай комнату или подключись.');document.querySelector('#pauseOverlay .title').textContent=L('Pause','ПАУЗА');document.querySelector('#pauseOverlay .pauseBadge').textContent=L('Pause','ПАУЗА');document.querySelector('#pauseOverlay .hint').textContent=L('Game paused. Choose what to do next.','Игра остановлена. Выбери, что делать дальше.');updateRunSummary();updateSoundPanel();renderTutorialMenu();
+ const en=lang==='en';for(const [id,label] of [['heroTabLabel',L("Hero","Герой")],['mapTabLabel',L("Arena","Арена")],['modeTabLabel',L("Mode","Режим")],['heroHeading',L("Choose hero","Выбери героя")],['mapHeading',L("Choose arena","Выбери арену")],['helpToggle',L("Controls","Управление")],['movePadLabel',L("MOVE","ХОД")],['aimPadLabel',L("AIM","ПРИЦЕЛ")]])document.getElementById(id).textContent=label;document.getElementById('pauseBtn').setAttribute('aria-label',L('Pause','Пауза'));document.getElementById('languageSelect').value=lang;document.getElementById('languageSelect').setAttribute('aria-label',T('language'));document.getElementById('createRoomBtn').textContent=L('CREATE ROOM','СОЗДАТЬ КОМНАТУ');document.getElementById('joinRoomBtn').textContent=L('JOIN ROOM','ПОДКЛЮЧИТЬСЯ');document.getElementById('roomCodeInput').placeholder=L('ROOM CODE','КОД КОМНАТЫ');const status=document.getElementById('onlineStatus');if(status.dataset.initial==='true')status.textContent=L('Create or join a room.','Создай комнату или подключись.');document.querySelector('#pauseOverlay .title').textContent=L('Pause','ПАУЗА');document.querySelector('#pauseOverlay .pauseBadge').textContent=L('Pause','ПАУЗА');document.querySelector('#pauseOverlay .hint').textContent=L('Game paused. Choose what to do next.','Игра остановлена. Выбери, что делать дальше.');updateRunSummary();updateSoundPanel();renderTutorialMenu();renderTouchSettings();
  const pb=document.querySelector('#levelup .pauseBadge');if(pb)pb.textContent=L("Upgrade","Прокачка");const lt=document.querySelector('#levelup .tag');if(lt)lt.textContent=L("Choose one upgrade","Выбери одно улучшение");
  const gt=document.querySelector('#gameover .tag');if(gt)gt.textContent=T('run');const gtitle=document.querySelector('#gameover .title');if(gtitle)gtitle.textContent=T('dead');const buttons=document.querySelectorAll('#gameover .btn');if(buttons[0])buttons[0].textContent=T('retry');if(buttons[1])buttons[1].textContent=T('menu');
 }
@@ -2149,6 +2216,7 @@ document.getElementById('extractBtn').addEventListener('click',()=>{if(state==='
 document.getElementById('privacyBtn').addEventListener('click',()=>{location.href='./privacy.html'});
 document.getElementById('tutorialToggle').addEventListener('click',()=>setTutorialEnabled(!tutorialEnabled));
 document.getElementById('tutorialSkip').addEventListener('click',()=>{if(!tutorial||state!=='game')return;setTutorialEnabled(false);tutorial=null;renderTutorial()});
+for(const [id,key] of [['touchHand','hand'],['touchSize','size'],['touchResponse','response']])document.getElementById(id).addEventListener('change',e=>{touchPrefs=normalizeTouch({...touchPrefs,[key]:e.target.value});writeStorage(TOUCH_KEY,JSON.stringify(touchPrefs));applyTouchPrefs()});
 document.getElementById('helpToggle').addEventListener('click',()=>{const h=document.getElementById('menuHelp');h.hidden=!h.hidden;document.getElementById('helpToggle').setAttribute('aria-expanded',String(!h.hidden))});
 // V65: one local, explicitly suspended run. Snapshot is taken before next-wave
 // effects/spawns, and consumed before resume; already banked meta rewards are not replayed.
@@ -2226,7 +2294,7 @@ function setHud(on){
  setMobileControls(on&&state==='game');
  document.documentElement.classList.toggle('inGame',!!on)
 }
-function requestMobileFullscreen(){try{if(window.Capacitor?.isNativePlatform?.())return;if(!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}if(screen.orientation&&screen.orientation.lock){const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
+function requestMobileFullscreen(){try{if(window.Capacitor?.isNativePlatform?.())return;if(!(window.matchMedia&&window.matchMedia('(pointer: coarse) and (orientation: landscape)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
 function resetPlayer(p,ch,x,y){p.weaponLevels=[1,1,1,1];p.charId=ch.id;p.x=x;p.y=y;p.serverX=x;p.serverY=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.canRevive=false;p.hurtT=0;p.hurtLean=0;p.recoilT=0;p.recoilSlot=0;p.recoilAim=0;p.weaponCharge=[1,1,1,1];p.shivCharge=1;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[];p.artifacts=[];p.evolved=[false,false,false,false]}
 function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e){e.dataset.initial='false';e.textContent=t}}
 const makeRoomCode=()=>String(rndi(10000,99999));
@@ -2742,7 +2810,7 @@ function attackFor(p,weaponIndex,target=null){
  if(w.kind==='wave'){ringHit(p.x,p.y,64,w.color,.24,damage);fx(w.color,7);return}
  proj(ang,damage,{});fx(w.color,3);
 }
-function attack(){attackFor(player,weapon,null)}
+function attack(){attackFor(player,weapon,touchInput.aimActive?touchAimTarget(player,touchInput.aimX,touchInput.aimY):null)}
 function bombFor(p){
  if(!p||p.dead||state!=='game'||p.bomb<=0)return;
  initAudio();sfx('bomb');p.bomb--;
@@ -3109,7 +3177,7 @@ function resetKnob(padId){setKnob(padId,0,0)}
 function bindTouchStick(id,mode){
  const el=document.getElementById(id);if(!el)return;
  let pid=null,active=false;
- const apply=(clientX,clientY)=>{const r=el.getBoundingClientRect();let x=(clientX-(r.left+r.width/2))/(r.width*.38),y=(clientY-(r.top+r.height/2))/(r.height*.38);const m=Math.hypot(x,y);if(m>1){x/=m;y/=m};setKnob(id,x,y);if(mode==='move'){touchInput.moveX=x;touchInput.moveY=y}else if(mode==='p2move'){touchInput.p2MoveX=x;touchInput.p2MoveY=y}else{touchInput.aimX=x;touchInput.aimY=y;touchInput.aimActive=m>.10;const reach=Math.min(115,W*.30);mouse.x=W/2+x*reach;mouse.y=H/2+y*reach;touchInput.attack=touchInput.aimActive||fireBtnHeld;}};
+ const apply=(clientX,clientY)=>{const r=el.getBoundingClientRect(),q=stickVector(clientX-r.left-r.width/2,clientY-r.top-r.height/2,r.width,r.height,touchPrefs.response),{x,y}=q;setKnob(id,x,y);if(mode==='move'){touchInput.moveX=x;touchInput.moveY=y}else if(mode==='p2move'){touchInput.p2MoveX=x;touchInput.p2MoveY=y}else{touchInput.aimX=x;touchInput.aimY=y;touchInput.aimActive=q.active;touchInput.attack=q.active||fireBtnHeld;if(q.active){const p=onlineMode&&isOnlineGuest?player2:player;p.aim=Math.atan2(y,x)}}};
  const end=()=>{active=false;pid=null;if(mode==='move'){touchInput.moveX=0;touchInput.moveY=0}else if(mode==='p2move'){touchInput.p2MoveX=0;touchInput.p2MoveY=0}else{touchInput.aimX=0;touchInput.aimY=0;touchInput.aimActive=false;touchInput.attack=false}resetKnob(id)};
  const pdown=e=>{e.preventDefault();if(active||state!=='game')return;initAudio();active=true;pid=e.pointerId??'touch';apply(e.clientX,e.clientY);if(e.pointerId!=null&&el.setPointerCapture)try{el.setPointerCapture(e.pointerId)}catch(_){} };
  const pmove=e=>{if(!active||pid!==e.pointerId)return;e.preventDefault();apply(e.clientX,e.clientY)};
@@ -3171,7 +3239,7 @@ function update(dt){
  if(state!=='game')return;
  // P1 weapon follows the pointer continuously, not only while firing.
  if(!player.dead){
-   const tx=mouse.x+camera.x-W/2,ty=mouse.y+camera.y-H/2;
+   const aim=touchInput.aimActive?touchAimTarget(player,touchInput.aimX,touchInput.aimY):null,tx=aim?.x??(mouse.x+camera.x-W/2),ty=aim?.y??(mouse.y+camera.y-H/2);
    if(Math.hypot(tx-player.x,ty-player.y)>0.5) player.aim=Math.atan2(ty-player.y,tx-player.x);
  }
  const kmx=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0),kmy=(keys.has('KeyS')?1:0)-(keys.has('KeyW')?1:0);
@@ -3680,6 +3748,7 @@ c.addEventListener('mousemove',e=>{const p=screenToGame(e.clientX,e.clientY);mou
 document.getElementById('languageSelect').addEventListener('change',e=>setLanguage(e.target.value));
 document.addEventListener('pointerdown',()=>{initAudio();if(state==='menu')startMenuMusic()},{passive:true});
 setupMobile();
+const touchOrientation=window.matchMedia('(orientation: portrait)');const onTouchOrientation=()=>{if(state==='game'){clearLocalInput();if(!onlineMode)togglePause()}};if(touchOrientation.addEventListener)touchOrientation.addEventListener('change',onTouchOrientation);else if(touchOrientation.addListener)touchOrientation.addListener(onTouchOrientation);
 setLanguage(lang);
 document.getElementById('startBtn').onclick=()=>{if(onlineMode&&!(netConn&&netConn.open)){setMenuTab('mode');setOnlineStatus(L("Create or join a room first.","Сначала создай комнату или подключись."));return}startHorrorMusic();startGame()};
 document.getElementById('createRoomBtn')?.addEventListener('click',async()=>{
