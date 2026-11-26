@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
@@ -364,6 +364,209 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 #levelup .upgradeArrow{color:#b9a17a;font:700 22px system-ui,sans-serif}
 @media(max-width:650px) and (orientation:portrait){#menu .title{font-size:clamp(20px,5.5vw,30px)}.heroStage{grid-template-columns:1fr;gap:0}.heroStage canvas{max-height:190px;object-fit:cover}.stageInfo{padding:8px 12px}.stageInfo h2{font-size:18px}#menu #charChoices,#menu #mapChoices{grid-template-columns:repeat(3,minmax(0,1fr))}#menu .heroArsenal{grid-template-columns:repeat(2,minmax(0,1fr))}.mapStage canvas{max-height:205px}}
 @media(max-height:520px) and (orientation:landscape){#menu .menuBody{padding:4px 14px}.heroStage{grid-template-columns:1fr 1.3fr;margin-bottom:4px;gap:8px}.heroStage canvas{max-height:94px;object-fit:cover}.stageInfo h2{font-size:15px}.stageInfo{padding:2px}#menu #charChoices .heroPortrait,#menu #mapChoices .mapPortrait{max-height:36px}#menu .heroArsenal{margin-top:3px}.mapStage canvas{max-height:112px}.mapStageCaption{padding:3px 8px}.mapStageCaption h2{font-size:12px}#levelup .box{padding:8px 14px}#levelup .upgradeHead{padding-bottom:5px}#levelup .upgradeHead canvas{width:36px;height:40px}#levelup .upgradeHead h2{font-size:18px}#levelup .upgrade{min-height:53px;padding:4px}#levelup .upgradeIcon{width:36px;height:36px}}
+
+/* V39 icon pass: coherent pixel silhouettes, material highlights, high-contrast readability. */
+.inventoryIcon,.uiPixelIcon{display:block;flex-shrink:0;image-rendering:pixelated;filter:drop-shadow(0 1px 0 #08070b) drop-shadow(1px 0 0 #08070b);pointer-events:none}
+#menuTabs button{display:flex;align-items:center;justify-content:center;gap:6px}
+#menuTabs .uiPixelIcon{width:23px;height:23px}
+#menu .modeChoice{display:flex;align-items:center;gap:12px}
+#menu .modeChoice .uiPixelIcon{width:34px;height:34px}
+#menu .modeChoice .modeCopy{min-width:0}
+#menu .heroArsenal>div{gap:7px}
+#menu .heroArsenal .inventoryIcon{width:35px;height:35px}
+#mobileWeapons .mw .inventoryIcon{width:38px;height:38px}
+#mobileWeapons .mw.sel .inventoryIcon{filter:drop-shadow(0 1px 0 #090709) drop-shadow(0 0 2px #b89260)}
+#hud .weapon .inventoryIcon{width:38px;height:38px}
+#levelup .upgradeIcon{background:radial-gradient(ellipse at 45% 40%,#3e3c34,#201c22 75%);border-color:#82705b}
+#levelup .upgradeIcon svg{width:36px;height:36px}
+#dashBtn .uiPixelIcon,#bombBtn .uiPixelIcon{width:30px;height:30px}
+#pauseBtn .uiPixelIcon{width:23px;height:23px}
+#dashBtn.cooling .uiPixelIcon,#bombBtn.empty .uiPixelIcon{opacity:.58;filter:grayscale(.65)}
+@media(max-height:520px) and (orientation:landscape){#menuTabs .uiPixelIcon{width:18px;height:18px}#menu .heroArsenal .inventoryIcon{width:27px;height:27px}#levelup .upgradeIcon svg{width:30px;height:30px}}
+@media(max-width:650px) and (orientation:portrait){#menuTabs .uiPixelIcon{width:20px;height:20px}#mobileWeapons .mw .inventoryIcon{width:32px;height:32px}}
+
+/* V41 — home first. Configuration is optional, one clear primary action. */
+#menu{background:#101417}
+#menu .menuShell{width:min(900px,100%);height:min(100%,790px);display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:#15191b;color:#f0e5d1}
+#menu .menuHeader{padding:10px 18px;background:#15191b;border-bottom:1px solid #343837}
+#menu .title{font:900 clamp(21px,4vw,34px)/1 ui-monospace,monospace;letter-spacing:-1.4px}
+#menu .brandMark{display:block;width:35px;height:35px;background:#202628;border:1px solid #454a44;padding:4px}
+#menuTabs{display:none!important}
+#menu .menuBody{padding:12px 18px;overflow:auto;min-height:0}
+#homePanel{max-width:760px;margin:0 auto}
+.homeIntro{margin:0 0 12px}
+.homeIntro>span{font:700 10px ui-monospace,monospace;color:#bd9b77;letter-spacing:.15em}
+.homeIntro h1{font:800 clamp(20px,3.5vw,32px)/1.15 system-ui,sans-serif;margin:3px 0 0;color:#f0e5d1}
+.homeCards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.homeCard{position:relative;display:grid;grid-template-rows:minmax(0,1fr) auto;padding:0;text-align:left;border:1px solid #46504d;border-radius:4px;background:#202726;color:#ede1ce;min-width:0;overflow:hidden;cursor:pointer;touch-action:manipulation}
+.homeCard canvas{display:block;width:100%;height:clamp(76px,20vh,180px);object-fit:cover;image-rendering:pixelated;background:#26302e}
+.homeCardCopy{display:grid;gap:3px;padding:10px 25px 10px 11px;min-width:0}
+.homeCardCopy small,.homeMode small{font:700 9px ui-monospace,monospace;letter-spacing:.12em;color:#bbad95}
+.homeCardCopy strong,.homeMode strong{font:750 clamp(13px,2vw,17px)/1.2 system-ui,sans-serif;color:#f0e5d1;overflow-wrap:anywhere}
+.homeCardCopy>span{font:500 11px/1.3 system-ui,sans-serif;color:#b6c4ba;overflow-wrap:anywhere}
+.homeChevron{position:absolute;right:10px;bottom:11px;font:400 23px/1 system-ui;color:#cfb584}
+.homeCard:hover,.homeMode:hover{border-color:#c9a46e;background:#2a302a}
+.homeCard:focus-visible,.homeMode:focus-visible,#menuBack:focus-visible,#menuDone:focus-visible{outline:2px solid #efcc89;outline-offset:-2px}
+.homeMode{position:relative;display:flex;align-items:center;gap:10px;text-align:left;width:100%;min-height:48px;margin-top:10px;padding:7px 28px 7px 10px;color:#f0e5d1;background:#202726;border:1px solid #46504d;border-radius:4px;cursor:pointer;touch-action:manipulation}
+.homeMode>span:nth-child(2){display:grid;gap:3px;flex:1}
+.homeMode .uiPixelIcon{width:30px;height:30px}
+.homeMode .homeChevron{bottom:50%;transform:translateY(50%)}
+#menuBackBar[hidden]{display:none!important}
+#menuBackBar{display:flex;align-items:center;gap:8px;margin-bottom:10px;position:sticky;top:0;background:#15191b;z-index:2;padding:1px 0 6px}
+#menuBack,#menuDone{min-height:36px;border:1px solid #46504d;background:#202726;color:#f0e5d1;border-radius:3px;padding:4px 11px;font:650 12px system-ui;cursor:pointer;touch-action:manipulation}
+#menuDone{border-color:#a48458;background:#3b3427;color:#f0d6a5}
+#menuCurrentTitle{flex:1;text-align:center;font:650 12px system-ui;color:#bdc3b6}
+#menu .heroStage{margin-bottom:8px;gap:10px}
+#menu .heroStage canvas{max-height:170px;object-fit:cover}
+#menu .stageInfo h2{font-size:18px}
+#menu #charChoices,#menu #mapChoices{grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+#menu #charChoices .choice,#menu #mapChoices .choice{border:1px solid #414943;border-radius:3px;background:#202624;min-height:44px}
+#menu #charChoices .choice.sel,#menu #mapChoices .choice.sel{border-color:#e7bd7c;background:#3a382c;box-shadow:inset 0 -2px #e7bd7c}
+#menu #charChoices .choice b,#menu #mapChoices .choice b{font:650 11px/1.2 system-ui,sans-serif}
+#menu .mapStage canvas{max-height:170px}
+#menu .mapStageCaption{position:static;background:#202624;padding:8px 10px}
+#menu .heroArsenal{gap:6px;margin-top:6px}
+#menu .heroArsenal span{font-size:10px;color:#c8bba5}
+#menu .menuFooter{padding:8px 18px max(8px,env(safe-area-inset-bottom));background:#15191b;border-top:1px solid #343837}
+#menu .runSummary{display:none}
+#menu #recordLine{font:500 10px system-ui;color:#b3b8ab;text-align:center;margin:0 0 4px}
+#menu .btn#startBtn{min-height:46px;margin:0;background:#b34d3e;border:1px solid #d16a54;border-bottom:3px solid #6f2e28;border-radius:4px;color:#fff1d8;font:900 17px ui-monospace,monospace;letter-spacing:.07em}
+#menu .footerTools{gap:12px;margin-top:3px}
+#menu .textBtn{min-height:32px;margin:0;color:#c2b6a4;font-size:12px}
+#menu:not([data-view=home]) .menuFooter{padding-top:6px;padding-bottom:max(6px,env(safe-area-inset-bottom))}
+#menu:not([data-view=home]) #recordLine,#menu:not([data-view=home]) .footerTools,#menu:not([data-view=home]) #soundPanel,#menu:not([data-view=home]) #menuHelp{display:none!important}
+@media(max-width:650px) and (orientation:portrait){
+ #menu .menuHeader{padding:10px 12px}#menu .menuBody{padding:12px}#menu .menuFooter{padding-left:12px;padding-right:12px}
+ .homeCards{grid-template-columns:1fr;gap:8px}
+ .homeCard{grid-template-columns:37% 1fr;grid-template-rows:1fr;min-height:83px}
+ .homeCard canvas{height:100%;min-height:83px;max-height:116px}
+ .homeCardCopy{align-content:center;padding:9px 26px 9px 10px}
+ .homeChevron{bottom:50%;transform:translateY(50%)}
+ #menu #charChoices,#menu #mapChoices{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #menu .heroStage canvas{max-height:150px}
+}
+@media(max-height:520px) and (orientation:landscape){
+ #menu .menuShell{width:100%}
+ #menu .menuHeader{padding:4px 12px}#menu .brandMark{width:27px;height:27px}
+ #menu .title{font-size:23px}#menu .langBtn{min-height:28px}
+ #menu .menuBody{padding:5px 12px}
+ .homeIntro{display:none}.homeCards{gap:7px}
+ .homeCard{grid-template-columns:40% 1fr;grid-template-rows:1fr;min-height:66px}
+ .homeCard canvas{height:100%;max-height:110px;min-height:66px}
+ .homeCardCopy{align-content:center;padding:6px 20px 6px 8px}
+ .homeCardCopy strong{font-size:13px}.homeCardCopy>span{font-size:10px}
+ .homeChevron{bottom:50%;transform:translateY(50%);right:6px}
+ .homeMode{margin-top:6px;min-height:38px;padding:3px 28px 3px 8px}
+ .homeMode .uiPixelIcon{width:26px;height:26px}
+ #menuBackBar{margin-bottom:4px;padding-bottom:2px}
+ #menuBack,#menuDone{min-height:30px}
+ #menu .heroStage canvas{max-height:92px}
+ #menu .mapStage{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:6px;margin-bottom:5px}
+ #menu .mapStage canvas{max-height:94px}
+ #menu .mapStageCaption{padding:3px 6px}
+ #menu .mapStageCaption h2{font-size:13px}
+ #menu .selectionDetail{font-size:10px}
+ #menu #charChoices .heroPortrait,#menu #mapChoices .mapPortrait{max-height:36px}
+ #menu .menuFooter{padding:4px 12px}
+ #menu .btn#startBtn{min-height:38px;font-size:15px}
+ #menu .footerTools{margin:0}#menu .textBtn{min-height:26px;padding:2px 8px;font-size:11px}
+}
+#menu #languageSelect{max-width:124px;min-height:38px;background:#202726;border:1px solid #59635a;border-radius:4px;color:#f0e5d1;font:650 13px system-ui,sans-serif;padding:4px 7px;cursor:pointer;touch-action:manipulation}#menu #languageSelect:focus-visible{outline:2px solid #efcc89}#menu #languageLabel{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}@media(max-width:390px){#menu #languageSelect{max-width:100px;font-size:12px}#menu .brandMark{display:none}#menu .title{font-size:21px}}@media(max-height:520px) and (orientation:landscape){#menu #languageSelect{min-height:30px}} 
+
+/* V43: authored pixel key art, blood-red / icy cyan / amber horror identity. */
+#menu{background:#08090f}
+#menu .menuShell{background:radial-gradient(ellipse at 100% 0%,#221c33 0%,transparent 46%),radial-gradient(ellipse at 0% 80%,#34131e 0%,transparent 58%),#101117;position:relative;color:#fff0de}
+#menu .menuHeader{background:#121118;border-color:#53313e;padding-block:9px}
+#menu .brandMark{background:#231520;border:1px solid #713747}
+#menu .title{color:#fff0d4;text-shadow:2px 2px #321424}
+#menu .title .red{color:#f45d67;text-shadow:0 0 10px #b7234c55}
+#menu #languageSelect{background:#211923;border-color:#704451;color:#ffe6d1}
+#menu .menuBody{padding-block:10px}
+#homePanel{max-width:760px}
+#homePanel .horrorMarquee{display:block;position:relative;isolation:isolate;overflow:hidden;min-height:118px;height:clamp(118px,23vh,210px);margin:0 0 10px;background:#1b101d;border:1px solid #78414e;border-bottom:3px solid #a64250;border-radius:3px;box-shadow:0 4px 0 #09070c}
+.horrorMarquee canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+.marqueeShade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,8,17,.91) 0%,rgba(12,9,18,.75) 34%,rgba(17,10,19,.12) 69%,transparent 100%);pointer-events:none}
+.marqueeCopy{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:10px 16px;pointer-events:none}
+.marqueeCopy #homeEyebrow{color:#f5b575;font:800 10px ui-monospace,monospace;letter-spacing:.19em}
+.homeIntro .marqueeTitle{font:1000 clamp(26px,5.4vw,54px)/.83 ui-monospace,monospace;letter-spacing:-.07em;color:#fff0cf;text-shadow:3px 3px #1a0a15;margin:7px 0 6px}
+.marqueeTitle strong{color:#ff5368;font:inherit;font-size:1.34em;letter-spacing:.03em;text-shadow:2px 2px #6b1d36,4px 4px #1b0b16}
+.marqueeCopy #homeHeading{color:#e2b5ac;font:600 11px/1.3 system-ui;margin:0;max-width:55%}
+.marqueeEdge{position:absolute;right:0;bottom:0;width:60px;height:5px;background:repeating-linear-gradient(135deg,#e5a35f 0 5px,#401b2a 5px 10px);pointer-events:none}
+#menu .homeCards{gap:8px}
+#menu .homeCard{background:linear-gradient(145deg,#251821,#15141e);border:1px solid #674252;border-bottom:2px solid #bb5369;box-shadow:0 3px 0 #09080f}
+#menu .homeCard[data-open-menu=map]{background:linear-gradient(145deg,#182830,#15141e);border-color:#355862;border-bottom-color:#54a9b0}
+#menu .homeCard canvas{height:clamp(76px,16vh,140px);background:#221623}
+#menu .homeCardCopy small{color:#f0a9b5}
+#menu .homeCard[data-open-menu=map] small{color:#8bd8d6}
+#menu .homeCardCopy strong,#menu .homeMode strong{color:#fff0dc}
+#menu .homeCardCopy>span{color:#c9bcc8}
+#menu .homeChevron{color:#ffbf89}
+#menu .homeMode{background:linear-gradient(100deg,#292026,#181822);border-color:#604956;border-bottom:2px solid #ba9960}
+#menu .homeMode small{color:#e4bc7f}
+#menu .homeCard:hover,#menu .homeMode:hover{border-color:#ffc280}
+#menu .homeCard:active,#menu .homeMode:active{transform:translateY(1px)}
+#menu .menuFooter{background:linear-gradient(180deg,#1f151e,#130f17);border-top-color:#65404e}
+#menu #recordLine{color:#c8a9ad}
+#menu .btn#startBtn{background:linear-gradient(180deg,#ea5a53,#b32642);border:1px solid #ff9d75;border-bottom:4px solid #721a34;box-shadow:0 0 18px #bf34582b,0 3px 0 #0d0811;color:#fff5d9;text-shadow:1px 2px #7b2532;letter-spacing:.12em;min-height:49px}
+#menu .btn#startBtn:active{transform:translateY(2px);box-shadow:none}
+#menu .footerTools .textBtn{color:#d8b9bb}
+#menu .heroStage,#menu .mapStage{background:#1c1823;border:1px solid #5d3c50}
+#menu .mapStageCaption{background:#211b27}
+#menu #charChoices .choice,#menu #mapChoices .choice{background:#211c2a;border-color:#4d3c50}
+#menu #charChoices .choice.sel,#menu #mapChoices .choice.sel{background:#35222e;border-color:#e7a26f;box-shadow:inset 0 -2px #e7a26f}
+#menu #menuBackBar{background:#17121e}
+#menu #menuBack,#menu #menuDone{background:#251c29;border-color:#76505c}
+#menu #menuDone{background:#462536;color:#ffd5a5;border-color:#c27d66}
+#menu .modeChoice.sel{background:#302431;border-left-color:#e9ac74}
+#levelup{background:rgba(7,8,15,.84);padding:8px}
+#levelup .box{width:min(510px,96%);max-height:100%;padding:12px 14px;background:#191821;border:1px solid #805163;border-top:3px solid #e6a66e;box-shadow:0 7px 0 #08070d;overflow:auto;overscroll-behavior:contain;touch-action:pan-y}
+#levelup .upgradeHead{display:block;padding:0 0 8px;border-bottom:1px solid #684251}
+#levelup .upgradeHead>div{display:grid;grid-template-columns:1fr auto;align-items:center;gap:3px 8px}
+#levelup .upgradeHead .pauseBadge{grid-column:1/-1;color:#dab6b2;font-size:10px;margin:0;line-height:1.2}
+#levelup .upgradeHead h2{margin:0;color:#ffe1ac;font-size:22px}
+#levelup .upgradeHead .tag{font:500 11px/1.2 system-ui;color:#d3c3cd;text-align:right;max-width:190px}
+#levelup .levelChoices{gap:5px;margin-top:7px}
+#levelup .upgrade{grid-template-columns:42px minmax(0,1fr) auto 10px;gap:8px;min-height:60px;background:linear-gradient(100deg,#272132,#211b27);border:1px solid #563c52;border-radius:3px;padding:7px;z-index:auto;touch-action:manipulation}
+#levelup .upgrade:hover,#levelup .upgrade:focus-visible{background:#382939;border-color:#e7aa78;outline:0}
+#levelup .upgradeIcon{width:38px;height:38px;border-color:#826455;background:#33273a}
+#levelup .upgradeIcon svg{width:32px;height:32px}
+#levelup .upgrade h4{color:#fff0d3;font-size:13px;overflow-wrap:anywhere}
+#levelup .upgrade p{color:#d2bfcf;overflow-wrap:anywhere}
+#levelup .upgradeEffect{color:#a9edbf;font-size:12px}
+#levelup .upgradeArrow{color:#f6b781}
+@media(max-width:650px) and (orientation:portrait){
+ #homePanel .horrorMarquee{height:clamp(125px,20vh,175px)}
+ #menu .homeCard canvas{height:100%;min-height:76px;max-height:100px}
+ #menu .homeCard{min-height:76px}
+ .marqueeCopy{padding:10px 12px}
+ .homeIntro .marqueeTitle{font-size:clamp(30px,8vw,45px)}
+}
+@media(max-height:520px) and (orientation:landscape){
+ #menu .menuHeader{padding-block:4px}
+ #menu .menuBody{padding-block:5px}
+ #homePanel{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1fr);gap:7px;align-items:start}
+ #homePanel .horrorMarquee{grid-row:1/3;height:100%;min-height:124px;margin:0}
+ #homePanel .homeCards{grid-template-columns:1fr;gap:4px}
+ #menu .homeCard{min-height:52px;grid-template-columns:34% 1fr}
+ #menu .homeCard canvas{height:100%;min-height:52px;max-height:64px}
+ #menu .homeCardCopy{padding:4px 18px 4px 6px;gap:2px}
+ #menu .homeCardCopy strong{font-size:12px}
+ #menu .homeMode{min-height:36px;margin:0}
+ .homeIntro .marqueeTitle{font-size:clamp(24px,4vw,38px)}
+ .marqueeCopy #homeHeading{font-size:10px}
+ #menu .btn#startBtn{min-height:38px;font-size:15px;border-bottom-width:3px}
+ #levelup .box{padding:7px 12px}
+ #levelup .upgradeHead{padding-bottom:4px}
+ #levelup .upgradeHead h2{font-size:18px}
+ #levelup .levelChoices{gap:3px;margin-top:4px}
+ #levelup .upgrade{min-height:45px;padding:4px 6px;grid-template-columns:33px minmax(0,1fr) auto 10px}
+ #levelup .upgradeIcon{width:31px;height:31px}
+ #levelup .upgradeIcon svg{width:27px;height:27px}
+ #levelup .upgrade h4{font-size:12px}
+ #levelup .upgrade p{font-size:10px}
+}
+@media(max-width:360px){#levelup .upgrade{grid-template-columns:34px minmax(0,1fr) auto;gap:6px}#levelup .upgradeArrow{display:none}#levelup .upgradeIcon{width:32px;height:32px}#levelup .upgradeIcon svg{width:27px;height:27px}}
+@media(prefers-reduced-motion:reduce){#menu *,#levelup *{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -378,16 +581,25 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
   <div id="relicHud" class="panel relic-card" style="display:none;right:10px;bottom:52px;left:auto"><b>СЕРДЦЕ КУХНИ</b><span id="relicLabel">УНИКАЛЬНАЯ РЕЛИКВИЯ</span></div>
   <div id="abilityHud" class="panel"><div class="abilityRow"><span id="dashHudLabel">РЫВОК</span><b id="dashHudValue">—</b></div><div class="bar"><div id="dashHudFill" class="fill" style="background:#6fe1a2"></div></div><div class="abilityRow"><span id="bombHudLabel">БОМБЫ</span><b id="bombHudValue">3</b></div></div><div id="toast">ГОТОВ</div>
 </div>
-<div id="menu"><div class="box menuShell">
-<header class="menuHeader"><div class="brand"><svg class="brandMark" viewBox="0 0 32 32" aria-hidden="true"><path fill="#e8c8a2" d="M4 15h2v-4h3V8h4V5h6v3h4v3h3v4h2v8h-4v3H8v-3H4z"/><path fill="#a96e5b" d="M6 20h20v3h-4v2H10v-2H6z"/><path fill="#261e24" d="M8 13h6v3H8zm10 0h6v3h-6zM12 19h8v2h-8z"/></svg><div><div class="title">DUMPLING <span class="red">RIOT</span></div><div id="menuTag" hidden>NIGHT SHIFT</div></div></div><div id="langBar"><span id="languageLabel">ЯЗЫК</span><button type="button" class="langBtn sel" data-lang="ru">RU</button><button type="button" class="langBtn" data-lang="en">EN</button></div></header>
-<nav id="menuTabs" aria-label="Выбор забега"><button type="button" data-menu-tab="hero" aria-pressed="true"><b id="heroTabLabel">Герой</b></button><button type="button" data-menu-tab="map" aria-pressed="false"><b id="mapTabLabel">Арена</b></button><button type="button" data-menu-tab="mode" aria-pressed="false"><b id="modeTabLabel">Режим</b></button></nav>
+<div id="menu" data-view="home"><div class="box menuShell">
+<header class="menuHeader"><div class="brand"><svg class="brandMark" viewBox="0 0 32 32" aria-hidden="true"><path fill="#e8c8a2" d="M4 15h2v-4h3V8h4V5h6v3h4v3h3v4h2v8h-4v3H8v-3H4z"/><path fill="#a96e5b" d="M6 20h20v3h-4v2H10v-2H6z"/><path fill="#261e24" d="M8 13h6v3H8zm10 0h6v3h-6zM12 19h8v2h-8z"/></svg><div><div class="title">DUMPLING <span class="red">RIOT</span></div><div id="menuTag" hidden>NIGHT SHIFT</div></div></div><div id="langBar"><label id="languageLabel" for="languageSelect">LANGUAGE</label><select id="languageSelect" aria-label="Language"><option value="en">English</option><option value="ru">Русский</option><option value="fi">Suomi</option><option value="de">Deutsch</option><option value="fr">Français</option><option value="es">Español</option><option value="pt">Português</option><option value="pl">Polski</option><option value="uk">Українська</option></select></div></header>
+<nav id="menuTabs" aria-label="Выбор забега"><button type="button" data-menu-tab="hero" aria-pressed="true"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="12" y="5" width="8" height="2" fill="#131018"/><rect x="10" y="7" width="12" height="10" fill="#131018"/><rect x="12" y="7" width="8" height="8" fill="#e5b66e"/><rect x="13" y="8" width="6" height="2" fill="#f4e5c5"/><rect x="12" y="12" width="2" height="2" fill="#131018"/><rect x="18" y="12" width="2" height="2" fill="#131018"/><rect x="9" y="17" width="14" height="5" fill="#131018"/><rect x="11" y="17" width="10" height="4" fill="#e5b66e"/></svg><b id="heroTabLabel">Герой</b></button><button type="button" data-menu-tab="map" aria-pressed="false"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><polygon points="2,7 11,3 21,7 30,3 30,25 21,29 11,25 2,29" fill="#131018"/><polygon points="4,9 11,6 21,10 28,6 28,23 21,26 11,22 4,26" fill="#53616b"/><polygon points="4,9 11,6 11,22 4,26" fill="#a9bbc3"/><polygon points="21,10 28,6 28,23 21,26" fill="#a9bbc3"/><rect x="13" y="11" width="3" height="3" fill="#f4e5c5"/><rect x="16" y="14" width="3" height="3" fill="#e5b66e"/><rect x="19" y="11" width="3" height="3" fill="#dc5a59"/><rect x="19" y="17" width="3" height="3" fill="#dc5a59"/></svg><b id="mapTabLabel">Арена</b></button><button type="button" data-menu-tab="mode" aria-pressed="false"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="4" y="4" width="24" height="24" fill="#131018"/><rect x="6" y="6" width="20" height="20" fill="#53616b"/><rect x="9" y="10" width="14" height="2" fill="#f4e5c5"/><rect x="9" y="16" width="14" height="2" fill="#f4e5c5"/><rect x="9" y="22" width="14" height="2" fill="#f4e5c5"/><rect x="12" y="8" width="4" height="6" fill="#e5b66e"/><rect x="19" y="14" width="4" height="6" fill="#80dbab"/><rect x="10" y="20" width="4" height="6" fill="#dc5a59"/></svg><b id="modeTabLabel">Режим</b></button></nav>
 <div id="menuBody" class="menuBody">
-<section class="menuSection" data-menu-panel="hero"><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div></section>
+<section class="menuSection" data-menu-panel="home" id="homePanel">
+  <div class="homeIntro horrorMarquee"><canvas id="menuKeyArt" width="400" height="144" aria-hidden="true"></canvas><div class="marqueeShade"></div><div class="marqueeCopy"><span id="homeEyebrow">NIGHT SHIFT</span><h1 class="marqueeTitle">DUMPLING<br><strong>RIOT</strong></h1><p id="homeHeading">Ready for the riot?</p></div><span class="marqueeEdge" aria-hidden="true"></span></div>
+  <div class="homeCards">
+    <button type="button" class="homeCard" data-open-menu="hero"><canvas id="homeHeroCanvas" width="200" height="108" aria-hidden="true"></canvas><span class="homeCardCopy"><small id="homeHeroLabel">ГЕРОЙ</small><strong id="homeHeroName"></strong><span id="homeHeroStats"></span></span><span class="homeChevron" aria-hidden="true">›</span></button>
+    <button type="button" class="homeCard" data-open-menu="map"><canvas id="homeMapCanvas" width="240" height="135" aria-hidden="true"></canvas><span class="homeCardCopy"><small id="homeMapLabel">АРЕНА</small><strong id="homeMapName"></strong><span id="homeMapFeature"></span></span><span class="homeChevron" aria-hidden="true">›</span></button>
+  </div>
+  <button type="button" class="homeMode" data-open-menu="mode"><span id="homeModeIcon" aria-hidden="true"></span><span><small id="homeModeLabel">РЕЖИМ</small><strong id="homeModeName"></strong></span><span class="homeChevron" aria-hidden="true">›</span></button>
+</section>
+<div id="menuBackBar" hidden><button type="button" id="menuBack" aria-label="Назад">‹ <span id="menuBackLabel">Назад</span></button><span id="menuCurrentTitle"></span><button type="button" id="menuDone">Готово</button></div>
+<section class="menuSection" data-menu-panel="hero" hidden><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div></section>
 <section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Выбери арену</h3></div><div class="mapStage"><canvas id="mapStageCanvas" width="480" height="270" aria-hidden="true"></canvas><div class="mapStageCaption"><h2 id="mapStageName"></h2><div id="mapDetail" class="selectionDetail"></div></div></div><div id="mapChoices" class="choices"></div></section>
-<section class="menuSection" data-menu-panel="mode" hidden><div class="sectionHead"><h3 id="modeTitle">Режим игры</h3></div><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info">Онлайн: создай комнату или введи код друга.</div></div></section>
-</div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button></div><div id="soundPanel" hidden><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div></div></footer>
+<section class="menuSection" data-menu-panel="mode" hidden><div class="sectionHead"><h3 id="modeTitle">Режим игры</h3></div><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info" data-initial="true">Create or join a room.</div></div></section>
+</div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary" aria-hidden="true"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button></div><div id="soundPanel" hidden><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div></div></footer>
 </div></div>
-<div id="levelup" style="display:none"><div class="box"><header class="upgradeHead"><canvas id="upgradeHero" width="48" height="54" aria-hidden="true"></canvas><div><div class="pauseBadge">Уровень повышен</div><h2><span id="levelPrefix">Уровень</span> <span id="levelUpNum">2</span></h2><div class="tag">Выбери улучшение</div></div></header><div id="upgradeChoices" class="levelChoices"></div></div></div>
+<div id="levelup" style="display:none"><div class="box"><header class="upgradeHead"><div><div class="pauseBadge">Уровень повышен</div><h2><span id="levelPrefix">Уровень</span> <span id="levelUpNum">2</span></h2><div class="tag">Выбери улучшение</div></div></header><div id="upgradeChoices" class="levelChoices"></div></div></div>
 <div id="pauseOverlay" style="display:none"><div class="box pauseBox"><div class="pauseBadge">ПЕЛЬМЕНЬ ВЗЯЛ ПАУЗУ</div><div class="title" style="font-size:44px">ПАУЗА</div><div class="hint">Игра остановлена. Выбери, что делать дальше.</div><button id="resumeBtn" class="btn">ПРОДОЛЖИТЬ</button><button id="pauseRestartBtn" class="btn">НАЧАТЬ ЗАНОВО</button><button id="pauseMenuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В ГЛАВНОЕ МЕНЮ</button></div></div>
 <div id="gameover" style="display:none"><div class="box" style="max-width:520px;text-align:center"><div class="tag">RUN ENDED</div><div class="title" style="font-size:38px">ТЕБЯ СЪЕЛИ</div><div class="hint" style="font-size:10px;margin-top:14px">СЧЁТ <b id="finalScore">0</b> · УРОВЕНЬ <b id="finalLevel">1</b> · ВОЛНА <b id="finalWave">1</b></div><div id="finalRecord" class="hint"></div><button id="retryBtn" class="btn">ЕЩЁ РАЗ</button><button id="menuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В МЕНЮ</button></div></div>
 <div id="fatalError" style="display:none;position:fixed;inset:0;z-index:999;background:#08060b;color:#f6efd9;place-items:center;padding:24px;font:12px ui-monospace,monospace"><div style="max-width:720px;width:100%;border:2px solid #a82f38;background:#140c12;padding:18px;box-shadow:6px 6px 0 #000"><h2 style="margin:0 0 10px;color:#ff6874">ОШИБКА ИГРЫ</h2><p style="margin:0 0 10px">Браузер остановил игру. Перезапусти страницу.</p><code style="display:block;white-space:pre-wrap;color:#ffd76b"></code><button onclick="location.reload()" style="margin-top:16px;padding:12px 16px;background:#d8414d;color:#fff;border:0;font:900 12px ui-monospace">ПЕРЕЗАПУСТИТЬ</button></div></div>
@@ -399,9 +611,9 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
   <div id="p2Pad" class="mobilePad"><div class="mobileKnob p2Knob"></div><div class="p2Tag">P2</div></div>
   <button id="p2DashBtn" class="mobileBtn" data-action="p2dash">D2</button>
   <button id="p2BombBtn" class="mobileBtn" data-action="p2bomb">B2</button>
-  <button id="dashBtn" class="mobileBtn" data-action="dash" aria-label="Рывок"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M3 8h8M2 12h6M4 16h7M13 3l8 9-8 9v-6h-3V9h3z"/></svg><span class="actionLabel">РЫВОК</span><span class="actionValue" id="touchDashValue"></span></button>
-  <button id="bombBtn" class="mobileBtn bombBtn" data-action="bomb" aria-label="Бомба"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><circle cx="11" cy="14" r="7"/><path d="M13 7l2-4 3 1 2-2M18 5l3 3"/></svg><span class="actionLabel">БОМБА</span><b class="actionValue" id="touchBombValue">3</b></button>
-  <button id="pauseBtn" class="mobileBtn pauseBtn" data-action="pause" aria-label="Пауза"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M8 5h3v14H8zM15 5h3v14h-3z" fill="currentColor" stroke="none"/></svg></button>
+  <button id="dashBtn" class="mobileBtn" data-action="dash" aria-label="Рывок"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><polygon points="2,7 15,7 15,2 30,16 15,30 15,25 2,25 10,16" fill="#131018"/><polygon points="5,9 17,9 17,6 27,16 17,26 17,23 5,23 13,16" fill="#367e75"/><polygon points="9,10 18,10 18,8 26,16 18,23 18,20 9,20 15,16" fill="#80dbab"/><rect x="2" y="13" width="6" height="2" fill="#f4e5c5"/><rect x="0" y="18" width="8" height="2" fill="#a9bbc3"/></svg><span class="actionLabel">РЫВОК</span><span class="actionValue" id="touchDashValue"></span></button>
+  <button id="bombBtn" class="mobileBtn bombBtn" data-action="bomb" aria-label="Бомба"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><polygon points="10,9 13,6 20,6 23,9 28,14 28,24 23,29 9,29 4,24 4,14" fill="#131018"/><polygon points="10,10 22,10 26,15 26,23 21,27 11,27 6,23 6,15" fill="#53616b"/><polygon points="8,15 12,11 21,11 23,14 13,14 9,19" fill="#a9bbc3"/><polygon points="17,8 17,4 22,4 22,7 20,7 20,11" fill="#e5b66e"/><rect x="23" y="2" width="3" height="3" fill="#dc5a59"/><rect x="26" y="5" width="3" height="2" fill="#f4e5c5"/><rect x="25" y="0" width="2" height="2" fill="#e5b66e"/><rect x="21" y="22" width="3" height="2" fill="#8b303d"/><rect x="9" y="15" width="3" height="4" fill="#f4e5c5"/></svg><span class="actionLabel">БОМБА</span><b class="actionValue" id="touchBombValue">3</b></button>
+  <button id="pauseBtn" class="mobileBtn pauseBtn" data-action="pause" aria-label="Пауза"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="5" y="4" width="9" height="24" fill="#131018"/><rect x="18" y="4" width="9" height="24" fill="#131018"/><rect x="7" y="6" width="5" height="20" fill="#a9bbc3"/><rect x="20" y="6" width="5" height="20" fill="#a9bbc3"/><rect x="7" y="6" width="2" height="16" fill="#f4e5c5"/><rect x="20" y="6" width="2" height="16" fill="#f4e5c5"/></svg></button>
   <div id="mobileWeapons"><button class="mw" type="button" data-weapon="0" aria-label="Оружие 1" aria-pressed="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M5 20l4-4 8-11 2-1 1 2-8 13-4 2zM5 14l5 4"/></svg><span class="mwIndex">1</span><span class="mwLv">1</span><i class="mwCharge"></i></button><button class="mw" type="button" data-weapon="1" aria-label="Оружие 2" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M6 20l8-10M11 3l-3 6 3 3 4-3 2-6M14 4l-3 6"/></svg><span class="mwIndex">2</span><span class="mwLv">1</span><i class="mwCharge"></i></button><button class="mw" type="button" data-weapon="2" aria-label="Оружие 3" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M4 17l5-5 6-8 5 4-6 9-6 4zM8 12l4 4"/></svg><span class="mwIndex">3</span><span class="mwLv">1</span><i class="mwCharge"></i></button><button class="mw" type="button" data-weapon="3" aria-label="Оружие 4" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M4 9h10l3-3 3 2-3 4H4zM8 14l4 4M5 16l3 4M14 13l4 3"/></svg><span class="mwIndex">4</span><span class="mwLv">1</span><i class="mwCharge"></i></button></div>
 </div>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script><script>
@@ -486,11 +698,14 @@ let state='menu',selectedChar=chars[0].id,selectedMap=maps[0].id,weapon=0,last=0
 let coop=false,onlineMode=false,isOnlineHost=false,isOnlineGuest=false;let peer=null,netConn=null,netStateConn=null,netRoom='';let netSendTimer=0,guestNetTimer=0,peerReadyPromise=null,netSeq=0,lastNetSeq=0;
 function readStorage(key,fallback){try{return localStorage.getItem(key)??fallback}catch(_){return fallback}}
 function writeStorage(key,value){try{localStorage.setItem(key,value)}catch(_){}}
-let lang=readStorage('dumpling-riot-lang','ru')==='en'?'en':'ru';
+const supportedLanguages={"en":"English","ru":"Русский","fi":"Suomi","de":"Deutsch","fr":"Français","es":"Español","pt":"Português","pl":"Polski","uk":"Українська"};
+function normalizeLanguage(value){return Object.prototype.hasOwnProperty.call(supportedLanguages,value)?value:'en'}
+let lang=normalizeLanguage(readStorage('dumpling-riot-lang','en'));
+document.documentElement.lang=lang;
 const RECORD_KEY='dumpling-riot-best-solo-v1';
 function loadRecord(){try{const r=JSON.parse(readStorage(RECORD_KEY,'{}'));return {score:Math.max(0,Number(r.score)||0),wave:Math.max(0,Number(r.wave)||0)}}catch(_){return {score:0,wave:0}}}
 function updateRecord(previous,points,round){return {score:Math.max(previous.score,Math.max(0,Math.floor(points)||0)),wave:Math.max(previous.wave,Math.max(0,Math.floor(round)||0))}}
-function recordText(r){return lang==='en'?'SOLO RECORD · SCORE '+r.score+' · WAVE '+r.wave:'РЕКОРД СОЛО · ОЧКИ '+r.score+' · ВОЛНА '+r.wave}
+function recordText(r){return L('SOLO RECORD','РЕКОРД СОЛО')+' · '+T('score')+' '+r.score+' · '+T('wave')+' '+r.wave}
 const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const world={w:1920,h:1080};
 const camera={x:960,y:540,smooth:0.12};
@@ -674,6 +889,98 @@ const arenaLights={
  cemetery:[[760,440],[1160,625],[280,700],[1530,320]],
  forest:[[820,425],[1150,620],[320,280],[1580,790]]
 };
+// V40: distinct arena events. Coordinates are shared by terrain, preview and combat.
+const arenaFeatures={
+ kitchen:{ru:'Паровые клапаны',en:'Steam vents',hint:'Клапаны выбрасывают горячий пар. Уходи за пределы круга.',hintEn:'Vents erupt in hot steam. Leave the marked circle.',color:'#f5c298',radius:34,damage:12,delay:1.55,interval:10,sites:[[875,465],[1045,615],[940,382],[960,698],[315,310],[1605,780]]},
+ basement:{ru:'Электрические разряды',en:'Electrical surges',hint:'Повреждённые кабели дают два последовательных разряда.',hintEn:'Damaged cables discharge twice in succession.',color:'#a7d8ff',radius:27,damage:10,delay:1.5,interval:11,sites:[[835,475],[1075,610],[1090,425],[340,300],[1550,790]]},
+ foodcourt:{ru:'Аварийные припасы',en:'Emergency supplies',hint:'Автоматы периодически выдают аптечку. Она исчезнет через 12 секунд.',hintEn:'Vending machines occasionally dispense a medkit. Collect it within 12 seconds.',color:'#b3f1ae',radius:25,damage:0,delay:1.25,interval:16,sites:[[840,456],[1080,620],[715,540],[1210,545],[340,320],[1550,780]]},
+ slaughter:{ru:'Режущая линия',en:'Cutting line',hint:'Три последовательные зоны разреза пересекают конвейер.',hintEn:'Three staggered cutting zones sweep the conveyor.',color:'#ff956b',radius:26,damage:13,delay:1.65,interval:12,sites:[[850,508],[1070,560],[960,685],[360,490],[1510,560]]},
+ cemetery:{ru:'Проклятые могилы',en:'Cursed graves',hint:'После проклятого всплеска остаётся кристалл опыта. Не стой в круге.',hintEn:'A cursed burst leaves an XP crystal. Stay out of the circle.',color:'#d9b8ff',radius:35,damage:11,delay:1.65,interval:13,sites:[[875,485],[1045,610],[770,370],[1190,370],[730,750],[1210,750]]},
+ forest:{ru:'Ядовитые споры',en:'Toxic spores',hint:'Грибницы взрываются и ранят как героев, так и врагов. Заманивай врагов.',hintEn:'Mushroom colonies hurt heroes and enemies. Lure enemies into the blast.',color:'#b6e89b',radius:39,damage:9,delay:1.7,interval:12,sites:[[805,555],[1120,635],[890,450],[1040,475],[545,480],[1450,750]]}
+};
+let arenaEventTimer=8,arenaEventIndex=0;
+function arenaEventPattern(id,x,y,round=1){
+ const f=arenaFeatures[id],cap=Math.min(5,Math.floor(round/5)),make=(xx,yy,d)=>({x:clamp(xx,arena.l+55,arena.r-55),y:clamp(yy,arena.t+55,arena.b-55),radius:f.radius,damage:f.damage===0?0:f.damage+cap,delay:d,kind:id});
+ if(id==='basement')return [make(x,y,f.delay),make(x+42,y+18,f.delay+.72)];
+ if(id==='slaughter')return [-52,0,52].map((dx,i)=>make(x+dx,y,f.delay+i*.48));
+ return [make(x,y,f.delay)];
+}
+function updateArenaEvent(dt){
+ if(state!=='game'||waveState!=='fighting'||(onlineMode&&isOnlineGuest))return;
+ arenaEventTimer-=dt;if(arenaEventTimer>0)return;
+ const f=arenaFeatures[selectedMap];if(!f)return;
+ const live=alivePlayers();if(!live.length)return;
+ const p=live[arenaEventIndex%live.length];arenaEventIndex++;
+ const [x,y]=f.sites.reduce((best,q)=>Math.hypot(q[0]-p.x,q[1]-p.y)<Math.hypot(best[0]-p.x,best[1]-p.y)?q:best,f.sites[0]);
+ // Only trigger a nearby landmark, not a trap on an unseen part of the map.
+ if(Math.hypot(x-p.x,y-p.y)>210){arenaEventTimer=2.5;return}
+ arenaEventTimer=f.interval;
+ for(const h of arenaEventPattern(selectedMap,x,y,wave))scheduleHazard(h.x,h.y,h.radius,h.damage,h.delay,null,h.kind);
+ toast(L(f.en,f.ru));
+}
+function paintArenaFeatures(g,id,left,top,width,height){
+ const f=arenaFeatures[id];if(!f)return;
+ const right=left+width,bottom=top+height;
+ const R=(col,x,y,w,h)=>{if(x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(col,pts)=>{g.fillStyle=col;g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill()};
+ const frame=(x,y,w,h,mid,hi)=>{R('#12191b',x-1,y+2,w+2,h+2);R(mid,x,y,w,h);R(hi,x+1,y+1,w-2,2);R('#22262b',x+w-3,y+3,2,h-4);R('#22262b',x+2,y+h-3,w-4,2)};
+ const bolt=(x,y)=>{R('#17191e',x,y,3,3);R('#b9b29e',x,y,1,1)};
+ const txt=(str,x,y,col)=>{g.fillStyle=col;g.font='bold 7px monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(str,x,y)};
+ for(const [x,y] of f.sites){
+  if(x+50<left||x-50>right||y+45<top||y-45>bottom)continue;
+  if(id==='kitchen'){
+   frame(x-24,y-13,48,26,'#596361','#929b88');for(let i=-19;i<=19;i+=6){R('#232b2d',x+i,y-8,3,16);R('#a2a99a',x+i+3,y-8,1,14)}
+   for(const i of [-21,18]){bolt(x+i,y-10);bolt(x+i,y+8)}R('#c9965b',x-5,y-15,10,2);txt('STEAM',x,y+19,'#ead4ae');
+  }else if(id==='basement'){
+   frame(x-21,y-13,42,26,'#394a53','#829da2');for(let i=0;i<3;i++){R('#1c2730',x-15+i*11,y-7,8,14);R('#5e8590',x-14+i*11,y-6,6,2);R('#a9d6c7',x-11+i*11,y+2,2,3)}
+   R('#e3b56b',x-7,y-15,14,2);P('#e5cd82',[x+1,y-6,x-5,y+1,x,y+1,x-1,y+8,x+6,y-1,x+1,y-1]);txt('HV',x,y+19,'#a4c8d4');
+  }else if(id==='foodcourt'){
+   frame(x-24,y-15,48,30,'#594754','#a68c9b');R('#1f2934',x-18,y-9,28,15);for(let k=0;k<3;k++){R(['#c18799','#9db6a0','#d4b078'][k],x-15+k*8,y-6,5,9);R('#ead1b1',x-14+k*8,y-5,2,1)}
+   R('#23262a',x+14,y-7,6,13);R('#b5e8aa',x+15,y-4,4,3);R('#b5e8aa',x-5,y+8,10,2);txt('SUPPLY',x,y+21,'#bbd5a6');
+  }else if(id==='slaughter'){
+   frame(x-27,y-13,54,26,'#595653','#929387');for(let i=-22;i<23;i+=8){R('#292e31',x+i,y-7,4,14);R('#90938b',x+i+4,y-7,2,14)}
+   for(let i=-24;i<24;i+=8){R('#c49a56',x+i,y-15,4,3);R('#c49a56',x+i,y+12,4,3)}
+   P('#d0c3a4',[x-10,y-4,x+10,y-4,x+13,y,x+10,y+4,x-10,y+4,x-13,y]);R('#9b4037',x+2,y-1,5,2);txt('CUT',x,y+21,'#f0b68d');
+  }else if(id==='cemetery'){
+   P('#262e2a',[x-23,y-12,x-15,y-21,x+13,y-21,x+23,y-12,x+23,y+14,x+13,y+21,x-15,y+21,x-23,y+14]);P('#687064',[x-20,y-11,x-13,y-18,x+11,y-18,x+20,y-11,x+20,y+12,x+11,y+18,x-13,y+18,x-20,y+12]);R('#434b43',x-15,y-12,30,24);R('#8c8c7a',x-13,y-12,26,2);R('#ad98bf',x-2,y-8,4,16);R('#ad98bf',x-8,y-3,16,3);R('#75835e',x-16,y+11,8,3);R('#75835e',x+10,y-14,6,3);
+  }else{
+   P('#1a3025',[x-25,y+1,x-13,y-16,x+9,y-19,x+24,y-8,x+24,y+12,x+8,y+19,x-15,y+14]);for(let i=0;i<5;i++){const a=i*2.4,r=8+i*3,xx=Math.round(x+Math.cos(a)*r),yy=Math.round(y+Math.sin(a)*r*.7);R('#c4bd86',xx-1,yy,3,6);P('#253e29',[xx-7,yy,xx-4,yy-6,xx+4,yy-6,xx+7,yy]);P(i%2?'#9ca967':'#789857',[xx-6,yy-1,xx-3,yy-5,xx+3,yy-5,xx+6,yy-1]);R('#dce6a6',xx-3,yy-4,2,2)}
+  }
+ }
+ // Small signature inlays between landmarks, entirely flat and traversable.
+ for(let i=0;i<32;i++){
+  const x=80+Math.floor(terrainHash(i,17,41)*1730),y=85+Math.floor(terrainHash(i,29,51)*900);
+  if(x<left-15||x>right+15||y<top-15||y>bottom+15)continue;
+  if(id==='kitchen'){R('#303a38',x-5,y,14,3);R('#858e80',x-4,y,8,1);R('#73594a',x+7,y,3,2)}
+  else if(id==='basement'){R('#18282e',x-8,y,16,2);R('#718587',x-4,y-1,8,1);R('#8b7252',x+5,y-2,3,4)}
+  else if(id==='foodcourt'){R('#624c58',x-6,y-3,12,6);R('#a68792',x-5,y-2,9,1);R('#302e3b',x+2,y+1,3,2)}
+  else if(id==='slaughter'){R('#4b3e31',x-7,y,14,3);R('#ac8759',x-6,y,5,1);R('#23262b',x+2,y+1,4,1)}
+  else if(id==='cemetery'){R('#53634e',x-5,y,10,2);R('#a8a48c',x-1,y-2,3,3);R('#827b6b',x+3,y+1,2,2)}
+  else {R('#527246',x-5,y,2,4);R('#79905b',x-2,y-3,2,4);R('#456242',x+1,y+1,3,3)}
+ }
+}
+function paintArenaAtmosphere(g,id,view,time){
+ const f=arenaFeatures[id];if(!f)return;
+ const {x,y,w,h}=view,clock=reduceMotion?0:time;
+ g.save();g.globalAlpha=.23;g.fillStyle=f.color;
+ // Ambient pixel motes anchored to world cells, bounded to the visible viewport.
+ for(let cy=Math.floor(y/64)*64;cy<y+h;cy+=64)for(let cx=Math.floor(x/64)*64;cx<x+w;cx+=64){
+  const a=terrainHash(cx,cy,71),b=terrainHash(cy,cx,91),px=Math.round(cx+a*58+Math.sin(clock*.55+a*6)*5),py=Math.round(cy+b*56-(clock*(id==='kitchen'?7:2))%12);
+  if(id==='foodcourt'){if(a>.58)g.fillRect(px,py,12,1)}
+  else if(id==='slaughter'){if(a>.48){g.fillRect(px,py,2,1);g.fillRect(px-2,py+2,1,1)}}
+  else if(id==='basement'){if(a>.4)g.fillRect(px,py,1,3)}
+  else if(id==='cemetery'){g.globalAlpha=.09;g.fillRect(px-12,py,22,3);g.globalAlpha=.23}
+  else if(id==='forest'){g.fillRect(px,py,2,2);if(a>.78)g.fillRect(px+4,py-4,1,1)}
+  else {g.fillRect(px,py,3,2);if(b>.7)g.fillRect(px-2,py-3,2,1)}
+ }
+ for(const [lx,ly] of f.sites){
+  if(lx+52<x||lx-52>x+w||ly+52<y||ly-52>y+h)continue;
+  const r=g.createRadialGradient(lx,ly,2,lx,ly,47);r.addColorStop(0,f.color);r.addColorStop(1,'rgba(0,0,0,0)');
+  g.globalAlpha=.09+.035*Math.sin(clock*1.6+lx);g.fillStyle=r;g.fillRect(lx-47,ly-47,94,94);
+ }
+ g.restore();
+}
+
 function paintTerrain(g,id,left,top,width,height){
  const t=terrainThemes[id]||terrainThemes.kitchen,right=left+width,bottom=top+height,natural=id==='cemetery'||id==='forest';
  const R=(color,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
@@ -754,6 +1061,7 @@ function paintTerrain(g,id,left,top,width,height){
   if(natural){const h=26+Math.floor(terrainHash(x,6,0)*16);P('#182a20',[x-15,y+42,x+4,y+42-h,x+19,y+42]);P('#314634',[x-9,y+35,x+4,y+43-h,x+14,y+35]);R('#6c5140',x+3,y+32,4,11)}
   else{plate(x,y+7,65,34,t.tile,t.edge,t.trim);if(id==='kitchen'){R('#171d20',x+7,y+13,51,13);for(let j=0;j<4;j++){R('#555f5d',x+10+j*12,y+15,7,8);R('#9b8270',x+10+j*12,y+15,7,1)}}else if(id==='foodcourt'){R('#2f2e34',x+8,y+12,49,21);R('#bc8b69',x+12,y+15,41,2);R('#4d7773',x+12,y+21,25,2)}else{grate(x+8,y+12,49,20,t.tile,t.trim)}}
  }
+ paintArenaFeatures(g,id,left,top,width,height);
  // Sparse ground lanterns, placed to support navigation instead of repeating a grid.
  for(const [x,y] of arenaLights[id]||arenaLights.kitchen){
   R(t.edge,x-5,y-4,10,8);R(t.trim,x-4,y-3,8,6);R(t.glow,x-3,y-2,6,4);R('#eadac0',x-2,y-1,2,1)
@@ -779,20 +1087,51 @@ const I18N={
 I18N.ru.chooseMap='ВЫБЕРИ КАРТУ';I18N.en.chooseMap='CHOOSE MAP';
 I18N.ru.controls='P1: WASD · ЛКМ атака · 1–4 оружие · SPACE рывок · E бомба · ESC пауза';
 I18N.en.controls='P1: WASD · LMB attack · 1–4 weapons · SPACE dash · E bomb · ESC pause';
-const T=k=>(I18N[lang]&&I18N[lang][k])||I18N.ru[k]||k;
-function locName(o){return lang==='en'?(o.enName||o.name):(o.name)}
-function locDesc(o){return lang==='en'?(o.enDesc||o.desc):(o.desc)}
-function setLanguage(next){lang=next==='en'?'en':'ru';writeStorage('dumpling-riot-lang',lang);document.documentElement.lang=lang;document.querySelectorAll('.langBtn').forEach(b=>b.classList.toggle('sel',b.dataset.lang===lang));applyLanguageStatic();makeMenu();}
+const extraTranslations={"fi":{"START RUN":"ALOITA PELI","NIGHT SHIFT":"YÖVUORO","Ready for the riot?":"Valmis kapinaan?","Hero":"Hahmo","Arena":"Areena","Mode":"Tila","Choose hero":"Valitse hahmo","Choose arena":"Valitse areena","Game mode":"Pelitila","Back":"Takaisin","Done":"Valmis","Solo":"Yksinpeli","Local co-op":"Paikallinen yhteistyö","Online co-op":"Verkkoyhteistyö","Controls":"Ohjaus","Music":"Musiikki","Music volume":"Musiikin voimakkuus","Health":"Terveys","Speed":"Nopeus","Ability":"Kyky","LANGUAGE":"KIELI","CHOOSE CHARACTER":"VALITSE HAHMO","CHOOSE MAP":"VALITSE AREENA","GAME MODE":"PELITILA","1 PLAYER":"1 PELAAJA","2 PLAYERS":"2 PELAAJAA","ONLINE 2 PLAYERS":"2 PELAAJAA VERKOSSA","Classic solo mode.":"Perinteinen yksinpeli.","Local co-op.":"Paikallinen yhteistyöpeli.","5-digit room code.":"5-numeroinen huonekoodi.","START NIGHT SHIFT":"ALOITA YÖVUORO","P1: WASD · LMB attack · 1–4 weapons · SPACE dash · E bomb · ESC pause":"P1: WASD · hiiri: hyökkäys · 1–4 aseet · SPACE syöksy · E pommi · ESC tauko","Collect XP crystals dropped by defeated enemies to level up. A boss appears every 5 waves.":"Kerää XP-kiteitä vihollisilta. Pomo ilmestyy 5 aallon välein.","P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb · auto-fire":"P2: nuolet · 7–0 aseet · SHIFT syöksy · ENTER pommi · automaattituli","GAME PAUSED · LEVEL UP":"TAUKO · TASO NOUSI","CHOOSE ONE UPGRADE":"VALITSE PARANNUS","YOU GOT EATEN":"SINUT SYÖTIIN","TRY AGAIN":"YRITÄ UUDELLEEN","MAIN MENU":"PÄÄVALIKKO","RUN ENDED":"PELI PÄÄTTYI","RESUME":"JATKA","RESTART":"ALOITA ALUSTA","Pause":"Tauko","Game paused. Choose what to do next.":"Peli tauolla. Valitse toiminto.","FIRE":"TULI","DASH":"SYÖKSY","BOMB":"POMMI","BOMBS":"POMMIT","READY":"VALMIS","MOVE":"LIIKU","AIM":"TÄHTÄÄ","LV.":"TASO","LV":"TASO","WAVE":"AALTO","SCORE":"PISTEET","ENEMIES":"VIHOLLISET","BOSS":"POMO","UNIQUE RELIC":"AINUTLAATUINEN RELIIKKI","SOLO RECORD":"ENNÄTYS","NEW BEST!":"UUSI ENNÄTYS!","BOSS INCOMING":"POMO SAAPUU","BOSS PHASE":"POMON VAIHE","WAVE CLEARED · COLLECT XP":"AALTO SELVITETTY · KERÄÄ XP","Upgrade":"Parannus","Choose one upgrade":"Valitse parannus","Level":"Taso","Damage":"Vahinko","Attack rate":"Hyökkäysnopeus","Movement speed":"Liikenopeus","Bomb":"Pommi","Critical chance":"Kriittinen osuma","Attack radius":"Hyökkäyssäde","Piercing":"Läpäisy","Armor":"Panssari","full heal":"täysi parannus","Area attacks":"Aluehyökkäykset","Projectiles pass through enemies":"Ammukset läpäisevät viholliset","Damage +10%":"Vahinko +10 %","KITCHEN":"KEITTIÖ","BASEMENT":"KELLARI","FOOD COURT":"RUOKA-AUKIO","FACTORY":"TEHDAS","ABANDONED YARD":"HYLÄTTY PIHA","BLACK FOREST":"MUSTA METSÄ","Steam vents":"Höyryventtiilit","Electrical surges":"Sähköpurkaukset","Emergency supplies":"Hätätarvikkeet","Cutting line":"Leikkauslinja","Cursed graves":"Kirotut haudat","Toxic spores":"Myrkylliset itiöt","Vents erupt in hot steam. Leave the marked circle.":"Venttiilit purkavat höyryä. Poistu merkityltä alueelta.","Damaged cables discharge twice in succession.":"Vioittuneet kaapelit purkautuvat kahdesti.","Vending machines occasionally dispense a medkit. Collect it within 12 seconds.":"Automaatti antaa ensiapupakkauksen. Kerää se 12 sekunnissa.","Three staggered cutting zones sweep the conveyor.":"Kolme leikkausaluetta kulkee kuljettimella.","A cursed burst leaves an XP crystal. Stay out of the circle.":"Kirous jättää XP-kiteen. Pysy poissa ympyrästä.","Mushroom colonies hurt heroes and enemies. Lure enemies into the blast.":"Sienet vahingoittavat kaikkia. Houkuttele vihollisia räjähdykseen.","Brutal close fighter · heavy blade":"Lähitaistelija · raskas terä","Blood hunter · ranged fighter":"Verimetsästäjä · kaukotaistelu","Silent killer · shadow shots":"Hiljainen tappaja · varjolaukaukset","Chaos mage · dumpling energy spells":"Kaaosmaagi · taikuus","Assassin · speed, poison and critical hits":"Salamurhaaja · nopeus, myrkky ja kriittiset osumat","Tank · slow but extremely durable":"Tankki · hidas mutta kestävä","CREATE ROOM":"LUO HUONE","JOIN ROOM":"LIITY HUONEESEEN","ROOM CODE":"HUONEKOODI","Create or join a room first.":"Luo huone tai liity ensin.","Connecting…":"Yhdistetään…","Room code:":"Huonekoodi:","Connection closed.":"Yhteys suljettu.","Enter a 5-digit room code.":"Syötä 5-numeroinen koodi.","BOSS DEFEATED":"POMO VOITETTU","RELIC COLLECTED":"RELIIKKI KERÄTTY","REVIVED":"HERÄTETTY","DEFEATED":"KUKISTETTU","BOMB BLAST!":"POMMI!","MENU":"VALIKKO","HEART OF THE KITCHEN":"KEITTIÖN SYDÄN","BLADE":"TERÄ","MEAT BOOMERANG":"LIHABUMERANGI","CLEAVER":"LIHAKIRVES","BLOOD STRIKE":"VERI-ISKU","BLOOD NEEDLES":"VERINEULAT","HUNTER SCYTHES":"METSÄSTÄJÄN VIIKATTEET","CRIMSON SHOT":"PUNAINEN LAUKAUS","BLOOD RAIN":"VERISADE","SHADOW DART":"VARJONUOLI","THREE SHADOWS":"KOLME VARJOA","DARK SLASH":"PIMEÄ VIILTO","CURSE":"KIROUS","DUMPLING SPARK":"PELMENIKIPINÄ","ARCANE SAUCE":"TAIKAKASTIKE","DUMPLING METEOR":"PELMENIMETEORI","DOUGH VORTEX":"TAIKINAPYÖRRE","KUNAI":"KUNAI","POISON KNIVES":"MYRKKYVEITSET","SHADOW DASH":"VARJOSYÖKSY","DEATH VOLLEY":"KUOLEMAN SARJA","BOILING CAULDRON":"KIEHUVA PATA","STEAM BURST":"HÖYRYISKU","IRON WAVE":"RAUTAAALTO","FURNACE BLAST":"UUNIRÄJÄHDYS","BLOOD SLASH":"VERIVIILTO","CRIMSON NEEDLES":"PUNAISET NEULAT","SHADOW STEP":"VARJOASKEL","ARCANE PULSE":"TAIKASYKE","VENOM TRAIL":"MYRKKYJÄLKI","IRON IMPACT":"RAUTAISKU","DUMPLING MAGE":"PELMENIMAAGI","CAULDRON GOLEM":"PATAGOLEM","Waiting for player 2…":"Odotetaan pelaajaa 2…","Player connected. Starting…":"Pelaaja liittyi. Aloitetaan…","Room not found.":"Huonetta ei löydy.","Connection error":"Yhteysvirhe","Create or join a room.":"Luo huone tai liity.","Ability:":"Kyky:","· BOSS INCOMING":"· POMO SAAPUU","· NEW BEST!":"· UUSI ENNÄTYS!","· full heal":"· täysi parannus"},"de":{"START RUN":"SPIEL STARTEN","NIGHT SHIFT":"NACHTSCHICHT","Ready for the riot?":"Bereit für den Aufstand?","Hero":"Held","Arena":"Arena","Mode":"Modus","Choose hero":"Held wählen","Choose arena":"Arena wählen","Game mode":"Spielmodus","Back":"Zurück","Done":"Fertig","Solo":"Solo","Local co-op":"Lokaler Koop","Online co-op":"Online-Koop","Controls":"Steuerung","Music":"Musik","Music volume":"Musiklautstärke","Health":"Gesundheit","Speed":"Tempo","Ability":"Fähigkeit","LANGUAGE":"SPRACHE","CHOOSE CHARACTER":"HELD WÄHLEN","CHOOSE MAP":"ARENA WÄHLEN","GAME MODE":"SPIELMODUS","1 PLAYER":"1 SPIELER","2 PLAYERS":"2 SPIELER","ONLINE 2 PLAYERS":"2 SPIELER ONLINE","Classic solo mode.":"Klassischer Solomodus.","Local co-op.":"Lokaler Koop-Modus.","5-digit room code.":"5-stelliger Raumcode.","START NIGHT SHIFT":"NACHTSCHICHT STARTEN","P1: WASD · LMB attack · 1–4 weapons · SPACE dash · E bomb · ESC pause":"P1: WASD · Maus: Angriff · 1–4 Waffen · SPACE Sprint · E Bombe · ESC Pause","Collect XP crystals dropped by defeated enemies to level up. A boss appears every 5 waves.":"Sammle EP-Kristalle besiegter Gegner. Alle 5 Wellen erscheint ein Boss.","P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb · auto-fire":"P2: Pfeile · 7–0 Waffen · SHIFT Sprint · ENTER Bombe · Autofeuer","GAME PAUSED · LEVEL UP":"PAUSE · LEVELAUFSTIEG","CHOOSE ONE UPGRADE":"VERBESSERUNG WÄHLEN","YOU GOT EATEN":"DU WURDEST GEFRESSEN","TRY AGAIN":"NOCH EINMAL","MAIN MENU":"HAUPTMENÜ","RUN ENDED":"RUNDE BEENDET","RESUME":"FORTSETZEN","RESTART":"NEUSTART","Pause":"Pause","Game paused. Choose what to do next.":"Spiel pausiert. Wähle eine Aktion.","FIRE":"FEUER","DASH":"SPRINT","BOMB":"BOMBE","BOMBS":"BOMBEN","READY":"BEREIT","MOVE":"BEWEGEN","AIM":"ZIELEN","LV.":"ST.","LV":"ST","WAVE":"WELLE","SCORE":"PUNKTE","ENEMIES":"GEGNER","BOSS":"BOSS","UNIQUE RELIC":"EINZIGARTIGES RELIKT","SOLO RECORD":"SOLOREKORD","NEW BEST!":"NEUER REKORD!","BOSS INCOMING":"BOSS KOMMT","BOSS PHASE":"BOSSPHASE","WAVE CLEARED · COLLECT XP":"WELLE GESCHAFFT · EP SAMMELN","Upgrade":"Verbesserung","Choose one upgrade":"Verbesserung wählen","Level":"Stufe","Damage":"Schaden","Attack rate":"Angriffstempo","Movement speed":"Bewegungstempo","Bomb":"Bombe","Critical chance":"Kritische Chance","Attack radius":"Angriffsradius","Piercing":"Durchdringung","Armor":"Rüstung","full heal":"volle Heilung","Area attacks":"Flächenangriffe","Projectiles pass through enemies":"Projektile durchdringen Gegner","Damage +10%":"Schaden +10 %","KITCHEN":"KÜCHE","BASEMENT":"KELLER","FOOD COURT":"FOODCOURT","FACTORY":"FABRIK","ABANDONED YARD":"VERLASSENER HOF","BLACK FOREST":"SCHWARZER WALD","Steam vents":"Dampfventile","Electrical surges":"Stromstöße","Emergency supplies":"Notvorräte","Cutting line":"Schneidlinie","Cursed graves":"Verfluchte Gräber","Toxic spores":"Giftige Sporen","Vents erupt in hot steam. Leave the marked circle.":"Ventile stoßen heißen Dampf aus. Verlass den Kreis.","Damaged cables discharge twice in succession.":"Defekte Kabel entladen sich zweimal.","Vending machines occasionally dispense a medkit. Collect it within 12 seconds.":"Automaten geben Medkits aus. Sammle sie in 12 Sekunden.","Three staggered cutting zones sweep the conveyor.":"Drei Schneidzonen laufen über das Förderband.","A cursed burst leaves an XP crystal. Stay out of the circle.":"Ein Fluch hinterlässt einen EP-Kristall. Meide den Kreis.","Mushroom colonies hurt heroes and enemies. Lure enemies into the blast.":"Pilze schaden allen. Locke Gegner in die Explosion.","Brutal close fighter · heavy blade":"Nahkämpfer · schwere Klinge","Blood hunter · ranged fighter":"Blutjägerin · Fernkampf","Silent killer · shadow shots":"Lautloser Killer · Schattenschüsse","Chaos mage · dumpling energy spells":"Chaosmagier · Zauber","Assassin · speed, poison and critical hits":"Assassine · Tempo, Gift und kritische Treffer","Tank · slow but extremely durable":"Tank · langsam, aber robust","CREATE ROOM":"RAUM ERSTELLEN","JOIN ROOM":"RAUM BEITRETEN","ROOM CODE":"RAUMCODE","Create or join a room first.":"Erstelle einen Raum oder tritt bei.","Connecting…":"Verbindung…","Room code:":"Raumcode:","Connection closed.":"Verbindung geschlossen.","Enter a 5-digit room code.":"Gib einen 5-stelligen Code ein.","BOSS DEFEATED":"BOSS BESIEGT","RELIC COLLECTED":"RELIKT GESAMMELT","REVIVED":"WIEDERBELEBT","DEFEATED":"BESIEGT","BOMB BLAST!":"BOMBENEXPLOSION!","MENU":"MENÜ","HEART OF THE KITCHEN":"HERZ DER KÜCHE","BLADE":"KLINGE","MEAT BOOMERANG":"FLEISCHBUMERANG","CLEAVER":"HACKBEIL","BLOOD STRIKE":"BLUTSCHLAG","BLOOD NEEDLES":"BLUTNADELN","HUNTER SCYTHES":"JÄGERSENSEN","CRIMSON SHOT":"PURPURSCHUSS","BLOOD RAIN":"BLUTREGEN","SHADOW DART":"SCHATTENPFEIL","THREE SHADOWS":"DREI SCHATTEN","DARK SLASH":"DUNKLER HIEB","CURSE":"FLUCH","DUMPLING SPARK":"TEIGFUNKEN","ARCANE SAUCE":"ARKANE SOSSE","DUMPLING METEOR":"TEIGMETEOR","DOUGH VORTEX":"TEIGWIRBEL","KUNAI":"KUNAI","POISON KNIVES":"GIFTMESSER","SHADOW DASH":"SCHATTENSPRINT","DEATH VOLLEY":"TODESSALVE","BOILING CAULDRON":"KOCHENDER KESSEL","STEAM BURST":"DAMPFSTOSS","IRON WAVE":"EISENWELLE","FURNACE BLAST":"OFENEXPLOSION","BLOOD SLASH":"BLUTHIEB","CRIMSON NEEDLES":"PURPURNADELN","SHADOW STEP":"SCHATTENSCHRITT","ARCANE PULSE":"ARKANER IMPULS","VENOM TRAIL":"GIFTSPUR","IRON IMPACT":"EISENSCHLAG","DUMPLING MAGE":"TEIGMAGIER","CAULDRON GOLEM":"KESSELGOLEM","Waiting for player 2…":"Warte auf Spieler 2…","Player connected. Starting…":"Spieler verbunden. Startet…","Room not found.":"Raum nicht gefunden.","Connection error":"Verbindungsfehler","Create or join a room.":"Erstelle einen Raum oder tritt bei.","Ability:":"Fähigkeit:","· BOSS INCOMING":"· BOSS KOMMT","· NEW BEST!":"· NEUER REKORD!","· full heal":"· volle Heilung"},"fr":{"START RUN":"JOUER","NIGHT SHIFT":"SERVICE DE NUIT","Ready for the riot?":"Prêt pour la révolte ?","Hero":"Héros","Arena":"Arène","Mode":"Mode","Choose hero":"Choisir un héros","Choose arena":"Choisir une arène","Game mode":"Mode de jeu","Back":"Retour","Done":"Terminé","Solo":"Solo","Local co-op":"Coop locale","Online co-op":"Coop en ligne","Controls":"Commandes","Music":"Musique","Music volume":"Volume musical","Health":"Santé","Speed":"Vitesse","Ability":"Capacité","LANGUAGE":"LANGUE","CHOOSE CHARACTER":"CHOISIR UN HÉROS","CHOOSE MAP":"CHOISIR UNE ARÈNE","GAME MODE":"MODE DE JEU","1 PLAYER":"1 JOUEUR","2 PLAYERS":"2 JOUEURS","ONLINE 2 PLAYERS":"2 JOUEURS EN LIGNE","Classic solo mode.":"Mode solo classique.","Local co-op.":"Coopération locale.","5-digit room code.":"Code de salle à 5 chiffres.","START NIGHT SHIFT":"COMMENCER LE SERVICE","P1: WASD · LMB attack · 1–4 weapons · SPACE dash · E bomb · ESC pause":"P1 : WASD · clic : attaque · 1–4 armes · ESPACE ruée · E bombe · ÉCHAP pause","Collect XP crystals dropped by defeated enemies to level up. A boss appears every 5 waves.":"Ramasse les cristaux d'XP des ennemis. Un boss arrive toutes les 5 vagues.","P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb · auto-fire":"P2 : flèches · 7–0 armes · SHIFT ruée · ENTRÉE bombe · tir auto","GAME PAUSED · LEVEL UP":"PAUSE · NIVEAU SUPÉRIEUR","CHOOSE ONE UPGRADE":"CHOISIR UNE AMÉLIORATION","YOU GOT EATEN":"TU AS ÉTÉ DÉVORÉ","TRY AGAIN":"RÉESSAYER","MAIN MENU":"MENU PRINCIPAL","RUN ENDED":"PARTIE TERMINÉE","RESUME":"REPRENDRE","RESTART":"RECOMMENCER","Pause":"Pause","Game paused. Choose what to do next.":"Jeu en pause. Choisis une action.","FIRE":"TIR","DASH":"RUÉE","BOMB":"BOMBE","BOMBS":"BOMBES","READY":"PRÊT","MOVE":"DÉPLACER","AIM":"VISER","LV.":"NIV.","LV":"NIV","WAVE":"VAGUE","SCORE":"SCORE","ENEMIES":"ENNEMIS","BOSS":"BOSS","UNIQUE RELIC":"RELIQUE UNIQUE","SOLO RECORD":"RECORD SOLO","NEW BEST!":"NOUVEAU RECORD !","BOSS INCOMING":"BOSS EN APPROCHE","BOSS PHASE":"PHASE DU BOSS","WAVE CLEARED · COLLECT XP":"VAGUE TERMINÉE · RAMASSE L'XP","Upgrade":"Amélioration","Choose one upgrade":"Choisir une amélioration","Level":"Niveau","Damage":"Dégâts","Attack rate":"Vitesse d'attaque","Movement speed":"Vitesse de déplacement","Bomb":"Bombe","Critical chance":"Chance critique","Attack radius":"Rayon d'attaque","Piercing":"Perforation","Armor":"Armure","full heal":"soin complet","Area attacks":"Attaques de zone","Projectiles pass through enemies":"Les projectiles traversent les ennemis","Damage +10%":"Dégâts +10 %","KITCHEN":"CUISINE","BASEMENT":"SOUS-SOL","FOOD COURT":"AIRE DE RESTAURATION","FACTORY":"USINE","ABANDONED YARD":"COUR ABANDONNÉE","BLACK FOREST":"FORÊT NOIRE","Steam vents":"Bouches de vapeur","Electrical surges":"Décharges électriques","Emergency supplies":"Ravitaillement","Cutting line":"Ligne de découpe","Cursed graves":"Tombes maudites","Toxic spores":"Spores toxiques","Vents erupt in hot steam. Leave the marked circle.":"Les bouches expulsent de la vapeur. Quitte le cercle.","Damaged cables discharge twice in succession.":"Les câbles se déchargent deux fois.","Vending machines occasionally dispense a medkit. Collect it within 12 seconds.":"Les distributeurs donnent des soins. Ramasse-les en 12 secondes.","Three staggered cutting zones sweep the conveyor.":"Trois zones de découpe balaient le convoyeur.","A cursed burst leaves an XP crystal. Stay out of the circle.":"Une explosion maudite laisse un cristal d'XP. Évite le cercle.","Mushroom colonies hurt heroes and enemies. Lure enemies into the blast.":"Les champignons blessent tous. Attire les ennemis dans l'explosion.","Brutal close fighter · heavy blade":"Combattant de mêlée · lame lourde","Blood hunter · ranged fighter":"Chasseuse de sang · combat à distance","Silent killer · shadow shots":"Tueur silencieux · tirs d'ombre","Chaos mage · dumpling energy spells":"Mage du chaos · sorts","Assassin · speed, poison and critical hits":"Assassin · vitesse, poison et coups critiques","Tank · slow but extremely durable":"Tank · lent mais résistant","CREATE ROOM":"CRÉER UNE SALLE","JOIN ROOM":"REJOINDRE","ROOM CODE":"CODE DE SALLE","Create or join a room first.":"Crée ou rejoins une salle.","Connecting…":"Connexion…","Room code:":"Code de salle :","Connection closed.":"Connexion fermée.","Enter a 5-digit room code.":"Saisis un code à 5 chiffres.","BOSS DEFEATED":"BOSS VAINCU","RELIC COLLECTED":"RELIQUE RAMASSÉE","REVIVED":"RESSUSCITÉ","DEFEATED":"VAINCU","BOMB BLAST!":"EXPLOSION !","MENU":"MENU","HEART OF THE KITCHEN":"CŒUR DE LA CUISINE","BLADE":"LAME","MEAT BOOMERANG":"BOOMERANG DE VIANDE","CLEAVER":"COUPERET","BLOOD STRIKE":"FRAPPE DE SANG","BLOOD NEEDLES":"AIGUILLES DE SANG","HUNTER SCYTHES":"FAUX DE CHASSE","CRIMSON SHOT":"TIR ÉCARLATE","BLOOD RAIN":"PLUIE DE SANG","SHADOW DART":"DARD D'OMBRE","THREE SHADOWS":"TROIS OMBRES","DARK SLASH":"ENTAILLE SOMBRE","CURSE":"MALÉDICTION","DUMPLING SPARK":"ÉTINCELLE DE RAVIOLE","ARCANE SAUCE":"SAUCE ARCANIQUE","DUMPLING METEOR":"MÉTÉORE DE RAVIOLES","DOUGH VORTEX":"VORTEX DE PÂTE","KUNAI":"KUNAI","POISON KNIVES":"COUTEAUX EMPOISONNÉS","SHADOW DASH":"RUÉE D'OMBRE","DEATH VOLLEY":"SALVE MORTELLE","BOILING CAULDRON":"CHAUDRON BOUILLANT","STEAM BURST":"JET DE VAPEUR","IRON WAVE":"VAGUE DE FER","FURNACE BLAST":"SOUFFLE DU FOUR","BLOOD SLASH":"ENTAILLE DE SANG","CRIMSON NEEDLES":"AIGUILLES ÉCARLATES","SHADOW STEP":"PAS D'OMBRE","ARCANE PULSE":"PULSATION ARCANIQUE","VENOM TRAIL":"TRAÎNÉE DE VENIN","IRON IMPACT":"IMPACT DE FER","DUMPLING MAGE":"MAGE RAVIOLE","CAULDRON GOLEM":"GOLEM CHAUDRON","Waiting for player 2…":"En attente du joueur 2…","Player connected. Starting…":"Joueur connecté. Démarrage…","Room not found.":"Salle introuvable.","Connection error":"Erreur de connexion","Create or join a room.":"Crée ou rejoins une salle.","Ability:":"Capacité:","· BOSS INCOMING":"· BOSS EN APPROCHE","· NEW BEST!":"· NOUVEAU RECORD !","· full heal":"· soin complet"},"es":{"START RUN":"JUGAR","NIGHT SHIFT":"TURNO NOCTURNO","Ready for the riot?":"¿Listo para la revuelta?","Hero":"Héroe","Arena":"Arena","Mode":"Modo","Choose hero":"Elegir héroe","Choose arena":"Elegir arena","Game mode":"Modo de juego","Back":"Atrás","Done":"Listo","Solo":"Solo","Local co-op":"Coop local","Online co-op":"Coop en línea","Controls":"Controles","Music":"Música","Music volume":"Volumen musical","Health":"Salud","Speed":"Velocidad","Ability":"Habilidad","LANGUAGE":"IDIOMA","CHOOSE CHARACTER":"ELEGIR HÉROE","CHOOSE MAP":"ELEGIR ARENA","GAME MODE":"MODO DE JUEGO","1 PLAYER":"1 JUGADOR","2 PLAYERS":"2 JUGADORES","ONLINE 2 PLAYERS":"2 JUGADORES EN LÍNEA","Classic solo mode.":"Modo individual clásico.","Local co-op.":"Cooperativo local.","5-digit room code.":"Código de sala de 5 cifras.","START NIGHT SHIFT":"INICIAR TURNO","P1: WASD · LMB attack · 1–4 weapons · SPACE dash · E bomb · ESC pause":"P1: WASD · clic: ataque · 1–4 armas · ESPACIO impulso · E bomba · ESC pausa","Collect XP crystals dropped by defeated enemies to level up. A boss appears every 5 waves.":"Recoge cristales de XP de los enemigos. Aparece un jefe cada 5 oleadas.","P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb · auto-fire":"P2: flechas · 7–0 armas · SHIFT impulso · ENTER bomba · disparo auto","GAME PAUSED · LEVEL UP":"PAUSA · SUBIDA DE NIVEL","CHOOSE ONE UPGRADE":"ELIGE UNA MEJORA","YOU GOT EATEN":"TE DEVORARON","TRY AGAIN":"REINTENTAR","MAIN MENU":"MENÚ PRINCIPAL","RUN ENDED":"PARTIDA TERMINADA","RESUME":"CONTINUAR","RESTART":"REINICIAR","Pause":"Pausa","Game paused. Choose what to do next.":"Juego en pausa. Elige una acción.","FIRE":"FUEGO","DASH":"IMPULSO","BOMB":"BOMBA","BOMBS":"BOMBAS","READY":"LISTO","MOVE":"MOVER","AIM":"APUNTAR","LV.":"NIV.","LV":"NIV","WAVE":"OLEADA","SCORE":"PUNTOS","ENEMIES":"ENEMIGOS","BOSS":"JEFE","UNIQUE RELIC":"RELIQUIA ÚNICA","SOLO RECORD":"RÉCORD SOLO","NEW BEST!":"¡NUEVO RÉCORD!","BOSS INCOMING":"JEFE EN CAMINO","BOSS PHASE":"FASE DEL JEFE","WAVE CLEARED · COLLECT XP":"OLEADA SUPERADA · RECOGE XP","Upgrade":"Mejora","Choose one upgrade":"Elige una mejora","Level":"Nivel","Damage":"Daño","Attack rate":"Velocidad de ataque","Movement speed":"Velocidad de movimiento","Bomb":"Bomba","Critical chance":"Probabilidad crítica","Attack radius":"Radio de ataque","Piercing":"Perforación","Armor":"Armadura","full heal":"cura completa","Area attacks":"Ataques de área","Projectiles pass through enemies":"Los proyectiles atraviesan enemigos","Damage +10%":"Daño +10 %","KITCHEN":"COCINA","BASEMENT":"SÓTANO","FOOD COURT":"PATIO DE COMIDAS","FACTORY":"FÁBRICA","ABANDONED YARD":"PATIO ABANDONADO","BLACK FOREST":"BOSQUE NEGRO","Steam vents":"Válvulas de vapor","Electrical surges":"Descargas eléctricas","Emergency supplies":"Suministros","Cutting line":"Línea de corte","Cursed graves":"Tumbas malditas","Toxic spores":"Esporas tóxicas","Vents erupt in hot steam. Leave the marked circle.":"Las válvulas expulsan vapor. Sal del círculo.","Damaged cables discharge twice in succession.":"Los cables descargan dos veces.","Vending machines occasionally dispense a medkit. Collect it within 12 seconds.":"Las máquinas dan botiquines. Recógelos en 12 segundos.","Three staggered cutting zones sweep the conveyor.":"Tres zonas de corte cruzan la cinta.","A cursed burst leaves an XP crystal. Stay out of the circle.":"Una explosión deja un cristal de XP. Evita el círculo.","Mushroom colonies hurt heroes and enemies. Lure enemies into the blast.":"Los hongos dañan a todos. Atrae enemigos a la explosión.","Brutal close fighter · heavy blade":"Luchador cuerpo a cuerpo · hoja pesada","Blood hunter · ranged fighter":"Cazadora de sangre · combate a distancia","Silent killer · shadow shots":"Asesino silencioso · disparos de sombra","Chaos mage · dumpling energy spells":"Mago del caos · hechizos","Assassin · speed, poison and critical hits":"Asesino · velocidad, veneno y críticos","Tank · slow but extremely durable":"Tanque · lento pero resistente","CREATE ROOM":"CREAR SALA","JOIN ROOM":"UNIRSE","ROOM CODE":"CÓDIGO DE SALA","Create or join a room first.":"Crea una sala o únete primero.","Connecting…":"Conectando…","Room code:":"Código de sala:","Connection closed.":"Conexión cerrada.","Enter a 5-digit room code.":"Introduce un código de 5 cifras.","BOSS DEFEATED":"JEFE DERROTADO","RELIC COLLECTED":"RELIQUIA RECOGIDA","REVIVED":"REVIVIDO","DEFEATED":"DERROTADO","BOMB BLAST!":"¡EXPLOSIÓN!","MENU":"MENÚ","HEART OF THE KITCHEN":"CORAZÓN DE LA COCINA","BLADE":"HOJA","MEAT BOOMERANG":"BÚMERAN DE CARNE","CLEAVER":"CUCHILLA","BLOOD STRIKE":"GOLPE DE SANGRE","BLOOD NEEDLES":"AGUJAS DE SANGRE","HUNTER SCYTHES":"GUADAÑAS DE CAZA","CRIMSON SHOT":"DISPARO CARMESÍ","BLOOD RAIN":"LLUVIA DE SANGRE","SHADOW DART":"DARDO SOMBRÍO","THREE SHADOWS":"TRES SOMBRAS","DARK SLASH":"CORTE OSCURO","CURSE":"MALDICIÓN","DUMPLING SPARK":"CHISPA DE DUMPLING","ARCANE SAUCE":"SALSA ARCANA","DUMPLING METEOR":"METEORO DE DUMPLINGS","DOUGH VORTEX":"VÓRTICE DE MASA","KUNAI":"KUNAI","POISON KNIVES":"CUCHILLOS VENENOSOS","SHADOW DASH":"IMPULSO SOMBRÍO","DEATH VOLLEY":"SALVA MORTAL","BOILING CAULDRON":"CALDERO HIRVIENTE","STEAM BURST":"ESTALLIDO DE VAPOR","IRON WAVE":"OLA DE HIERRO","FURNACE BLAST":"ESTALLIDO DEL HORNO","BLOOD SLASH":"CORTE DE SANGRE","CRIMSON NEEDLES":"AGUJAS CARMESÍ","SHADOW STEP":"PASO SOMBRÍO","ARCANE PULSE":"PULSO ARCANO","VENOM TRAIL":"RASTRO VENENOSO","IRON IMPACT":"IMPACTO DE HIERRO","DUMPLING MAGE":"MAGO DUMPLING","CAULDRON GOLEM":"GÓLEM CALDERO","Waiting for player 2…":"Esperando al jugador 2…","Player connected. Starting…":"Jugador conectado. Iniciando…","Room not found.":"Sala no encontrada.","Connection error":"Error de conexión","Create or join a room.":"Crea una sala o únete.","Ability:":"Habilidad:","· BOSS INCOMING":"· JEFE EN CAMINO","· NEW BEST!":"· ¡NUEVO RÉCORD!","· full heal":"· cura completa"},"pt":{"START RUN":"JOGAR","NIGHT SHIFT":"TURNO DA NOITE","Ready for the riot?":"Pronto para a revolta?","Hero":"Herói","Arena":"Arena","Mode":"Modo","Choose hero":"Escolher herói","Choose arena":"Escolher arena","Game mode":"Modo de jogo","Back":"Voltar","Done":"Pronto","Solo":"Solo","Local co-op":"Coop local","Online co-op":"Coop online","Controls":"Controlos","Music":"Música","Music volume":"Volume da música","Health":"Vida","Speed":"Velocidade","Ability":"Habilidade","LANGUAGE":"IDIOMA","CHOOSE CHARACTER":"ESCOLHER HERÓI","CHOOSE MAP":"ESCOLHER ARENA","GAME MODE":"MODO DE JOGO","1 PLAYER":"1 JOGADOR","2 PLAYERS":"2 JOGADORES","ONLINE 2 PLAYERS":"2 JOGADORES ONLINE","Classic solo mode.":"Modo solo clássico.","Local co-op.":"Cooperativo local.","5-digit room code.":"Código de sala de 5 dígitos.","START NIGHT SHIFT":"INICIAR TURNO","P1: WASD · LMB attack · 1–4 weapons · SPACE dash · E bomb · ESC pause":"P1: WASD · clique: ataque · 1–4 armas · ESPAÇO impulso · E bomba · ESC pausa","Collect XP crystals dropped by defeated enemies to level up. A boss appears every 5 waves.":"Recolhe cristais de XP dos inimigos. Um chefe surge a cada 5 ondas.","P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb · auto-fire":"P2: setas · 7–0 armas · SHIFT impulso · ENTER bomba · tiro auto","GAME PAUSED · LEVEL UP":"PAUSA · SUBIDA DE NÍVEL","CHOOSE ONE UPGRADE":"ESCOLHE UMA MELHORIA","YOU GOT EATEN":"FOSTE DEVORADO","TRY AGAIN":"TENTAR DE NOVO","MAIN MENU":"MENU PRINCIPAL","RUN ENDED":"PARTIDA TERMINADA","RESUME":"CONTINUAR","RESTART":"REINICIAR","Pause":"Pausa","Game paused. Choose what to do next.":"Jogo em pausa. Escolhe uma ação.","FIRE":"TIRO","DASH":"IMPULSO","BOMB":"BOMBA","BOMBS":"BOMBAS","READY":"PRONTO","MOVE":"MOVER","AIM":"MIRAR","LV.":"NÍV.","LV":"NÍV","WAVE":"ONDA","SCORE":"PONTOS","ENEMIES":"INIMIGOS","BOSS":"CHEFE","UNIQUE RELIC":"RELÍQUIA ÚNICA","SOLO RECORD":"RECORDE SOLO","NEW BEST!":"NOVO RECORDE!","BOSS INCOMING":"CHEFE A CAMINHO","BOSS PHASE":"FASE DO CHEFE","WAVE CLEARED · COLLECT XP":"ONDA CONCLUÍDA · RECOLHE XP","Upgrade":"Melhoria","Choose one upgrade":"Escolhe uma melhoria","Level":"Nível","Damage":"Dano","Attack rate":"Velocidade de ataque","Movement speed":"Velocidade de movimento","Bomb":"Bomba","Critical chance":"Chance crítica","Attack radius":"Raio de ataque","Piercing":"Perfuração","Armor":"Armadura","full heal":"cura completa","Area attacks":"Ataques de área","Projectiles pass through enemies":"Projéteis atravessam inimigos","Damage +10%":"Dano +10 %","KITCHEN":"COZINHA","BASEMENT":"CAVE","FOOD COURT":"PRAÇA DE ALIMENTAÇÃO","FACTORY":"FÁBRICA","ABANDONED YARD":"PÁTIO ABANDONADO","BLACK FOREST":"FLORESTA NEGRA","Steam vents":"Válvulas de vapor","Electrical surges":"Descargas elétricas","Emergency supplies":"Suprimentos","Cutting line":"Linha de corte","Cursed graves":"Túmulos amaldiçoados","Toxic spores":"Esporos tóxicos","Vents erupt in hot steam. Leave the marked circle.":"As válvulas libertam vapor. Sai do círculo.","Damaged cables discharge twice in succession.":"Os cabos descarregam duas vezes.","Vending machines occasionally dispense a medkit. Collect it within 12 seconds.":"As máquinas dão kits médicos. Recolhe-os em 12 segundos.","Three staggered cutting zones sweep the conveyor.":"Três zonas de corte atravessam a esteira.","A cursed burst leaves an XP crystal. Stay out of the circle.":"Uma explosão deixa um cristal de XP. Evita o círculo.","Mushroom colonies hurt heroes and enemies. Lure enemies into the blast.":"Os fungos ferem todos. Atrai inimigos à explosão.","Brutal close fighter · heavy blade":"Lutador corpo a corpo · lâmina pesada","Blood hunter · ranged fighter":"Caçadora de sangue · combate à distância","Silent killer · shadow shots":"Assassino silencioso · tiros de sombra","Chaos mage · dumpling energy spells":"Mago do caos · feitiços","Assassin · speed, poison and critical hits":"Assassino · velocidade, veneno e críticos","Tank · slow but extremely durable":"Tanque · lento mas resistente","CREATE ROOM":"CRIAR SALA","JOIN ROOM":"ENTRAR","ROOM CODE":"CÓDIGO DE SALA","Create or join a room first.":"Cria ou entra numa sala primeiro.","Connecting…":"A ligar…","Room code:":"Código de sala:","Connection closed.":"Ligação fechada.","Enter a 5-digit room code.":"Introduz um código de 5 dígitos.","BOSS DEFEATED":"CHEFE DERROTADO","RELIC COLLECTED":"RELÍQUIA RECOLHIDA","REVIVED":"REVIVIDO","DEFEATED":"DERROTADO","BOMB BLAST!":"EXPLOSÃO!","MENU":"MENU","HEART OF THE KITCHEN":"CORAÇÃO DA COZINHA","BLADE":"LÂMINA","MEAT BOOMERANG":"BUMERANGUE DE CARNE","CLEAVER":"CUTELO","BLOOD STRIKE":"GOLPE DE SANGUE","BLOOD NEEDLES":"AGULHAS DE SANGUE","HUNTER SCYTHES":"FOICES DE CAÇA","CRIMSON SHOT":"TIRO CARMESIM","BLOOD RAIN":"CHUVA DE SANGUE","SHADOW DART":"DARDO SOMBRIO","THREE SHADOWS":"TRÊS SOMBRAS","DARK SLASH":"CORTE SOMBRIO","CURSE":"MALDIÇÃO","DUMPLING SPARK":"FAÍSCA DE DUMPLING","ARCANE SAUCE":"MOLHO ARCANO","DUMPLING METEOR":"METEORO DE DUMPLINGS","DOUGH VORTEX":"VÓRTICE DE MASSA","KUNAI":"KUNAI","POISON KNIVES":"FACAS VENENOSAS","SHADOW DASH":"IMPULSO SOMBRIO","DEATH VOLLEY":"SALVA MORTAL","BOILING CAULDRON":"CALDEIRÃO FERVENTE","STEAM BURST":"EXPLOSÃO DE VAPOR","IRON WAVE":"ONDA DE FERRO","FURNACE BLAST":"EXPLOSÃO DA FORNALHA","BLOOD SLASH":"CORTE DE SANGUE","CRIMSON NEEDLES":"AGULHAS CARMESIM","SHADOW STEP":"PASSO SOMBRIO","ARCANE PULSE":"PULSO ARCANO","VENOM TRAIL":"RASTO VENENOSO","IRON IMPACT":"IMPACTO DE FERRO","DUMPLING MAGE":"MAGO DUMPLING","CAULDRON GOLEM":"GOLEM CALDEIRÃO","Waiting for player 2…":"À espera do jogador 2…","Player connected. Starting…":"Jogador ligado. A iniciar…","Room not found.":"Sala não encontrada.","Connection error":"Erro de ligação","Create or join a room.":"Cria ou entra numa sala.","Ability:":"Habilidade:","· BOSS INCOMING":"· CHEFE A CAMINHO","· NEW BEST!":"· NOVO RECORDE!","· full heal":"· cura completa"},"pl":{"START RUN":"GRAJ","NIGHT SHIFT":"NOCNA ZMIANA","Ready for the riot?":"Gotowy na bunt?","Hero":"Bohater","Arena":"Arena","Mode":"Tryb","Choose hero":"Wybierz bohatera","Choose arena":"Wybierz arenę","Game mode":"Tryb gry","Back":"Wstecz","Done":"Gotowe","Solo":"Solo","Local co-op":"Koop lokalny","Online co-op":"Koop online","Controls":"Sterowanie","Music":"Muzyka","Music volume":"Głośność muzyki","Health":"Zdrowie","Speed":"Prędkość","Ability":"Umiejętność","LANGUAGE":"JĘZYK","CHOOSE CHARACTER":"WYBIERZ BOHATERA","CHOOSE MAP":"WYBIERZ ARENĘ","GAME MODE":"TRYB GRY","1 PLAYER":"1 GRACZ","2 PLAYERS":"2 GRACZY","ONLINE 2 PLAYERS":"2 GRACZY ONLINE","Classic solo mode.":"Klasyczny tryb solo.","Local co-op.":"Lokalna kooperacja.","5-digit room code.":"5-cyfrowy kod pokoju.","START NIGHT SHIFT":"ZACZNIJ ZMIANĘ","P1: WASD · LMB attack · 1–4 weapons · SPACE dash · E bomb · ESC pause":"P1: WASD · klik: atak · 1–4 broń · SPACJA unik · E bomba · ESC pauza","Collect XP crystals dropped by defeated enemies to level up. A boss appears every 5 waves.":"Zbieraj kryształy PD po wrogach. Boss pojawia się co 5 fal.","P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb · auto-fire":"P2: strzałki · 7–0 broń · SHIFT unik · ENTER bomba · autoatak","GAME PAUSED · LEVEL UP":"PAUZA · NOWY POZIOM","CHOOSE ONE UPGRADE":"WYBIERZ ULEPSZENIE","YOU GOT EATEN":"ZOSTAŁEŚ ZJEDZONY","TRY AGAIN":"SPRÓBUJ PONOWNIE","MAIN MENU":"MENU GŁÓWNE","RUN ENDED":"KONIEC GRY","RESUME":"WZNÓW","RESTART":"RESTART","Pause":"Pauza","Game paused. Choose what to do next.":"Gra wstrzymana. Wybierz działanie.","FIRE":"OGIEŃ","DASH":"UNIK","BOMB":"BOMBA","BOMBS":"BOMBY","READY":"GOTOWY","MOVE":"RUCH","AIM":"CELUJ","LV.":"POZ.","LV":"POZ","WAVE":"FALA","SCORE":"PUNKTY","ENEMIES":"WROGOWIE","BOSS":"BOSS","UNIQUE RELIC":"UNIKATOWA RELIKWIA","SOLO RECORD":"REKORD SOLO","NEW BEST!":"NOWY REKORD!","BOSS INCOMING":"NADCHODZI BOSS","BOSS PHASE":"FAZA BOSSA","WAVE CLEARED · COLLECT XP":"FALA POKONANA · ZBIERZ PD","Upgrade":"Ulepszenie","Choose one upgrade":"Wybierz ulepszenie","Level":"Poziom","Damage":"Obrażenia","Attack rate":"Szybkość ataku","Movement speed":"Szybkość ruchu","Bomb":"Bomba","Critical chance":"Szansa krytyczna","Attack radius":"Zasięg ataku","Piercing":"Przebicie","Armor":"Pancerz","full heal":"pełne leczenie","Area attacks":"Ataki obszarowe","Projectiles pass through enemies":"Pociski przebijają wrogów","Damage +10%":"Obrażenia +10%","KITCHEN":"KUCHNIA","BASEMENT":"PIWNICA","FOOD COURT":"STREFA GASTRO","FACTORY":"FABRYKA","ABANDONED YARD":"OPUSZCZONY DZIEDZINIEC","BLACK FOREST":"CZARNY LAS","Steam vents":"Zawory pary","Electrical surges":"Wyładowania elektryczne","Emergency supplies":"Zapasy awaryjne","Cutting line":"Linia cięcia","Cursed graves":"Przeklęte groby","Toxic spores":"Toksyczne zarodniki","Vents erupt in hot steam. Leave the marked circle.":"Zawory wyrzucają parę. Opuść okrąg.","Damaged cables discharge twice in succession.":"Uszkodzone kable rażą dwa razy.","Vending machines occasionally dispense a medkit. Collect it within 12 seconds.":"Automaty wydają apteczki. Zbierz je w 12 sekund.","Three staggered cutting zones sweep the conveyor.":"Trzy strefy cięcia przecinają taśmę.","A cursed burst leaves an XP crystal. Stay out of the circle.":"Klątwa zostawia kryształ PD. Unikaj okręgu.","Mushroom colonies hurt heroes and enemies. Lure enemies into the blast.":"Grzyby ranią wszystkich. Zwab wrogów w wybuch.","Brutal close fighter · heavy blade":"Wojownik wręcz · ciężkie ostrze","Blood hunter · ranged fighter":"Łowczyni krwi · walka dystansowa","Silent killer · shadow shots":"Cichy zabójca · strzały cienia","Chaos mage · dumpling energy spells":"Mag chaosu · zaklęcia","Assassin · speed, poison and critical hits":"Zabójca · szybkość, trucizna i krytyki","Tank · slow but extremely durable":"Tank · wolny, lecz wytrzymały","CREATE ROOM":"UTWÓRZ POKÓJ","JOIN ROOM":"DOŁĄCZ","ROOM CODE":"KOD POKOJU","Create or join a room first.":"Najpierw utwórz pokój lub dołącz.","Connecting…":"Łączenie…","Room code:":"Kod pokoju:","Connection closed.":"Połączenie zamknięte.","Enter a 5-digit room code.":"Wpisz 5-cyfrowy kod.","BOSS DEFEATED":"BOSS POKONANY","RELIC COLLECTED":"RELIKWIA ZEBRANA","REVIVED":"WSKRZESZONY","DEFEATED":"POKONANY","BOMB BLAST!":"WYBUCH!","MENU":"MENU","HEART OF THE KITCHEN":"SERCE KUCHNI","BLADE":"OSTRZE","MEAT BOOMERANG":"MIĘSNY BUMERANG","CLEAVER":"TASAK","BLOOD STRIKE":"KRWAWY CIOS","BLOOD NEEDLES":"KRWAWE IGŁY","HUNTER SCYTHES":"KOSY ŁOWCY","CRIMSON SHOT":"SZKARŁATNY STRZAŁ","BLOOD RAIN":"KRWAWY DESZCZ","SHADOW DART":"STRZAŁKA CIENIA","THREE SHADOWS":"TRZY CIENIE","DARK SLASH":"MROCZNE CIĘCIE","CURSE":"KLĄTWA","DUMPLING SPARK":"ISKRA PIEROŻKA","ARCANE SAUCE":"TAJEMNY SOS","DUMPLING METEOR":"METEOR PIEROGÓW","DOUGH VORTEX":"WIR CIASTA","KUNAI":"KUNAI","POISON KNIVES":"ZATRUTE NOŻE","SHADOW DASH":"UNIK CIENIA","DEATH VOLLEY":"ŚMIERTELNA SALWA","BOILING CAULDRON":"WRZĄCY KOCIOŁ","STEAM BURST":"UDERZENIE PARY","IRON WAVE":"ŻELAZNA FALA","FURNACE BLAST":"WYBUCH PIECA","BLOOD SLASH":"KRWAWE CIĘCIE","CRIMSON NEEDLES":"SZKARŁATNE IGŁY","SHADOW STEP":"KROK CIENIA","ARCANE PULSE":"IMPULS TAJEMNY","VENOM TRAIL":"TRUJĄCY ŚLAD","IRON IMPACT":"ŻELAZNE UDERZENIE","DUMPLING MAGE":"MAG PIEROGÓW","CAULDRON GOLEM":"GOLEM KOCIOŁ","Waiting for player 2…":"Oczekiwanie na gracza 2…","Player connected. Starting…":"Gracz połączony. Start…","Room not found.":"Nie znaleziono pokoju.","Connection error":"Błąd połączenia","Create or join a room.":"Utwórz pokój lub dołącz.","Ability:":"Umiejętność:","· BOSS INCOMING":"· NADCHODZI BOSS","· NEW BEST!":"· NOWY REKORD!","· full heal":"· pełne leczenie"},"uk":{"START RUN":"ПОЧАТИ ГРУ","NIGHT SHIFT":"НІЧНА ЗМІНА","Ready for the riot?":"Готовий до бунту?","Hero":"Герой","Arena":"Арена","Mode":"Режим","Choose hero":"Обери героя","Choose arena":"Обери арену","Game mode":"Режим гри","Back":"Назад","Done":"Готово","Solo":"Соло","Local co-op":"Локальний кооп","Online co-op":"Онлайн-кооп","Controls":"Керування","Music":"Музика","Music volume":"Гучність музики","Health":"Здоров'я","Speed":"Швидкість","Ability":"Здібність","LANGUAGE":"МОВА","CHOOSE CHARACTER":"ОБЕРИ ГЕРОЯ","CHOOSE MAP":"ОБЕРИ АРЕНУ","GAME MODE":"РЕЖИМ ГРИ","1 PLAYER":"1 ГРАВЕЦЬ","2 PLAYERS":"2 ГРАВЦІ","ONLINE 2 PLAYERS":"2 ГРАВЦІ ОНЛАЙН","Classic solo mode.":"Класична одиночна гра.","Local co-op.":"Локальна спільна гра.","5-digit room code.":"5-значний код кімнати.","START NIGHT SHIFT":"ПОЧАТИ НІЧНУ ЗМІНУ","P1: WASD · LMB attack · 1–4 weapons · SPACE dash · E bomb · ESC pause":"P1: WASD · ЛКМ атака · 1–4 зброя · SPACE ривок · E бомба · ESC пауза","Collect XP crystals dropped by defeated enemies to level up. A boss appears every 5 waves.":"Збирай кристали досвіду з ворогів. Бос з'являється кожні 5 хвиль.","P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb · auto-fire":"P2: стрілки · 7–0 зброя · SHIFT ривок · ENTER бомба · автовогонь","GAME PAUSED · LEVEL UP":"ПАУЗА · НОВИЙ РІВЕНЬ","CHOOSE ONE UPGRADE":"ОБЕРИ ПОКРАЩЕННЯ","YOU GOT EATEN":"ТЕБЕ З'ЇЛИ","TRY AGAIN":"ЩЕ РАЗ","MAIN MENU":"ГОЛОВНЕ МЕНЮ","RUN ENDED":"ГРУ ЗАВЕРШЕНО","RESUME":"ПРОДОВЖИТИ","RESTART":"ПОЧАТИ ЗНОВУ","Pause":"Пауза","Game paused. Choose what to do next.":"Гру призупинено. Обери дію.","FIRE":"ВОГОНЬ","DASH":"РИВОК","BOMB":"БОМБА","BOMBS":"БОМБИ","READY":"ГОТОВО","MOVE":"РУХ","AIM":"ПРИЦІЛ","LV.":"РІВ.","LV":"РІВ","WAVE":"ХВИЛЯ","SCORE":"ОЧКИ","ENEMIES":"ВОРОГИ","BOSS":"БОС","UNIQUE RELIC":"УНІКАЛЬНА РЕЛІКВІЯ","SOLO RECORD":"РЕКОРД СОЛО","NEW BEST!":"НОВИЙ РЕКОРД!","BOSS INCOMING":"НАБЛИЖАЄТЬСЯ БОС","BOSS PHASE":"ФАЗА БОСА","WAVE CLEARED · COLLECT XP":"ХВИЛЮ ЗАЧИЩЕНО · ЗБЕРИ ДОСВІД","Upgrade":"Покращення","Choose one upgrade":"Обери покращення","Level":"Рівень","Damage":"Шкода","Attack rate":"Швидкість атаки","Movement speed":"Швидкість руху","Bomb":"Бомба","Critical chance":"Шанс криту","Attack radius":"Радіус атаки","Piercing":"Пробиття","Armor":"Броня","full heal":"повне лікування","Area attacks":"Атаки по площі","Projectiles pass through enemies":"Снаряди проходять крізь ворогів","Damage +10%":"Шкода +10%","KITCHEN":"КУХНЯ","BASEMENT":"ПІДВАЛ","FOOD COURT":"ФУДКОРТ","FACTORY":"ЦЕХ","ABANDONED YARD":"ЗАНЕДБАНИЙ ДВІР","BLACK FOREST":"ЧОРНИЙ ЛІС","Steam vents":"Парові клапани","Electrical surges":"Електричні розряди","Emergency supplies":"Аварійні припаси","Cutting line":"Лінія різання","Cursed graves":"Прокляті могили","Toxic spores":"Отруйні спори","Vents erupt in hot steam. Leave the marked circle.":"Клапани викидають пару. Вийди з кола.","Damaged cables discharge twice in succession.":"Пошкоджені кабелі дають два розряди.","Vending machines occasionally dispense a medkit. Collect it within 12 seconds.":"Автомати видають аптечки. Збери їх за 12 секунд.","Three staggered cutting zones sweep the conveyor.":"Три зони різання проходять конвеєром.","A cursed burst leaves an XP crystal. Stay out of the circle.":"Прокляття залишає кристал досвіду. Уникай кола.","Mushroom colonies hurt heroes and enemies. Lure enemies into the blast.":"Гриби шкодять усім. Заманюй ворогів у вибух.","Brutal close fighter · heavy blade":"Боєць ближнього бою · важкий клинок","Blood hunter · ranged fighter":"Кривава мисливиця · дальній бій","Silent killer · shadow shots":"Тихий убивця · тіньові постріли","Chaos mage · dumpling energy spells":"Маг хаосу · закляття","Assassin · speed, poison and critical hits":"Асасин · швидкість, отрута й крити","Tank · slow but extremely durable":"Танк · повільний, але витривалий","CREATE ROOM":"СТВОРИТИ КІМНАТУ","JOIN ROOM":"ПРИЄДНАТИСЯ","ROOM CODE":"КОД КІМНАТИ","Create or join a room first.":"Спочатку створи кімнату або приєднайся.","Connecting…":"З'єднання…","Room code:":"Код кімнати:","Connection closed.":"З'єднання закрито.","Enter a 5-digit room code.":"Введи 5-значний код.","BOSS DEFEATED":"БОСА ПЕРЕМОЖЕНО","RELIC COLLECTED":"РЕЛІКВІЮ ЗІБРАНО","REVIVED":"ВІДРОДЖЕНО","DEFEATED":"ПЕРЕМОЖЕНО","BOMB BLAST!":"ВИБУХ!","MENU":"МЕНЮ","HEART OF THE KITCHEN":"СЕРЦЕ КУХНІ","BLADE":"КЛИНОК","MEAT BOOMERANG":"М'ЯСНИЙ БУМЕРАНГ","CLEAVER":"ТЕСАК","BLOOD STRIKE":"КРИВАВИЙ УДАР","BLOOD NEEDLES":"КРИВАВІ ГОЛКИ","HUNTER SCYTHES":"КОСИ МИСЛИВЦЯ","CRIMSON SHOT":"БАГРЯНИЙ ПОСТРІЛ","BLOOD RAIN":"КРИВАВИЙ ДОЩ","SHADOW DART":"ТІНЬОВИЙ ДРОТИК","THREE SHADOWS":"ТРИ ТІНІ","DARK SLASH":"РОЗРІЗ ТЕМРЯВИ","CURSE":"ПРОКЛЯТТЯ","DUMPLING SPARK":"ПЕЛЬМЕНЬ-ІСКРА","ARCANE SAUCE":"АРКАННИЙ СОУС","DUMPLING METEOR":"МЕТЕОР ПЕЛЬМЕНІВ","DOUGH VORTEX":"ВИХОР ТІСТА","KUNAI":"КУНАЙ","POISON KNIVES":"ОТРУЙНІ НОЖІ","SHADOW DASH":"ТІНЬОВИЙ РИВОК","DEATH VOLLEY":"СМЕРТЕЛЬНИЙ ЗАЛП","BOILING CAULDRON":"КИПЛЯЧИЙ КАЗАН","STEAM BURST":"ПАРОВИЙ УДАР","IRON WAVE":"ЗАЛІЗНА ХВИЛЯ","FURNACE BLAST":"ПІЧНИЙ ВИБУХ","BLOOD SLASH":"КРИВАВИЙ РОЗРІЗ","CRIMSON NEEDLES":"БАГРЯНІ ГОЛКИ","SHADOW STEP":"ТІНЬОВИЙ КРОК","ARCANE PULSE":"АРКАННИЙ ІМПУЛЬС","VENOM TRAIL":"ОТРУЙНИЙ СЛІД","IRON IMPACT":"ЗАЛІЗНИЙ УДАР","DUMPLING MAGE":"МАГ ПЕЛЬМЕНЬ","CAULDRON GOLEM":"КАЗАН-ГОЛЕМ","Waiting for player 2…":"Очікування гравця 2…","Player connected. Starting…":"Гравця підключено. Починаємо…","Room not found.":"Кімнату не знайдено.","Connection error":"Помилка з'єднання","Create or join a room.":"Створи кімнату або приєднайся.","Ability:":"Здібність:","· BOSS INCOMING":"· НАБЛИЖАЄТЬСЯ БОС","· NEW BEST!":"· НОВИЙ РЕКОРД!","· full heal":"· повне лікування"}};
+const translationIndex=Object.fromEntries(Object.entries(extraTranslations).map(([code,d])=>[code,Object.fromEntries(Object.entries(d).map(([k,v])=>[k.toLowerCase(),v]))]));
+function L(english,russian=english){if(lang==='ru')return russian;const d=translationIndex[lang];if(!d)return english;const trimmed=english.trim(),v=d[trimmed.toLowerCase()];return typeof v==='string'?english.replace(trimmed,v):english}
+const T=k=>L(I18N.en[k]||k,I18N.ru[k]||I18N.en[k]||k);
+function locName(o){const en=o.enName||o.name;if(lang==='ru')return o.name||en;if(typeof en!=='string')return '';if(en.includes(' — ')){const [a,b]=en.split(' — ');return L(a)+' — '+L(b)}return L(en,o.name)}
+function locDesc(o){return L(o.enDesc||o.desc||'',o.desc||o.enDesc||'')}
+function setLanguage(next){lang=normalizeLanguage(next);writeStorage('dumpling-riot-lang',lang);document.documentElement.lang=lang;document.getElementById('languageSelect').value=lang;makeMenu();}
 function applyLanguageStatic(){
  const q=(id,key)=>{const el=document.getElementById(id);if(el)el.textContent=T(key)};
- q('languageLabel','language');q('modeTitle','mode');document.getElementById('startBtn').textContent=lang==='en'?'START RUN':'В БОЙ';q('hpLabel','hp');q('xpLabel','xp');q('lvlLabel','lvl');q('waveLabel','wave');q('scoreLabel','score');q('relicLabel','relic');const resumeBtn=document.getElementById('resumeBtn');if(resumeBtn)resumeBtn.textContent=lang==='en'?'RESUME':'ПРОДОЛЖИТЬ';const pauseMenu=document.getElementById('pauseMenuBtn');if(pauseMenu)pauseMenu.textContent=lang==='en'?'MAIN MENU':'В ГЛАВНОЕ МЕНЮ';const pauseRestart=document.getElementById('pauseRestartBtn');if(pauseRestart)pauseRestart.textContent=lang==='en'?'RESTART':'НАЧАТЬ ЗАНОВО';const fireL=document.getElementById('fireBtn');if(fireL)fireL.textContent=lang==='en'?'FIRE':'ОГОНЬ';const dashL=document.getElementById('dashBtn');if(dashL){dashL.querySelector('.actionLabel').textContent=lang==='en'?'DASH':'РЫВОК';dashL.setAttribute('aria-label',lang==='en'?'Dash':'Рывок')}const menuMobile=document.getElementById('menuMobileBtn');if(menuMobile)menuMobile.textContent=lang==='en'?'MENU':'МЕНЮ';const bombL=document.getElementById('bombBtn');if(bombL){bombL.querySelector('.actionLabel').textContent=lang==='en'?'BOMB':'БОМБА';bombL.setAttribute('aria-label',lang==='en'?'Bomb':'Бомба')}
+ q('languageLabel','language');q('modeTitle','mode');document.getElementById('startBtn').textContent=L("START RUN","В БОЙ");q('hpLabel','hp');q('xpLabel','xp');q('lvlLabel','lvl');q('waveLabel','wave');q('scoreLabel','score');q('relicLabel','relic');const resumeBtn=document.getElementById('resumeBtn');if(resumeBtn)resumeBtn.textContent=L("RESUME","ПРОДОЛЖИТЬ");const pauseMenu=document.getElementById('pauseMenuBtn');if(pauseMenu)pauseMenu.textContent=L("MAIN MENU","В ГЛАВНОЕ МЕНЮ");const pauseRestart=document.getElementById('pauseRestartBtn');if(pauseRestart)pauseRestart.textContent=L("RESTART","НАЧАТЬ ЗАНОВО");const fireL=document.getElementById('fireBtn');if(fireL)fireL.textContent=L("FIRE","ОГОНЬ");const dashL=document.getElementById('dashBtn');if(dashL){dashL.querySelector('.actionLabel').textContent=L("DASH","РЫВОК");dashL.setAttribute('aria-label',L("Dash","Рывок"))}const menuMobile=document.getElementById('menuMobileBtn');if(menuMobile)menuMobile.textContent=L("MENU","МЕНЮ");const bombL=document.getElementById('bombBtn');if(bombL){bombL.querySelector('.actionLabel').textContent=L("BOMB","БОМБА");bombL.setAttribute('aria-label',L("Bomb","Бомба"))}
  const hs=document.querySelectorAll('#menu .hint');if(hs[0])hs[0].textContent=T('controls');if(hs[1])hs[1].textContent=T('guide');
- const en=lang==='en';for(const [id,label] of [['heroTabLabel',en?'Hero':'Герой'],['mapTabLabel',en?'Arena':'Арена'],['modeTabLabel',en?'Mode':'Режим'],['heroHeading',en?'Choose hero':'Выбери героя'],['mapHeading',en?'Choose arena':'Выбери арену'],['helpToggle',en?'Controls':'Управление'],['movePadLabel',en?'MOVE':'ХОД'],['aimPadLabel',en?'AIM':'ПРИЦЕЛ']])document.getElementById(id).textContent=label;document.getElementById('pauseBtn').setAttribute('aria-label',en?'Pause':'Пауза');updateRunSummary();updateSoundPanel();
- const pb=document.querySelector('#levelup .pauseBadge');if(pb)pb.textContent=lang==='en'?'Upgrade':'Прокачка';const lt=document.querySelector('#levelup .tag');if(lt)lt.textContent=lang==='en'?'Choose one upgrade':'Выбери одно улучшение';
+ const en=lang==='en';for(const [id,label] of [['heroTabLabel',L("Hero","Герой")],['mapTabLabel',L("Arena","Арена")],['modeTabLabel',L("Mode","Режим")],['heroHeading',L("Choose hero","Выбери героя")],['mapHeading',L("Choose arena","Выбери арену")],['helpToggle',L("Controls","Управление")],['movePadLabel',L("MOVE","ХОД")],['aimPadLabel',L("AIM","ПРИЦЕЛ")]])document.getElementById(id).textContent=label;document.getElementById('pauseBtn').setAttribute('aria-label',L('Pause','Пауза'));document.getElementById('languageSelect').value=lang;document.getElementById('languageSelect').setAttribute('aria-label',T('language'));document.getElementById('createRoomBtn').textContent=L('CREATE ROOM','СОЗДАТЬ КОМНАТУ');document.getElementById('joinRoomBtn').textContent=L('JOIN ROOM','ПОДКЛЮЧИТЬСЯ');document.getElementById('roomCodeInput').placeholder=L('ROOM CODE','КОД КОМНАТЫ');const status=document.getElementById('onlineStatus');if(status.dataset.initial==='true')status.textContent=L('Create or join a room.','Создай комнату или подключись.');document.querySelector('#pauseOverlay .title').textContent=L('Pause','ПАУЗА');document.querySelector('#pauseOverlay .pauseBadge').textContent=L('Pause','ПАУЗА');document.querySelector('#pauseOverlay .hint').textContent=L('Game paused. Choose what to do next.','Игра остановлена. Выбери, что делать дальше.');updateRunSummary();updateSoundPanel();
+ const pb=document.querySelector('#levelup .pauseBadge');if(pb)pb.textContent=L("Upgrade","Прокачка");const lt=document.querySelector('#levelup .tag');if(lt)lt.textContent=L("Choose one upgrade","Выбери одно улучшение");
  const gt=document.querySelector('#gameover .tag');if(gt)gt.textContent=T('run');const gtitle=document.querySelector('#gameover .title');if(gtitle)gtitle.textContent=T('dead');const buttons=document.querySelectorAll('#gameover .btn');if(buttons[0])buttons[0].textContent=T('retry');if(buttons[1])buttons[1].textContent=T('menu');
 }
 
-// V37: hand-shaped inventory sprites. Four unique silhouettes per hero.
+function uiPixelIcon(kind){
+ const ink='#131018',cream='#f4e5c5',steel='#a9bbc3',dark='#53616b',gold='#e5b66e',red='#dc5a59',ruby='#8b303d',green='#80dbab',teal='#367e75',violet='#bda5ee',blue='#647db5';
+ let s='';
+ const R=(x,y,w,h,col)=>s+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+col+'"/>';
+ const P=(pts,col)=>s+='<polygon points="'+pts+'" fill="'+col+'"/>';
+ const lightning=(col=gold)=>{P('18,1 5,18 13,18 9,31 28,11 19,11 24,1',ink);P('18,4 9,16 16,16 13,25 24,13 16,13 21,4',col);P('18,4 13,13 17,13 21,4',cream)};
+ const bomb=()=>{P('10,9 13,6 20,6 23,9 28,14 28,24 23,29 9,29 4,24 4,14',ink);P('10,10 22,10 26,15 26,23 21,27 11,27 6,23 6,15',dark);P('8,15 12,11 21,11 23,14 13,14 9,19',steel);P('17,8 17,4 22,4 22,7 20,7 20,11',gold);R(23,2,3,3,red);R(26,5,3,2,cream);R(25,0,2,2,gold);R(21,22,3,2,ruby);R(9,15,3,4,cream)};
+ const head=(x,y,col=gold)=>{R(x+3,y,8,2,ink);R(x+1,y+2,12,10,ink);R(x+3,y+2,8,8,col);R(x+4,y+3,6,2,cream);R(x+3,y+7,2,2,ink);R(x+9,y+7,2,2,ink);R(x,y+12,14,5,ink);R(x+2,y+12,10,4,col)};
+ switch(kind){
+ case 'damage':P('3,27 9,19 7,16 10,12 14,15 23,2 30,2 29,9 17,23 14,20 8,30',ink);P('14,16 24,4 28,4 26,10 17,20',steel);P('15,16 24,4 27,4 19,13',cream);P('5,27 11,20 14,23 8,29',gold);R(20,14,3,3,red);break;
+ case 'rate':lightning(gold);R(2,6,6,2,red);R(0,10,6,2,gold);R(24,23,6,2,gold);break;
+ case 'move':case 'dash':P('2,7 15,7 15,2 30,16 15,30 15,25 2,25 10,16',ink);P('5,9 17,9 17,6 27,16 17,26 17,23 5,23 13,16',teal);P('9,10 18,10 18,8 26,16 18,23 18,20 9,20 15,16',green);R(2,13,6,2,cream);R(0,18,8,2,steel);break;
+ case 'hp':P('3,8 7,4 13,4 16,7 19,4 25,4 29,8 29,17 16,30 3,17',ink);P('5,9 8,6 12,6 16,10 20,6 24,6 27,9 27,16 16,27 5,16',ruby);P('6,9 9,7 12,7 16,11 20,7 24,7 26,9 26,13 16,23 6,14',red);R(13,12,6,3,cream);R(15,10,2,7,cream);break;
+ case 'bomb':bomb();break;
+ case 'crit':P('16,1 20,10 31,16 20,21 16,31 11,21 1,16 11,10',ink);P('16,4 19,12 27,16 19,19 16,27 13,19 5,16 13,12',gold);P('16,8 17,14 23,16 17,17 16,23 15,17 9,16 15,14',cream);R(3,4,3,3,red);R(26,25,3,3,red);break;
+ case 'wide':P('10,2 22,2 30,10 30,22 22,30 10,30 2,22 2,10',ink);P('11,4 21,4 28,11 28,21 21,28 11,28 4,21 4,11',violet);P('12,8 20,8 24,12 24,20 20,24 12,24 8,20 8,12',blue);P('14,11 18,11 21,14 21,18 18,21 14,21 11,18 11,14',ink);R(14,14,4,4,cream);R(15,3,2,6,cream);R(23,15,6,2,cream);R(3,15,6,2,cream);R(15,23,2,6,cream);break;
+ case 'pierce':for(let k=0;k<3;k++){const x=3+k*8;R(x,4,4,24,ink);R(x+1,6,2,20,dark)}P('1,12 20,12 20,7 31,16 20,25 20,20 1,20',ink);P('3,14 22,14 22,11 28,16 22,21 22,18 3,18',steel);R(4,14,18,2,cream);break;
+ case 'armor':P('3,3 29,3 29,19 24,26 16,31 8,26 3,19',ink);P('5,5 27,5 27,18 22,24 16,28 10,24 5,18',dark);P('7,7 25,7 25,17 20,22 16,25 11,22 7,17',steel);P('16,7 25,7 25,17 20,22 16,25',dark);R(14,10,4,12,gold);R(10,13,12,4,gold);R(14,10,2,10,cream);break;
+ case 'pause':R(5,4,9,24,ink);R(18,4,9,24,ink);R(7,6,5,20,steel);R(20,6,5,20,steel);R(7,6,2,16,cream);R(20,6,2,16,cream);break;
+ case 'hero':case 'solo':head(9,5,gold);break;
+ case 'local':head(1,8,steel);head(16,3,gold);break;
+ case 'online':P('10,2 22,2 30,10 30,22 22,30 10,30 2,22 2,10',ink);P('11,4 21,4 28,11 28,21 21,28 11,28 4,21 4,11',teal);R(7,10,18,2,green);R(7,20,18,2,green);R(15,5,2,22,cream);R(10,6,2,20,green);R(20,6,2,20,green);R(4,15,24,2,cream);break;
+ case 'map':P('2,7 11,3 21,7 30,3 30,25 21,29 11,25 2,29',ink);P('4,9 11,6 21,10 28,6 28,23 21,26 11,22 4,26',dark);P('4,9 11,6 11,22 4,26',steel);P('21,10 28,6 28,23 21,26',steel);R(13,11,3,3,cream);R(16,14,3,3,gold);R(19,11,3,3,red);R(19,17,3,3,red);break;
+ case 'mode':R(4,4,24,24,ink);R(6,6,20,20,dark);R(9,10,14,2,cream);R(9,16,14,2,cream);R(9,22,14,2,cream);R(12,8,4,6,gold);R(19,14,4,6,green);R(10,20,4,6,red);break;
+ default:lightning();
+ }
+ return '<svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges">'+s+'</svg>';
+}
+// V39: hand-shaped inventory sprites. Four unique silhouettes per hero.
 const inventoryArt={
  scar:['blade','boomerang','cleaver','blood'],
  vesa:['needles','scythes','crossbow','rain'],
@@ -803,7 +1142,7 @@ const inventoryArt={
 };
 function inventoryIcon(id,i){
  const kind=(inventoryArt[id]||inventoryArt.scar)[i]||'blade',a=heroArt[id]||heroArt.scar;
- const ink='#100d16',steel='#a8b4ba',light='#e9e6d5',shadow='#5c6570',wood='#93684b',accent=a.glow,mid=a.mid,deep=a.dark;
+ const ink='#100d16',steel='#b5c4cf',light='#fff1d4',shadow='#697987',wood='#ba8b57',accent=a.glow,mid=a.lit,deep=a.mid;
  let s='';
  const R=(x,y,w,h,color)=>s+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+color+'"/>';
  const P=(pts,color)=>s+='<polygon points="'+pts+'" fill="'+color+'"/>';
@@ -813,12 +1152,12 @@ function inventoryIcon(id,i){
  case 'blade':blade();R(18,13,3,2,mid);break;
  case 'boomerang':P('4,4 13,7 25,17 28,26 19,28 15,20 6,13',ink);P('6,6 13,9 23,18 25,24 20,25 17,19 8,12',mid);P('6,6 13,9 23,18 24,21 19,17 8,10',light);R(19,22,3,3,accent);break;
  case 'cleaver':P('4,26 12,18 9,11 19,2 29,10 27,17 15,23 11,29',ink);P('11,11 19,4 27,10 25,16 15,21',steel);P('11,11 19,4 26,10 24,11 18,7 13,12',light);P('5,26 13,19 15,22 10,27 7,28',wood);R(21,14,4,2,mid);R(22,8,2,2,ink);break;
- case 'blood':P('5,23 10,8 18,3 20,10 27,5 26,17 18,27 9,29',ink);P('7,22 12,10 17,5 18,12 25,8 23,18 16,25 10,26',mid);P('12,22 17,10 20,15 24,11 20,22 16,25',accent);R(14,15,2,4,light);break;
+ case 'blood':P('4,19 8,9 17,2 20,9 28,4 29,13 24,24 17,30 7,28',ink);P('6,19 10,11 17,5 18,13 26,7 27,13 22,22 16,28 8,26',deep);P('8,20 13,12 17,8 18,15 25,11 22,20 16,25 11,25',mid);P('12,21 16,15 17,19 23,15 19,22 15,24',accent);R(16,17,2,3,light);R(2,8,3,3,mid);R(27,24,3,3,accent);break;
  case 'needles':for(let k=0;k<3;k++){let x=3+k*6;P(x+','+(27-k*4)+' '+(x+3)+','+(14-k*4)+' '+(x+11)+','+(4-k)+' '+(x+7)+','+(18-k*4),ink);P((x+2)+','+(23-k*4)+' '+(x+10)+','+(5-k)+' '+(x+5)+','+(18-k*4),accent);R(x+3,18-k*4,2,3,mid)}break;
  case 'scythes':P('3,7 12,3 25,7 29,15 24,19 19,11 11,8 8,14 4,15',ink);P('5,7 12,5 24,9 27,15 24,16 20,10 12,7',steel);P('8,10 11,11 25,28 21,30',wood);P('3,20 7,18 17,26 23,23 25,26 18,30',accent);break;
  case 'crossbow':P('3,8 7,4 16,11 25,4 29,8 26,17 19,18 19,29 13,29 13,18 6,17',ink);P('5,8 8,6 16,14 24,6 27,8 24,15 19,16 13,16 8,15',mid);R(14,11,4,16,steel);R(15,3,2,15,accent);R(12,12,8,2,light);break;
  case 'rain':for(let k=0;k<5;k++){let x=4+k*5,y=4+(k%2)*5;P(x+','+y+' '+(x+5)+','+(y+5)+' '+(x+2)+','+(y+16)+' '+(x-1)+','+(y+9),ink);P((x+1)+','+(y+2)+' '+(x+3)+','+(y+6)+' '+(x+1)+','+(y+12),accent)}R(7,26,18,2,mid);break;
- case 'dart':gem(16,13);P('4,28 10,14 15,15 11,23 8,29',deep);P('18,10 26,3 29,4 23,12',light);break;
+ case 'dart':P('3,25 9,15 14,14 19,5 29,2 26,12 18,19 17,24 7,29',ink);P('5,25 12,17 16,16 22,7 27,4 24,11 17,18 15,23 7,27',mid);P('15,15 22,7 27,4 23,12 19,17',accent);R(11,20,3,2,light);R(3,17,4,2,deep);R(9,28,4,2,accent);break;
  case 'shadows':gem(8,20,mid);gem(16,10);gem(24,20,mid);R(15,8,2,4,light);break;
  case 'slash':P('4,24 7,13 18,5 29,4 21,10 12,21 12,28',ink);P('6,23 9,14 19,7 26,6 19,12 11,23 10,26',mid);P('9,21 14,12 24,7 17,14 12,23',accent);break;
  case 'curse':P('6,10 12,5 20,5 26,10 26,22 19,28 12,28 6,22',ink);P('8,11 13,7 19,7 24,11 24,21 18,26 13,26 8,21',deep);R(11,12,4,4,accent);R(18,12,4,4,accent);R(14,19,5,2,light);R(15,3,2,4,mid);R(15,26,2,4,mid);break;
@@ -827,7 +1166,7 @@ function inventoryIcon(id,i){
  case 'meteor':P('3,4 11,8 15,5 19,12 27,14 30,22 25,29 16,28 10,23 8,15',ink);P('5,5 13,10 16,8 19,15 13,20 10,15',mid);P('15,16 22,12 27,16 29,22 24,27 17,26 12,22',shadow);P('15,17 22,14 26,17 27,21 21,25 16,23',accent);R(19,17,4,3,light);break;
  case 'vortex':P('4,13 12,5 23,5 29,12 27,23 18,29 7,26 3,20 5,17 11,23 19,25 24,19 23,12 17,9 10,13 10,18 15,21 19,18 15,14 20,12 23,17 20,22 12,23 6,19',mid);P('5,13 13,6 22,6 27,12 25,16 22,10 14,8 8,14 9,18 6,18',accent);R(15,14,3,3,light);break;
  case 'kunai':P('4,25 11,18 11,13 25,4 28,5 20,20 15,20 8,28',ink);P('13,13 25,6 20,18 15,18',steel);P('15,13 25,6 18,15',light);R(5,23,5,5,mid);R(6,24,2,2,ink);break;
- case 'poison':blade();P('18,26 22,17 26,22 27,27 23,30',deep);P('20,25 22,19 25,24 25,27 22,28',accent);break;
+ case 'poison':P('3,25 8,19 6,16 10,13 13,16 19,4 27,2 28,9 19,22 15,20 8,30',ink);P('13,17 20,6 26,4 25,9 18,20',steel);P('16,15 22,6 26,4 22,11',light);P('8,21 12,17 15,21 8,28',wood);P('19,25 23,17 28,24 28,28 23,31 18,28',ink);P('21,25 23,20 26,25 26,27 23,29 20,27',accent);R(22,24,2,2,light);break;
  case 'step':P('3,18 12,12 12,7 28,15 15,27 15,21 3,26 7,21',deep);P('6,19 16,13 15,10 26,15 17,24 17,19',accent);R(2,10,8,2,mid);R(5,27,8,2,mid);break;
  case 'volley':for(let k=0;k<3;k++){let x=3+k*6;P(x+','+(26-k*2)+' '+(x+4)+','+(13-k*2)+' '+(x+12)+','+(5+k)+' '+(x+8)+','+(18-k*2),ink);P((x+3)+','+(22-k*2)+' '+(x+11)+','+(6+k)+' '+(x+7)+','+(17-k*2),steel)}R(11,12,3,2,accent);break;
  case 'cauldron':P('5,12 8,8 24,8 28,12 26,25 21,29 11,29 6,24',ink);P('7,12 25,12 24,24 20,27 12,27 8,23',shadow);R(8,10,16,4,steel);R(10,14,3,9,light);R(16,19,6,4,accent);R(12,4,2,3,light);R(19,2,2,5,light);break;
@@ -835,7 +1174,7 @@ function inventoryIcon(id,i){
  case 'iron':P('3,21 7,13 13,10 16,16 21,6 29,5 27,13 21,23 13,28 6,28',ink);P('5,21 9,15 13,13 16,19 22,9 27,7 24,15 19,22 12,26 7,26',steel);P('8,18 12,15 16,22 23,12 21,19 15,26 9,25',shadow);R(21,9,4,2,light);break;
  case 'furnace':P('5,8 10,4 22,4 27,8 27,27 5,27',ink);R(7,9,18,16,shadow);R(9,6,14,4,steel);R(9,13,14,10,deep);P('11,22 11,17 15,12 16,16 20,12 22,22',mid);P('14,22 15,17 18,16 20,22',accent);R(16,20,2,2,light);break;
  }
- return '<svg class="inventoryIcon" aria-hidden="true" viewBox="0 0 32 32" shape-rendering="crispEdges">'+s+'</svg>';
+ return '<svg class="inventoryIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges">'+s+'</svg>';
 }
 function syncInventoryArt(p){
  for(const b of document.querySelectorAll('#mobileWeapons .mw,#weaponHud .weapon')){
@@ -844,31 +1183,88 @@ function syncInventoryArt(p){
  }
 }
 
+// V43 original pixel-art menu composition. Rendered only when selection changes.
+function paintMenuKeyArt(g,hero,map){
+ const w=400,h=144,theme=terrainThemes[map.id]||terrainThemes.kitchen,accent=arenaFeatures[map.id]?.color||'#ff9b81';
+ const R=(col,x,y,ww,hh)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(ww),Math.round(hh))};
+ const P=(col,pts)=>{g.fillStyle=col;g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill()};
+ g.save();g.imageSmoothingEnabled=false;R('#130f20',0,0,w,h);
+ // Red moon / furnace light, a stepped silhouette and cold rim lighting.
+ const sky=g.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#151326');sky.addColorStop(.52,'#512036');sky.addColorStop(1,'#150e1d');R(sky,0,0,w,h);
+ const halo=g.createRadialGradient(282,52,5,282,52,93);halo.addColorStop(0,'#ff8962');halo.addColorStop(.3,'#d9485b');halo.addColorStop(1,'rgba(180,34,78,0)');g.globalAlpha=.65;R(halo,189,0,187,144);g.globalAlpha=1;
+ P('#ce4d59',[254,14,306,14,321,29,321,65,306,80,254,80,239,65,239,29]);P('#f17f6b',[255,17,305,17,318,30,318,50,244,50,244,30]);R('#f2a27d',263,17,32,2);
+ for(let i=0;i<8;i++){const yy=33+i*6;R('#9f3549',241+(i%3)*5,yy,73-(i%3)*9,2)}
+ // Broken factory windows; silhouettes stay behind the playable character.
+ for(let i=0;i<9;i++){const x=i*47-9,bh=40+Math.floor(terrainHash(i,11,44)*35);R('#1a1423',x,77-bh,36,bh+32);R('#3c2639',x+1,78-bh,34,2);R('#211928',x+4,83-bh,28,3);for(let j=0;j<3;j++){R('#322737',x+5+j*9,87-bh,4,12);if((i+j)%4===0)R('#a64f57',x+5+j*9,87-bh,2,7)}}
+ for(const x of [16,108,208,372]){R('#100f1b',x,0,10,104);R('#493248',x+8,0,2,100);R('#100f1b',x-5,19,20,5)}
+ R('#15151e',0,90,w,54);
+ for(let y=92;y<144;y+=9){R('#3a2635',0,y,w,1);for(let x=(y%2)*11;x<w;x+=31){R('#25202e',x,y+1,1,8);if((x+y)%4===0)R('#3c293b',x+2,y+2,13,1)}}
+ // Stage-specific silhouette and light color. All six arenas alter the scene.
+ if(map.id==='forest'||map.id==='cemetery'){
+  for(const x of [174,220,350,386]){P('#11151e',[x-19,99,x-9,65,x-18,65,x-2,42,x-8,42,x+4,15,x+18,45,x+11,45,x+24,68,x+12,68,x+23,99]);R('#36443f',x+2,70,4,31)}
+  if(map.id==='cemetery')for(const x of [238,338]){R('#4a4250',x,81,9,21);R('#7b6871',x+2,77,5,4);R('#25242d',x-3,102,15,2)}
+ }else if(map.id==='foodcourt'){
+  for(const x of [182,354]){R('#191b2a',x,46,26,52);R('#6b436a',x+2,48,22,2);R('#302c4b',x+4,54,18,21);R('#b34b9d',x+6,57,5,8);R('#68b9bd',x+13,57,6,8);R('#f6ba73',x+7,78,13,3)}
+ }else if(map.id==='slaughter'){
+  R('#211621',174,27,209,4);for(const x of [193,232,329,365]){R('#49363f',x,31,2,29);P('#9e7c76',[x,60,x+6,60,x+6,65,x+2,69,x-3,65,x-3,62,x,62])}
+ }else if(map.id==='basement'){
+  for(const x of [187,350]){R('#263541',x,24,9,72);R('#587c8c',x+1,24,2,65);R('#18262e',x-4,51,17,4);R('#8bb5b8',x-3,51,15,1)}
+ }else{
+  for(const x of [182,348]){R('#25232c',x,70,37,31);R('#64575e',x+1,70,35,2);R('#171d27',x+4,75,29,18);for(let j=0;j<4;j++){R('#4b4f59',x+7+j*6,78,3,9);R('#d38b64',x+8+j*6,78,1,3)}}
+ }
+ // Ground reflection and hard pixel outline around the actual hero.
+ const pool=g.createRadialGradient(295,111,3,295,111,74);pool.addColorStop(0,accent);pool.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.19;R(pool,221,83,148,61);g.globalAlpha=1;
+ P('#0b0b15',[254,116,267,109,313,109,333,116,320,125,267,125]);R('#785064',268,123,47,1);
+ g.save();g.translate(288,101);g.scale(3.05,3.05);pixelHeroBody(g,hero.id,0,0,0);pixelHeroWeapon(g,hero.id,0,-.30,0);g.restore();
+ // Foreground drifting-ember shapes, baked deterministically for a crisp static screen.
+ for(let i=0;i<41;i++){const x=Math.floor(terrainHash(i,27,42)*400),y=12+Math.floor(terrainHash(i,31,73)*123);if(x<145||Math.hypot(x-292,y-76)<38)continue;R(i%3===0?accent:'#d36b72',x,y,i%5===0?2:1,1)}
+ for(let i=0;i<13;i++){const x=163+i*18,y=131+(i%3)*3;R(i%2?'#58404e':'#45303f',x,y,11,1)}
+ g.restore();
+}
+
 function paintMenuStage(hero,map){
  const g=document.getElementById('heroStageCanvas').getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,200,108);// A crop of the real arena behind the actual character model.
- g.save();g.translate(-860,-486);paintTerrain(g,map.id,860,486,200,108);g.restore();
+ g.save();g.translate(-860,-486);paintTerrain(g,map.id,860,486,200,108);paintArenaAtmosphere(g,map.id,{x:860,y:486,w:200,h:108},0);g.restore();
  g.fillStyle='rgba(13,12,15,.35)';g.fillRect(0,0,200,108);g.save();g.translate(100,72);g.scale(1.75,1.75);pixelHeroBody(g,hero.id,0,0,0);pixelHeroWeapon(g,hero.id,0,-.35,0);g.restore();
- document.getElementById('heroStageName').textContent=locName(hero);document.getElementById('heroStageStats').textContent=(lang==='en'?'Health ':'Здоровье ')+hero.hp+' / '+(lang==='en'?'Speed ':'Скорость ')+hero.speed;
- const mg=document.getElementById('mapStageCanvas').getContext('2d');mg.save();mg.translate(-720,-405);paintTerrain(mg,map.id,720,405,480,270);mg.restore();
+ document.getElementById('heroStageName').textContent=locName(hero);document.getElementById('heroStageStats').textContent=(L("Health ","Здоровье "))+hero.hp+' / '+(L("Speed ","Скорость "))+hero.speed;
+ const mg=document.getElementById('mapStageCanvas').getContext('2d');mg.save();mg.translate(-720,-405);paintTerrain(mg,map.id,720,405,480,270);paintArenaAtmosphere(mg,map.id,{x:720,y:405,w:480,h:270},0);mg.restore();
  document.getElementById('mapStageName').textContent=locName(map).split(' — ')[0];
 }
 
-function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(en?'Online':'Онлайн'):coop?(en?'Co-op':'2 игрока'):(en?'Solo':'Соло');document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(en?'Ability: ':'Способность: ')+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+((en?hero.enWeaponNames:hero.weaponNames)[i])+'</span></div>').join('');document.getElementById('mapDetail').textContent=locDesc(map);paintMenuStage(hero,map)}
-function setMenuTab(next){if(!['hero','map','mode'].includes(next))return false;document.querySelectorAll('[data-menu-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.menuTab===next)));document.querySelectorAll('[data-menu-panel]').forEach(p=>p.hidden=p.dataset.menuPanel!==next);document.getElementById('menuBody').scrollTop=0;return true}
+function menuChoiceDefaults(savedHero,savedMap){return {hero:chars.some(x=>x.id===savedHero)?savedHero:chars[0].id,map:maps.some(x=>x.id===savedMap)?savedMap:maps[0].id}}
+function saveMenuSelection(){writeStorage('dumpling-riot-hero',selectedChar);writeStorage('dumpling-riot-arena',selectedMap)}
+function refreshMenuHome(hero,map,mode){
+ const en=lang==='en',f=arenaFeatures[map.id];
+ const keyArt=document.getElementById('menuKeyArt');paintMenuKeyArt(keyArt.getContext('2d'),hero,map);
+ const labels={homeEyebrow:L("NIGHT SHIFT","НОЧНАЯ СМЕНА"),homeHeading:L("Ready for the riot?","Готов к бунту?"),homeHeroLabel:L("HERO","ГЕРОЙ"),homeMapLabel:L("ARENA","АРЕНА"),homeModeLabel:L("MODE","РЕЖИМ"),homeHeroName:locName(hero),homeHeroStats:'HP '+hero.hp+' · '+(L("Speed ","Скорость "))+hero.speed,homeMapName:locName(map).split(' — ')[0],homeMapFeature:L(f.en,f.ru),homeModeName:mode==='online'?(L("Online co-op","Онлайн")) : mode==='local'?(L("Local co-op","2 игрока")):(L("Solo","Соло")),menuBackLabel:L("Back","Назад"),menuDone:L("Done","Готово")};
+ for(const [id,value] of Object.entries(labels))document.getElementById(id).textContent=value;
+ document.getElementById('homeModeIcon').innerHTML=uiPixelIcon(mode);
+ const hc=document.getElementById('homeHeroCanvas'),mc=document.getElementById('homeMapCanvas');
+ for(const [cv,source] of [[hc,'heroStageCanvas'],[mc,'mapStageCanvas']]){const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,cv.width,cv.height);g.drawImage(document.getElementById(source),0,0,cv.width,cv.height)}
+ const view=document.getElementById('menu').dataset.view;document.getElementById('menuCurrentTitle').textContent=view==='hero'?(L("Choose hero","Выбери героя")):view==='map'?(L("Choose arena","Выбери арену")):view==='mode'?(L("Game mode","Режим игры")):'';
+}
+function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(L("Online","Онлайн")):coop?(L("Co-op","2 игрока")):(L("Solo","Соло"));document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(L("Ability: ","Способность: "))+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+L(hero.enWeaponNames[i],hero.weaponNames[i])+'</span></div>').join('');const af=arenaFeatures[map.id];document.getElementById('mapDetail').textContent=(L(af.en,af.ru)+': '+L(af.hintEn,af.hint));paintMenuStage(hero,map);refreshMenuHome(hero,map,onlineMode?'online':coop?'local':'solo')}
+function menuViewAllowed(next){return ['home','hero','map','mode'].includes(next)}
+function setMenuTab(next){if(!menuViewAllowed(next))return false;const menu=document.getElementById('menu'),previous=menu.dataset.view;menu.dataset.view=next;document.querySelectorAll('[data-menu-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.menuTab===next)));document.querySelectorAll('[data-menu-panel]').forEach(p=>p.hidden=p.dataset.menuPanel!==next);document.getElementById('menuBackBar').hidden=next==='home';document.getElementById('menuBody').scrollTop=0;const en=lang==='en';document.getElementById('menuCurrentTitle').textContent=next==='hero'?(L("Choose hero","Выбери героя")):next==='map'?(L("Choose arena","Выбери арену")):next==='mode'?(L("Game mode","Режим игры")):'';if(next==='home'&&previous!=='home')menu.querySelector('[data-open-menu="'+previous+'"]')?.focus({preventScroll:true});return true}
+document.querySelectorAll('[data-open-menu]').forEach(b=>b.addEventListener('click',()=>setMenuTab(b.dataset.openMenu)));
+document.getElementById('menuBack').addEventListener('click',()=>setMenuTab('home'));
+document.getElementById('menuDone').addEventListener('click',()=>setMenuTab('home'));
 document.querySelectorAll('[data-menu-tab]').forEach(b=>b.addEventListener('click',()=>setMenuTab(b.dataset.menuTab)));
-function updateSoundPanel(){document.getElementById('soundToggle').textContent=lang==='en'?'Music':'Музыка';document.getElementById('musicLabel').textContent=lang==='en'?'Music volume':'Громкость музыки';document.getElementById('musicVolume').value=musicVolume;document.getElementById('musicVolumeValue').textContent=musicVolume+'%'}
+function updateSoundPanel(){document.getElementById('soundToggle').textContent=L("Music","Музыка");document.getElementById('musicLabel').textContent=L("Music volume","Громкость музыки");document.getElementById('musicVolume').value=musicVolume;document.getElementById('musicVolumeValue').textContent=musicVolume+'%'}
 document.getElementById('soundToggle').addEventListener('click',()=>{const p=document.getElementById('soundPanel');p.hidden=!p.hidden;document.getElementById('soundToggle').setAttribute('aria-expanded',String(!p.hidden))});
 document.getElementById('musicVolume').addEventListener('input',e=>{musicVolume=Math.max(0,Math.min(100,Number(e.target.value)||0));writeStorage('dumpling-riot-music-volume',String(musicVolume));applyMusicVolume();updateSoundPanel()});
 document.getElementById('helpToggle').addEventListener('click',()=>{const h=document.getElementById('menuHelp');h.hidden=!h.hidden;document.getElementById('helpToggle').setAttribute('aria-expanded',String(!h.hidden))});
 function makeMenu(){
  const cc=document.getElementById('charChoices');cc.innerHTML='';document.getElementById('recordLine').textContent=recordText(loadRecord());
- for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);pixelHeroWeapon(pg,ch.id,0,0,0);d.prepend(portrait);d.onclick=()=>{selectedChar=ch.id;makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
- const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:T('onePlayer'),desc:T('modeOneDesc')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes){const d=document.createElement('button');d.type='button';d.className='modeChoice'+((md.id==='solo'&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.setAttribute('aria-pressed',String(d.classList.contains('sel')));d.innerHTML=`<b>${md.title}</b><p>${md.desc}</p>`;d.onclick=()=>{onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu();modeBox.querySelector('.sel')?.focus({preventScroll:true})};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||'нет комнаты'):'')}
+ for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);pixelHeroWeapon(pg,ch.id,0,0,0);d.prepend(portrait);d.onclick=()=>{selectedChar=ch.id;saveMenuSelection();makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
+ const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:T('onePlayer'),desc:T('modeOneDesc')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes){const d=document.createElement('button');d.type='button';d.className='modeChoice'+((md.id==='solo'&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.setAttribute('aria-pressed',String(d.classList.contains('sel')));d.innerHTML=uiPixelIcon(md.id)+`<div class="modeCopy"><b>${md.title}</b><p>${md.desc}</p></div>`;d.onclick=()=>{onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu();modeBox.querySelector('.sel')?.focus({preventScroll:true})};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||'нет комнаты'):'')}
  const mc=document.getElementById('mapChoices');mc.innerHTML='';
- for(const m of maps){const d=document.createElement('button');d.type='button';d.className='choice'+(m.id===selectedMap?' sel':'');d.style.setProperty('--accent',m.accent);d.style.setProperty('--card',m.tile);d.setAttribute('aria-pressed',String(m.id===selectedMap));d.innerHTML=`<b>${locName(m).split(' — ')[0]}</b>`;const thumbnail=document.createElement('canvas');thumbnail.width=160;thumbnail.height=90;thumbnail.className='mapPortrait';thumbnail.setAttribute('aria-hidden','true');thumbnail.getContext('2d').drawImage(mapThumbnail(m.id),0,0);d.prepend(thumbnail);d.onclick=()=>{selectedMap=m.id;makeMenu();mc.querySelector('.sel')?.focus({preventScroll:true})};mc.appendChild(d)}
+ for(const m of maps){const d=document.createElement('button');d.type='button';d.className='choice'+(m.id===selectedMap?' sel':'');d.style.setProperty('--accent',m.accent);d.style.setProperty('--card',m.tile);d.setAttribute('aria-pressed',String(m.id===selectedMap));d.innerHTML=`<b>${locName(m).split(' — ')[0]}</b>`;const thumbnail=document.createElement('canvas');thumbnail.width=160;thumbnail.height=90;thumbnail.className='mapPortrait';thumbnail.setAttribute('aria-hidden','true');thumbnail.getContext('2d').drawImage(mapThumbnail(m.id),0,0);d.prepend(thumbnail);d.onclick=()=>{selectedMap=m.id;saveMenuSelection();makeMenu();mc.querySelector('.sel')?.focus({preventScroll:true})};mc.appendChild(d)}
  applyLanguageStatic();
 }
+const restoredMenuChoice=menuChoiceDefaults(readStorage('dumpling-riot-hero',''),readStorage('dumpling-riot-arena',''));selectedChar=restoredMenuChoice.hero;selectedMap=restoredMenuChoice.map;
 makeMenu();
+setMenuTab('home');
 
 function toast(s){const el=document.getElementById('toast');el.textContent=s;el.classList.add('show');toastTimer=.9}
 function setMobileControls(on){
@@ -888,11 +1284,11 @@ function setHud(on){
 }
 function requestMobileFullscreen(){try{if(!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}if(screen.orientation&&screen.orientation.lock){const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
 function resetPlayer(p,ch,x,y){p.weaponLevels=[1,1,1,1];p.charId=ch.id;p.x=x;p.y=y;p.serverX=x;p.serverY=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.canRevive=false;p.hurtT=0;p.hurtLean=0;p.weaponCharge=[1,1,1,1];p.shivCharge=1;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[]}
-function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e)e.textContent=t}
+function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e){e.dataset.initial='false';e.textContent=t}}
 const makeRoomCode=()=>String(rndi(10000,99999));
 function setupPeer(hostMode=false){
  if(typeof Peer==='undefined'){
-   setOnlineStatus('Онлайн: библиотека PeerJS не загрузилась.');
+   setOnlineStatus(L("Connection error","Онлайн: библиотека PeerJS не загрузилась."));
    return Promise.reject(new Error('PeerJS не загружен'));
  }
  if(peerReadyPromise)return peerReadyPromise;
@@ -901,7 +1297,7 @@ function setupPeer(hostMode=false){
      const roomCode=netRoom||makeRoomCode();
      const id=hostMode?('dr-'+roomCode):undefined;
      try{
-       setOnlineStatus(hostMode?'Подключаемся к серверу комнат...':'Подключаемся к онлайн-серверу...');
+       setOnlineStatus(hostMode?L("Connecting…","Подключаемся к серверу комнат..."):L("Connecting…","Подключаемся к онлайн-серверу..."));
        peer=new Peer(id,{
          host:'0.peerjs.com',
          port:443,
@@ -932,7 +1328,7 @@ function setupPeer(hostMode=false){
            'socket-error':'Соединение с сервером прервано.',
            'unavailable-id':'Код комнаты уже занят, создаём новый.'
          }[type]||('Ошибка '+type);
-         setOnlineStatus('Онлайн: '+readable);
+         setOnlineStatus(L('Connection error','Ошибка подключения')+': '+readable);
          if(!settled){
            settled=true;peer=null;peerReadyPromise=null;
            reject(e||new Error(type));
@@ -943,9 +1339,9 @@ function setupPeer(hostMode=false){
          if(hostMode){
            netRoom=String(peerId).replace(/^dr-/,'');
            const i=document.getElementById('roomCodeInput');if(i)i.value=netRoom;
-           setOnlineStatus('КОМНАТА СОЗДАНА · ТЫ ИГРОК 1 · КОД: '+netRoom+' · ЖДЁМ ИГРОКА 2');
+           setOnlineStatus(L('Room code:','Код комнаты:')+' '+netRoom+' · '+L('Waiting for player 2…','Ждём игрока 2…'));
          }else{
-           setOnlineStatus('Онлайн-сервер подключён · соединяемся с комнатой...');
+           setOnlineStatus(L("Connecting…","Онлайн-сервер подключён · соединяемся с комнатой..."));
          }
          resolve(peerId);
        });
@@ -954,21 +1350,21 @@ function setupPeer(hostMode=false){
          if(channel==='state'){
            if(netStateConn){try{c.close()}catch(_){};return}
            netStateConn=c;
-           c.on('open',()=>setOnlineStatus('Канал синхронизации подключён.'));
+           c.on('open',()=>setOnlineStatus(L("Player connected. Starting…","Канал синхронизации подключён.")));
            wireStateNet(c);
            return;
          }
          if(netConn){try{c.close()}catch(_){};return}
          netConn=c;
          isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;
-         setOnlineStatus('Игрок найден · устанавливаем соединение...');
+         setOnlineStatus(L("Connecting…","Игрок найден · устанавливаем соединение..."));
          wireNet(c);
        });
        peer.on('error',fail);
        peer.on('disconnected',()=>{
-         if(!onlineMode||!netConn||!netConn.open)setOnlineStatus('Онлайн: сервер отключён. Нажми подключиться ещё раз.');
+         if(!onlineMode||!netConn||!netConn.open)setOnlineStatus(L("Connection closed.","Онлайн: сервер отключён. Нажми подключиться ещё раз."));
        });
-       peer.on('close',()=>setOnlineStatus('Онлайн: соединение закрыто.'));
+       peer.on('close',()=>setOnlineStatus(L("Connection closed.","Онлайн: соединение закрыто.")));
      }catch(e){
        peer=null;peerReadyPromise=null;reject(e);
      }
@@ -979,19 +1375,19 @@ function setupPeer(hostMode=false){
 }
 function wireNet(c){
  c.on('open',()=>{
-   setOnlineStatus(isOnlineHost?'Игрок подключён. Запускаем игру.':'Подключено. Запускаем игру.');
+   setOnlineStatus(isOnlineHost?L("Player connected. Starting…","Игрок подключён. Запускаем игру."):L("Player connected. Starting…","Подключено. Запускаем игру."));
    try{
      const pc=c.peerConnection;
      if(pc){
        pc.oniceconnectionstatechange=()=>{
          const ice=pc.iceConnectionState;
-         if(ice==='failed')setOnlineStatus('Онлайн: WebRTC не соединил устройства. Пробуем TURN...');
-         else if(ice==='connected'||ice==='completed')setOnlineStatus(isOnlineHost?'Игрок подключён. Запускаем игру.':'Подключено. Запускаем игру.');
+         if(ice==='failed')setOnlineStatus(L("Connecting…","Онлайн: WebRTC не соединил устройства. Пробуем TURN..."));
+         else if(ice==='connected'||ice==='completed')setOnlineStatus(isOnlineHost?L("Player connected. Starting…","Игрок подключён. Запускаем игру."):L("Player connected. Starting…","Подключено. Запускаем игру."));
        };
      }
    }catch(_){}
    if(isOnlineHost){
-     setOnlineStatus('ВТОРОЙ ИГРОК ПОДКЛЮЧЁН · ЗАПУСКАЕМ ИГРУ...');
+     setOnlineStatus(L("Player connected. Starting…","ВТОРОЙ ИГРОК ПОДКЛЮЧЁН · ЗАПУСКАЕМ ИГРУ..."));
      if(state==='menu'){
        sendNet({t:'start',map:selectedMap});
        startGame();
@@ -1001,11 +1397,11 @@ function wireNet(c){
  c.on('data',m=>{
   if(m.t==='hello'){
     if(isOnlineHost){
-      setOnlineStatus('ВТОРОЙ ИГРОК ПОДКЛЮЧЁН · ЗАПУСКАЕМ ИГРУ...');
+      setOnlineStatus(L("Player connected. Starting…","ВТОРОЙ ИГРОК ПОДКЛЮЧЁН · ЗАПУСКАЕМ ИГРУ..."));
       if(state==='menu'){sendNet({t:'start',map:selectedMap});setTimeout(()=>sendNet({t:'start',map:selectedMap}),180);setTimeout(()=>sendNet({t:'start',map:selectedMap}),500);startGame();}
     }else{
       netRoom=m.room||netRoom;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;
-      setOnlineStatus('ИГРОК 2 ПОДКЛЮЧЁН · ЖДЁМ АВТОМАТИЧЕСКОГО СТАРТА...');
+      setOnlineStatus(L("Player connected. Starting…","ИГРОК 2 ПОДКЛЮЧЁН · ЖДЁМ АВТОМАТИЧЕСКОГО СТАРТА..."));
     }
   }
   if(m.t==='input'&&isOnlineHost){touchInput.p2MoveX=Number(m.mx)||0;touchInput.p2MoveY=Number(m.my)||0;player2.remoteAimActive=!!m.aa;if(player2.remoteAimActive){const ax=Number(m.ax)||0,ay=Number(m.ay)||0;if(Math.hypot(ax,ay)>.01)player2.aim=Math.atan2(ay,ax)}player2.weapon=clamp(Math.floor(Number(m.weapon)||0),0,3)}
@@ -1022,7 +1418,7 @@ function wireNet(c){
   if(m.t==='gameover'&&isOnlineGuest){score=Number(m.score)||score;wave=Number(m.wave)||wave;endGame(false);}
 
  });
- c.on('close',()=>{setOnlineStatus('Соединение закрыто.');if(isOnlineGuest){state='menu';goMenu()}});
+ c.on('close',()=>{setOnlineStatus(L('Connection closed.','Соединение закрыто.'));if(isOnlineGuest){state='menu';goMenu()}});
 }
 function applyNetState(s){
  if(!s)return;
@@ -1044,7 +1440,7 @@ function applyNetState(s){
  wave=s.wave||1;score=s.score||0;combo=s.combo||1;waveState=s.waveState||'fighting';targetCount=s.targetCount??enemies.length;spawned=s.spawned??targetCount;
 }
 function netState(){
- return {p1:{x:player.x,y:player.y,charId:player.charId,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:player.weapon,lvl:player.lvl,bomb:player.bomb,dash:player.dash,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,charId:player2.charId,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,dash:player2.dash,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,dead:e.dead,stage:e.stage,kind:e.kind,charge:e.charge})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy,kind:p.kind})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,value:d.value,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type,name:boss.name,enName:boss.enName,stage:boss.stage,kind:boss.kind}:null,hazards:hazards.map(({x,y,radius,remaining,duration})=>({x,y,radius,remaining,duration})),wave,score,combo,waveState,targetCount,spawned}
+ return {p1:{x:player.x,y:player.y,charId:player.charId,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:player.weapon,lvl:player.lvl,bomb:player.bomb,dash:player.dash,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,charId:player2.charId,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,dash:player2.dash,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,dead:e.dead,stage:e.stage,kind:e.kind,charge:e.charge})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy,kind:p.kind})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,value:d.value,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type,name:boss.name,enName:boss.enName,stage:boss.stage,kind:boss.kind}:null,hazards:hazards.map(({x,y,radius,remaining,duration,kind})=>({x,y,radius,remaining,duration,kind})),wave,score,combo,waveState,targetCount,spawned}
 }
 function sendNet(m){
  const c=m&&m.t==='state'?netStateConn:netConn;
@@ -1060,16 +1456,16 @@ function wireStateNet(c){
  });
  c.on('error',()=>{});
 }
-function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus('Сначала создай комнату и дождись игрока.');return false}sendNet({t:'start',map:selectedMap});return true}
+function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus(L("Create or join a room first.","Сначала создай комнату и дождись игрока."));return false}sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false){
  if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
  startHorrorMusic();clearLocalInput();levelupBusy=false;upgradeQueue.length=0;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
  resetPlayer(player,ch,world.w/2-18,world.h/2);resetPlayer(player2,ch2,world.w/2+18,world.h/2);
  player.weapon=0;player2.weapon=coop?1:0;
- weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast(coop?'2 ИГРОКА · ВОЛНА 1':'ВОЛНА 1');if(location.protocol!=='file:')requestMobileFullscreen();
+ weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;arenaEventTimer=8;arenaEventIndex=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast(coop?'2 ИГРОКА · ВОЛНА 1':'ВОЛНА 1');if(location.protocol!=='file:')requestMobileFullscreen();
 }
-function goMenu(){clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu()}
+function goMenu(){clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
 function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlayers?7:4)+Math.floor(round/4))}
 function beginWave(){
  waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];hazards=[];
@@ -1087,7 +1483,7 @@ function beginWave(){
  const first=waveSpawnBudget(wave,coop,targetCount);
  while(spawned<first){spawnEnemy();spawned++}
  waveTime=0;
- toast((lang==='en'?'WAVE ':'ВОЛНА ')+wave+(bossWave?(lang==='en'?' · BOSS INCOMING':' · БОСС') : ''));
+ toast((L("WAVE ","ВОЛНА "))+wave+(bossWave?(L(" · BOSS INCOMING"," · БОСС")) : ''));
 }
 function makeBoss(w){
  const idx=((w/5-1)|0);
@@ -1164,7 +1560,7 @@ function startDeath(p){
  if(!p||p.dead)return;
  p.dead=true;p.hp=0;p.inv=999;p.vx=0;p.vy=0;p.canRevive=true;
  shake=.28;bloodBurst(p.x,p.y,70,2.4);blood.push({x:p.x,y:p.y,r:18,a:.95});
- toast(coop&&!alivePlayers().length?'ОБА ПЕЛЬМЕНЯ ПОВЕРЖЕНЫ':(p===player?'P1 ПОВЕРЖЕН':'P2 ПОВЕРЖЕН'));
+ toast((coop&&!alivePlayers().length?'P1 / P2':p===player?'P1':'P2')+' · '+L('DEFEATED','ПОВЕРЖЕН'));
  if(!alivePlayers().length){state='death';deathTimer=0;deathPhase=0;for(const e of enemies){if(e.dead)continue;e.attack=99;e.speed*=.7}}
 }
 function updateDeath(dt){deathTimer+=dt;deathPhase+=dt*3.2;const deadPlayers=coopPlayers();for(const e of enemies){if(e.dead)continue;const t=deadPlayers.reduce((best,p)=>{const db=Math.hypot(best.x-e.x,best.y-e.y),dp=Math.hypot(p.x-e.x,p.y-e.y);return dp<db?p:best},deadPlayers[0]);const dx=t.x-e.x,dy=t.y-e.y,d=Math.hypot(dx,dy)||1;if(d>17){e.x+=(dx/d)*Math.min(34,d*1.4)*dt;e.y+=(dy/d)*Math.min(34,d*1.4)*dt}else{e.x+=Math.cos(e.phase+deathTimer*8)*.35;e.y+=Math.sin(e.phase+deathTimer*8)*.35}}if(deathTimer>.72&&Math.floor(deathTimer*8)!==Math.floor((deathTimer-dt)*8)){for(const p of deadPlayers)bloodBurst(p.x+rnd(-5,5),p.y+rnd(-5,5),12,1)}if(deathTimer>2.9)endGame()}
@@ -1242,19 +1638,17 @@ function finishLevelUp(p,opt){
  document.getElementById('levelup').style.display='none';
  state='game';setMobileControls(true);
  if(onlineMode)sendNet({t:'upgradeApplied',owner:p===player?'p1':'p2',option:chosen.id});
- toast((p===player?'P1':'P2')+' УЛУЧШЕНИЕ: '+chosen.title);
+ toast((p===player?'P1':'P2')+' · '+L('Upgrade','Улучшение')+': '+upgradePresentation(p,chosen).title);
  if(!onlineMode){while(upgradeQueue.length){const next=upgradeQueue.shift();if(!next.dead){openLevelUpFor(next);break}}}
 }
 function upgradePresentation(p,o){
  const id=o.id,en=lang==='en',ch=chars.find(x=>x.id===p.charId)||chars[0],w=/^weapon_([0-3])$/.exec(id);
- if(w){const i=Number(w[1]),lv=p.weaponLevels?.[i]||1,old=heroWeaponStats(p,i).dmg*p.boost.dmg,newD=old*(1+lv*.22)/(1+(lv-1)*.22);return {icon:inventoryIcon(ch.id,i),title:locName(heroWeaponStats(p,i)),effect:(en?'Level ':'Уровень ')+lv+' → '+(lv+1),detail:(en?'Damage ':'Урон ')+Math.round(old)+' → '+Math.round(newD)}}
+ if(w){const i=Number(w[1]),lv=p.weaponLevels?.[i]||1,old=heroWeaponStats(p,i).dmg*p.boost.dmg,newD=old*(1+lv*.22)/(1+(lv-1)*.22);return {icon:inventoryIcon(ch.id,i),title:locName(heroWeaponStats(p,i)),effect:(L("Level ","Уровень "))+lv+' → '+(lv+1),detail:(L("Damage ","Урон "))+Math.round(old)+' → '+Math.round(newD)}}
  const effects={dmg:['damage',25],rate:['rate',20],move:['move',16],hp:['hp',35],bomb:['bomb',1],crit:['crit',8],scar_blade:['damage',35],scar_armor:['hp',45],scar_wide:['wide',35],vesa_bleed:['crit',12],vesa_rate:['rate',25],vesa_pierce:['pierce',2],nyx_move:['move',25],nyx_dmg:['damage',30],nyx_pierce:['pierce',2],pel_rate:['rate',28],pel_dmg:['damage',35],pel_wide:['wide',35],ass_crit:['crit',18],ass_move:['move',30],ass_dmg:['damage',35],gol_armor:['hp',70],gol_dmg:['damage',45],gol_tank:['armor',28]};
  const [kind,v]=effects[id]||['damage',0];
  const names={damage:['Урон','Damage'],rate:['Скорость атаки','Attack rate'],move:['Скорость движения','Movement speed'],hp:['Здоровье','Health'],bomb:['Бомба','Bomb'],crit:['Шанс крита','Critical chance'],wide:['Радиус атаки','Attack radius'],pierce:['Пробивание','Piercing'],armor:['Броня','Armor']};
- const detail={damage:'×'+(p.boost.dmg||1).toFixed(2)+' → ×'+((p.boost.dmg||1)*(1+v/100)).toFixed(2),rate:'×'+(p.boost.rate||1).toFixed(2)+' → ×'+((p.boost.rate||1)*(1+v/100)).toFixed(2),move:'×'+(p.boost.move||1).toFixed(2)+' → ×'+((p.boost.move||1)*(1+v/100)).toFixed(2),hp:p.maxhp+' → '+(p.maxhp+v)+(en?' · full heal':' · лечение'),bomb:p.bomb+' → '+(p.bomb+1),crit:Math.round(p.boost.crit*100)+'% → '+Math.round((p.boost.crit+v/100)*100)+'%',wide:en?'Area attacks':'Атаки по площади',pierce:en?'Projectiles pass through enemies':'Снаряды проходят сквозь цели',armor:en?'Damage +10%':'Урон +10%'}[kind];
- const glyphs={damage:'M4 25L21 5L27 3L28 9L11 28L4 28Z',rate:'M17 2L5 19H15L12 30L28 12H18Z',move:'M3 9H13V4L29 16L13 28V23H3Z',hp:'M4 5H13V9H19V5H28V17L16 29L4 17Z',bomb:'M10 6H22V10H26V25H22V29H10V25H6V10H10ZM22 2H28V8H22Z',crit:'M16 2L20 11L30 16L20 21L16 30L12 21L2 16L12 11Z',wide:'M4 11H8V6H13V2H19V6H24V11H28V21H24V26H19V30H13V26H8V21H4Z',pierce:'M3 14H21V6L30 16L21 26V18H3Z',armor:'M4 4H28V18L16 30L4 18Z'};
- const color=kind==='hp'?'#bd6659':kind==='armor'?'#9eafb0':kind==='crit'?'#d9b47a':'#b8c5ad';
- return {icon:'<svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true"><path d="'+glyphs[kind]+'" fill="'+color+'" stroke="#120f15" stroke-width="2"/><path d="M8 8h4v3H8z" fill="#f1e2c2"/></svg>',title:names[kind][en?1:0],effect:(kind==='armor'?'−':'+')+v+(['hp','bomb','pierce'].includes(kind)?'':kind==='crit'?(en?' pp':' п.п.'):'%'),detail};
+ const detail={damage:'×'+(p.boost.dmg||1).toFixed(2)+' → ×'+((p.boost.dmg||1)*(1+v/100)).toFixed(2),rate:'×'+(p.boost.rate||1).toFixed(2)+' → ×'+((p.boost.rate||1)*(1+v/100)).toFixed(2),move:'×'+(p.boost.move||1).toFixed(2)+' → ×'+((p.boost.move||1)*(1+v/100)).toFixed(2),hp:p.maxhp+' → '+(p.maxhp+v)+(L(" · full heal"," · лечение")),bomb:p.bomb+' → '+(p.bomb+1),crit:Math.round(p.boost.crit*100)+'% → '+Math.round((p.boost.crit+v/100)*100)+'%',wide:L("Area attacks","Атаки по площади"),pierce:L("Projectiles pass through enemies","Снаряды проходят сквозь цели"),armor:L("Damage +10%","Урон +10%")}[kind];
+ return {icon:uiPixelIcon(kind),title:L(names[kind][1],names[kind][0]),effect:(kind==='armor'?'−':'+')+v+(['hp','bomb','pierce'].includes(kind)?'':kind==='crit'?(L(" pp"," п.п.")):'%'),detail};
 }
 function renderUpgradeChoice(d,p,o,i){
  const a=upgradePresentation(p,o);
@@ -1273,7 +1667,7 @@ function openLevelUpFor(p,remoteOptions=null){
  pendingUpgradeOptions=remoteOptions||buildUpgradeOptions(p);
  const canChoose=!onlineMode||(isOnlineHost&&p===player)||(isOnlineGuest&&p===player2);
  if(num)num.textContent=p.lvl;
- const badge=overlay.querySelector('.pauseBadge');if(badge)badge.textContent=coop?(p===player?'P1':'P2')+' / '+locName(chars.find(ch=>ch.id===p.charId)||chars[0]):locName(chars.find(ch=>ch.id===p.charId)||chars[0]);document.getElementById('levelPrefix').textContent=lang==='en'?'Level':'Уровень';overlay.querySelector('.tag').textContent=lang==='en'?'Choose one upgrade':'Выбери одно улучшение';const portrait=document.getElementById('upgradeHero').getContext('2d');portrait.clearRect(0,0,48,54);portrait.save();portrait.translate(21,37);pixelHeroBody(portrait,p.charId,0,0,0);portrait.restore();
+ const badge=overlay.querySelector('.pauseBadge');if(badge)badge.textContent=coop?(p===player?'P1':'P2')+' / '+locName(chars.find(ch=>ch.id===p.charId)||chars[0]):locName(chars.find(ch=>ch.id===p.charId)||chars[0]);document.getElementById('levelPrefix').textContent=L("Level","Уровень");overlay.querySelector('.tag').textContent=L("Choose one upgrade","Выбери одно улучшение");
  box.innerHTML='';
  // Online level-up choices are private: only the player who owns the level sees the overlay.
  if(canChoose){
@@ -1371,14 +1765,14 @@ function bombFor(p){
  spawnParticles(p.x,p.y,46,'#ff5c4e',2.2);spawnParticles(p.x,p.y,24,'#ffd36a',1.5);
  bloodBurst(p.x,p.y,30,1.5);
  for(const e of enemies){const d=dist(p,e);if(d<88){damageEnemy(e,dmg*.45);const n=d||1;e.x+=((e.x-p.x)/n)*28;e.y+=((e.y-p.y)/n)*28}}
- p.inv=.42;shake=.3;toast(p===player?'ВЗРЫВНАЯ ЗОНА!':'P2 ВЗРЫВНАЯ ЗОНА!')
+ p.inv=.42;shake=.3;toast((p===player?'':'P2 ')+L('BOMB BLAST!','ВЗРЫВНАЯ ЗОНА!'))
 }
 function tryReviveFor(p,target){
  if(!p||!target||state!=='game'||p.dead||!target.dead||target.canRevive!==true)return false;
  if(dist(p,target)>48)return false;
  target.dead=false;target.hp=Math.max(35,Math.floor(target.maxhp*.45));target.inv=1.15;target.canRevive=false;
  target.x=p.x+18;target.y=p.y;target.serverX=target.x;target.serverY=target.y;
- spawnParticles(target.x,target.y,28,'#6fe1a2',1.6);ring(target.x,target.y,22,'#6fe1a2',.5,58);toast('ВОЗРОЖДЕНИЕ · '+(target===player?'P1':'P2'));
+ spawnParticles(target.x,target.y,28,'#6fe1a2',1.6);ring(target.x,target.y,22,'#6fe1a2',.5,58);toast(L('REVIVED','ВОЗРОЖДЕНИЕ')+' · '+(target===player?'P1':'P2'));
  return true;
 }
 function reviveNearby(p){
@@ -1435,7 +1829,7 @@ function finishEnemyDeath(e){
    ring(e.x,e.y,60,'#ff4c52',.8,80);ring(e.x,e.y,92,'#b56cff',1.1,116);
    spawnParticles(e.x,e.y,50,'#ff4c52',2);spawnParticles(e.x,e.y,28,'#c67aff',1.8);
    drops.push({x:e.x,y:e.y-4,type:'relic',life:24,pulse:0});
-   boss=null;toast('БОСС ПОВЕРЖЕН — СЕРДЦЕ КУХНИ ЖДЁТ');
+   boss=null;toast(L('BOSS DEFEATED','БОСС ПОВЕРЖЕН'));
    // On boss waves the minions must also be cleared before the next wave starts.
    hazards=hazards.filter(h=>h.source!==e);
  }else{
@@ -1443,18 +1837,24 @@ function finishEnemyDeath(e){
  }
 }
 
-function scheduleHazard(x,y,radius,damage,delay=.75,source=null){
- hazards.push({x,y,radius,damage,remaining:delay,duration:delay,source});
+function scheduleHazard(x,y,radius,damage,delay=.75,source=null,kind=null){
+ hazards.push({x,y,radius,damage,remaining:delay,duration:delay,source,kind});
 }
 function updateHazards(dt){
  for(const h of hazards){
    if(h.source?.dead){h.remaining=-1;continue}
    h.remaining-=dt;
    if(h.remaining>0)continue;
-   for(const p of alivePlayers())if(Math.hypot(p.x-h.x,p.y-h.y)<=h.radius)hurtPlayer(p,h.damage,h.x,h.y);
-   ring(h.x,h.y,4,'#ff4055',.28,h.radius);
-   spawnParticles(h.x,h.y,18,'#ff9b4c',1.1);
-   shake=Math.max(shake,.10);
+   const feature=arenaFeatures[h.kind],col=feature?.color||'#ff4055';
+   if(h.kind==='foodcourt'){drops.push({x:h.x,y:h.y,type:'heal',value:18,life:12,pulse:0})}
+   else{
+     for(const p of alivePlayers())if(Math.hypot(p.x-h.x,p.y-h.y)<=h.radius)hurtPlayer(p,h.damage,h.x,h.y);
+     if(h.kind==='forest')for(const e of enemies.slice()){if(!e.dead&&Math.hypot(e.x-h.x,e.y-h.y)<=h.radius)damageEnemy(e,e.type==='boss'?12:34)}
+     if(h.kind==='cemetery'&&state==='game')drops.push({x:h.x,y:h.y,type:'xp',value:18,life:1,pulse:0});
+   }
+   ring(h.x,h.y,4,col,.35,h.radius);
+   spawnParticles(h.x,h.y,18,col,1.1);
+   if(h.kind!=='foodcourt')shake=Math.max(shake,.10);
  }
  hazards=hazards.filter(h=>h.remaining>0);
 }
@@ -1476,7 +1876,7 @@ function updateEnemies(dt){
   if(e.type==='boss'){
    const ratio=e.hp/e.maxhp;
    const stage=ratio<.25?3:(ratio<.55?2:1);
-   if(stage>e.stage){e.stage=stage;toast((lang==='en'?'BOSS PHASE ':'ФАЗА БОССА ')+stage);ring(e.x,e.y,4,'#ff8c4c',.65,65);e.specialTimer=Math.max(.7,e.specialTimer)}
+   if(stage>e.stage){e.stage=stage;toast((L("BOSS PHASE ","ФАЗА БОССА "))+stage);ring(e.x,e.y,4,'#ff8c4c',.65,65);e.specialTimer=Math.max(.7,e.specialTimer)}
    e.attack-=dt;
    e.dashTimer-=dt;
    e.specialTimer-=dt;
@@ -1629,8 +2029,9 @@ function updateDrops(dt){
    if(dist<13){d.life=0;const value=Math.max(1,Math.floor(d.value||15));spawnParticles(d.x,d.y,10,'#85f0bd',.65);sfx('pickup');floatText(d.x,d.y-15,'+'+value+' XP','#a5f2c9');gainXPFor(cp,value,true)}
   }else if(d.type==='relic'&&dist<18){
    relicOwned=true;for(const p of coopPlayers()){p.maxhp+=50;p.hp=p.maxhp;p.boost.dmg*=1.28;p.boost.rate*=1.12;p.boost.move*=1.12;p.bomb=Math.min(9,p.bomb+2)}
-   d.life=0;spawnParticles(d.x,d.y,30,'#cf79ff',1.8);ring(d.x,d.y,18,'#cf79ff',.65,55);floatText(d.x,d.y-15,'РЕЛИКВИЯ ПОЛУЧЕНА','#e0a6ff');toast('СЕРДЦЕ КУХНИ: КОМАНДА УСИЛЕНА')
-  }else if(d.type==='bomb'&&dist<13){cp.bomb=Math.min(9,cp.bomb+1);d.life=0;spawnParticles(d.x,d.y,8,'#f0b04e',.6)}
+   d.life=0;spawnParticles(d.x,d.y,30,'#cf79ff',1.8);ring(d.x,d.y,18,'#cf79ff',.65,55);floatText(d.x,d.y-15,L('RELIC COLLECTED','РЕЛИКВИЯ ПОЛУЧЕНА'),'#e0a6ff');toast(L('RELIC COLLECTED','РЕЛИКВИЯ ПОЛУЧЕНА'))
+  }else if(d.type==='heal'&&dist<15&&cp.hp<cp.maxhp){const healed=Math.min(d.value||18,cp.maxhp-cp.hp);cp.hp+=healed;d.life=0;spawnParticles(d.x,d.y,10,'#a9e6aa',.7);floatText(d.x,d.y-15,'+'+Math.round(healed)+' HP','#a9e6aa');sfx('pickup')}
+  else if(d.type==='bomb'&&dist<13){cp.bomb=Math.min(9,cp.bomb+1);d.life=0;spawnParticles(d.x,d.y,8,'#f0b04e',.6)}
  }
  drops=drops.filter(d=>d.life>0);
 }
@@ -1725,10 +2126,10 @@ function update(dt){
  camera.x=clamp(camera.x,W/2,world.w-W/2);camera.y=clamp(camera.y,H/2,world.h-H/2);
  horrorTime+=dt;for(const p of coopPlayers()){p.fire=Math.max(0,p.fire-dt);p.dash=Math.max(0,p.dash-dt);p.inv=Math.max(0,p.inv-dt)}
  if(!player.dead&&(mouse.down||touchInput.attack))attack();
- updateEnemies(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);updateFx(dt);
+ updateEnemies(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);updateFx(dt);
  enemies=enemies.filter(e=>!e.dead);
  if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if(waveTime>=delay||enemies.length===0){waveTime=0;spawnEnemy();spawned++}}
- if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';between=1.6;toast(lang==='en'?'WAVE CLEARED · COLLECT XP':'ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')}
+ if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';between=1.6;toast(L("WAVE CLEARED · COLLECT XP","ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ"))}
  if(!alivePlayers().length)return;
  if(state==='game'&&waveState==='clear'){between-=dt;if(between<=0){wave++;beginWave()}}
  combo=Math.max(1,combo-dt*.12);
@@ -1736,7 +2137,7 @@ function update(dt){
 function endGame(broadcast=true){startMenuMusic();
  clearLocalInput();upgradeQueue.length=0;state='gameover';
  const recordEl=document.getElementById('finalRecord');
- if(!coop&&!onlineMode){const old=loadRecord(),next=updateRecord(old,score,wave);writeStorage(RECORD_KEY,JSON.stringify(next));recordEl.textContent=recordText(next)+(next.score>old.score||next.wave>old.wave?(lang==='en'?' · NEW BEST!':' · НОВЫЙ РЕКОРД!'):'')}else recordEl.textContent='';
+ if(!coop&&!onlineMode){const old=loadRecord(),next=updateRecord(old,score,wave);writeStorage(RECORD_KEY,JSON.stringify(next));recordEl.textContent=recordText(next)+(next.score>old.score||next.wave>old.wave?(L(" · NEW BEST!"," · НОВЫЙ РЕКОРД!")):'')}else recordEl.textContent='';
  levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
  document.getElementById('levelup').style.display='none';
  document.getElementById('finalScore').textContent=Math.floor(score);
@@ -1966,6 +2367,8 @@ function paintCombatDrop(g,d,time=0){
  if(d.type==='xp'){
   const large=(d.value||0)>=40,w=large?6:5,h=large?9:7;
   P('#0e2425',[-w-1,-2,0,-h-1,w+1,-2,0,h-1]);P('#399b83',[-w,-2,0,-h,w,-2,0,h-2]);P('#b7f5cc',[-w+1,-2,0,-h,0,1]);P('#70dcb2',[0,-h,w,-2,0,1]);P('#1e7467',[0,1,w,-2,0,h-2]);R('#f1ffe3',-1,-h+2,2,2);if(!reduceMotion&&Math.sin(t*3)>.65)R('#d4ffe7',w+3,-h,1,3);
+ }else if(d.type==='heal'){
+  R('#112520',-8,-6,16,13);R('#a4c7a2',-7,-5,14,10);R('#e8e5c5',-6,-4,12,7);R('#397b5c',-2,-3,4,6);R('#397b5c',-4,-1,8,2);R('#d6dfae',-4,-7,8,1);
  }else if(d.type==='bomb'){
   P('#130f19',[-5,-4,-2,-7,3,-7,6,-3,6,4,3,7,-4,6,-6,2]);P('#786057',[-4,-3,-1,-5,3,-5,5,-2,4,4,1,5,-3,4,-4,1]);R('#d2b78c',-3,-3,3,2);R('#eb9c58',2,-9,2,3);R('#ffdd95',4,-10,2,2);
  }else{
@@ -1982,7 +2385,7 @@ function paintCombatProjectile(g,p){
 }
 function paintArenaLighting(g,map,view){
  const {x,y,w,h}=view;g.save();g.fillStyle='rgba(10,12,15,.08)';g.fillRect(x,y,w,h);
- for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+70<x||lx-70>x+w||ly+70<y||ly-70>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,66);rad.addColorStop(0,terrainThemes[map.id].glow);rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.13;g.fillStyle=rad;g.fillRect(lx-66,ly-66,132,132)}g.restore()
+ for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+85<x||lx-85>x+w||ly+85<y||ly-85>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,85);rad.addColorStop(0,terrainThemes[map.id].glow);rad.addColorStop(.35,terrainThemes[map.id].glow+'65');rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.23;g.fillStyle=rad;g.fillRect(lx-85,ly-85,170,170)}g.restore()
 }
 function draw(){
  const m=maps.find(x=>x.id===selectedMap);ctx.fillStyle=m.floor;ctx.fillRect(0,0,W,H);
@@ -1990,15 +2393,15 @@ function draw(){
  ctx.save();
  ctx.translate(Math.round(W/2-camera.x),Math.round(H/2-camera.y));
  // Cached world scenery; actors and attack warnings are still rendered above it.
- ctx.drawImage(getTerrain(m.id),0,0);paintArenaLighting(ctx,m,{x:camera.x-W/2,y:camera.y-H/2,w:W,h:H});
+ ctx.drawImage(getTerrain(m.id),0,0);const view={x:camera.x-W/2,y:camera.y-H/2,w:W,h:H};paintArenaLighting(ctx,m,view);paintArenaAtmosphere(ctx,m.id,view,horrorTime);
  // blood stains and corpses
  for(const b of blood){ctx.globalAlpha=b.a;ctx.fillStyle='#4f0913';ctx.fillRect(Math.round(b.x-b.r),Math.round(b.y-b.r*.45),Math.max(2,Math.round(b.r*2)),Math.max(2,Math.round(b.r*.9)));ctx.fillStyle='#9f1829';ctx.fillRect(Math.round(b.x-b.r*.55),Math.round(b.y-b.r*.25),Math.max(2,Math.round(b.r*1.1)),Math.max(2,Math.round(b.r*.5)))}ctx.globalAlpha=1;
  // enemy warnings: fixed radius, shrinking countdown ring, no reliance on color alone
  for(const h of hazards){
    const progress=clamp(h.remaining/h.duration,0,1);
-   ctx.save();ctx.fillStyle='rgba(255,55,68,.12)';ctx.strokeStyle='#ff6371';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(h.x,h.y,h.radius,0,TAU);ctx.fill();ctx.stroke();
+   const feature=arenaFeatures[h.kind],col=feature?.color||'#ff6371';ctx.save();ctx.fillStyle=feature?col:'rgba(255,55,68,.12)';ctx.globalAlpha=feature?.color?.length===7 ? .13 : 1;ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(h.x,h.y,h.radius,0,TAU);ctx.fill();ctx.globalAlpha=1;ctx.stroke();
    ctx.strokeStyle='#ffd4a4';ctx.beginPath();ctx.arc(h.x,h.y,h.radius*progress,0,TAU);ctx.stroke();
-   drawPixelText('!',h.x,h.y,11,'#ffd4a4','center');ctx.restore();
+   drawPixelText(h.kind==='foodcourt'?'+':'!',h.x,h.y,11,col,'center');ctx.restore();
  }
  for(const e of enemies){if(e.type!=='boss'||!e.charge)continue;ctx.save();ctx.strokeStyle='#ffaf65';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.lineTo(e.charge.x,e.charge.y);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.arc(e.charge.x,e.charge.y,26,0,TAU);ctx.stroke();ctx.restore();}
  // enemies + combat
@@ -2072,9 +2475,9 @@ function drawRemoteArrow(){
 function render(){drawRemoteArrow();ctx.save();if(shake>0&&!reduceMotion){ctx.translate(rndi(-Math.ceil(shake*10),Math.ceil(shake*10)),rndi(-Math.ceil(shake*10),Math.ceil(shake*10)))}draw();ctx.restore();}
 
 function updateTouchHud(p,selected,ability){const dash=document.getElementById('dashBtn'),bomb=document.getElementById('bombBtn');dash.style.setProperty('--charge',String(clamp(1-p.dash/ability.cooldown,0,1)));dash.classList.toggle('cooling',p.dash>0);document.getElementById('touchDashValue').textContent=p.dash>0?p.dash.toFixed(1):'';bomb.classList.toggle('empty',p.bomb<=0);document.getElementById('touchBombValue').textContent=p.bomb;for(const b of document.querySelectorAll('#mobileWeapons .mw')){const i=Number(b.dataset.weapon);b.classList.toggle('sel',i===selected);b.setAttribute('aria-pressed',String(i===selected));b.querySelector('.mwLv').textContent=p.weaponLevels?.[i]||1;b.querySelector('.mwCharge').style.width=(100*clamp(p.weaponCharge?.[i]??1,0,1))+'%';b.setAttribute('aria-label',locName(heroWeaponStats(p,i)))}}
-function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;const dashReady=localP.dash<=0,ability=dashProfiles[localP.charId]||dashProfiles.scar;document.getElementById('dashHudLabel').textContent=locName(ability);const dashValue=document.getElementById('dashHudValue');dashValue.textContent=dashReady?(lang==='en'?'READY':'ГОТОВ'):localP.dash.toFixed(1)+'s';dashValue.classList.toggle('abilityReady',dashReady);document.getElementById('dashHudFill').style.width=(clamp(1-localP.dash/ability.cooldown,0,1)*100)+'%';document.getElementById('bombHudLabel').textContent=lang==='en'?'BOMBS':'БОМБЫ';document.getElementById('bombHudValue').textContent=localP.bomb;const remoteP=onlineMode&&isOnlineGuest?player:player2;const deathV=document.getElementById('remoteDeathVignette');if(deathV)deathV.style.display=(state==='game'&&coop&&remoteP.dead&&alivePlayers().length>0)?'block':'none';const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&localP.hp/localP.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display=relicOwned?'block':'none';relicEl.classList.toggle('relic-pulse',relicOwned)}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(localP.hp));document.getElementById('xpTxt').textContent=`${Math.floor(localP.xp)}/${localP.next}`;document.getElementById('lvlTxt').textContent=localP.lvl;const lp=document.getElementById('localLevelPanel');if(lp)lp.style.display=onlineMode?'block':'none';const ll=document.getElementById('localLvlTxt');if(ll)ll.textContent=localP.lvl;const lx=document.getElementById('localXpTxt');if(lx)lx.textContent=`${Math.floor(localP.xp)}/${localP.next}`;const lf=document.getElementById('localXpFill');if(lf)lf.style.width=clamp(localP.xp/localP.next*100,0,100)+'%';document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+(enemies.length+Math.max(0,targetCount-spawned));document.getElementById('hpFill').style.width=clamp(localP.hp/localP.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(localP.xp/localP.next*100,0,100)+'%';
- if(boss){document.getElementById('bossHud').style.display='block';document.getElementById('bossName').textContent=(lang==='en'?(boss.enName||boss.name):boss.name)+' · '+T('boss');document.getElementById('bossFill').style.width=clamp(boss.hp/boss.maxhp*100,0,100)+'%'}else document.getElementById('bossHud').style.display='none';
- const selectedWeapon=onlineMode&&isOnlineGuest?player2.weapon:weapon;updateTouchHud(localP,selectedWeapon,ability);const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.dataset.weapon=String(i);d.innerHTML=`<b>${w.key}</b> <span class="wn">${chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(w)}</span><span class="wlv">УР. ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG</span><span class="weaponCharge"><i></i></span><i class="cd"></i>`;d.onclick=()=>{if(onlineMode&&isOnlineGuest)player2.weapon=i;else weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===selectedWeapon);d.querySelector('.wn').textContent=locName(heroWeaponStats(localP,i));d.querySelector('.wlv').textContent=`${lang==='en'?'LV':'УР.'} ${localP.weaponLevels[i]} · ${Math.round(heroWeaponStats(localP,i).dmg*localP.boost.dmg)} DMG`;const chargeEl=d.querySelector('.weaponCharge i');const charge=clamp(localP.weaponCharge?.[i]??1,0,1);chargeEl.style.width=(charge*100)+'%';d.classList.toggle('charging',charge<.999);d.querySelector('.cd').textContent=i===selectedWeapon&&localP.fire>0?localP.fire.toFixed(1):''});syncInventoryArt(localP)}
+function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;const dashReady=localP.dash<=0,ability=dashProfiles[localP.charId]||dashProfiles.scar;document.getElementById('dashHudLabel').textContent=locName(ability);const dashValue=document.getElementById('dashHudValue');dashValue.textContent=dashReady?(L("READY","ГОТОВ")):localP.dash.toFixed(1)+'s';dashValue.classList.toggle('abilityReady',dashReady);document.getElementById('dashHudFill').style.width=(clamp(1-localP.dash/ability.cooldown,0,1)*100)+'%';document.getElementById('bombHudLabel').textContent=L("BOMBS","БОМБЫ");document.getElementById('bombHudValue').textContent=localP.bomb;const remoteP=onlineMode&&isOnlineGuest?player:player2;const deathV=document.getElementById('remoteDeathVignette');if(deathV)deathV.style.display=(state==='game'&&coop&&remoteP.dead&&alivePlayers().length>0)?'block':'none';const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&localP.hp/localP.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display=relicOwned?'block':'none';relicEl.classList.toggle('relic-pulse',relicOwned)}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(localP.hp));document.getElementById('xpTxt').textContent=`${Math.floor(localP.xp)}/${localP.next}`;document.getElementById('lvlTxt').textContent=localP.lvl;const lp=document.getElementById('localLevelPanel');if(lp)lp.style.display=onlineMode?'block':'none';const ll=document.getElementById('localLvlTxt');if(ll)ll.textContent=localP.lvl;const lx=document.getElementById('localXpTxt');if(lx)lx.textContent=`${Math.floor(localP.xp)}/${localP.next}`;const lf=document.getElementById('localXpFill');if(lf)lf.style.width=clamp(localP.xp/localP.next*100,0,100)+'%';document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+(enemies.length+Math.max(0,targetCount-spawned));document.getElementById('hpFill').style.width=clamp(localP.hp/localP.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(localP.xp/localP.next*100,0,100)+'%';
+ if(boss){document.getElementById('bossHud').style.display='block';document.getElementById('bossName').textContent=locName(boss)+' · '+T('boss');document.getElementById('bossFill').style.width=clamp(boss.hp/boss.maxhp*100,0,100)+'%'}else document.getElementById('bossHud').style.display='none';
+ const selectedWeapon=onlineMode&&isOnlineGuest?player2.weapon:weapon;updateTouchHud(localP,selectedWeapon,ability);const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.dataset.weapon=String(i);d.innerHTML=`<b>${w.key}</b> <span class="wn">${chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(w)}</span><span class="wlv">УР. ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG</span><span class="weaponCharge"><i></i></span><i class="cd"></i>`;d.onclick=()=>{if(onlineMode&&isOnlineGuest)player2.weapon=i;else weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===selectedWeapon);d.querySelector('.wn').textContent=locName(heroWeaponStats(localP,i));d.querySelector('.wlv').textContent=`${L("LV","УР.")} ${localP.weaponLevels[i]} · ${Math.round(heroWeaponStats(localP,i).dmg*localP.boost.dmg)} DMG`;const chargeEl=d.querySelector('.weaponCharge i');const charge=clamp(localP.weaponCharge?.[i]??1,0,1);chargeEl.style.width=(charge*100)+'%';d.classList.toggle('charging',charge<.999);d.querySelector('.cd').textContent=i===selectedWeapon&&localP.fire>0?localP.fire.toFixed(1):''});syncInventoryArt(localP)}
 
 addEventListener('keydown',e=>{
  if(e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement||e.target?.isContentEditable)return;
@@ -2099,24 +2502,24 @@ addEventListener('blur',()=>{clearLocalInput();if(state==='game'&&!onlineMode)to
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearLocalInput();if(state==='game'&&!onlineMode)togglePause()}});
 function screenToGame(clientX,clientY){const r=c.getBoundingClientRect();const scale=Math.min(r.width/W,r.height/H);const dw=W*scale,dh=H*scale;const ox=r.left+(r.width-dw)/2,oy=r.top+(r.height-dh)/2;return {x:clamp((clientX-ox)/scale,0,W),y:clamp((clientY-oy)/scale,0,H)}}
 c.addEventListener('mousemove',e=>{const p=screenToGame(e.clientX,e.clientY);mouse.x=p.x;mouse.y=p.y});c.addEventListener('mousedown',e=>{initAudio();if(e.button===0&&state==='game'&&!(onlineMode&&isOnlineGuest)){const p=screenToGame(e.clientX,e.clientY);mouse.x=p.x;mouse.y=p.y;mouse.down=true;attack()}});addEventListener('mouseup',e=>{if(e.button===0)mouse.down=false});
-document.querySelectorAll('.langBtn').forEach(b=>b.addEventListener('click',()=>setLanguage(b.dataset.lang)));
+document.getElementById('languageSelect').addEventListener('change',e=>setLanguage(e.target.value));
 document.addEventListener('pointerdown',()=>{initAudio();if(state==='menu')startMenuMusic()},{passive:true});
 setupMobile();
 setLanguage(lang);
-document.getElementById('startBtn').onclick=()=>{startHorrorMusic();startGame()};
+document.getElementById('startBtn').onclick=()=>{if(onlineMode&&!(netConn&&netConn.open)){setMenuTab('mode');setOnlineStatus(L("Create or join a room first.","Сначала создай комнату или подключись."));return}startHorrorMusic();startGame()};
 document.getElementById('createRoomBtn')?.addEventListener('click',async()=>{
- setOnlineStatus('Создаём комнату...');
+ setOnlineStatus(L('Connecting…','Создаём комнату...'));
  try{await setupPeer(true);isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;if(document.getElementById('roomCodeInput'))document.getElementById('roomCodeInput').value=netRoom;
- setOnlineStatus('ИГРОК 1 ПОДКЛЮЧЕН · ЖДЁМ ИГРОКА 2 · КОД: '+netRoom);}
+ setOnlineStatus(L('Waiting for player 2…','Ждём игрока 2…')+' · '+L('Room code:','Код комнаты:')+' '+netRoom);}
  catch(e){}
 });
 document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
  const input=document.getElementById('roomCodeInput');
  const code=String(input?.value||netRoom||'').replace(/\D/g,'').slice(0,5);
  if(input)input.value=code;
- if(!/^\d{5}$/.test(code)){setOnlineStatus('Введи код комнаты из 5 цифр с устройства хоста.');return}
- if(isOnlineHost){setOnlineStatus('Ты уже создал комнату. Этот код нужно ввести на втором устройстве.');return}
- setOnlineStatus('Подключаемся к комнате '+code+'...');
+ if(!/^\d{5}$/.test(code)){setOnlineStatus(L('Enter a 5-digit room code.','Введи код комнаты из 5 цифр с устройства хоста.'));return}
+ if(isOnlineHost){setOnlineStatus(L("Waiting for player 2…","Ты уже создал комнату. Этот код нужно ввести на втором устройстве."));return}
+ setOnlineStatus(L('Connecting…','Подключаемся…')+' '+code);
  try{
    await setupPeer(false);
    if(!peer||peer.destroyed){throw new Error('PeerJS не готов')}
@@ -2124,7 +2527,7 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
    netConn=c;isOnlineGuest=true;isOnlineHost=false;onlineMode=true;coop=true;
    wireNet(c);
    const timeout=setTimeout(()=>{
-     if(!c.open)setOnlineStatus('Онлайн: устройство не установило WebRTC-соединение за 20 сек. Проверь код и попробуй ещё раз.');
+     if(!c.open)setOnlineStatus(L("Connection error","Онлайн: устройство не установило WebRTC-соединение за 20 сек. Проверь код и попробуй ещё раз."));
    },20000);
    c.on('open',()=>{
      clearTimeout(timeout);
@@ -2133,12 +2536,12 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
      netStateConn=sc;
      wireStateNet(sc);
      sc.on('open',()=>{});
-     setOnlineStatus('ИГРОК 2 ПОДКЛЮЧАЕТСЯ · ЖДЁМ СТАРТА...');
+     setOnlineStatus(L("Player connected. Starting…","ИГРОК 2 ПОДКЛЮЧАЕТСЯ · ЖДЁМ СТАРТА..."));
    });
    c.on('error',e=>{
      clearTimeout(timeout);
      const type=e&&e.type?e.type:'unknown';
-     setOnlineStatus(type==='peer-unavailable'?'Онлайн: комната не найдена.':'Онлайн: ошибка '+type+(e&&e.message?' — '+e.message:''));
+     setOnlineStatus(type==='peer-unavailable'?L("Room not found.","Онлайн: комната не найдена."):'Онлайн: ошибка '+type+(e&&e.message?' — '+e.message:''));
    });
  }catch(e){
    setOnlineStatus('Онлайн: '+(e&&e.message?e.message:'не удалось подключиться'));
@@ -2147,7 +2550,7 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
 
 window.addEventListener('error',e=>{const msg=(e&&e.error&&e.error.message)||e.message||'Неизвестная ошибка';const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
 window.addEventListener('unhandledrejection',e=>{const msg=(e&&e.reason&&e.reason.message)||String(e.reason||'Promise error');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
-function frame(now){const raw=Math.min(.1,(now-last)/1000||0);last=now;acc+=raw;const step=1/60;while(acc>=step){update(step);acc-=step}shake=Math.max(0,shake-raw);if(state==='game')updateHud();render();requestAnimationFrame(frame)}
+function frame(now){const raw=Math.min(.1,(now-last)/1000||0);last=now;acc+=raw;const step=1/60;while(acc>=step){update(step);acc-=step}shake=Math.max(0,shake-raw);if(state==='game')updateHud();if(state!=='menu')render();requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('./sw.js').then(reg=>reg.update()).catch(()=>{})}
 </script>
