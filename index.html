@@ -364,6 +364,26 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 #levelup .upgradeArrow{color:#b9a17a;font:700 22px system-ui,sans-serif}
 @media(max-width:650px) and (orientation:portrait){#menu .title{font-size:clamp(20px,5.5vw,30px)}.heroStage{grid-template-columns:1fr;gap:0}.heroStage canvas{max-height:190px;object-fit:cover}.stageInfo{padding:8px 12px}.stageInfo h2{font-size:18px}#menu #charChoices,#menu #mapChoices{grid-template-columns:repeat(3,minmax(0,1fr))}#menu .heroArsenal{grid-template-columns:repeat(2,minmax(0,1fr))}.mapStage canvas{max-height:205px}}
 @media(max-height:520px) and (orientation:landscape){#menu .menuBody{padding:4px 14px}.heroStage{grid-template-columns:1fr 1.3fr;margin-bottom:4px;gap:8px}.heroStage canvas{max-height:94px;object-fit:cover}.stageInfo h2{font-size:15px}.stageInfo{padding:2px}#menu #charChoices .heroPortrait,#menu #mapChoices .mapPortrait{max-height:36px}#menu .heroArsenal{margin-top:3px}.mapStage canvas{max-height:112px}.mapStageCaption{padding:3px 8px}.mapStageCaption h2{font-size:12px}#levelup .box{padding:8px 14px}#levelup .upgradeHead{padding-bottom:5px}#levelup .upgradeHead canvas{width:36px;height:40px}#levelup .upgradeHead h2{font-size:18px}#levelup .upgrade{min-height:53px;padding:4px}#levelup .upgradeIcon{width:36px;height:36px}}
+
+/* V39 icon pass: coherent pixel silhouettes, material highlights, high-contrast readability. */
+.inventoryIcon,.uiPixelIcon{display:block;flex-shrink:0;image-rendering:pixelated;filter:drop-shadow(0 1px 0 #08070b) drop-shadow(1px 0 0 #08070b);pointer-events:none}
+#menuTabs button{display:flex;align-items:center;justify-content:center;gap:6px}
+#menuTabs .uiPixelIcon{width:23px;height:23px}
+#menu .modeChoice{display:flex;align-items:center;gap:12px}
+#menu .modeChoice .uiPixelIcon{width:34px;height:34px}
+#menu .modeChoice .modeCopy{min-width:0}
+#menu .heroArsenal>div{gap:7px}
+#menu .heroArsenal .inventoryIcon{width:35px;height:35px}
+#mobileWeapons .mw .inventoryIcon{width:38px;height:38px}
+#mobileWeapons .mw.sel .inventoryIcon{filter:drop-shadow(0 1px 0 #090709) drop-shadow(0 0 2px #b89260)}
+#hud .weapon .inventoryIcon{width:38px;height:38px}
+#levelup .upgradeIcon{background:radial-gradient(ellipse at 45% 40%,#3e3c34,#201c22 75%);border-color:#82705b}
+#levelup .upgradeIcon svg{width:36px;height:36px}
+#dashBtn .uiPixelIcon,#bombBtn .uiPixelIcon{width:30px;height:30px}
+#pauseBtn .uiPixelIcon{width:23px;height:23px}
+#dashBtn.cooling .uiPixelIcon,#bombBtn.empty .uiPixelIcon{opacity:.58;filter:grayscale(.65)}
+@media(max-height:520px) and (orientation:landscape){#menuTabs .uiPixelIcon{width:18px;height:18px}#menu .heroArsenal .inventoryIcon{width:27px;height:27px}#levelup .upgradeIcon svg{width:30px;height:30px}}
+@media(max-width:650px) and (orientation:portrait){#menuTabs .uiPixelIcon{width:20px;height:20px}#mobileWeapons .mw .inventoryIcon{width:32px;height:32px}}
 </style>
 </head>
 <body>
@@ -380,7 +400,7 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 </div>
 <div id="menu"><div class="box menuShell">
 <header class="menuHeader"><div class="brand"><svg class="brandMark" viewBox="0 0 32 32" aria-hidden="true"><path fill="#e8c8a2" d="M4 15h2v-4h3V8h4V5h6v3h4v3h3v4h2v8h-4v3H8v-3H4z"/><path fill="#a96e5b" d="M6 20h20v3h-4v2H10v-2H6z"/><path fill="#261e24" d="M8 13h6v3H8zm10 0h6v3h-6zM12 19h8v2h-8z"/></svg><div><div class="title">DUMPLING <span class="red">RIOT</span></div><div id="menuTag" hidden>NIGHT SHIFT</div></div></div><div id="langBar"><span id="languageLabel">ЯЗЫК</span><button type="button" class="langBtn sel" data-lang="ru">RU</button><button type="button" class="langBtn" data-lang="en">EN</button></div></header>
-<nav id="menuTabs" aria-label="Выбор забега"><button type="button" data-menu-tab="hero" aria-pressed="true"><b id="heroTabLabel">Герой</b></button><button type="button" data-menu-tab="map" aria-pressed="false"><b id="mapTabLabel">Арена</b></button><button type="button" data-menu-tab="mode" aria-pressed="false"><b id="modeTabLabel">Режим</b></button></nav>
+<nav id="menuTabs" aria-label="Выбор забега"><button type="button" data-menu-tab="hero" aria-pressed="true"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="12" y="5" width="8" height="2" fill="#131018"/><rect x="10" y="7" width="12" height="10" fill="#131018"/><rect x="12" y="7" width="8" height="8" fill="#e5b66e"/><rect x="13" y="8" width="6" height="2" fill="#f4e5c5"/><rect x="12" y="12" width="2" height="2" fill="#131018"/><rect x="18" y="12" width="2" height="2" fill="#131018"/><rect x="9" y="17" width="14" height="5" fill="#131018"/><rect x="11" y="17" width="10" height="4" fill="#e5b66e"/></svg><b id="heroTabLabel">Герой</b></button><button type="button" data-menu-tab="map" aria-pressed="false"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><polygon points="2,7 11,3 21,7 30,3 30,25 21,29 11,25 2,29" fill="#131018"/><polygon points="4,9 11,6 21,10 28,6 28,23 21,26 11,22 4,26" fill="#53616b"/><polygon points="4,9 11,6 11,22 4,26" fill="#a9bbc3"/><polygon points="21,10 28,6 28,23 21,26" fill="#a9bbc3"/><rect x="13" y="11" width="3" height="3" fill="#f4e5c5"/><rect x="16" y="14" width="3" height="3" fill="#e5b66e"/><rect x="19" y="11" width="3" height="3" fill="#dc5a59"/><rect x="19" y="17" width="3" height="3" fill="#dc5a59"/></svg><b id="mapTabLabel">Арена</b></button><button type="button" data-menu-tab="mode" aria-pressed="false"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="4" y="4" width="24" height="24" fill="#131018"/><rect x="6" y="6" width="20" height="20" fill="#53616b"/><rect x="9" y="10" width="14" height="2" fill="#f4e5c5"/><rect x="9" y="16" width="14" height="2" fill="#f4e5c5"/><rect x="9" y="22" width="14" height="2" fill="#f4e5c5"/><rect x="12" y="8" width="4" height="6" fill="#e5b66e"/><rect x="19" y="14" width="4" height="6" fill="#80dbab"/><rect x="10" y="20" width="4" height="6" fill="#dc5a59"/></svg><b id="modeTabLabel">Режим</b></button></nav>
 <div id="menuBody" class="menuBody">
 <section class="menuSection" data-menu-panel="hero"><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div></section>
 <section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Выбери арену</h3></div><div class="mapStage"><canvas id="mapStageCanvas" width="480" height="270" aria-hidden="true"></canvas><div class="mapStageCaption"><h2 id="mapStageName"></h2><div id="mapDetail" class="selectionDetail"></div></div></div><div id="mapChoices" class="choices"></div></section>
@@ -399,9 +419,9 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
   <div id="p2Pad" class="mobilePad"><div class="mobileKnob p2Knob"></div><div class="p2Tag">P2</div></div>
   <button id="p2DashBtn" class="mobileBtn" data-action="p2dash">D2</button>
   <button id="p2BombBtn" class="mobileBtn" data-action="p2bomb">B2</button>
-  <button id="dashBtn" class="mobileBtn" data-action="dash" aria-label="Рывок"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M3 8h8M2 12h6M4 16h7M13 3l8 9-8 9v-6h-3V9h3z"/></svg><span class="actionLabel">РЫВОК</span><span class="actionValue" id="touchDashValue"></span></button>
-  <button id="bombBtn" class="mobileBtn bombBtn" data-action="bomb" aria-label="Бомба"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><circle cx="11" cy="14" r="7"/><path d="M13 7l2-4 3 1 2-2M18 5l3 3"/></svg><span class="actionLabel">БОМБА</span><b class="actionValue" id="touchBombValue">3</b></button>
-  <button id="pauseBtn" class="mobileBtn pauseBtn" data-action="pause" aria-label="Пауза"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M8 5h3v14H8zM15 5h3v14h-3z" fill="currentColor" stroke="none"/></svg></button>
+  <button id="dashBtn" class="mobileBtn" data-action="dash" aria-label="Рывок"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><polygon points="2,7 15,7 15,2 30,16 15,30 15,25 2,25 10,16" fill="#131018"/><polygon points="5,9 17,9 17,6 27,16 17,26 17,23 5,23 13,16" fill="#367e75"/><polygon points="9,10 18,10 18,8 26,16 18,23 18,20 9,20 15,16" fill="#80dbab"/><rect x="2" y="13" width="6" height="2" fill="#f4e5c5"/><rect x="0" y="18" width="8" height="2" fill="#a9bbc3"/></svg><span class="actionLabel">РЫВОК</span><span class="actionValue" id="touchDashValue"></span></button>
+  <button id="bombBtn" class="mobileBtn bombBtn" data-action="bomb" aria-label="Бомба"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><polygon points="10,9 13,6 20,6 23,9 28,14 28,24 23,29 9,29 4,24 4,14" fill="#131018"/><polygon points="10,10 22,10 26,15 26,23 21,27 11,27 6,23 6,15" fill="#53616b"/><polygon points="8,15 12,11 21,11 23,14 13,14 9,19" fill="#a9bbc3"/><polygon points="17,8 17,4 22,4 22,7 20,7 20,11" fill="#e5b66e"/><rect x="23" y="2" width="3" height="3" fill="#dc5a59"/><rect x="26" y="5" width="3" height="2" fill="#f4e5c5"/><rect x="25" y="0" width="2" height="2" fill="#e5b66e"/><rect x="21" y="22" width="3" height="2" fill="#8b303d"/><rect x="9" y="15" width="3" height="4" fill="#f4e5c5"/></svg><span class="actionLabel">БОМБА</span><b class="actionValue" id="touchBombValue">3</b></button>
+  <button id="pauseBtn" class="mobileBtn pauseBtn" data-action="pause" aria-label="Пауза"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="5" y="4" width="9" height="24" fill="#131018"/><rect x="18" y="4" width="9" height="24" fill="#131018"/><rect x="7" y="6" width="5" height="20" fill="#a9bbc3"/><rect x="20" y="6" width="5" height="20" fill="#a9bbc3"/><rect x="7" y="6" width="2" height="16" fill="#f4e5c5"/><rect x="20" y="6" width="2" height="16" fill="#f4e5c5"/></svg></button>
   <div id="mobileWeapons"><button class="mw" type="button" data-weapon="0" aria-label="Оружие 1" aria-pressed="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M5 20l4-4 8-11 2-1 1 2-8 13-4 2zM5 14l5 4"/></svg><span class="mwIndex">1</span><span class="mwLv">1</span><i class="mwCharge"></i></button><button class="mw" type="button" data-weapon="1" aria-label="Оружие 2" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M6 20l8-10M11 3l-3 6 3 3 4-3 2-6M14 4l-3 6"/></svg><span class="mwIndex">2</span><span class="mwLv">1</span><i class="mwCharge"></i></button><button class="mw" type="button" data-weapon="2" aria-label="Оружие 3" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M4 17l5-5 6-8 5 4-6 9-6 4zM8 12l4 4"/></svg><span class="mwIndex">3</span><span class="mwLv">1</span><i class="mwCharge"></i></button><button class="mw" type="button" data-weapon="3" aria-label="Оружие 4" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M4 9h10l3-3 3 2-3 4H4zM8 14l4 4M5 16l3 4M14 13l4 3"/></svg><span class="mwIndex">4</span><span class="mwLv">1</span><i class="mwCharge"></i></button></div>
 </div>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script><script>
@@ -792,7 +812,35 @@ function applyLanguageStatic(){
  const gt=document.querySelector('#gameover .tag');if(gt)gt.textContent=T('run');const gtitle=document.querySelector('#gameover .title');if(gtitle)gtitle.textContent=T('dead');const buttons=document.querySelectorAll('#gameover .btn');if(buttons[0])buttons[0].textContent=T('retry');if(buttons[1])buttons[1].textContent=T('menu');
 }
 
-// V37: hand-shaped inventory sprites. Four unique silhouettes per hero.
+function uiPixelIcon(kind){
+ const ink='#131018',cream='#f4e5c5',steel='#a9bbc3',dark='#53616b',gold='#e5b66e',red='#dc5a59',ruby='#8b303d',green='#80dbab',teal='#367e75',violet='#bda5ee',blue='#647db5';
+ let s='';
+ const R=(x,y,w,h,col)=>s+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+col+'"/>';
+ const P=(pts,col)=>s+='<polygon points="'+pts+'" fill="'+col+'"/>';
+ const lightning=(col=gold)=>{P('18,1 5,18 13,18 9,31 28,11 19,11 24,1',ink);P('18,4 9,16 16,16 13,25 24,13 16,13 21,4',col);P('18,4 13,13 17,13 21,4',cream)};
+ const bomb=()=>{P('10,9 13,6 20,6 23,9 28,14 28,24 23,29 9,29 4,24 4,14',ink);P('10,10 22,10 26,15 26,23 21,27 11,27 6,23 6,15',dark);P('8,15 12,11 21,11 23,14 13,14 9,19',steel);P('17,8 17,4 22,4 22,7 20,7 20,11',gold);R(23,2,3,3,red);R(26,5,3,2,cream);R(25,0,2,2,gold);R(21,22,3,2,ruby);R(9,15,3,4,cream)};
+ const head=(x,y,col=gold)=>{R(x+3,y,8,2,ink);R(x+1,y+2,12,10,ink);R(x+3,y+2,8,8,col);R(x+4,y+3,6,2,cream);R(x+3,y+7,2,2,ink);R(x+9,y+7,2,2,ink);R(x,y+12,14,5,ink);R(x+2,y+12,10,4,col)};
+ switch(kind){
+ case 'damage':P('3,27 9,19 7,16 10,12 14,15 23,2 30,2 29,9 17,23 14,20 8,30',ink);P('14,16 24,4 28,4 26,10 17,20',steel);P('15,16 24,4 27,4 19,13',cream);P('5,27 11,20 14,23 8,29',gold);R(20,14,3,3,red);break;
+ case 'rate':lightning(gold);R(2,6,6,2,red);R(0,10,6,2,gold);R(24,23,6,2,gold);break;
+ case 'move':case 'dash':P('2,7 15,7 15,2 30,16 15,30 15,25 2,25 10,16',ink);P('5,9 17,9 17,6 27,16 17,26 17,23 5,23 13,16',teal);P('9,10 18,10 18,8 26,16 18,23 18,20 9,20 15,16',green);R(2,13,6,2,cream);R(0,18,8,2,steel);break;
+ case 'hp':P('3,8 7,4 13,4 16,7 19,4 25,4 29,8 29,17 16,30 3,17',ink);P('5,9 8,6 12,6 16,10 20,6 24,6 27,9 27,16 16,27 5,16',ruby);P('6,9 9,7 12,7 16,11 20,7 24,7 26,9 26,13 16,23 6,14',red);R(13,12,6,3,cream);R(15,10,2,7,cream);break;
+ case 'bomb':bomb();break;
+ case 'crit':P('16,1 20,10 31,16 20,21 16,31 11,21 1,16 11,10',ink);P('16,4 19,12 27,16 19,19 16,27 13,19 5,16 13,12',gold);P('16,8 17,14 23,16 17,17 16,23 15,17 9,16 15,14',cream);R(3,4,3,3,red);R(26,25,3,3,red);break;
+ case 'wide':P('10,2 22,2 30,10 30,22 22,30 10,30 2,22 2,10',ink);P('11,4 21,4 28,11 28,21 21,28 11,28 4,21 4,11',violet);P('12,8 20,8 24,12 24,20 20,24 12,24 8,20 8,12',blue);P('14,11 18,11 21,14 21,18 18,21 14,21 11,18 11,14',ink);R(14,14,4,4,cream);R(15,3,2,6,cream);R(23,15,6,2,cream);R(3,15,6,2,cream);R(15,23,2,6,cream);break;
+ case 'pierce':for(let k=0;k<3;k++){const x=3+k*8;R(x,4,4,24,ink);R(x+1,6,2,20,dark)}P('1,12 20,12 20,7 31,16 20,25 20,20 1,20',ink);P('3,14 22,14 22,11 28,16 22,21 22,18 3,18',steel);R(4,14,18,2,cream);break;
+ case 'armor':P('3,3 29,3 29,19 24,26 16,31 8,26 3,19',ink);P('5,5 27,5 27,18 22,24 16,28 10,24 5,18',dark);P('7,7 25,7 25,17 20,22 16,25 11,22 7,17',steel);P('16,7 25,7 25,17 20,22 16,25',dark);R(14,10,4,12,gold);R(10,13,12,4,gold);R(14,10,2,10,cream);break;
+ case 'pause':R(5,4,9,24,ink);R(18,4,9,24,ink);R(7,6,5,20,steel);R(20,6,5,20,steel);R(7,6,2,16,cream);R(20,6,2,16,cream);break;
+ case 'hero':case 'solo':head(9,5,gold);break;
+ case 'local':head(1,8,steel);head(16,3,gold);break;
+ case 'online':P('10,2 22,2 30,10 30,22 22,30 10,30 2,22 2,10',ink);P('11,4 21,4 28,11 28,21 21,28 11,28 4,21 4,11',teal);R(7,10,18,2,green);R(7,20,18,2,green);R(15,5,2,22,cream);R(10,6,2,20,green);R(20,6,2,20,green);R(4,15,24,2,cream);break;
+ case 'map':P('2,7 11,3 21,7 30,3 30,25 21,29 11,25 2,29',ink);P('4,9 11,6 21,10 28,6 28,23 21,26 11,22 4,26',dark);P('4,9 11,6 11,22 4,26',steel);P('21,10 28,6 28,23 21,26',steel);R(13,11,3,3,cream);R(16,14,3,3,gold);R(19,11,3,3,red);R(19,17,3,3,red);break;
+ case 'mode':R(4,4,24,24,ink);R(6,6,20,20,dark);R(9,10,14,2,cream);R(9,16,14,2,cream);R(9,22,14,2,cream);R(12,8,4,6,gold);R(19,14,4,6,green);R(10,20,4,6,red);break;
+ default:lightning();
+ }
+ return '<svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges">'+s+'</svg>';
+}
+// V39: hand-shaped inventory sprites. Four unique silhouettes per hero.
 const inventoryArt={
  scar:['blade','boomerang','cleaver','blood'],
  vesa:['needles','scythes','crossbow','rain'],
@@ -803,7 +851,7 @@ const inventoryArt={
 };
 function inventoryIcon(id,i){
  const kind=(inventoryArt[id]||inventoryArt.scar)[i]||'blade',a=heroArt[id]||heroArt.scar;
- const ink='#100d16',steel='#a8b4ba',light='#e9e6d5',shadow='#5c6570',wood='#93684b',accent=a.glow,mid=a.mid,deep=a.dark;
+ const ink='#100d16',steel='#b5c4cf',light='#fff1d4',shadow='#697987',wood='#ba8b57',accent=a.glow,mid=a.lit,deep=a.mid;
  let s='';
  const R=(x,y,w,h,color)=>s+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+color+'"/>';
  const P=(pts,color)=>s+='<polygon points="'+pts+'" fill="'+color+'"/>';
@@ -813,12 +861,12 @@ function inventoryIcon(id,i){
  case 'blade':blade();R(18,13,3,2,mid);break;
  case 'boomerang':P('4,4 13,7 25,17 28,26 19,28 15,20 6,13',ink);P('6,6 13,9 23,18 25,24 20,25 17,19 8,12',mid);P('6,6 13,9 23,18 24,21 19,17 8,10',light);R(19,22,3,3,accent);break;
  case 'cleaver':P('4,26 12,18 9,11 19,2 29,10 27,17 15,23 11,29',ink);P('11,11 19,4 27,10 25,16 15,21',steel);P('11,11 19,4 26,10 24,11 18,7 13,12',light);P('5,26 13,19 15,22 10,27 7,28',wood);R(21,14,4,2,mid);R(22,8,2,2,ink);break;
- case 'blood':P('5,23 10,8 18,3 20,10 27,5 26,17 18,27 9,29',ink);P('7,22 12,10 17,5 18,12 25,8 23,18 16,25 10,26',mid);P('12,22 17,10 20,15 24,11 20,22 16,25',accent);R(14,15,2,4,light);break;
+ case 'blood':P('4,19 8,9 17,2 20,9 28,4 29,13 24,24 17,30 7,28',ink);P('6,19 10,11 17,5 18,13 26,7 27,13 22,22 16,28 8,26',deep);P('8,20 13,12 17,8 18,15 25,11 22,20 16,25 11,25',mid);P('12,21 16,15 17,19 23,15 19,22 15,24',accent);R(16,17,2,3,light);R(2,8,3,3,mid);R(27,24,3,3,accent);break;
  case 'needles':for(let k=0;k<3;k++){let x=3+k*6;P(x+','+(27-k*4)+' '+(x+3)+','+(14-k*4)+' '+(x+11)+','+(4-k)+' '+(x+7)+','+(18-k*4),ink);P((x+2)+','+(23-k*4)+' '+(x+10)+','+(5-k)+' '+(x+5)+','+(18-k*4),accent);R(x+3,18-k*4,2,3,mid)}break;
  case 'scythes':P('3,7 12,3 25,7 29,15 24,19 19,11 11,8 8,14 4,15',ink);P('5,7 12,5 24,9 27,15 24,16 20,10 12,7',steel);P('8,10 11,11 25,28 21,30',wood);P('3,20 7,18 17,26 23,23 25,26 18,30',accent);break;
  case 'crossbow':P('3,8 7,4 16,11 25,4 29,8 26,17 19,18 19,29 13,29 13,18 6,17',ink);P('5,8 8,6 16,14 24,6 27,8 24,15 19,16 13,16 8,15',mid);R(14,11,4,16,steel);R(15,3,2,15,accent);R(12,12,8,2,light);break;
  case 'rain':for(let k=0;k<5;k++){let x=4+k*5,y=4+(k%2)*5;P(x+','+y+' '+(x+5)+','+(y+5)+' '+(x+2)+','+(y+16)+' '+(x-1)+','+(y+9),ink);P((x+1)+','+(y+2)+' '+(x+3)+','+(y+6)+' '+(x+1)+','+(y+12),accent)}R(7,26,18,2,mid);break;
- case 'dart':gem(16,13);P('4,28 10,14 15,15 11,23 8,29',deep);P('18,10 26,3 29,4 23,12',light);break;
+ case 'dart':P('3,25 9,15 14,14 19,5 29,2 26,12 18,19 17,24 7,29',ink);P('5,25 12,17 16,16 22,7 27,4 24,11 17,18 15,23 7,27',mid);P('15,15 22,7 27,4 23,12 19,17',accent);R(11,20,3,2,light);R(3,17,4,2,deep);R(9,28,4,2,accent);break;
  case 'shadows':gem(8,20,mid);gem(16,10);gem(24,20,mid);R(15,8,2,4,light);break;
  case 'slash':P('4,24 7,13 18,5 29,4 21,10 12,21 12,28',ink);P('6,23 9,14 19,7 26,6 19,12 11,23 10,26',mid);P('9,21 14,12 24,7 17,14 12,23',accent);break;
  case 'curse':P('6,10 12,5 20,5 26,10 26,22 19,28 12,28 6,22',ink);P('8,11 13,7 19,7 24,11 24,21 18,26 13,26 8,21',deep);R(11,12,4,4,accent);R(18,12,4,4,accent);R(14,19,5,2,light);R(15,3,2,4,mid);R(15,26,2,4,mid);break;
@@ -827,7 +875,7 @@ function inventoryIcon(id,i){
  case 'meteor':P('3,4 11,8 15,5 19,12 27,14 30,22 25,29 16,28 10,23 8,15',ink);P('5,5 13,10 16,8 19,15 13,20 10,15',mid);P('15,16 22,12 27,16 29,22 24,27 17,26 12,22',shadow);P('15,17 22,14 26,17 27,21 21,25 16,23',accent);R(19,17,4,3,light);break;
  case 'vortex':P('4,13 12,5 23,5 29,12 27,23 18,29 7,26 3,20 5,17 11,23 19,25 24,19 23,12 17,9 10,13 10,18 15,21 19,18 15,14 20,12 23,17 20,22 12,23 6,19',mid);P('5,13 13,6 22,6 27,12 25,16 22,10 14,8 8,14 9,18 6,18',accent);R(15,14,3,3,light);break;
  case 'kunai':P('4,25 11,18 11,13 25,4 28,5 20,20 15,20 8,28',ink);P('13,13 25,6 20,18 15,18',steel);P('15,13 25,6 18,15',light);R(5,23,5,5,mid);R(6,24,2,2,ink);break;
- case 'poison':blade();P('18,26 22,17 26,22 27,27 23,30',deep);P('20,25 22,19 25,24 25,27 22,28',accent);break;
+ case 'poison':P('3,25 8,19 6,16 10,13 13,16 19,4 27,2 28,9 19,22 15,20 8,30',ink);P('13,17 20,6 26,4 25,9 18,20',steel);P('16,15 22,6 26,4 22,11',light);P('8,21 12,17 15,21 8,28',wood);P('19,25 23,17 28,24 28,28 23,31 18,28',ink);P('21,25 23,20 26,25 26,27 23,29 20,27',accent);R(22,24,2,2,light);break;
  case 'step':P('3,18 12,12 12,7 28,15 15,27 15,21 3,26 7,21',deep);P('6,19 16,13 15,10 26,15 17,24 17,19',accent);R(2,10,8,2,mid);R(5,27,8,2,mid);break;
  case 'volley':for(let k=0;k<3;k++){let x=3+k*6;P(x+','+(26-k*2)+' '+(x+4)+','+(13-k*2)+' '+(x+12)+','+(5+k)+' '+(x+8)+','+(18-k*2),ink);P((x+3)+','+(22-k*2)+' '+(x+11)+','+(6+k)+' '+(x+7)+','+(17-k*2),steel)}R(11,12,3,2,accent);break;
  case 'cauldron':P('5,12 8,8 24,8 28,12 26,25 21,29 11,29 6,24',ink);P('7,12 25,12 24,24 20,27 12,27 8,23',shadow);R(8,10,16,4,steel);R(10,14,3,9,light);R(16,19,6,4,accent);R(12,4,2,3,light);R(19,2,2,5,light);break;
@@ -835,7 +883,7 @@ function inventoryIcon(id,i){
  case 'iron':P('3,21 7,13 13,10 16,16 21,6 29,5 27,13 21,23 13,28 6,28',ink);P('5,21 9,15 13,13 16,19 22,9 27,7 24,15 19,22 12,26 7,26',steel);P('8,18 12,15 16,22 23,12 21,19 15,26 9,25',shadow);R(21,9,4,2,light);break;
  case 'furnace':P('5,8 10,4 22,4 27,8 27,27 5,27',ink);R(7,9,18,16,shadow);R(9,6,14,4,steel);R(9,13,14,10,deep);P('11,22 11,17 15,12 16,16 20,12 22,22',mid);P('14,22 15,17 18,16 20,22',accent);R(16,20,2,2,light);break;
  }
- return '<svg class="inventoryIcon" aria-hidden="true" viewBox="0 0 32 32" shape-rendering="crispEdges">'+s+'</svg>';
+ return '<svg class="inventoryIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges">'+s+'</svg>';
 }
 function syncInventoryArt(p){
  for(const b of document.querySelectorAll('#mobileWeapons .mw,#weaponHud .weapon')){
@@ -863,7 +911,7 @@ document.getElementById('helpToggle').addEventListener('click',()=>{const h=docu
 function makeMenu(){
  const cc=document.getElementById('charChoices');cc.innerHTML='';document.getElementById('recordLine').textContent=recordText(loadRecord());
  for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);pixelHeroWeapon(pg,ch.id,0,0,0);d.prepend(portrait);d.onclick=()=>{selectedChar=ch.id;makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
- const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:T('onePlayer'),desc:T('modeOneDesc')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes){const d=document.createElement('button');d.type='button';d.className='modeChoice'+((md.id==='solo'&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.setAttribute('aria-pressed',String(d.classList.contains('sel')));d.innerHTML=`<b>${md.title}</b><p>${md.desc}</p>`;d.onclick=()=>{onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu();modeBox.querySelector('.sel')?.focus({preventScroll:true})};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||'нет комнаты'):'')}
+ const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:T('onePlayer'),desc:T('modeOneDesc')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes){const d=document.createElement('button');d.type='button';d.className='modeChoice'+((md.id==='solo'&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.setAttribute('aria-pressed',String(d.classList.contains('sel')));d.innerHTML=uiPixelIcon(md.id)+`<div class="modeCopy"><b>${md.title}</b><p>${md.desc}</p></div>`;d.onclick=()=>{onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu();modeBox.querySelector('.sel')?.focus({preventScroll:true})};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||'нет комнаты'):'')}
  const mc=document.getElementById('mapChoices');mc.innerHTML='';
  for(const m of maps){const d=document.createElement('button');d.type='button';d.className='choice'+(m.id===selectedMap?' sel':'');d.style.setProperty('--accent',m.accent);d.style.setProperty('--card',m.tile);d.setAttribute('aria-pressed',String(m.id===selectedMap));d.innerHTML=`<b>${locName(m).split(' — ')[0]}</b>`;const thumbnail=document.createElement('canvas');thumbnail.width=160;thumbnail.height=90;thumbnail.className='mapPortrait';thumbnail.setAttribute('aria-hidden','true');thumbnail.getContext('2d').drawImage(mapThumbnail(m.id),0,0);d.prepend(thumbnail);d.onclick=()=>{selectedMap=m.id;makeMenu();mc.querySelector('.sel')?.focus({preventScroll:true})};mc.appendChild(d)}
  applyLanguageStatic();
@@ -1252,9 +1300,7 @@ function upgradePresentation(p,o){
  const [kind,v]=effects[id]||['damage',0];
  const names={damage:['Урон','Damage'],rate:['Скорость атаки','Attack rate'],move:['Скорость движения','Movement speed'],hp:['Здоровье','Health'],bomb:['Бомба','Bomb'],crit:['Шанс крита','Critical chance'],wide:['Радиус атаки','Attack radius'],pierce:['Пробивание','Piercing'],armor:['Броня','Armor']};
  const detail={damage:'×'+(p.boost.dmg||1).toFixed(2)+' → ×'+((p.boost.dmg||1)*(1+v/100)).toFixed(2),rate:'×'+(p.boost.rate||1).toFixed(2)+' → ×'+((p.boost.rate||1)*(1+v/100)).toFixed(2),move:'×'+(p.boost.move||1).toFixed(2)+' → ×'+((p.boost.move||1)*(1+v/100)).toFixed(2),hp:p.maxhp+' → '+(p.maxhp+v)+(en?' · full heal':' · лечение'),bomb:p.bomb+' → '+(p.bomb+1),crit:Math.round(p.boost.crit*100)+'% → '+Math.round((p.boost.crit+v/100)*100)+'%',wide:en?'Area attacks':'Атаки по площади',pierce:en?'Projectiles pass through enemies':'Снаряды проходят сквозь цели',armor:en?'Damage +10%':'Урон +10%'}[kind];
- const glyphs={damage:'M4 25L21 5L27 3L28 9L11 28L4 28Z',rate:'M17 2L5 19H15L12 30L28 12H18Z',move:'M3 9H13V4L29 16L13 28V23H3Z',hp:'M4 5H13V9H19V5H28V17L16 29L4 17Z',bomb:'M10 6H22V10H26V25H22V29H10V25H6V10H10ZM22 2H28V8H22Z',crit:'M16 2L20 11L30 16L20 21L16 30L12 21L2 16L12 11Z',wide:'M4 11H8V6H13V2H19V6H24V11H28V21H24V26H19V30H13V26H8V21H4Z',pierce:'M3 14H21V6L30 16L21 26V18H3Z',armor:'M4 4H28V18L16 30L4 18Z'};
- const color=kind==='hp'?'#bd6659':kind==='armor'?'#9eafb0':kind==='crit'?'#d9b47a':'#b8c5ad';
- return {icon:'<svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true"><path d="'+glyphs[kind]+'" fill="'+color+'" stroke="#120f15" stroke-width="2"/><path d="M8 8h4v3H8z" fill="#f1e2c2"/></svg>',title:names[kind][en?1:0],effect:(kind==='armor'?'−':'+')+v+(['hp','bomb','pierce'].includes(kind)?'':kind==='crit'?(en?' pp':' п.п.'):'%'),detail};
+ return {icon:uiPixelIcon(kind),title:names[kind][en?1:0],effect:(kind==='armor'?'−':'+')+v+(['hp','bomb','pierce'].includes(kind)?'':kind==='crit'?(en?' pp':' п.п.'):'%'),detail};
 }
 function renderUpgradeChoice(d,p,o,i){
  const a=upgradePresentation(p,o);
