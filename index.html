@@ -2486,7 +2486,7 @@ function wireStateNet(c){
 }
 function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus(L("Create or join a room first.","Сначала создай комнату и дождись игрока."));return false}sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false,checkpoint=null){
- if(savedCheckpoint&&!coop&&!onlineMode&&!checkpoint)return;saveAtBoundary=false;encounter=null;
+ touchAimMode=false;if(savedCheckpoint&&!coop&&!onlineMode&&!checkpoint)return;saveAtBoundary=false;encounter=null;
  if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
  if(!heroPlayable(chars.find(c=>c.id===selectedChar),meta,journal,coop||onlineMode))selectedChar=chars[0].id;
  secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;
@@ -3171,13 +3171,13 @@ function updateDrops(dt){
 function updateFx(dt){impactMarks=fxTick(impactMarks,dt);dashGhosts=fxTick(dashGhosts,dt);deathSprites=fxTick(deathSprites,dt);for(const p of coopPlayers())p.recoilT=Math.max(0,(p.recoilT||0)-dt);for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.92;p.vy*=.92;p.life-=dt}particles=particles.filter(p=>p.life>0);for(const t of texts){t.y-=18*dt;t.life-=dt}texts=texts.filter(t=>t.life>0);if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)document.getElementById('toast').classList.remove('show')}}
 
 let shake=0;
-const touchInput={moveX:0,moveY:0,aimX:0,aimY:0,aimActive:false,attack:false,p2MoveX:0,p2MoveY:0};
+const touchInput={moveX:0,moveY:0,aimX:0,aimY:0,aimActive:false,attack:false,p2MoveX:0,p2MoveY:0};let touchAimMode=false;
 function setKnob(padId,x,y){const pad=document.getElementById(padId),k=pad&&pad.querySelector('.mobileKnob');if(!k)return;k.style.left=`${50+x*42}%`;k.style.top=`${50+y*42}%`}
 function resetKnob(padId){setKnob(padId,0,0)}
 function bindTouchStick(id,mode){
  const el=document.getElementById(id);if(!el)return;
  let pid=null,active=false;
- const apply=(clientX,clientY)=>{const r=el.getBoundingClientRect(),q=stickVector(clientX-r.left-r.width/2,clientY-r.top-r.height/2,r.width,r.height,touchPrefs.response),{x,y}=q;setKnob(id,x,y);if(mode==='move'){touchInput.moveX=x;touchInput.moveY=y}else if(mode==='p2move'){touchInput.p2MoveX=x;touchInput.p2MoveY=y}else{touchInput.aimX=x;touchInput.aimY=y;touchInput.aimActive=q.active;touchInput.attack=q.active||fireBtnHeld;if(q.active){const p=onlineMode&&isOnlineGuest?player2:player;p.aim=Math.atan2(y,x)}}};
+ const apply=(clientX,clientY)=>{const r=el.getBoundingClientRect(),q=stickVector(clientX-r.left-r.width/2,clientY-r.top-r.height/2,r.width,r.height,touchPrefs.response),{x,y}=q;setKnob(id,x,y);if(mode==='move'){touchInput.moveX=x;touchInput.moveY=y}else if(mode==='p2move'){touchInput.p2MoveX=x;touchInput.p2MoveY=y}else{touchInput.aimX=x;touchInput.aimY=y;touchInput.aimActive=q.active;touchInput.attack=q.active||fireBtnHeld;if(q.active){touchAimMode=true;const p=onlineMode&&isOnlineGuest?player2:player;p.aim=Math.atan2(y,x)}}};
  const end=()=>{active=false;pid=null;if(mode==='move'){touchInput.moveX=0;touchInput.moveY=0}else if(mode==='p2move'){touchInput.p2MoveX=0;touchInput.p2MoveY=0}else{touchInput.aimX=0;touchInput.aimY=0;touchInput.aimActive=false;touchInput.attack=false}resetKnob(id)};
  const pdown=e=>{e.preventDefault();if(active||state!=='game')return;initAudio();active=true;pid=e.pointerId??'touch';apply(e.clientX,e.clientY);if(e.pointerId!=null&&el.setPointerCapture)try{el.setPointerCapture(e.pointerId)}catch(_){} };
  const pmove=e=>{if(!active||pid!==e.pointerId)return;e.preventDefault();apply(e.clientX,e.clientY)};
@@ -3240,7 +3240,7 @@ function update(dt){
  // P1 weapon follows the pointer continuously, not only while firing.
  if(!player.dead){
    const aim=touchInput.aimActive?touchAimTarget(player,touchInput.aimX,touchInput.aimY):null,tx=aim?.x??(mouse.x+camera.x-W/2),ty=aim?.y??(mouse.y+camera.y-H/2);
-   if(Math.hypot(tx-player.x,ty-player.y)>0.5) player.aim=Math.atan2(ty-player.y,tx-player.x);
+   if((aim||!touchAimMode)&&Math.hypot(tx-player.x,ty-player.y)>0.5) player.aim=Math.atan2(ty-player.y,tx-player.x);
  }
  const kmx=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0),kmy=(keys.has('KeyS')?1:0)-(keys.has('KeyW')?1:0);
  const mx=(Math.abs(touchInput.moveX)>0.001?touchInput.moveX:kmx),my=(Math.abs(touchInput.moveY)>0.001?touchInput.moveY:kmy),l=Math.max(1,Math.hypot(mx,my));
@@ -3744,7 +3744,7 @@ document.addEventListener('visibilitychange',()=>{
  else{last=0;acc=0;if(audioCtx&&state!=='pause')initAudio()}
 });
 function screenToGame(clientX,clientY){const r=c.getBoundingClientRect();const scale=Math.min(r.width/W,r.height/H);const dw=W*scale,dh=H*scale;const ox=r.left+(r.width-dw)/2,oy=r.top+(r.height-dh)/2;return {x:clamp((clientX-ox)/scale,0,W),y:clamp((clientY-oy)/scale,0,H)}}
-c.addEventListener('mousemove',e=>{const p=screenToGame(e.clientX,e.clientY);mouse.x=p.x;mouse.y=p.y});c.addEventListener('mousedown',e=>{initAudio();if(e.button===0&&state==='game'&&!(onlineMode&&isOnlineGuest)){const p=screenToGame(e.clientX,e.clientY);mouse.x=p.x;mouse.y=p.y;mouse.down=true;attack()}});addEventListener('mouseup',e=>{if(e.button===0)mouse.down=false});
+c.addEventListener('mousemove',e=>{if(e.sourceCapabilities?.firesTouchEvents)return;touchAimMode=false;const p=screenToGame(e.clientX,e.clientY);mouse.x=p.x;mouse.y=p.y});c.addEventListener('mousedown',e=>{if(e.sourceCapabilities?.firesTouchEvents)return;touchAimMode=false;initAudio();if(e.button===0&&state==='game'&&!(onlineMode&&isOnlineGuest)){const p=screenToGame(e.clientX,e.clientY);mouse.x=p.x;mouse.y=p.y;mouse.down=true;attack()}});addEventListener('mouseup',e=>{if(e.button===0)mouse.down=false});
 document.getElementById('languageSelect').addEventListener('change',e=>setLanguage(e.target.value));
 document.addEventListener('pointerdown',()=>{initAudio();if(state==='menu')startMenuMusic()},{passive:true});
 setupMobile();
