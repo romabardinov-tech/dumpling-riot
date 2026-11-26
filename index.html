@@ -887,8 +887,8 @@ function resetNightmareWave(n,zone){n.elapsed=0;n.charge=FEAR_RULES.charge;n.zon
 function fearStep(n,dt,round,near,health,inZone,fighting){
  if(!fighting){n.fear=fearClamp(n.fear-9*dt);n.hunter=null;n.echo=null;n.inside=false;return n.fear}
  n.elapsed+=dt;n.inside=inZone&&n.charge>0;
- const used=n.inside?Math.min(dt,n.charge):0;n.charge=Math.max(0,n.charge-used);
  const pressure=round===1?0:near>0?.55+Math.min(near,4)*.55+(health<.35?.6:0):-1.1;
+ const used=n.inside&&round>1?Math.min(dt,n.charge,Math.max(0,(n.fear+Math.max(0,pressure)*dt)/(12+Math.max(0,pressure)))):0;n.charge=Math.max(0,n.charge-used);if(n.charge<.00001)n.charge=0;
  n.fear=fearClamp(n.fear+pressure*(dt-used)-12*used);return n.fear;
 }
 function shouldSummonNightmare(n,w){return w>=3&&!n.summoned&&(n.fear>=FEAR_RULES.hunter||n.elapsed>=FEAR_RULES.late)}
@@ -1062,7 +1062,7 @@ function speakNpc(line,isBoss){
 function clearNpc(){npcEvent=null;npcLineTimer=0;npcLastLine='';npcNext=7;npcSequence=0;npcSeen=0;npcBossSeen='';document.getElementById('npcSubtitle').hidden=true;try{window.speechSynthesis?.cancel()}catch(_){}}
 function displayNpc(event){
  if(!event||!event.line||event.n<=npcSeen)return;
- npcSeen=event.n;npcLineTimer=3.8;const line=L(event.line),speaker=event.bossId!=null?L(bossRoster[event.bossId]?.name||'Enemy'):arenaEnemyName(event.enemyType);
+ npcSeen=event.n;npcLineTimer=3.8;const echo=event.bossId==null&&event.enemyType==null?Object.values(nightmareThemes).find(q=>q.line===event.line):null;const line=echo?L(echo.line,echo.lineRu):L(event.line),speaker=echo?L('Whisper','Шёпот'):event.bossId!=null?L(bossRoster[event.bossId]?.name||'Enemy'):arenaEnemyName(event.enemyType);
  document.getElementById('npcSpeaker').textContent=speaker;document.getElementById('npcWords').textContent=line;document.getElementById('npcSubtitle').hidden=false;speakNpc(line,event.bossId!=null);
 }
 function emitNpc(line,bossId=null,enemyType=null){if(onlineMode&&isOnlineGuest)return;npcEvent={n:++npcSequence,line,bossId,enemyType};npcLastLine=line;displayNpc(npcEvent)}
@@ -2864,7 +2864,7 @@ function paintSecretDirection(g,event,view){
 function paintNightmareFloor(g,n,theme){
  if(!n||!n.zone||waveState!=='fighting'||state==='death')return;
  const z=n.zone,ready=n.charge>0;g.save();g.translate(z.x,z.y);g.strokeStyle=ready?theme.color:'#69636e';g.fillStyle=ready?'rgba(170,210,190,.09)':'rgba(80,70,80,.07)';g.lineWidth=1;g.beginPath();g.arc(0,0,FEAR_RULES.radius,0,TAU);g.fill();g.stroke();g.setLineDash([3,5]);g.beginPath();g.arc(0,0,FEAR_RULES.radius-4,0,TAU);g.stroke();g.setLineDash([]);
- g.fillStyle='#1a1521';g.fillRect(-7,-9,14,18);g.fillStyle=ready?theme.color:'#68636a';g.fillRect(-4,-6,8,10);g.fillStyle='#ead7b9';g.fillRect(-2,-3,4,4);g.fillStyle=ready?theme.color:'#85808a';g.font='bold 8px monospace';g.textAlign='center';g.fillText(ready?L('REFUGE','УКРЫТИЕ')+' '+Math.ceil(n.charge)+'s':L('SPENT','ИСТОЩЕНО'),0,-FEAR_RULES.radius-5);g.restore()
+ g.fillStyle='#1a1521';g.fillRect(-7,-9,14,18);g.fillStyle=ready?theme.color:'#68636a';g.fillRect(-4,-6,8,10);g.fillStyle='#ead7b9';g.fillRect(-2,-3,4,4);g.fillStyle=ready?theme.color:'#85808a';g.font='bold 8px monospace';g.textAlign='center';g.fillText(ready?L(theme.name,theme.ru)+' · '+Math.ceil(n.charge)+'s':L('SPENT','ИСТОЩЕНО'),0,-FEAR_RULES.radius-5);g.restore()
 }
 function paintNightmareActors(g,n){
  if(!n||state==='death'||waveState!=='fighting')return;
