@@ -307,6 +307,11 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 #menu .choice.sel,#menu .modeChoice.sel{box-shadow:inset 0 -2px #dfb47a}
 @media(max-width:650px) and (orientation:portrait){.heroArsenal{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-height:520px) and (orientation:landscape){.heroArsenal svg{width:24px;height:24px}.heroArsenal{margin-top:4px}.heroArsenal>div{padding:2px}}
+.footerTools{display:flex;justify-content:center;gap:14px}
+#soundPanel[hidden]{display:none!important}
+#soundPanel{display:flex;align-items:center;gap:8px;font-size:11px;color:#bfb2a5;min-height:36px}
+#soundPanel input{min-width:40px;flex:1;accent-color:#d4a674;touch-action:pan-x}
+#soundPanel output{min-width:32px;text-align:right;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -328,7 +333,7 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 <section class="menuSection" data-menu-panel="hero"><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3><span>6</span></div><div id="charChoices" class="choices"></div><div id="heroDetail" class="selectionDetail"></div><div id="heroArsenal" class="heroArsenal"></div></section>
 <section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Выбери арену</h3><span>6</span></div><div id="mapChoices" class="choices"></div><div id="mapDetail" class="selectionDetail"></div></section>
 <section class="menuSection" data-menu-panel="mode" hidden><div class="sectionHead"><h3 id="modeTitle">Режим игры</h3></div><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info">Онлайн: создай комнату или введи код друга.</div></div></section>
-</div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div></div></footer>
+</div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button></div><div id="soundPanel" hidden><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div></div></footer>
 </div></div>
 <div id="levelup" style="display:none"><div class="box"><div class="pauseBadge">ИГРА ОСТАНОВЛЕНА · УРОВЕНЬ ПОВЫШЕН</div><div class="title" style="font-size:38px">УР.<span class="red" id="levelUpNum">2</span></div><div class="tag">ВЫБЕРИ ОДНО УЛУЧШЕНИЕ</div><div id="upgradeChoices" class="levelChoices"></div></div></div>
 <div id="pauseOverlay" style="display:none"><div class="box pauseBox"><div class="pauseBadge">ПЕЛЬМЕНЬ ВЗЯЛ ПАУЗУ</div><div class="title" style="font-size:44px">ПАУЗА</div><div class="hint">Игра остановлена. Выбери, что делать дальше.</div><button id="resumeBtn" class="btn">ПРОДОЛЖИТЬ</button><button id="pauseRestartBtn" class="btn">НАЧАТЬ ЗАНОВО</button><button id="pauseMenuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В ГЛАВНОЕ МЕНЮ</button></div></div>
@@ -439,127 +444,81 @@ const world={w:1920,h:1080};
 const camera={x:960,y:540,smooth:0.12};
 let relicOwned=false;
 let horrorTime=0;
-let audioCtx=null, masterGain=null, musicGain=null, musicTimer=null, musicStep=0, musicStarted=false; let drone1=null,drone2=null,menuMusicTimer=null,menuMusicStep=0,menuGain=null,musicMode='off';
-function playMusicNote(freq,when,dur=.56,vol=.035,type='triangle',outGain=null){
- const out=outGain||musicGain;
- if(!audioCtx||!out)return;
- const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();
- o.type=type;o.frequency.setValueAtTime(freq,when);
- f.type='lowpass';f.frequency.setValueAtTime(type==='sawtooth'?1250:2200,when);f.Q.value=1.2;
- o.connect(f);f.connect(g);g.connect(out);
- g.gain.setValueAtTime(.0001,when);
- g.gain.exponentialRampToValueAtTime(vol,when+.035);
- g.gain.setValueAtTime(vol*.72,when+dur*.55);
- g.gain.exponentialRampToValueAtTime(.0001,when+dur);
- o.start(when);o.stop(when+dur+.04);
-}
-function playMusicPiano(freq,when,dur=.75,vol=.026,outGain=null){
- const out=outGain||musicGain;if(!audioCtx||!out)return; const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.setValueAtTime(freq,when);o.connect(g);g.connect(out);g.gain.setValueAtTime(.0001,when);g.gain.exponentialRampToValueAtTime(vol,when+.012);g.gain.exponentialRampToValueAtTime(vol*.42,when+.12);g.gain.exponentialRampToValueAtTime(.0001,when+dur);o.start(when);o.stop(when+dur+.03);
-}
-function playMusicViolin(freq,when,dur=.9,vol=.018,outGain=null){
- const out=outGain||musicGain;if(!audioCtx||!out)return; const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();o.type='sawtooth';o.frequency.setValueAtTime(freq,when);o.frequency.exponentialRampToValueAtTime(freq*1.015,when+dur);f.type='lowpass';f.frequency.value=1700;o.connect(f);f.connect(g);g.connect(out);g.gain.setValueAtTime(.0001,when);g.gain.exponentialRampToValueAtTime(vol,when+.08);g.gain.setValueAtTime(vol*.72,when+dur*.55);g.gain.exponentialRampToValueAtTime(.0001,when+dur);o.start(when);o.stop(when+dur+.03);
-}
-function playMusicPulse(when,freq=52,outGain=null){
- const out=outGain||musicGain;
- if(!audioCtx||!out)return;
- const o=audioCtx.createOscillator(),g=audioCtx.createGain();
- o.type='sine';o.frequency.setValueAtTime(freq,when);o.frequency.exponentialRampToValueAtTime(freq*.72,when+.22);
- o.connect(g);g.connect(out);g.gain.setValueAtTime(.0001,when);
- g.gain.exponentialRampToValueAtTime(.045,when+.012);g.gain.exponentialRampToValueAtTime(.0001,when+.28);
- o.start(when);o.stop(when+.3);
-}
-function scheduleHorrorMusic(){
- if(!audioCtx||!musicGain)return;
- // Dark minor-key loop: lead + low pulse + occasional dissonant accent.
- const notes=[110,130.81,138.59,110,92.5,103.83,123.47,82.41,98,116.54,87.31,103.83,77.78,92.5,69.3,82.41];
- const now=audioCtx.currentTime+.04,beat=.52,n=notes[musicStep%notes.length];
- playMusicNote(n,now,.46,.030,'triangle');
- if(musicStep%2===0)playMusicPiano(n*2,now+.03,.72,.022);
- if(musicStep%4===1)playMusicViolin(n*1.5,now+.08,.82,.014);
- if(musicStep%4===3)playMusicNote(n*1.414,now+.16,.28,.008,'sawtooth');
- musicStep++;
- musicTimer=setTimeout(scheduleHorrorMusic,beat*1000);
-}
-function stopHorrorMusic(){
- if(musicTimer){clearTimeout(musicTimer);musicTimer=null}
- musicStep=0;
- if(audioCtx&&musicGain){
-  const now=audioCtx.currentTime;
-  musicGain.gain.cancelScheduledValues(now);
-  musicGain.gain.setTargetAtTime(.0001,now,.04);
+let audioCtx=null,masterGain=null,musicGain=null,musicTimer=null,musicMode='off',musicStep=0,musicNext=0,musicNoise=null;
+let musicVolume=Number(readStorage('dumpling-riot-music-volume','65'));if(!Number.isFinite(musicVolume))musicVolume=65;musicVolume=Math.max(0,Math.min(100,musicVolume));
+const scoreRoots=[38,38,34,36,38,38,31,33,38,41,34,36,38,34,31,33];
+const scoreLead=[[62,null,null,65,null,64,null,57],[null,62,null,null,60,null,57,null],[58,null,60,null,62,null,null,65],[null,60,null,57,null,55,null,null]];
+function scoreStep(mode,step,intense=false){
+ const s=step%256,bar=Math.floor(s/16),q=s%16,root=scoreRoots[bar],notes=[];
+ const add=(voice,n,d,v)=>notes.push({voice,n,d,v});
+ if(mode==='menu'){
+  if(q===0){add('pad',root,15,.065);add('pad',root+7,15,.023)}
+  if(q===0||q===6||q===12)add('bell',root+24+(q===6?3:q===12?7:0),5,.055);
+  if(q===8&&bar%2===1)add('kick',0,2,.045);
+ }else{
+  if([0,3,6,8,11,14].includes(q))add('bass',root+(q===11?7:q===14?12:0),q===0?3:2,.13);
+  if(q===0){add('pad',root+12,15,.042);add('pad',root+19,15,.023)}
+  if([0,6,8,10].includes(q)||(intense&&q===14))add('kick',0,2,.19);
+  if(q===4||q===12)add('snare',0,1,.095);
+  if(q%2===0||(intense&&q%2===1))add('hat',0,1,q%4===0?.045:.026);
+  if(q===15&&bar%4===3)add('metal',0,2,.055);
+  const lead=scoreLead[bar%4][Math.floor(q/2)];if(q%2===0&&lead!=null&&(bar%4>=2||intense))add('bell',lead,3,.035);
+  if(intense&&q===0)add('bass',root-12,8,.07);
  }
- [drone1,drone2].forEach(o=>{try{o&&o.stop()}catch(_){}});
- drone1=null;drone2=null;musicStarted=false;
+ return notes;
 }
-function startHorrorMusic(){
- musicMode='game';
- const ac=initAudio();
- if(!ac||!musicGain)return;
- stopMenuMusic();
- if(musicStarted)return;
- musicStarted=true;
- musicGain.gain.cancelScheduledValues(ac.currentTime);
- musicGain.gain.setValueAtTime(.0001,ac.currentTime);
- musicGain.gain.linearRampToValueAtTime(.46,ac.currentTime+.18);
- const mk=(freq,vol,type='sine')=>{
-   const o=ac.createOscillator(),g=ac.createGain();
-   o.type=type;o.frequency.value=freq;g.gain.value=vol;o.connect(g);g.connect(musicGain);o.start();return o
- };
- if(!drone1){drone1=mk(36.71,.16,'sine');drone2=mk(55,.07,'triangle');}
- scheduleHorrorMusic();
-}
-function stopMenuMusic(){
- if(menuMusicTimer){clearTimeout(menuMusicTimer);menuMusicTimer=null}
- menuMusicStep=0;
- if(menuGain&&audioCtx){
-  menuGain.gain.cancelScheduledValues(audioCtx.currentTime);
-  menuGain.gain.setTargetAtTime(.0001,audioCtx.currentTime,.08);
+const midiHz=n=>440*Math.pow(2,(n-69)/12);
+function musicVoice(event,when,stepTime){
+ if(!audioCtx||!musicGain)return;const ac=audioCtx,dur=Math.max(.055,event.d*stepTime),vol=event.v;
+ const env=ac.createGain();env.connect(musicGain);env.gain.setValueAtTime(.0001,when);
+ const attack=event.voice==='pad'?.14:.008,release=event.voice==='pad'?.2:.035;
+ env.gain.exponentialRampToValueAtTime(vol,when+Math.min(attack,dur*.35));
+ env.gain.exponentialRampToValueAtTime(Math.max(.00012,vol*.45),when+Math.max(attack+.015,dur*.5));
+ env.gain.exponentialRampToValueAtTime(.0001,when+dur+release);
+ if(['hat','snare','metal'].includes(event.voice)){
+  const src=ac.createBufferSource(),filter=ac.createBiquadFilter();src.buffer=musicNoise;
+  filter.type=event.voice==='snare'?'bandpass':'highpass';filter.frequency.value=event.voice==='snare'?1450:event.voice==='metal'?2600:6500;filter.Q.value=event.voice==='metal'?5:.8;src.connect(filter);filter.connect(env);src.start(when,0);src.stop(when+Math.min(.24,dur+release));return;
  }
+ const osc=ac.createOscillator(),filter=ac.createBiquadFilter();osc.type=event.voice==='bass'?'triangle':event.voice==='pad'?'sawtooth':'sine';filter.type='lowpass';filter.frequency.value=event.voice==='pad'?680:event.voice==='bass'?620:3600;
+ if(event.voice==='kick'){osc.frequency.setValueAtTime(130,when);osc.frequency.exponentialRampToValueAtTime(41,when+.115)}else osc.frequency.setValueAtTime(midiHz(event.n),when);
+ osc.connect(filter);filter.connect(env);osc.start(when);osc.stop(when+dur+release+.015);
+ if(event.voice==='bell'){const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=midiHz(event.n)*2.01;g.gain.value=.25;o.connect(g);g.connect(env);o.start(when);o.stop(when+dur+release+.015)}
 }
-function scheduleMenuMusic(){
- if(!audioCtx||!menuGain)return;
- const notes=[82.41,98,92.5,73.42,87.31,103.83,77.78,69.3,82.41,92.5,61.74,73.42,65.41,77.78,58.27,69.3];
- const now=audioCtx.currentTime+.03,beat=.62,n=notes[menuMusicStep%notes.length];
- playMusicNote(n,now,.58,.060,'triangle',menuGain);
- if(menuMusicStep%2===0)playMusicNote(n*1.5,now,.32,.018,'sine',menuGain);
- if(menuMusicStep%2===0)playMusicPulse(now,n/2.2,menuGain);
- menuMusicStep++;
- menuMusicTimer=setTimeout(scheduleMenuMusic,beat*1000);
+function applyMusicVolume(){if(!musicGain||!audioCtx)return;const now=audioCtx.currentTime;musicGain.gain.cancelScheduledValues(now);musicGain.gain.setTargetAtTime(Math.max(.0001,musicVolume/100*.82),now,.07)}
+function scheduleScore(){
+ if(!audioCtx||musicMode==='off')return;
+ if(audioCtx.state!=='running'){musicNext=audioCtx.currentTime+.08;musicTimer=setTimeout(scheduleScore,150);return}
+ const now=audioCtx.currentTime;
+ if(musicNext<now-.1)musicNext=now+.06;
+ const intense=musicMode==='game'&&typeof boss!=='undefined'&&!!boss;
+ const stepTime=60/(musicMode==='menu'?76:116)/4;
+ while(musicNext<now+.14){for(const event of scoreStep(musicMode,musicStep,intense))musicVoice(event,musicNext,stepTime);musicNext+=stepTime;musicStep++}
+ musicTimer=setTimeout(scheduleScore,45);
 }
-function startMenuMusic(){
- musicMode='menu';
- const ac=initAudio();
- if(!ac||!masterGain)return;
- stopHorrorMusic();
- if(!menuGain){menuGain=ac.createGain();menuGain.gain.value=.0001;menuGain.connect(masterGain)}
- stopMenuMusic();
- musicGain.gain.cancelScheduledValues(ac.currentTime);
- musicGain.gain.setTargetAtTime(.0001,ac.currentTime,.02);
- menuGain.gain.cancelScheduledValues(ac.currentTime);
- menuGain.gain.setValueAtTime(.0001,ac.currentTime);
- menuGain.gain.linearRampToValueAtTime(.48,ac.currentTime+.12);
- scheduleMenuMusic();
+function setMusicMode(mode){
+ const ac=initAudio();if(!ac)return;
+ if(musicMode===mode&&musicTimer!==null)return;
+ if(musicTimer!==null)clearTimeout(musicTimer);
+ musicMode=mode;musicStep=0;musicNext=ac.currentTime+.08;musicTimer=null;applyMusicVolume();if(mode!=='off')scheduleScore();
 }
+function startHorrorMusic(){setMusicMode('game')}
+function startMenuMusic(){setMusicMode('menu')}
+function stopHorrorMusic(){if(musicMode==='game')setMusicMode('off')}
+function stopMenuMusic(){if(musicMode==='menu')setMusicMode('off')}
 function initAudio(){
  try{
   if(!audioCtx){
-   const AC=window.AudioContext||window.webkitAudioContext;
-   if(!AC)throw new Error('Web Audio API unavailable');
-   audioCtx=new AC();
-   masterGain=audioCtx.createGain();
-   masterGain.gain.value=.70;
-   masterGain.connect(audioCtx.destination);
-   musicGain=audioCtx.createGain();
-   musicGain.gain.value=.0;
-   musicGain.connect(masterGain);
+   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
+   audioCtx=new AC();masterGain=audioCtx.createGain();masterGain.gain.value=.72;const limiter=audioCtx.createDynamicsCompressor();limiter.threshold.value=-15;limiter.ratio.value=5;masterGain.connect(limiter);limiter.connect(audioCtx.destination);
+   musicGain=audioCtx.createGain();musicGain.gain.value=.0001;musicGain.connect(masterGain);
+   musicNoise=audioCtx.createBuffer(1,Math.ceil(audioCtx.sampleRate*.3),audioCtx.sampleRate);const data=musicNoise.getChannelData(0);let seed=1927;for(let i=0;i<data.length;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;data[i]=(seed/4294967296)*2-1}
+   applyMusicVolume();
   }
-  if(audioCtx.state==='suspended'||audioCtx.state==='interrupted'){
-   const p=audioCtx.resume();
-   if(p&&p.catch)p.catch(()=>{});
-  }
+  if(audioCtx.state==='suspended'||audioCtx.state==='interrupted'){const p=audioCtx.resume();if(p&&p.catch)p.catch(()=>{})}
   return audioCtx;
  }catch(e){audioCtx=null;masterGain=null;musicGain=null;return null}
 }
+
 function sfx(kind){
  if(!audioCtx||!masterGain) return;
  const now=audioCtx.currentTime;
@@ -761,7 +720,7 @@ function applyLanguageStatic(){
  const q=(id,key)=>{const el=document.getElementById(id);if(el)el.textContent=T(key)};
  q('languageLabel','language');q('modeTitle','mode');document.getElementById('startBtn').textContent=lang==='en'?'START RUN':'В БОЙ';q('hpLabel','hp');q('xpLabel','xp');q('lvlLabel','lvl');q('waveLabel','wave');q('scoreLabel','score');q('relicLabel','relic');const resumeBtn=document.getElementById('resumeBtn');if(resumeBtn)resumeBtn.textContent=lang==='en'?'RESUME':'ПРОДОЛЖИТЬ';const pauseMenu=document.getElementById('pauseMenuBtn');if(pauseMenu)pauseMenu.textContent=lang==='en'?'MAIN MENU':'В ГЛАВНОЕ МЕНЮ';const pauseRestart=document.getElementById('pauseRestartBtn');if(pauseRestart)pauseRestart.textContent=lang==='en'?'RESTART':'НАЧАТЬ ЗАНОВО';const fireL=document.getElementById('fireBtn');if(fireL)fireL.textContent=lang==='en'?'FIRE':'ОГОНЬ';const dashL=document.getElementById('dashBtn');if(dashL){dashL.querySelector('.actionLabel').textContent=lang==='en'?'DASH':'РЫВОК';dashL.setAttribute('aria-label',lang==='en'?'Dash':'Рывок')}const menuMobile=document.getElementById('menuMobileBtn');if(menuMobile)menuMobile.textContent=lang==='en'?'MENU':'МЕНЮ';const bombL=document.getElementById('bombBtn');if(bombL){bombL.querySelector('.actionLabel').textContent=lang==='en'?'BOMB':'БОМБА';bombL.setAttribute('aria-label',lang==='en'?'Bomb':'Бомба')}
  const hs=document.querySelectorAll('#menu .hint');if(hs[0])hs[0].textContent=T('controls');if(hs[1])hs[1].textContent=T('guide');
- const en=lang==='en';for(const [id,label] of [['heroTabLabel',en?'Hero':'Герой'],['mapTabLabel',en?'Arena':'Арена'],['modeTabLabel',en?'Mode':'Режим'],['heroHeading',en?'Choose hero':'Выбери героя'],['mapHeading',en?'Choose arena':'Выбери арену'],['helpToggle',en?'Controls':'Управление'],['movePadLabel',en?'MOVE':'ХОД'],['aimPadLabel',en?'AIM':'ПРИЦЕЛ']])document.getElementById(id).textContent=label;document.getElementById('pauseBtn').setAttribute('aria-label',en?'Pause':'Пауза');updateRunSummary();
+ const en=lang==='en';for(const [id,label] of [['heroTabLabel',en?'Hero':'Герой'],['mapTabLabel',en?'Arena':'Арена'],['modeTabLabel',en?'Mode':'Режим'],['heroHeading',en?'Choose hero':'Выбери героя'],['mapHeading',en?'Choose arena':'Выбери арену'],['helpToggle',en?'Controls':'Управление'],['movePadLabel',en?'MOVE':'ХОД'],['aimPadLabel',en?'AIM':'ПРИЦЕЛ']])document.getElementById(id).textContent=label;document.getElementById('pauseBtn').setAttribute('aria-label',en?'Pause':'Пауза');updateRunSummary();updateSoundPanel();
  const pb=document.querySelector('#levelup .pauseBadge');if(pb)pb.textContent=T('levelPause');const lt=document.querySelector('#levelup .tag');if(lt)lt.textContent=T('pickUpgrade');
  const gt=document.querySelector('#gameover .tag');if(gt)gt.textContent=T('run');const gtitle=document.querySelector('#gameover .title');if(gtitle)gtitle.textContent=T('dead');const buttons=document.querySelectorAll('#gameover .btn');if(buttons[0])buttons[0].textContent=T('retry');if(buttons[1])buttons[1].textContent=T('menu');
 }
@@ -821,6 +780,9 @@ function syncInventoryArt(p){
 function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(en?'Online':'Онлайн'):coop?(en?'Co-op':'2 игрока'):(en?'Solo':'Соло');document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(en?'Ability: ':'Способность: ')+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+((en?hero.enWeaponNames:hero.weaponNames)[i])+'</span></div>').join('');document.getElementById('mapDetail').textContent=locDesc(map)}
 function setMenuTab(next){if(!['hero','map','mode'].includes(next))return false;document.querySelectorAll('[data-menu-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.menuTab===next)));document.querySelectorAll('[data-menu-panel]').forEach(p=>p.hidden=p.dataset.menuPanel!==next);document.getElementById('menuBody').scrollTop=0;return true}
 document.querySelectorAll('[data-menu-tab]').forEach(b=>b.addEventListener('click',()=>setMenuTab(b.dataset.menuTab)));
+function updateSoundPanel(){document.getElementById('soundToggle').textContent=lang==='en'?'Music':'Музыка';document.getElementById('musicLabel').textContent=lang==='en'?'Music volume':'Громкость музыки';document.getElementById('musicVolume').value=musicVolume;document.getElementById('musicVolumeValue').textContent=musicVolume+'%'}
+document.getElementById('soundToggle').addEventListener('click',()=>{const p=document.getElementById('soundPanel');p.hidden=!p.hidden;document.getElementById('soundToggle').setAttribute('aria-expanded',String(!p.hidden))});
+document.getElementById('musicVolume').addEventListener('input',e=>{musicVolume=Math.max(0,Math.min(100,Number(e.target.value)||0));writeStorage('dumpling-riot-music-volume',String(musicVolume));applyMusicVolume();updateSoundPanel()});
 document.getElementById('helpToggle').addEventListener('click',()=>{const h=document.getElementById('menuHelp');h.hidden=!h.hidden;document.getElementById('helpToggle').setAttribute('aria-expanded',String(!h.hidden))});
 function makeMenu(){
  const cc=document.getElementById('charChoices');cc.innerHTML='';document.getElementById('recordLine').textContent=recordText(loadRecord());
@@ -1570,7 +1532,7 @@ function updateDrops(dt){
   if(d.type==='xp'){
    // A small local attraction helps collection on touch screens; no remote XP credit.
    if(dist>10&&dist<32){const s=Math.min(dist-9,100*dt);d.x+=(cp.x-d.x)/dist*s;d.y+=(cp.y-d.y)/dist*s;dist=Math.hypot(cp.x-d.x,cp.y-d.y)}
-   if(dist<13){d.life=0;const value=Math.max(1,Math.floor(d.value||15));spawnParticles(d.x,d.y,10,'#85f0bd',.65);floatText(d.x,d.y-15,'+'+value+' XP','#a5f2c9');gainXPFor(cp,value,true)}
+   if(dist<13){d.life=0;const value=Math.max(1,Math.floor(d.value||15));spawnParticles(d.x,d.y,10,'#85f0bd',.65);sfx('pickup');floatText(d.x,d.y-15,'+'+value+' XP','#a5f2c9');gainXPFor(cp,value,true)}
   }else if(d.type==='relic'&&dist<18){
    relicOwned=true;for(const p of coopPlayers()){p.maxhp+=50;p.hp=p.maxhp;p.boost.dmg*=1.28;p.boost.rate*=1.12;p.boost.move*=1.12;p.bomb=Math.min(9,p.bomb+2)}
    d.life=0;spawnParticles(d.x,d.y,30,'#cf79ff',1.8);ring(d.x,d.y,18,'#cf79ff',.65,55);floatText(d.x,d.y-15,'РЕЛИКВИЯ ПОЛУЧЕНА','#e0a6ff');toast('СЕРДЦЕ КУХНИ: КОМАНДА УСИЛЕНА')
@@ -1677,7 +1639,7 @@ function update(dt){
  if(state==='game'&&waveState==='clear'){between-=dt;if(between<=0){wave++;beginWave()}}
  combo=Math.max(1,combo-dt*.12);
 }
-function endGame(broadcast=true){
+function endGame(broadcast=true){startMenuMusic();
  clearLocalInput();upgradeQueue.length=0;state='gameover';
  const recordEl=document.getElementById('finalRecord');
  if(!coop&&!onlineMode){const old=loadRecord(),next=updateRecord(old,score,wave);writeStorage(RECORD_KEY,JSON.stringify(next));recordEl.textContent=recordText(next)+(next.score>old.score||next.wave>old.wave?(lang==='en'?' · NEW BEST!':' · НОВЫЙ РЕКОРД!'):'')}else recordEl.textContent='';
