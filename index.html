@@ -472,6 +472,101 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
  #menu .footerTools{margin:0}#menu .textBtn{min-height:26px;padding:2px 8px;font-size:11px}
 }
 #menu #languageSelect{max-width:124px;min-height:38px;background:#202726;border:1px solid #59635a;border-radius:4px;color:#f0e5d1;font:650 13px system-ui,sans-serif;padding:4px 7px;cursor:pointer;touch-action:manipulation}#menu #languageSelect:focus-visible{outline:2px solid #efcc89}#menu #languageLabel{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}@media(max-width:390px){#menu #languageSelect{max-width:100px;font-size:12px}#menu .brandMark{display:none}#menu .title{font-size:21px}}@media(max-height:520px) and (orientation:landscape){#menu #languageSelect{min-height:30px}} 
+
+/* V43: authored pixel key art, blood-red / icy cyan / amber horror identity. */
+#menu{background:#08090f}
+#menu .menuShell{background:radial-gradient(ellipse at 100% 0%,#221c33 0%,transparent 46%),radial-gradient(ellipse at 0% 80%,#34131e 0%,transparent 58%),#101117;position:relative;color:#fff0de}
+#menu .menuHeader{background:#121118;border-color:#53313e;padding-block:9px}
+#menu .brandMark{background:#231520;border:1px solid #713747}
+#menu .title{color:#fff0d4;text-shadow:2px 2px #321424}
+#menu .title .red{color:#f45d67;text-shadow:0 0 10px #b7234c55}
+#menu #languageSelect{background:#211923;border-color:#704451;color:#ffe6d1}
+#menu .menuBody{padding-block:10px}
+#homePanel{max-width:760px}
+#homePanel .horrorMarquee{display:block;position:relative;isolation:isolate;overflow:hidden;min-height:118px;height:clamp(118px,23vh,210px);margin:0 0 10px;background:#1b101d;border:1px solid #78414e;border-bottom:3px solid #a64250;border-radius:3px;box-shadow:0 4px 0 #09070c}
+.horrorMarquee canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+.marqueeShade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,8,17,.91) 0%,rgba(12,9,18,.75) 34%,rgba(17,10,19,.12) 69%,transparent 100%);pointer-events:none}
+.marqueeCopy{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:10px 16px;pointer-events:none}
+.marqueeCopy #homeEyebrow{color:#f5b575;font:800 10px ui-monospace,monospace;letter-spacing:.19em}
+.homeIntro .marqueeTitle{font:1000 clamp(26px,5.4vw,54px)/.83 ui-monospace,monospace;letter-spacing:-.07em;color:#fff0cf;text-shadow:3px 3px #1a0a15;margin:7px 0 6px}
+.marqueeTitle strong{color:#ff5368;font:inherit;font-size:1.34em;letter-spacing:.03em;text-shadow:2px 2px #6b1d36,4px 4px #1b0b16}
+.marqueeCopy #homeHeading{color:#e2b5ac;font:600 11px/1.3 system-ui;margin:0;max-width:55%}
+.marqueeEdge{position:absolute;right:0;bottom:0;width:60px;height:5px;background:repeating-linear-gradient(135deg,#e5a35f 0 5px,#401b2a 5px 10px);pointer-events:none}
+#menu .homeCards{gap:8px}
+#menu .homeCard{background:linear-gradient(145deg,#251821,#15141e);border:1px solid #674252;border-bottom:2px solid #bb5369;box-shadow:0 3px 0 #09080f}
+#menu .homeCard[data-open-menu=map]{background:linear-gradient(145deg,#182830,#15141e);border-color:#355862;border-bottom-color:#54a9b0}
+#menu .homeCard canvas{height:clamp(76px,16vh,140px);background:#221623}
+#menu .homeCardCopy small{color:#f0a9b5}
+#menu .homeCard[data-open-menu=map] small{color:#8bd8d6}
+#menu .homeCardCopy strong,#menu .homeMode strong{color:#fff0dc}
+#menu .homeCardCopy>span{color:#c9bcc8}
+#menu .homeChevron{color:#ffbf89}
+#menu .homeMode{background:linear-gradient(100deg,#292026,#181822);border-color:#604956;border-bottom:2px solid #ba9960}
+#menu .homeMode small{color:#e4bc7f}
+#menu .homeCard:hover,#menu .homeMode:hover{border-color:#ffc280}
+#menu .homeCard:active,#menu .homeMode:active{transform:translateY(1px)}
+#menu .menuFooter{background:linear-gradient(180deg,#1f151e,#130f17);border-top-color:#65404e}
+#menu #recordLine{color:#c8a9ad}
+#menu .btn#startBtn{background:linear-gradient(180deg,#ea5a53,#b32642);border:1px solid #ff9d75;border-bottom:4px solid #721a34;box-shadow:0 0 18px #bf34582b,0 3px 0 #0d0811;color:#fff5d9;text-shadow:1px 2px #7b2532;letter-spacing:.12em;min-height:49px}
+#menu .btn#startBtn:active{transform:translateY(2px);box-shadow:none}
+#menu .footerTools .textBtn{color:#d8b9bb}
+#menu .heroStage,#menu .mapStage{background:#1c1823;border:1px solid #5d3c50}
+#menu .mapStageCaption{background:#211b27}
+#menu #charChoices .choice,#menu #mapChoices .choice{background:#211c2a;border-color:#4d3c50}
+#menu #charChoices .choice.sel,#menu #mapChoices .choice.sel{background:#35222e;border-color:#e7a26f;box-shadow:inset 0 -2px #e7a26f}
+#menu #menuBackBar{background:#17121e}
+#menu #menuBack,#menu #menuDone{background:#251c29;border-color:#76505c}
+#menu #menuDone{background:#462536;color:#ffd5a5;border-color:#c27d66}
+#menu .modeChoice.sel{background:#302431;border-left-color:#e9ac74}
+#levelup{background:rgba(7,8,15,.84);padding:8px}
+#levelup .box{width:min(510px,96%);max-height:100%;padding:12px 14px;background:#191821;border:1px solid #805163;border-top:3px solid #e6a66e;box-shadow:0 7px 0 #08070d;overflow:auto;overscroll-behavior:contain;touch-action:pan-y}
+#levelup .upgradeHead{display:block;padding:0 0 8px;border-bottom:1px solid #684251}
+#levelup .upgradeHead>div{display:grid;grid-template-columns:1fr auto;align-items:center;gap:3px 8px}
+#levelup .upgradeHead .pauseBadge{grid-column:1/-1;color:#dab6b2;font-size:10px;margin:0;line-height:1.2}
+#levelup .upgradeHead h2{margin:0;color:#ffe1ac;font-size:22px}
+#levelup .upgradeHead .tag{font:500 11px/1.2 system-ui;color:#d3c3cd;text-align:right;max-width:190px}
+#levelup .levelChoices{gap:5px;margin-top:7px}
+#levelup .upgrade{grid-template-columns:42px minmax(0,1fr) auto 10px;gap:8px;min-height:60px;background:linear-gradient(100deg,#272132,#211b27);border:1px solid #563c52;border-radius:3px;padding:7px;z-index:auto;touch-action:manipulation}
+#levelup .upgrade:hover,#levelup .upgrade:focus-visible{background:#382939;border-color:#e7aa78;outline:0}
+#levelup .upgradeIcon{width:38px;height:38px;border-color:#826455;background:#33273a}
+#levelup .upgradeIcon svg{width:32px;height:32px}
+#levelup .upgrade h4{color:#fff0d3;font-size:13px;overflow-wrap:anywhere}
+#levelup .upgrade p{color:#d2bfcf;overflow-wrap:anywhere}
+#levelup .upgradeEffect{color:#a9edbf;font-size:12px}
+#levelup .upgradeArrow{color:#f6b781}
+@media(max-width:650px) and (orientation:portrait){
+ #homePanel .horrorMarquee{height:clamp(125px,20vh,175px)}
+ #menu .homeCard canvas{height:100%;min-height:76px;max-height:100px}
+ #menu .homeCard{min-height:76px}
+ .marqueeCopy{padding:10px 12px}
+ .homeIntro .marqueeTitle{font-size:clamp(30px,8vw,45px)}
+}
+@media(max-height:520px) and (orientation:landscape){
+ #menu .menuHeader{padding-block:4px}
+ #menu .menuBody{padding-block:5px}
+ #homePanel{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1fr);gap:7px;align-items:start}
+ #homePanel .horrorMarquee{grid-row:1/3;height:100%;min-height:124px;margin:0}
+ #homePanel .homeCards{grid-template-columns:1fr;gap:4px}
+ #menu .homeCard{min-height:52px;grid-template-columns:34% 1fr}
+ #menu .homeCard canvas{height:100%;min-height:52px;max-height:64px}
+ #menu .homeCardCopy{padding:4px 18px 4px 6px;gap:2px}
+ #menu .homeCardCopy strong{font-size:12px}
+ #menu .homeMode{min-height:36px;margin:0}
+ .homeIntro .marqueeTitle{font-size:clamp(24px,4vw,38px)}
+ .marqueeCopy #homeHeading{font-size:10px}
+ #menu .btn#startBtn{min-height:38px;font-size:15px;border-bottom-width:3px}
+ #levelup .box{padding:7px 12px}
+ #levelup .upgradeHead{padding-bottom:4px}
+ #levelup .upgradeHead h2{font-size:18px}
+ #levelup .levelChoices{gap:3px;margin-top:4px}
+ #levelup .upgrade{min-height:45px;padding:4px 6px;grid-template-columns:33px minmax(0,1fr) auto 10px}
+ #levelup .upgradeIcon{width:31px;height:31px}
+ #levelup .upgradeIcon svg{width:27px;height:27px}
+ #levelup .upgrade h4{font-size:12px}
+ #levelup .upgrade p{font-size:10px}
+}
+@media(max-width:360px){#levelup .upgrade{grid-template-columns:34px minmax(0,1fr) auto;gap:6px}#levelup .upgradeArrow{display:none}#levelup .upgradeIcon{width:32px;height:32px}#levelup .upgradeIcon svg{width:27px;height:27px}}
+@media(prefers-reduced-motion:reduce){#menu *,#levelup *{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -491,7 +586,7 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 <nav id="menuTabs" aria-label="Выбор забега"><button type="button" data-menu-tab="hero" aria-pressed="true"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="12" y="5" width="8" height="2" fill="#131018"/><rect x="10" y="7" width="12" height="10" fill="#131018"/><rect x="12" y="7" width="8" height="8" fill="#e5b66e"/><rect x="13" y="8" width="6" height="2" fill="#f4e5c5"/><rect x="12" y="12" width="2" height="2" fill="#131018"/><rect x="18" y="12" width="2" height="2" fill="#131018"/><rect x="9" y="17" width="14" height="5" fill="#131018"/><rect x="11" y="17" width="10" height="4" fill="#e5b66e"/></svg><b id="heroTabLabel">Герой</b></button><button type="button" data-menu-tab="map" aria-pressed="false"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><polygon points="2,7 11,3 21,7 30,3 30,25 21,29 11,25 2,29" fill="#131018"/><polygon points="4,9 11,6 21,10 28,6 28,23 21,26 11,22 4,26" fill="#53616b"/><polygon points="4,9 11,6 11,22 4,26" fill="#a9bbc3"/><polygon points="21,10 28,6 28,23 21,26" fill="#a9bbc3"/><rect x="13" y="11" width="3" height="3" fill="#f4e5c5"/><rect x="16" y="14" width="3" height="3" fill="#e5b66e"/><rect x="19" y="11" width="3" height="3" fill="#dc5a59"/><rect x="19" y="17" width="3" height="3" fill="#dc5a59"/></svg><b id="mapTabLabel">Арена</b></button><button type="button" data-menu-tab="mode" aria-pressed="false"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="4" y="4" width="24" height="24" fill="#131018"/><rect x="6" y="6" width="20" height="20" fill="#53616b"/><rect x="9" y="10" width="14" height="2" fill="#f4e5c5"/><rect x="9" y="16" width="14" height="2" fill="#f4e5c5"/><rect x="9" y="22" width="14" height="2" fill="#f4e5c5"/><rect x="12" y="8" width="4" height="6" fill="#e5b66e"/><rect x="19" y="14" width="4" height="6" fill="#80dbab"/><rect x="10" y="20" width="4" height="6" fill="#dc5a59"/></svg><b id="modeTabLabel">Режим</b></button></nav>
 <div id="menuBody" class="menuBody">
 <section class="menuSection" data-menu-panel="home" id="homePanel">
-  <div class="homeIntro"><span id="homeEyebrow">НОЧНАЯ СМЕНА</span><h1 id="homeHeading">Готов к бунту?</h1></div>
+  <div class="homeIntro horrorMarquee"><canvas id="menuKeyArt" width="400" height="144" aria-hidden="true"></canvas><div class="marqueeShade"></div><div class="marqueeCopy"><span id="homeEyebrow">NIGHT SHIFT</span><h1 class="marqueeTitle">DUMPLING<br><strong>RIOT</strong></h1><p id="homeHeading">Ready for the riot?</p></div><span class="marqueeEdge" aria-hidden="true"></span></div>
   <div class="homeCards">
     <button type="button" class="homeCard" data-open-menu="hero"><canvas id="homeHeroCanvas" width="200" height="108" aria-hidden="true"></canvas><span class="homeCardCopy"><small id="homeHeroLabel">ГЕРОЙ</small><strong id="homeHeroName"></strong><span id="homeHeroStats"></span></span><span class="homeChevron" aria-hidden="true">›</span></button>
     <button type="button" class="homeCard" data-open-menu="map"><canvas id="homeMapCanvas" width="240" height="135" aria-hidden="true"></canvas><span class="homeCardCopy"><small id="homeMapLabel">АРЕНА</small><strong id="homeMapName"></strong><span id="homeMapFeature"></span></span><span class="homeChevron" aria-hidden="true">›</span></button>
@@ -504,7 +599,7 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 <section class="menuSection" data-menu-panel="mode" hidden><div class="sectionHead"><h3 id="modeTitle">Режим игры</h3></div><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info" data-initial="true">Create or join a room.</div></div></section>
 </div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary" aria-hidden="true"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button></div><div id="soundPanel" hidden><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div></div></footer>
 </div></div>
-<div id="levelup" style="display:none"><div class="box"><header class="upgradeHead"><canvas id="upgradeHero" width="48" height="54" aria-hidden="true"></canvas><div><div class="pauseBadge">Уровень повышен</div><h2><span id="levelPrefix">Уровень</span> <span id="levelUpNum">2</span></h2><div class="tag">Выбери улучшение</div></div></header><div id="upgradeChoices" class="levelChoices"></div></div></div>
+<div id="levelup" style="display:none"><div class="box"><header class="upgradeHead"><div><div class="pauseBadge">Уровень повышен</div><h2><span id="levelPrefix">Уровень</span> <span id="levelUpNum">2</span></h2><div class="tag">Выбери улучшение</div></div></header><div id="upgradeChoices" class="levelChoices"></div></div></div>
 <div id="pauseOverlay" style="display:none"><div class="box pauseBox"><div class="pauseBadge">ПЕЛЬМЕНЬ ВЗЯЛ ПАУЗУ</div><div class="title" style="font-size:44px">ПАУЗА</div><div class="hint">Игра остановлена. Выбери, что делать дальше.</div><button id="resumeBtn" class="btn">ПРОДОЛЖИТЬ</button><button id="pauseRestartBtn" class="btn">НАЧАТЬ ЗАНОВО</button><button id="pauseMenuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В ГЛАВНОЕ МЕНЮ</button></div></div>
 <div id="gameover" style="display:none"><div class="box" style="max-width:520px;text-align:center"><div class="tag">RUN ENDED</div><div class="title" style="font-size:38px">ТЕБЯ СЪЕЛИ</div><div class="hint" style="font-size:10px;margin-top:14px">СЧЁТ <b id="finalScore">0</b> · УРОВЕНЬ <b id="finalLevel">1</b> · ВОЛНА <b id="finalWave">1</b></div><div id="finalRecord" class="hint"></div><button id="retryBtn" class="btn">ЕЩЁ РАЗ</button><button id="menuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В МЕНЮ</button></div></div>
 <div id="fatalError" style="display:none;position:fixed;inset:0;z-index:999;background:#08060b;color:#f6efd9;place-items:center;padding:24px;font:12px ui-monospace,monospace"><div style="max-width:720px;width:100%;border:2px solid #a82f38;background:#140c12;padding:18px;box-shadow:6px 6px 0 #000"><h2 style="margin:0 0 10px;color:#ff6874">ОШИБКА ИГРЫ</h2><p style="margin:0 0 10px">Браузер остановил игру. Перезапусти страницу.</p><code style="display:block;white-space:pre-wrap;color:#ffd76b"></code><button onclick="location.reload()" style="margin-top:16px;padding:12px 16px;background:#d8414d;color:#fff;border:0;font:900 12px ui-monospace">ПЕРЕЗАПУСТИТЬ</button></div></div>
@@ -1088,6 +1183,45 @@ function syncInventoryArt(p){
  }
 }
 
+// V43 original pixel-art menu composition. Rendered only when selection changes.
+function paintMenuKeyArt(g,hero,map){
+ const w=400,h=144,theme=terrainThemes[map.id]||terrainThemes.kitchen,accent=arenaFeatures[map.id]?.color||'#ff9b81';
+ const R=(col,x,y,ww,hh)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(ww),Math.round(hh))};
+ const P=(col,pts)=>{g.fillStyle=col;g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill()};
+ g.save();g.imageSmoothingEnabled=false;R('#130f20',0,0,w,h);
+ // Red moon / furnace light, a stepped silhouette and cold rim lighting.
+ const sky=g.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#151326');sky.addColorStop(.52,'#512036');sky.addColorStop(1,'#150e1d');R(sky,0,0,w,h);
+ const halo=g.createRadialGradient(282,52,5,282,52,93);halo.addColorStop(0,'#ff8962');halo.addColorStop(.3,'#d9485b');halo.addColorStop(1,'rgba(180,34,78,0)');g.globalAlpha=.65;R(halo,189,0,187,144);g.globalAlpha=1;
+ P('#ce4d59',[254,14,306,14,321,29,321,65,306,80,254,80,239,65,239,29]);P('#f17f6b',[255,17,305,17,318,30,318,50,244,50,244,30]);R('#f2a27d',263,17,32,2);
+ for(let i=0;i<8;i++){const yy=33+i*6;R('#9f3549',241+(i%3)*5,yy,73-(i%3)*9,2)}
+ // Broken factory windows; silhouettes stay behind the playable character.
+ for(let i=0;i<9;i++){const x=i*47-9,bh=40+Math.floor(terrainHash(i,11,44)*35);R('#1a1423',x,77-bh,36,bh+32);R('#3c2639',x+1,78-bh,34,2);R('#211928',x+4,83-bh,28,3);for(let j=0;j<3;j++){R('#322737',x+5+j*9,87-bh,4,12);if((i+j)%4===0)R('#a64f57',x+5+j*9,87-bh,2,7)}}
+ for(const x of [16,108,208,372]){R('#100f1b',x,0,10,104);R('#493248',x+8,0,2,100);R('#100f1b',x-5,19,20,5)}
+ R('#15151e',0,90,w,54);
+ for(let y=92;y<144;y+=9){R('#3a2635',0,y,w,1);for(let x=(y%2)*11;x<w;x+=31){R('#25202e',x,y+1,1,8);if((x+y)%4===0)R('#3c293b',x+2,y+2,13,1)}}
+ // Stage-specific silhouette and light color. All six arenas alter the scene.
+ if(map.id==='forest'||map.id==='cemetery'){
+  for(const x of [174,220,350,386]){P('#11151e',[x-19,99,x-9,65,x-18,65,x-2,42,x-8,42,x+4,15,x+18,45,x+11,45,x+24,68,x+12,68,x+23,99]);R('#36443f',x+2,70,4,31)}
+  if(map.id==='cemetery')for(const x of [238,338]){R('#4a4250',x,81,9,21);R('#7b6871',x+2,77,5,4);R('#25242d',x-3,102,15,2)}
+ }else if(map.id==='foodcourt'){
+  for(const x of [182,354]){R('#191b2a',x,46,26,52);R('#6b436a',x+2,48,22,2);R('#302c4b',x+4,54,18,21);R('#b34b9d',x+6,57,5,8);R('#68b9bd',x+13,57,6,8);R('#f6ba73',x+7,78,13,3)}
+ }else if(map.id==='slaughter'){
+  R('#211621',174,27,209,4);for(const x of [193,232,329,365]){R('#49363f',x,31,2,29);P('#9e7c76',[x,60,x+6,60,x+6,65,x+2,69,x-3,65,x-3,62,x,62])}
+ }else if(map.id==='basement'){
+  for(const x of [187,350]){R('#263541',x,24,9,72);R('#587c8c',x+1,24,2,65);R('#18262e',x-4,51,17,4);R('#8bb5b8',x-3,51,15,1)}
+ }else{
+  for(const x of [182,348]){R('#25232c',x,70,37,31);R('#64575e',x+1,70,35,2);R('#171d27',x+4,75,29,18);for(let j=0;j<4;j++){R('#4b4f59',x+7+j*6,78,3,9);R('#d38b64',x+8+j*6,78,1,3)}}
+ }
+ // Ground reflection and hard pixel outline around the actual hero.
+ const pool=g.createRadialGradient(295,111,3,295,111,74);pool.addColorStop(0,accent);pool.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.19;R(pool,221,83,148,61);g.globalAlpha=1;
+ P('#0b0b15',[254,116,267,109,313,109,333,116,320,125,267,125]);R('#785064',268,123,47,1);
+ g.save();g.translate(288,101);g.scale(3.05,3.05);pixelHeroBody(g,hero.id,0,0,0);pixelHeroWeapon(g,hero.id,0,-.30,0);g.restore();
+ // Foreground drifting-ember shapes, baked deterministically for a crisp static screen.
+ for(let i=0;i<41;i++){const x=Math.floor(terrainHash(i,27,42)*400),y=12+Math.floor(terrainHash(i,31,73)*123);if(x<145||Math.hypot(x-292,y-76)<38)continue;R(i%3===0?accent:'#d36b72',x,y,i%5===0?2:1,1)}
+ for(let i=0;i<13;i++){const x=163+i*18,y=131+(i%3)*3;R(i%2?'#58404e':'#45303f',x,y,11,1)}
+ g.restore();
+}
+
 function paintMenuStage(hero,map){
  const g=document.getElementById('heroStageCanvas').getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,200,108);// A crop of the real arena behind the actual character model.
  g.save();g.translate(-860,-486);paintTerrain(g,map.id,860,486,200,108);paintArenaAtmosphere(g,map.id,{x:860,y:486,w:200,h:108},0);g.restore();
@@ -1101,6 +1235,7 @@ function menuChoiceDefaults(savedHero,savedMap){return {hero:chars.some(x=>x.id=
 function saveMenuSelection(){writeStorage('dumpling-riot-hero',selectedChar);writeStorage('dumpling-riot-arena',selectedMap)}
 function refreshMenuHome(hero,map,mode){
  const en=lang==='en',f=arenaFeatures[map.id];
+ const keyArt=document.getElementById('menuKeyArt');paintMenuKeyArt(keyArt.getContext('2d'),hero,map);
  const labels={homeEyebrow:L("NIGHT SHIFT","НОЧНАЯ СМЕНА"),homeHeading:L("Ready for the riot?","Готов к бунту?"),homeHeroLabel:L("HERO","ГЕРОЙ"),homeMapLabel:L("ARENA","АРЕНА"),homeModeLabel:L("MODE","РЕЖИМ"),homeHeroName:locName(hero),homeHeroStats:'HP '+hero.hp+' · '+(L("Speed ","Скорость "))+hero.speed,homeMapName:locName(map).split(' — ')[0],homeMapFeature:L(f.en,f.ru),homeModeName:mode==='online'?(L("Online co-op","Онлайн")) : mode==='local'?(L("Local co-op","2 игрока")):(L("Solo","Соло")),menuBackLabel:L("Back","Назад"),menuDone:L("Done","Готово")};
  for(const [id,value] of Object.entries(labels))document.getElementById(id).textContent=value;
  document.getElementById('homeModeIcon').innerHTML=uiPixelIcon(mode);
@@ -1532,7 +1667,7 @@ function openLevelUpFor(p,remoteOptions=null){
  pendingUpgradeOptions=remoteOptions||buildUpgradeOptions(p);
  const canChoose=!onlineMode||(isOnlineHost&&p===player)||(isOnlineGuest&&p===player2);
  if(num)num.textContent=p.lvl;
- const badge=overlay.querySelector('.pauseBadge');if(badge)badge.textContent=coop?(p===player?'P1':'P2')+' / '+locName(chars.find(ch=>ch.id===p.charId)||chars[0]):locName(chars.find(ch=>ch.id===p.charId)||chars[0]);document.getElementById('levelPrefix').textContent=L("Level","Уровень");overlay.querySelector('.tag').textContent=L("Choose one upgrade","Выбери одно улучшение");const portrait=document.getElementById('upgradeHero').getContext('2d');portrait.clearRect(0,0,48,54);portrait.save();portrait.translate(21,37);pixelHeroBody(portrait,p.charId,0,0,0);portrait.restore();
+ const badge=overlay.querySelector('.pauseBadge');if(badge)badge.textContent=coop?(p===player?'P1':'P2')+' / '+locName(chars.find(ch=>ch.id===p.charId)||chars[0]):locName(chars.find(ch=>ch.id===p.charId)||chars[0]);document.getElementById('levelPrefix').textContent=L("Level","Уровень");overlay.querySelector('.tag').textContent=L("Choose one upgrade","Выбери одно улучшение");
  box.innerHTML='';
  // Online level-up choices are private: only the player who owns the level sees the overlay.
  if(canChoose){
