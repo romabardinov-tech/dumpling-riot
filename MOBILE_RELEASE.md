@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.66.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.67.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -93,3 +93,6 @@ Explicit solo checkpoint: pause, choose Save & exit after wave, finish the curre
 
 ## V66 — Mobile Edition
 Touch preferences in Controls: right/left aiming hand (mirrored primary controls outside local two-player), compact/standard/large size and precise/normal/fast stick response. Preferences stored locally and normalized. Radial deadzone rescales analog input, aim target computed relative to hero rather than lagging camera, last touch aim retained on release, synthetic touch-generated mouse events filtered where supported. Responsive button/pad positioning for portrait and narrow landscape, minimum 44px action/weapon targets, safe-area offsets, compact HUD and focus indicators. Orientation changes clear stuck input and pause solo; no forced landscape lock in browser. Inline syntax and 5045 isolated input math/normalization assertions passed. CSS layout, multi-touch, browser compatibility and physical iOS/Android input not yet verified; co-op layout retained.
+
+## V67 — Performance Update
+Viewport culling for actors, pickups, particles, blood, projectile trails, rings, hazards and damage text, with conservative sprite/radius margins; simulation remains unchanged. HUD refresh capped at 20 Hz apart from state/wave transitions, fixed 60 Hz simulation retained, idle overlays render on state changes, host pause-state networking retained. Player hurt animation now decrements once per tick independently of enemy population. NPC nearest-target lookup no longer sorts the enemy list. Inline syntax and 28,008 isolated numeric assertions passed. Full game script launched under a stub DOM/Canvas environment; 19 smoke assertions across all six maps (menu, start, 180 simulation ticks, render call, return to menu) passed. These are not a real browser render, profiling benchmark, mobile test or complete run. Actual frame times, multitouch, audio, long-run and network tests remain open.
