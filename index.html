@@ -291,6 +291,22 @@ button,input{-webkit-tap-highlight-color:transparent}#wrap{filter:none}
 html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[style*="grid"]),html.inGame body:has(#levelup[style*="grid"]),html.inGame body:has(#gameover[style*="grid"]){touch-action:pan-y}
 #menu .menuShell,#menu .menuBody{touch-action:pan-y}
 #levelup .box,#pauseOverlay .box,#gameover .box{overscroll-behavior:contain}
+/* V37 inventory: material silhouettes instead of generic line icons */
+#mobileWeapons .mw .inventoryIcon{width:34px;height:34px;image-rendering:pixelated;pointer-events:none}
+#mobileWeapons .mw{background:#242128;border-color:#53474b}
+#mobileWeapons .mw.sel{background:#38302c;box-shadow:inset 0 -2px #d4ac77;border-color:#d4ac77}
+#hud .weapon{width:134px;height:58px;padding:5px 5px 7px 43px}
+#hud .weapon .inventoryIcon{position:absolute;left:3px;top:8px;width:36px;height:36px;pointer-events:none}
+#hud .weapon b{position:absolute;top:3px;left:4px;font-size:9px;color:#b6a58e}
+#hud .weapon .wn{font-size:10px;line-height:1.05;white-space:normal;color:#e0d0ba}
+#hud .weapon .wlv{font-size:8px}
+.heroArsenal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:10px 0 0}
+.heroArsenal>div{display:flex;align-items:center;gap:4px;min-width:0;background:#18171b;border:1px solid #3a3337;padding:4px}
+.heroArsenal svg{width:29px;height:29px;flex-shrink:0}
+.heroArsenal span{font:500 9px system-ui,sans-serif;color:#c5b5a8;overflow-wrap:anywhere}
+#menu .choice.sel,#menu .modeChoice.sel{box-shadow:inset 0 -2px #dfb47a}
+@media(max-width:650px) and (orientation:portrait){.heroArsenal{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-height:520px) and (orientation:landscape){.heroArsenal svg{width:24px;height:24px}.heroArsenal{margin-top:4px}.heroArsenal>div{padding:2px}}
 </style>
 </head>
 <body>
@@ -309,7 +325,7 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 <header class="menuHeader"><div class="brand"><svg class="brandMark" viewBox="0 0 32 32" aria-hidden="true"><path fill="#e8c8a2" d="M4 15h2v-4h3V8h4V5h6v3h4v3h3v4h2v8h-4v3H8v-3H4z"/><path fill="#a96e5b" d="M6 20h20v3h-4v2H10v-2H6z"/><path fill="#261e24" d="M8 13h6v3H8zm10 0h6v3h-6zM12 19h8v2h-8z"/></svg><div><div class="title">DUMPLING <span class="red">RIOT</span></div><div id="menuTag">NIGHT SHIFT</div></div></div><div id="langBar"><span id="languageLabel">ЯЗЫК</span><button type="button" class="langBtn sel" data-lang="ru">RU</button><button type="button" class="langBtn" data-lang="en">EN</button></div></header>
 <nav id="menuTabs" aria-label="Выбор забега"><button type="button" data-menu-tab="hero" aria-pressed="true"><small>01</small><b id="heroTabLabel">Герой</b></button><button type="button" data-menu-tab="map" aria-pressed="false"><small>02</small><b id="mapTabLabel">Арена</b></button><button type="button" data-menu-tab="mode" aria-pressed="false"><small>03</small><b id="modeTabLabel">Режим</b></button></nav>
 <div id="menuBody" class="menuBody">
-<section class="menuSection" data-menu-panel="hero"><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3><span>6</span></div><div id="charChoices" class="choices"></div><div id="heroDetail" class="selectionDetail"></div></section>
+<section class="menuSection" data-menu-panel="hero"><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3><span>6</span></div><div id="charChoices" class="choices"></div><div id="heroDetail" class="selectionDetail"></div><div id="heroArsenal" class="heroArsenal"></div></section>
 <section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Выбери арену</h3><span>6</span></div><div id="mapChoices" class="choices"></div><div id="mapDetail" class="selectionDetail"></div></section>
 <section class="menuSection" data-menu-panel="mode" hidden><div class="sectionHead"><h3 id="modeTitle">Режим игры</h3></div><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info">Онлайн: создай комнату или введи код друга.</div></div></section>
 </div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div></div></footer>
@@ -750,7 +766,59 @@ function applyLanguageStatic(){
  const gt=document.querySelector('#gameover .tag');if(gt)gt.textContent=T('run');const gtitle=document.querySelector('#gameover .title');if(gtitle)gtitle.textContent=T('dead');const buttons=document.querySelectorAll('#gameover .btn');if(buttons[0])buttons[0].textContent=T('retry');if(buttons[1])buttons[1].textContent=T('menu');
 }
 
-function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(en?'Online':'Онлайн'):coop?(en?'Co-op':'2 игрока'):(en?'Solo':'Соло');document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(en?'Ability: ':'Способность: ')+locName(dashProfiles[hero.id]);document.getElementById('mapDetail').textContent=locDesc(map)}
+// V37: hand-shaped inventory sprites. Four unique silhouettes per hero.
+const inventoryArt={
+ scar:['blade','boomerang','cleaver','blood'],
+ vesa:['needles','scythes','crossbow','rain'],
+ nyx:['dart','shadows','slash','curse'],
+ pelmage:['spark','flask','meteor','vortex'],
+ assassin:['kunai','poison','step','volley'],
+ golem:['cauldron','steam','iron','furnace']
+};
+function inventoryIcon(id,i){
+ const kind=(inventoryArt[id]||inventoryArt.scar)[i]||'blade',a=heroArt[id]||heroArt.scar;
+ const ink='#100d16',steel='#a8b4ba',light='#e9e6d5',shadow='#5c6570',wood='#93684b',accent=a.glow,mid=a.mid,deep=a.dark;
+ let s='';
+ const R=(x,y,w,h,color)=>s+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+color+'"/>';
+ const P=(pts,color)=>s+='<polygon points="'+pts+'" fill="'+color+'"/>';
+ const gem=(x,y,col=accent)=>{P(x+','+(y-6)+' '+(x+5)+','+y+' '+x+','+(y+7)+' '+(x-5)+','+y,ink);P(x+','+(y-4)+' '+(x+4)+','+y+' '+x+','+(y+5)+' '+(x-4)+','+y,col);P(x+','+(y-4)+' '+x+','+(y+1)+' '+(x-4)+','+y,light)};
+ const blade=()=>{P('4,25 10,17 8,14 11,11 14,14 23,2 29,3 27,10 17,21 13,19 8,28',ink);P('13,15 23,4 27,4 25,10 16,18',steel);P('15,14 23,4 26,4 19,12',light);P('6,25 12,18 15,21 9,27',wood)};
+ switch(kind){
+ case 'blade':blade();R(18,13,3,2,mid);break;
+ case 'boomerang':P('4,4 13,7 25,17 28,26 19,28 15,20 6,13',ink);P('6,6 13,9 23,18 25,24 20,25 17,19 8,12',mid);P('6,6 13,9 23,18 24,21 19,17 8,10',light);R(19,22,3,3,accent);break;
+ case 'cleaver':P('4,26 12,18 9,11 19,2 29,10 27,17 15,23 11,29',ink);P('11,11 19,4 27,10 25,16 15,21',steel);P('11,11 19,4 26,10 24,11 18,7 13,12',light);P('5,26 13,19 15,22 10,27 7,28',wood);R(21,14,4,2,mid);R(22,8,2,2,ink);break;
+ case 'blood':P('5,23 10,8 18,3 20,10 27,5 26,17 18,27 9,29',ink);P('7,22 12,10 17,5 18,12 25,8 23,18 16,25 10,26',mid);P('12,22 17,10 20,15 24,11 20,22 16,25',accent);R(14,15,2,4,light);break;
+ case 'needles':for(let k=0;k<3;k++){let x=3+k*6;P(x+','+(27-k*4)+' '+(x+3)+','+(14-k*4)+' '+(x+11)+','+(4-k)+' '+(x+7)+','+(18-k*4),ink);P((x+2)+','+(23-k*4)+' '+(x+10)+','+(5-k)+' '+(x+5)+','+(18-k*4),accent);R(x+3,18-k*4,2,3,mid)}break;
+ case 'scythes':P('3,7 12,3 25,7 29,15 24,19 19,11 11,8 8,14 4,15',ink);P('5,7 12,5 24,9 27,15 24,16 20,10 12,7',steel);P('8,10 11,11 25,28 21,30',wood);P('3,20 7,18 17,26 23,23 25,26 18,30',accent);break;
+ case 'crossbow':P('3,8 7,4 16,11 25,4 29,8 26,17 19,18 19,29 13,29 13,18 6,17',ink);P('5,8 8,6 16,14 24,6 27,8 24,15 19,16 13,16 8,15',mid);R(14,11,4,16,steel);R(15,3,2,15,accent);R(12,12,8,2,light);break;
+ case 'rain':for(let k=0;k<5;k++){let x=4+k*5,y=4+(k%2)*5;P(x+','+y+' '+(x+5)+','+(y+5)+' '+(x+2)+','+(y+16)+' '+(x-1)+','+(y+9),ink);P((x+1)+','+(y+2)+' '+(x+3)+','+(y+6)+' '+(x+1)+','+(y+12),accent)}R(7,26,18,2,mid);break;
+ case 'dart':gem(16,13);P('4,28 10,14 15,15 11,23 8,29',deep);P('18,10 26,3 29,4 23,12',light);break;
+ case 'shadows':gem(8,20,mid);gem(16,10);gem(24,20,mid);R(15,8,2,4,light);break;
+ case 'slash':P('4,24 7,13 18,5 29,4 21,10 12,21 12,28',ink);P('6,23 9,14 19,7 26,6 19,12 11,23 10,26',mid);P('9,21 14,12 24,7 17,14 12,23',accent);break;
+ case 'curse':P('6,10 12,5 20,5 26,10 26,22 19,28 12,28 6,22',ink);P('8,11 13,7 19,7 24,11 24,21 18,26 13,26 8,21',deep);R(11,12,4,4,accent);R(18,12,4,4,accent);R(14,19,5,2,light);R(15,3,2,4,mid);R(15,26,2,4,mid);break;
+ case 'spark':gem(16,16);R(15,2,2,6,accent);R(15,24,2,6,accent);R(2,15,6,2,accent);R(24,15,6,2,accent);R(8,7,2,2,light);R(23,23,2,2,light);break;
+ case 'flask':P('11,3 21,3 21,8 19,10 19,14 26,22 24,28 8,28 6,22 13,14 13,10 11,8',ink);R(12,4,8,4,wood);P('14,9 18,9 18,15 24,22 22,26 10,26 8,22 14,15',steel);P('10,21 13,18 20,18 23,22 21,25 11,25',mid);R(13,19,3,4,accent);break;
+ case 'meteor':P('3,4 11,8 15,5 19,12 27,14 30,22 25,29 16,28 10,23 8,15',ink);P('5,5 13,10 16,8 19,15 13,20 10,15',mid);P('15,16 22,12 27,16 29,22 24,27 17,26 12,22',shadow);P('15,17 22,14 26,17 27,21 21,25 16,23',accent);R(19,17,4,3,light);break;
+ case 'vortex':P('4,13 12,5 23,5 29,12 27,23 18,29 7,26 3,20 5,17 11,23 19,25 24,19 23,12 17,9 10,13 10,18 15,21 19,18 15,14 20,12 23,17 20,22 12,23 6,19',mid);P('5,13 13,6 22,6 27,12 25,16 22,10 14,8 8,14 9,18 6,18',accent);R(15,14,3,3,light);break;
+ case 'kunai':P('4,25 11,18 11,13 25,4 28,5 20,20 15,20 8,28',ink);P('13,13 25,6 20,18 15,18',steel);P('15,13 25,6 18,15',light);R(5,23,5,5,mid);R(6,24,2,2,ink);break;
+ case 'poison':blade();P('18,26 22,17 26,22 27,27 23,30',deep);P('20,25 22,19 25,24 25,27 22,28',accent);break;
+ case 'step':P('3,18 12,12 12,7 28,15 15,27 15,21 3,26 7,21',deep);P('6,19 16,13 15,10 26,15 17,24 17,19',accent);R(2,10,8,2,mid);R(5,27,8,2,mid);break;
+ case 'volley':for(let k=0;k<3;k++){let x=3+k*6;P(x+','+(26-k*2)+' '+(x+4)+','+(13-k*2)+' '+(x+12)+','+(5+k)+' '+(x+8)+','+(18-k*2),ink);P((x+3)+','+(22-k*2)+' '+(x+11)+','+(6+k)+' '+(x+7)+','+(17-k*2),steel)}R(11,12,3,2,accent);break;
+ case 'cauldron':P('5,12 8,8 24,8 28,12 26,25 21,29 11,29 6,24',ink);P('7,12 25,12 24,24 20,27 12,27 8,23',shadow);R(8,10,16,4,steel);R(10,14,3,9,light);R(16,19,6,4,accent);R(12,4,2,3,light);R(19,2,2,5,light);break;
+ case 'steam':P('5,22 9,15 6,11 12,7 13,3 19,4 21,8 26,9 29,15 26,21 20,22 17,28 8,29',shadow);P('7,19 12,14 9,11 15,8 15,5 19,6 19,10 25,11 27,15 24,18 18,18 15,25 10,25',steel);R(14,11,6,3,light);R(9,21,4,2,accent);break;
+ case 'iron':P('3,21 7,13 13,10 16,16 21,6 29,5 27,13 21,23 13,28 6,28',ink);P('5,21 9,15 13,13 16,19 22,9 27,7 24,15 19,22 12,26 7,26',steel);P('8,18 12,15 16,22 23,12 21,19 15,26 9,25',shadow);R(21,9,4,2,light);break;
+ case 'furnace':P('5,8 10,4 22,4 27,8 27,27 5,27',ink);R(7,9,18,16,shadow);R(9,6,14,4,steel);R(9,13,14,10,deep);P('11,22 11,17 15,12 16,16 20,12 22,22',mid);P('14,22 15,17 18,16 20,22',accent);R(16,20,2,2,light);break;
+ }
+ return '<svg class="inventoryIcon" aria-hidden="true" viewBox="0 0 32 32" shape-rendering="crispEdges">'+s+'</svg>';
+}
+function syncInventoryArt(p){
+ for(const b of document.querySelectorAll('#mobileWeapons .mw,#weaponHud .weapon')){
+  const i=Number(b.dataset.weapon);if(!Number.isInteger(i)||i<0||i>3||b.dataset.artHero===p.charId)continue;
+  const old=b.querySelector('svg');if(old)old.remove();b.insertAdjacentHTML('afterbegin',inventoryIcon(p.charId,i));b.dataset.artHero=p.charId;
+ }
+}
+
+function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(en?'Online':'Онлайн'):coop?(en?'Co-op':'2 игрока'):(en?'Solo':'Соло');document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(en?'Ability: ':'Способность: ')+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+((en?hero.enWeaponNames:hero.weaponNames)[i])+'</span></div>').join('');document.getElementById('mapDetail').textContent=locDesc(map)}
 function setMenuTab(next){if(!['hero','map','mode'].includes(next))return false;document.querySelectorAll('[data-menu-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.menuTab===next)));document.querySelectorAll('[data-menu-panel]').forEach(p=>p.hidden=p.dataset.menuPanel!==next);document.getElementById('menuBody').scrollTop=0;return true}
 document.querySelectorAll('[data-menu-tab]').forEach(b=>b.addEventListener('click',()=>setMenuTab(b.dataset.menuTab)));
 document.getElementById('helpToggle').addEventListener('click',()=>{const h=document.getElementById('menuHelp');h.hidden=!h.hidden;document.getElementById('helpToggle').setAttribute('aria-expanded',String(!h.hidden))});
@@ -1740,7 +1808,7 @@ function drawHero(p=player,ch=chars.find(x=>x.id===selectedChar),isP2=false){
  ctx.translate(0,-bob);ctx.rotate((p.hurtLean||0)*hurtWave);ctx.scale(1+.05*hurtWave,1-.08*hurtWave);
  pixelHeroBody(ctx,ch.id,walk,phase,p.aim);
  const wi=p===player?weapon:(p.weapon??0);pixelHeroWeapon(ctx,ch.id,wi,p.aim||0,p.fire||0);
- if(p.inv>0&&p.dash>0){ctx.globalAlpha=.65;ctx.strokeStyle=(heroArt[ch.id]||heroArt.scar).glow;ctx.lineWidth=1;ctx.strokeRect(-14,-28,28,42);ctx.globalAlpha=1}
+ if(p.inv>0&&p.dash>0){ctx.globalAlpha=.65;ctx.strokeStyle=(heroArt[ch.id]||heroArt.scar).glow;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-14,5);ctx.lineTo(-14,11);ctx.lineTo(-8,11);ctx.moveTo(14,5);ctx.lineTo(14,11);ctx.lineTo(8,11);ctx.stroke();ctx.globalAlpha=1}
  if(isP2)drawPixelText('P2',0,-39,7,'#6fe1a2','center');
  ctx.restore();
 }
@@ -1894,10 +1962,10 @@ function draw(){
  for(const t of texts){ctx.globalAlpha=clamp(t.life/.7,0,1);drawPixelText(t.s,t.x,t.y,7,t.color,'center')}ctx.globalAlpha=1;
  // subtle pixel horror vignette/flicker over the world
  const vg=ctx.createRadialGradient(camera.x,camera.y,48,camera.x,camera.y,260);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(.72,'rgba(0,0,0,.13)');vg.addColorStop(1,'rgba(0,0,0,.48)');ctx.fillStyle=vg;ctx.fillRect(camera.x-W/2,camera.y-H/2,W,H);
- const fogA=reduceMotion?.045:.045+.025*Math.sin(horrorTime*2.3);ctx.save();ctx.globalAlpha=fogA;ctx.fillStyle=m.accent;ctx.fillRect(camera.x-W/2,camera.y-H/2,W,H);ctx.restore();
+ const fogA=.018;ctx.save();ctx.globalAlpha=fogA;ctx.fillStyle=m.accent;ctx.fillRect(camera.x-W/2,camera.y-H/2,W,H);ctx.restore();
  if(state==='death'){const v=clamp((deathTimer-.35)/2.2,0,1);ctx.fillStyle='rgba(18,0,5,'+(0.18+v*.56)+')';ctx.fillRect(camera.x-W/2,camera.y-H/2,W,H);drawPixelText('ПЕЛЬМЕНЬ ПРИГОВОРЁН',camera.x, camera.y-90,11,'#ef5862','center');if(deathTimer>.75)drawPixelText('ЕГО ЖРУТ',camera.x,camera.y+102,12,'#ffcf8d','center');if(deathTimer>1.35)drawPixelText('НЕ СМОТРИ НАЗАД',camera.x,camera.y+83,7,'#b83d49','center')}
  ctx.restore();
- if(state==='game'){const p=onlineMode&&isOnlineGuest?player2:player;if(!p.dead){const px=Math.round(p.x-camera.x+W/2),py=Math.round(p.y-camera.y+H/2);if(px>=12&&px<W-12&&py>=18&&py<H-16){ctx.save();ctx.globalAlpha=.9;ctx.strokeStyle=p.dash<=0?'#6fe1a2':'#ad7d66';ctx.lineWidth=1;ctx.beginPath();ctx.arc(px,py+12,14,0,Math.PI*2);ctx.stroke();ctx.restore()}}}
+ if(state==='game'){const p=onlineMode&&isOnlineGuest?player2:player;if(!p.dead){const px=Math.round(p.x-camera.x+W/2),py=Math.round(p.y-camera.y+H/2);if(px>=12&&px<W-12&&py>=18&&py<H-16){ctx.save();ctx.globalAlpha=.9;ctx.strokeStyle=p.dash<=0?'#b6c3a2':'#a67b69';ctx.lineWidth=1;ctx.beginPath();ctx.arc(px,py+12,12,Math.PI*.16,Math.PI*.84);ctx.stroke();ctx.restore()}}}
  // Tactical direction cue: guide the player to the nearest remaining enemy.
  if(state==='game'&&waveState==='fighting'){
    const p=onlineMode&&isOnlineGuest?player2:player,e=nearestEnemy(p);
@@ -1958,7 +2026,7 @@ function render(){drawRemoteArrow();ctx.save();if(shake>0&&!reduceMotion){ctx.tr
 function updateTouchHud(p,selected,ability){const dash=document.getElementById('dashBtn'),bomb=document.getElementById('bombBtn');dash.style.setProperty('--charge',String(clamp(1-p.dash/ability.cooldown,0,1)));dash.classList.toggle('cooling',p.dash>0);document.getElementById('touchDashValue').textContent=p.dash>0?p.dash.toFixed(1):'';bomb.classList.toggle('empty',p.bomb<=0);document.getElementById('touchBombValue').textContent=p.bomb;for(const b of document.querySelectorAll('#mobileWeapons .mw')){const i=Number(b.dataset.weapon);b.classList.toggle('sel',i===selected);b.setAttribute('aria-pressed',String(i===selected));b.querySelector('.mwLv').textContent=p.weaponLevels?.[i]||1;b.querySelector('.mwCharge').style.width=(100*clamp(p.weaponCharge?.[i]??1,0,1))+'%';b.setAttribute('aria-label',locName(heroWeaponStats(p,i)))}}
 function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;const dashReady=localP.dash<=0,ability=dashProfiles[localP.charId]||dashProfiles.scar;document.getElementById('dashHudLabel').textContent=locName(ability);const dashValue=document.getElementById('dashHudValue');dashValue.textContent=dashReady?(lang==='en'?'READY':'ГОТОВ'):localP.dash.toFixed(1)+'s';dashValue.classList.toggle('abilityReady',dashReady);document.getElementById('dashHudFill').style.width=(clamp(1-localP.dash/ability.cooldown,0,1)*100)+'%';document.getElementById('bombHudLabel').textContent=lang==='en'?'BOMBS':'БОМБЫ';document.getElementById('bombHudValue').textContent=localP.bomb;const remoteP=onlineMode&&isOnlineGuest?player:player2;const deathV=document.getElementById('remoteDeathVignette');if(deathV)deathV.style.display=(state==='game'&&coop&&remoteP.dead&&alivePlayers().length>0)?'block':'none';const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&localP.hp/localP.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display=relicOwned?'block':'none';relicEl.classList.toggle('relic-pulse',relicOwned)}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(localP.hp));document.getElementById('xpTxt').textContent=`${Math.floor(localP.xp)}/${localP.next}`;document.getElementById('lvlTxt').textContent=localP.lvl;const lp=document.getElementById('localLevelPanel');if(lp)lp.style.display=onlineMode?'block':'none';const ll=document.getElementById('localLvlTxt');if(ll)ll.textContent=localP.lvl;const lx=document.getElementById('localXpTxt');if(lx)lx.textContent=`${Math.floor(localP.xp)}/${localP.next}`;const lf=document.getElementById('localXpFill');if(lf)lf.style.width=clamp(localP.xp/localP.next*100,0,100)+'%';document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+(enemies.length+Math.max(0,targetCount-spawned));document.getElementById('hpFill').style.width=clamp(localP.hp/localP.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(localP.xp/localP.next*100,0,100)+'%';
  if(boss){document.getElementById('bossHud').style.display='block';document.getElementById('bossName').textContent=(lang==='en'?(boss.enName||boss.name):boss.name)+' · '+T('boss');document.getElementById('bossFill').style.width=clamp(boss.hp/boss.maxhp*100,0,100)+'%'}else document.getElementById('bossHud').style.display='none';
- const selectedWeapon=onlineMode&&isOnlineGuest?player2.weapon:weapon;updateTouchHud(localP,selectedWeapon,ability);const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.innerHTML=`<b>${w.key}</b> <span class="wn">${chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(w)}</span><span class="wlv">УР. ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG</span><span class="weaponCharge"><i></i></span><i class="cd"></i>`;d.onclick=()=>{if(onlineMode&&isOnlineGuest)player2.weapon=i;else weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===selectedWeapon);d.querySelector('.wn').textContent=locName(heroWeaponStats(localP,i));d.querySelector('.wlv').textContent=`${lang==='en'?'LV':'УР.'} ${localP.weaponLevels[i]} · ${Math.round(heroWeaponStats(localP,i).dmg*localP.boost.dmg)} DMG`;const chargeEl=d.querySelector('.weaponCharge i');const charge=clamp(localP.weaponCharge?.[i]??1,0,1);chargeEl.style.width=(charge*100)+'%';d.classList.toggle('charging',charge<.999);d.querySelector('.cd').textContent=i===selectedWeapon&&localP.fire>0?localP.fire.toFixed(1):''})}
+ const selectedWeapon=onlineMode&&isOnlineGuest?player2.weapon:weapon;updateTouchHud(localP,selectedWeapon,ability);const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.dataset.weapon=String(i);d.innerHTML=`<b>${w.key}</b> <span class="wn">${chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(w)}</span><span class="wlv">УР. ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG</span><span class="weaponCharge"><i></i></span><i class="cd"></i>`;d.onclick=()=>{if(onlineMode&&isOnlineGuest)player2.weapon=i;else weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===selectedWeapon);d.querySelector('.wn').textContent=locName(heroWeaponStats(localP,i));d.querySelector('.wlv').textContent=`${lang==='en'?'LV':'УР.'} ${localP.weaponLevels[i]} · ${Math.round(heroWeaponStats(localP,i).dmg*localP.boost.dmg)} DMG`;const chargeEl=d.querySelector('.weaponCharge i');const charge=clamp(localP.weaponCharge?.[i]??1,0,1);chargeEl.style.width=(charge*100)+'%';d.classList.toggle('charging',charge<.999);d.querySelector('.cd').textContent=i===selectedWeapon&&localP.fire>0?localP.fire.toFixed(1):''});syncInventoryArt(localP)}
 
 addEventListener('keydown',e=>{
  if(e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement||e.target?.isContentEditable)return;
