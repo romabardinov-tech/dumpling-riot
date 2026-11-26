@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.57.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.58.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -66,3 +66,6 @@ Six illustrated optional side-room encounters (mirror, well, cage, shrine, clock
 
 ## V57 — Hidden Horrors
 Two optional solo bosses (Bellkeeper and Veiled Widow), offered in side rooms after wave 7 and 12, costing 15 run coins and appearing in the next wave with a reduced normal enemy count. Unique pixel sprites, three phases, directional or radial projectiles, separate telegraphed hazards, journal entries and one-time rewards per boss per run: 18 shards and +15% attack rate or damage. No change to co-op or normal finale. Source syntax and 132 isolated assertions passed, covering scheduling, summon cost, consumption, repeated clicks, rewards and bounded hazard patterns. Browser/device runtime, balance and native exports remain unverified.
+
+## V58 — Three Fates
+Campaign finale now presents three selectable epilogues: Last Dawn (always available), Eternal Seal (complete the optional cache encounter in all three chapters of the current run), and Heir of the Void (defeat at least one optional hidden boss in the current run). All grant the same 40 base victory shards plus existing extraction reward. Added clue HUD, persistent ending counts, unlockable epilogues in altar, and ending labels in run history. Older victory counts preserved without retroactively assigning endings. Syntax and 898 isolated assertions covering contracts, eligibility combinations, reward deduplication, migration, clue tracking, and persistence passed. Browser/device runtime, native exports and human playtest remain unverified.
