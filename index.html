@@ -1594,7 +1594,7 @@ function updateHazards(dt){
    if(h.kind==='foodcourt'){drops.push({x:h.x,y:h.y,type:'heal',value:18,life:12,pulse:0})}
    else{
      for(const p of alivePlayers())if(Math.hypot(p.x-h.x,p.y-h.y)<=h.radius)hurtPlayer(p,h.damage,h.x,h.y);
-     if(h.kind==='forest')for(const e of enemies){if(!e.dead&&Math.hypot(e.x-h.x,e.y-h.y)<=h.radius)damageEnemy(e,e.type==='boss'?12:34)}
+     if(h.kind==='forest')for(const e of enemies.slice()){if(!e.dead&&Math.hypot(e.x-h.x,e.y-h.y)<=h.radius)damageEnemy(e,e.type==='boss'?12:34)}
      if(h.kind==='cemetery'&&state==='game')drops.push({x:h.x,y:h.y,type:'xp',value:18,life:1,pulse:0});
    }
    ring(h.x,h.y,4,col,.35,h.radius);
