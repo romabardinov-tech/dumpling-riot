@@ -694,6 +694,98 @@ const arenaLights={
  cemetery:[[760,440],[1160,625],[280,700],[1530,320]],
  forest:[[820,425],[1150,620],[320,280],[1580,790]]
 };
+// V40: distinct arena events. Coordinates are shared by terrain, preview and combat.
+const arenaFeatures={
+ kitchen:{ru:'Паровые клапаны',en:'Steam vents',hint:'Клапаны выбрасывают горячий пар. Уходи за пределы круга.',hintEn:'Vents erupt in hot steam. Leave the marked circle.',color:'#f5c298',radius:34,damage:12,delay:1.55,interval:10,sites:[[875,465],[1045,615],[940,382],[960,698],[315,310],[1605,780]]},
+ basement:{ru:'Электрические разряды',en:'Electrical surges',hint:'Повреждённые кабели дают два последовательных разряда.',hintEn:'Damaged cables discharge twice in succession.',color:'#a7d8ff',radius:27,damage:10,delay:1.5,interval:11,sites:[[835,475],[1075,610],[1090,425],[340,300],[1550,790]]},
+ foodcourt:{ru:'Аварийные припасы',en:'Emergency supplies',hint:'Автоматы периодически выдают аптечку. Она исчезнет через 12 секунд.',hintEn:'Vending machines occasionally dispense a medkit. Collect it within 12 seconds.',color:'#b3f1ae',radius:25,damage:0,delay:1.25,interval:16,sites:[[840,456],[1080,620],[715,540],[1210,545],[340,320],[1550,780]]},
+ slaughter:{ru:'Режущая линия',en:'Cutting line',hint:'Три последовательные зоны разреза пересекают конвейер.',hintEn:'Three staggered cutting zones sweep the conveyor.',color:'#ff956b',radius:26,damage:13,delay:1.65,interval:12,sites:[[850,508],[1070,560],[960,685],[360,490],[1510,560]]},
+ cemetery:{ru:'Проклятые могилы',en:'Cursed graves',hint:'После проклятого всплеска остаётся кристалл опыта. Не стой в круге.',hintEn:'A cursed burst leaves an XP crystal. Stay out of the circle.',color:'#d9b8ff',radius:35,damage:11,delay:1.65,interval:13,sites:[[875,485],[1045,610],[770,370],[1190,370],[730,750],[1210,750]]},
+ forest:{ru:'Ядовитые споры',en:'Toxic spores',hint:'Грибницы взрываются и ранят как героев, так и врагов. Заманивай врагов.',hintEn:'Mushroom colonies hurt heroes and enemies. Lure enemies into the blast.',color:'#b6e89b',radius:39,damage:9,delay:1.7,interval:12,sites:[[805,555],[1120,635],[890,450],[1040,475],[545,480],[1450,750]]}
+};
+let arenaEventTimer=8,arenaEventIndex=0;
+function arenaEventPattern(id,x,y,round=1){
+ const f=arenaFeatures[id],cap=Math.min(5,Math.floor(round/5)),make=(xx,yy,d)=>({x:clamp(xx,arena.l+55,arena.r-55),y:clamp(yy,arena.t+55,arena.b-55),radius:f.radius,damage:f.damage===0?0:f.damage+cap,delay:d,kind:id});
+ if(id==='basement')return [make(x,y,f.delay),make(x+42,y+18,f.delay+.72)];
+ if(id==='slaughter')return [-52,0,52].map((dx,i)=>make(x+dx,y,f.delay+i*.48));
+ return [make(x,y,f.delay)];
+}
+function updateArenaEvent(dt){
+ if(state!=='game'||waveState!=='fighting'||(onlineMode&&isOnlineGuest))return;
+ arenaEventTimer-=dt;if(arenaEventTimer>0)return;
+ const f=arenaFeatures[selectedMap];if(!f)return;
+ const live=alivePlayers();if(!live.length)return;
+ const p=live[arenaEventIndex%live.length];arenaEventIndex++;
+ const [x,y]=f.sites.reduce((best,q)=>Math.hypot(q[0]-p.x,q[1]-p.y)<Math.hypot(best[0]-p.x,best[1]-p.y)?q:best,f.sites[0]);
+ // Only trigger a nearby landmark, not a trap on an unseen part of the map.
+ if(Math.hypot(x-p.x,y-p.y)>210){arenaEventTimer=2.5;return}
+ arenaEventTimer=f.interval;
+ for(const h of arenaEventPattern(selectedMap,x,y,wave))scheduleHazard(h.x,h.y,h.radius,h.damage,h.delay,null,h.kind);
+ toast(lang==='en'?f.en:f.ru);
+}
+function paintArenaFeatures(g,id,left,top,width,height){
+ const f=arenaFeatures[id];if(!f)return;
+ const right=left+width,bottom=top+height;
+ const R=(col,x,y,w,h)=>{if(x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(col,pts)=>{g.fillStyle=col;g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill()};
+ const frame=(x,y,w,h,mid,hi)=>{R('#12191b',x-1,y+2,w+2,h+2);R(mid,x,y,w,h);R(hi,x+1,y+1,w-2,2);R('#22262b',x+w-3,y+3,2,h-4);R('#22262b',x+2,y+h-3,w-4,2)};
+ const bolt=(x,y)=>{R('#17191e',x,y,3,3);R('#b9b29e',x,y,1,1)};
+ const txt=(str,x,y,col)=>{g.fillStyle=col;g.font='bold 7px monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(str,x,y)};
+ for(const [x,y] of f.sites){
+  if(x+50<left||x-50>right||y+45<top||y-45>bottom)continue;
+  if(id==='kitchen'){
+   frame(x-24,y-13,48,26,'#596361','#929b88');for(let i=-19;i<=19;i+=6){R('#232b2d',x+i,y-8,3,16);R('#a2a99a',x+i+3,y-8,1,14)}
+   for(const i of [-21,18]){bolt(x+i,y-10);bolt(x+i,y+8)}R('#c9965b',x-5,y-15,10,2);txt('STEAM',x,y+19,'#ead4ae');
+  }else if(id==='basement'){
+   frame(x-21,y-13,42,26,'#394a53','#829da2');for(let i=0;i<3;i++){R('#1c2730',x-15+i*11,y-7,8,14);R('#5e8590',x-14+i*11,y-6,6,2);R('#a9d6c7',x-11+i*11,y+2,2,3)}
+   R('#e3b56b',x-7,y-15,14,2);P('#e5cd82',[x+1,y-6,x-5,y+1,x,y+1,x-1,y+8,x+6,y-1,x+1,y-1]);txt('HV',x,y+19,'#a4c8d4');
+  }else if(id==='foodcourt'){
+   frame(x-24,y-15,48,30,'#594754','#a68c9b');R('#1f2934',x-18,y-9,28,15);for(let k=0;k<3;k++){R(['#c18799','#9db6a0','#d4b078'][k],x-15+k*8,y-6,5,9);R('#ead1b1',x-14+k*8,y-5,2,1)}
+   R('#23262a',x+14,y-7,6,13);R('#b5e8aa',x+15,y-4,4,3);R('#b5e8aa',x-5,y+8,10,2);txt('SUPPLY',x,y+21,'#bbd5a6');
+  }else if(id==='slaughter'){
+   frame(x-27,y-13,54,26,'#595653','#929387');for(let i=-22;i<23;i+=8){R('#292e31',x+i,y-7,4,14);R('#90938b',x+i+4,y-7,2,14)}
+   for(let i=-24;i<24;i+=8){R('#c49a56',x+i,y-15,4,3);R('#c49a56',x+i,y+12,4,3)}
+   P('#d0c3a4',[x-10,y-4,x+10,y-4,x+13,y,x+10,y+4,x-10,y+4,x-13,y]);R('#9b4037',x+2,y-1,5,2);txt('CUT',x,y+21,'#f0b68d');
+  }else if(id==='cemetery'){
+   P('#262e2a',[x-23,y-12,x-15,y-21,x+13,y-21,x+23,y-12,x+23,y+14,x+13,y+21,x-15,y+21,x-23,y+14]);P('#687064',[x-20,y-11,x-13,y-18,x+11,y-18,x+20,y-11,x+20,y+12,x+11,y+18,x-13,y+18,x-20,y+12]);R('#434b43',x-15,y-12,30,24);R('#8c8c7a',x-13,y-12,26,2);R('#ad98bf',x-2,y-8,4,16);R('#ad98bf',x-8,y-3,16,3);R('#75835e',x-16,y+11,8,3);R('#75835e',x+10,y-14,6,3);
+  }else{
+   P('#1a3025',[x-25,y+1,x-13,y-16,x+9,y-19,x+24,y-8,x+24,y+12,x+8,y+19,x-15,y+14]);for(let i=0;i<5;i++){const a=i*2.4,r=8+i*3,xx=Math.round(x+Math.cos(a)*r),yy=Math.round(y+Math.sin(a)*r*.7);R('#c4bd86',xx-1,yy,3,6);P('#253e29',[xx-7,yy,xx-4,yy-6,xx+4,yy-6,xx+7,yy]);P(i%2?'#9ca967':'#789857',[xx-6,yy-1,xx-3,yy-5,xx+3,yy-5,xx+6,yy-1]);R('#dce6a6',xx-3,yy-4,2,2)}
+  }
+ }
+ // Small signature inlays between landmarks, entirely flat and traversable.
+ for(let i=0;i<32;i++){
+  const x=80+Math.floor(terrainHash(i,17,41)*1730),y=85+Math.floor(terrainHash(i,29,51)*900);
+  if(x<left-15||x>right+15||y<top-15||y>bottom+15)continue;
+  if(id==='kitchen'){R('#303a38',x-5,y,14,3);R('#858e80',x-4,y,8,1);R('#73594a',x+7,y,3,2)}
+  else if(id==='basement'){R('#18282e',x-8,y,16,2);R('#718587',x-4,y-1,8,1);R('#8b7252',x+5,y-2,3,4)}
+  else if(id==='foodcourt'){R('#624c58',x-6,y-3,12,6);R('#a68792',x-5,y-2,9,1);R('#302e3b',x+2,y+1,3,2)}
+  else if(id==='slaughter'){R('#4b3e31',x-7,y,14,3);R('#ac8759',x-6,y,5,1);R('#23262b',x+2,y+1,4,1)}
+  else if(id==='cemetery'){R('#53634e',x-5,y,10,2);R('#a8a48c',x-1,y-2,3,3);R('#827b6b',x+3,y+1,2,2)}
+  else {R('#527246',x-5,y,2,4);R('#79905b',x-2,y-3,2,4);R('#456242',x+1,y+1,3,3)}
+ }
+}
+function paintArenaAtmosphere(g,id,view,time){
+ const f=arenaFeatures[id];if(!f)return;
+ const {x,y,w,h}=view,clock=reduceMotion?0:time;
+ g.save();g.globalAlpha=.23;g.fillStyle=f.color;
+ // Ambient pixel motes anchored to world cells, bounded to the visible viewport.
+ for(let cy=Math.floor(y/64)*64;cy<y+h;cy+=64)for(let cx=Math.floor(x/64)*64;cx<x+w;cx+=64){
+  const a=terrainHash(cx,cy,71),b=terrainHash(cy,cx,91),px=Math.round(cx+a*58+Math.sin(clock*.55+a*6)*5),py=Math.round(cy+b*56-(clock*(id==='kitchen'?7:2))%12);
+  if(id==='foodcourt'){if(a>.58)g.fillRect(px,py,12,1)}
+  else if(id==='slaughter'){if(a>.48){g.fillRect(px,py,2,1);g.fillRect(px-2,py+2,1,1)}}
+  else if(id==='basement'){if(a>.4)g.fillRect(px,py,1,3)}
+  else if(id==='cemetery'){g.globalAlpha=.09;g.fillRect(px-12,py,22,3);g.globalAlpha=.23}
+  else if(id==='forest'){g.fillRect(px,py,2,2);if(a>.78)g.fillRect(px+4,py-4,1,1)}
+  else {g.fillRect(px,py,3,2);if(b>.7)g.fillRect(px-2,py-3,2,1)}
+ }
+ for(const [lx,ly] of f.sites){
+  if(lx+52<x||lx-52>x+w||ly+52<y||ly-52>y+h)continue;
+  const r=g.createRadialGradient(lx,ly,2,lx,ly,47);r.addColorStop(0,f.color);r.addColorStop(1,'rgba(0,0,0,0)');
+  g.globalAlpha=.09+.035*Math.sin(clock*1.6+lx);g.fillStyle=r;g.fillRect(lx-47,ly-47,94,94);
+ }
+ g.restore();
+}
+
 function paintTerrain(g,id,left,top,width,height){
  const t=terrainThemes[id]||terrainThemes.kitchen,right=left+width,bottom=top+height,natural=id==='cemetery'||id==='forest';
  const R=(color,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
@@ -774,6 +866,7 @@ function paintTerrain(g,id,left,top,width,height){
   if(natural){const h=26+Math.floor(terrainHash(x,6,0)*16);P('#182a20',[x-15,y+42,x+4,y+42-h,x+19,y+42]);P('#314634',[x-9,y+35,x+4,y+43-h,x+14,y+35]);R('#6c5140',x+3,y+32,4,11)}
   else{plate(x,y+7,65,34,t.tile,t.edge,t.trim);if(id==='kitchen'){R('#171d20',x+7,y+13,51,13);for(let j=0;j<4;j++){R('#555f5d',x+10+j*12,y+15,7,8);R('#9b8270',x+10+j*12,y+15,7,1)}}else if(id==='foodcourt'){R('#2f2e34',x+8,y+12,49,21);R('#bc8b69',x+12,y+15,41,2);R('#4d7773',x+12,y+21,25,2)}else{grate(x+8,y+12,49,20,t.tile,t.trim)}}
  }
+ paintArenaFeatures(g,id,left,top,width,height);
  // Sparse ground lanterns, placed to support navigation instead of repeating a grid.
  for(const [x,y] of arenaLights[id]||arenaLights.kitchen){
   R(t.edge,x-5,y-4,10,8);R(t.trim,x-4,y-3,8,6);R(t.glow,x-3,y-2,6,4);R('#eadac0',x-2,y-1,2,1)
@@ -894,14 +987,14 @@ function syncInventoryArt(p){
 
 function paintMenuStage(hero,map){
  const g=document.getElementById('heroStageCanvas').getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,200,108);// A crop of the real arena behind the actual character model.
- g.save();g.translate(-860,-486);paintTerrain(g,map.id,860,486,200,108);g.restore();
+ g.save();g.translate(-860,-486);paintTerrain(g,map.id,860,486,200,108);paintArenaAtmosphere(g,map.id,{x:860,y:486,w:200,h:108},0);g.restore();
  g.fillStyle='rgba(13,12,15,.35)';g.fillRect(0,0,200,108);g.save();g.translate(100,72);g.scale(1.75,1.75);pixelHeroBody(g,hero.id,0,0,0);pixelHeroWeapon(g,hero.id,0,-.35,0);g.restore();
  document.getElementById('heroStageName').textContent=locName(hero);document.getElementById('heroStageStats').textContent=(lang==='en'?'Health ':'Здоровье ')+hero.hp+' / '+(lang==='en'?'Speed ':'Скорость ')+hero.speed;
- const mg=document.getElementById('mapStageCanvas').getContext('2d');mg.save();mg.translate(-720,-405);paintTerrain(mg,map.id,720,405,480,270);mg.restore();
+ const mg=document.getElementById('mapStageCanvas').getContext('2d');mg.save();mg.translate(-720,-405);paintTerrain(mg,map.id,720,405,480,270);paintArenaAtmosphere(mg,map.id,{x:720,y:405,w:480,h:270},0);mg.restore();
  document.getElementById('mapStageName').textContent=locName(map).split(' — ')[0];
 }
 
-function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(en?'Online':'Онлайн'):coop?(en?'Co-op':'2 игрока'):(en?'Solo':'Соло');document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(en?'Ability: ':'Способность: ')+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+((en?hero.enWeaponNames:hero.weaponNames)[i])+'</span></div>').join('');document.getElementById('mapDetail').textContent=locDesc(map);paintMenuStage(hero,map)}
+function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(en?'Online':'Онлайн'):coop?(en?'Co-op':'2 игрока'):(en?'Solo':'Соло');document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(en?'Ability: ':'Способность: ')+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+((en?hero.enWeaponNames:hero.weaponNames)[i])+'</span></div>').join('');const af=arenaFeatures[map.id];document.getElementById('mapDetail').textContent=locDesc(map)+' · '+(en?af.en+': '+af.hintEn:af.ru+': '+af.hint);paintMenuStage(hero,map)}
 function setMenuTab(next){if(!['hero','map','mode'].includes(next))return false;document.querySelectorAll('[data-menu-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.menuTab===next)));document.querySelectorAll('[data-menu-panel]').forEach(p=>p.hidden=p.dataset.menuPanel!==next);document.getElementById('menuBody').scrollTop=0;return true}
 document.querySelectorAll('[data-menu-tab]').forEach(b=>b.addEventListener('click',()=>setMenuTab(b.dataset.menuTab)));
 function updateSoundPanel(){document.getElementById('soundToggle').textContent=lang==='en'?'Music':'Музыка';document.getElementById('musicLabel').textContent=lang==='en'?'Music volume':'Громкость музыки';document.getElementById('musicVolume').value=musicVolume;document.getElementById('musicVolumeValue').textContent=musicVolume+'%'}
@@ -1092,7 +1185,7 @@ function applyNetState(s){
  wave=s.wave||1;score=s.score||0;combo=s.combo||1;waveState=s.waveState||'fighting';targetCount=s.targetCount??enemies.length;spawned=s.spawned??targetCount;
 }
 function netState(){
- return {p1:{x:player.x,y:player.y,charId:player.charId,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:player.weapon,lvl:player.lvl,bomb:player.bomb,dash:player.dash,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,charId:player2.charId,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,dash:player2.dash,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,dead:e.dead,stage:e.stage,kind:e.kind,charge:e.charge})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy,kind:p.kind})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,value:d.value,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type,name:boss.name,enName:boss.enName,stage:boss.stage,kind:boss.kind}:null,hazards:hazards.map(({x,y,radius,remaining,duration})=>({x,y,radius,remaining,duration})),wave,score,combo,waveState,targetCount,spawned}
+ return {p1:{x:player.x,y:player.y,charId:player.charId,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:player.weapon,lvl:player.lvl,bomb:player.bomb,dash:player.dash,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,charId:player2.charId,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,dash:player2.dash,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,dead:e.dead,stage:e.stage,kind:e.kind,charge:e.charge})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy,kind:p.kind})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,value:d.value,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type,name:boss.name,enName:boss.enName,stage:boss.stage,kind:boss.kind}:null,hazards:hazards.map(({x,y,radius,remaining,duration,kind})=>({x,y,radius,remaining,duration,kind})),wave,score,combo,waveState,targetCount,spawned}
 }
 function sendNet(m){
  const c=m&&m.t==='state'?netStateConn:netConn;
@@ -1115,7 +1208,7 @@ function startGame(fromNetwork=false){
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
  resetPlayer(player,ch,world.w/2-18,world.h/2);resetPlayer(player2,ch2,world.w/2+18,world.h/2);
  player.weapon=0;player2.weapon=coop?1:0;
- weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast(coop?'2 ИГРОКА · ВОЛНА 1':'ВОЛНА 1');if(location.protocol!=='file:')requestMobileFullscreen();
+ weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;arenaEventTimer=8;arenaEventIndex=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast(coop?'2 ИГРОКА · ВОЛНА 1':'ВОЛНА 1');if(location.protocol!=='file:')requestMobileFullscreen();
 }
 function goMenu(){clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu()}
 function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlayers?7:4)+Math.floor(round/4))}
@@ -1489,18 +1582,24 @@ function finishEnemyDeath(e){
  }
 }
 
-function scheduleHazard(x,y,radius,damage,delay=.75,source=null){
- hazards.push({x,y,radius,damage,remaining:delay,duration:delay,source});
+function scheduleHazard(x,y,radius,damage,delay=.75,source=null,kind=null){
+ hazards.push({x,y,radius,damage,remaining:delay,duration:delay,source,kind});
 }
 function updateHazards(dt){
  for(const h of hazards){
    if(h.source?.dead){h.remaining=-1;continue}
    h.remaining-=dt;
    if(h.remaining>0)continue;
-   for(const p of alivePlayers())if(Math.hypot(p.x-h.x,p.y-h.y)<=h.radius)hurtPlayer(p,h.damage,h.x,h.y);
-   ring(h.x,h.y,4,'#ff4055',.28,h.radius);
-   spawnParticles(h.x,h.y,18,'#ff9b4c',1.1);
-   shake=Math.max(shake,.10);
+   const feature=arenaFeatures[h.kind],col=feature?.color||'#ff4055';
+   if(h.kind==='foodcourt'){drops.push({x:h.x,y:h.y,type:'heal',value:18,life:12,pulse:0})}
+   else{
+     for(const p of alivePlayers())if(Math.hypot(p.x-h.x,p.y-h.y)<=h.radius)hurtPlayer(p,h.damage,h.x,h.y);
+     if(h.kind==='forest')for(const e of enemies){if(!e.dead&&Math.hypot(e.x-h.x,e.y-h.y)<=h.radius)damageEnemy(e,e.type==='boss'?12:34)}
+     if(h.kind==='cemetery'&&state==='game')drops.push({x:h.x,y:h.y,type:'xp',value:18,life:1,pulse:0});
+   }
+   ring(h.x,h.y,4,col,.35,h.radius);
+   spawnParticles(h.x,h.y,18,col,1.1);
+   if(h.kind!=='foodcourt')shake=Math.max(shake,.10);
  }
  hazards=hazards.filter(h=>h.remaining>0);
 }
@@ -1676,7 +1775,8 @@ function updateDrops(dt){
   }else if(d.type==='relic'&&dist<18){
    relicOwned=true;for(const p of coopPlayers()){p.maxhp+=50;p.hp=p.maxhp;p.boost.dmg*=1.28;p.boost.rate*=1.12;p.boost.move*=1.12;p.bomb=Math.min(9,p.bomb+2)}
    d.life=0;spawnParticles(d.x,d.y,30,'#cf79ff',1.8);ring(d.x,d.y,18,'#cf79ff',.65,55);floatText(d.x,d.y-15,'РЕЛИКВИЯ ПОЛУЧЕНА','#e0a6ff');toast('СЕРДЦЕ КУХНИ: КОМАНДА УСИЛЕНА')
-  }else if(d.type==='bomb'&&dist<13){cp.bomb=Math.min(9,cp.bomb+1);d.life=0;spawnParticles(d.x,d.y,8,'#f0b04e',.6)}
+  }else if(d.type==='heal'&&dist<15&&cp.hp<cp.maxhp){const healed=Math.min(d.value||18,cp.maxhp-cp.hp);cp.hp+=healed;d.life=0;spawnParticles(d.x,d.y,10,'#a9e6aa',.7);floatText(d.x,d.y-15,'+'+Math.round(healed)+' HP','#a9e6aa');sfx('pickup')}
+  else if(d.type==='bomb'&&dist<13){cp.bomb=Math.min(9,cp.bomb+1);d.life=0;spawnParticles(d.x,d.y,8,'#f0b04e',.6)}
  }
  drops=drops.filter(d=>d.life>0);
 }
@@ -1771,7 +1871,7 @@ function update(dt){
  camera.x=clamp(camera.x,W/2,world.w-W/2);camera.y=clamp(camera.y,H/2,world.h-H/2);
  horrorTime+=dt;for(const p of coopPlayers()){p.fire=Math.max(0,p.fire-dt);p.dash=Math.max(0,p.dash-dt);p.inv=Math.max(0,p.inv-dt)}
  if(!player.dead&&(mouse.down||touchInput.attack))attack();
- updateEnemies(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);updateFx(dt);
+ updateEnemies(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);updateFx(dt);
  enemies=enemies.filter(e=>!e.dead);
  if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if(waveTime>=delay||enemies.length===0){waveTime=0;spawnEnemy();spawned++}}
  if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';between=1.6;toast(lang==='en'?'WAVE CLEARED · COLLECT XP':'ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')}
@@ -2012,6 +2112,8 @@ function paintCombatDrop(g,d,time=0){
  if(d.type==='xp'){
   const large=(d.value||0)>=40,w=large?6:5,h=large?9:7;
   P('#0e2425',[-w-1,-2,0,-h-1,w+1,-2,0,h-1]);P('#399b83',[-w,-2,0,-h,w,-2,0,h-2]);P('#b7f5cc',[-w+1,-2,0,-h,0,1]);P('#70dcb2',[0,-h,w,-2,0,1]);P('#1e7467',[0,1,w,-2,0,h-2]);R('#f1ffe3',-1,-h+2,2,2);if(!reduceMotion&&Math.sin(t*3)>.65)R('#d4ffe7',w+3,-h,1,3);
+ }else if(d.type==='heal'){
+  R('#112520',-8,-6,16,13);R('#a4c7a2',-7,-5,14,10);R('#e8e5c5',-6,-4,12,7);R('#397b5c',-2,-3,4,6);R('#397b5c',-4,-1,8,2);R('#d6dfae',-4,-7,8,1);
  }else if(d.type==='bomb'){
   P('#130f19',[-5,-4,-2,-7,3,-7,6,-3,6,4,3,7,-4,6,-6,2]);P('#786057',[-4,-3,-1,-5,3,-5,5,-2,4,4,1,5,-3,4,-4,1]);R('#d2b78c',-3,-3,3,2);R('#eb9c58',2,-9,2,3);R('#ffdd95',4,-10,2,2);
  }else{
@@ -2028,7 +2130,7 @@ function paintCombatProjectile(g,p){
 }
 function paintArenaLighting(g,map,view){
  const {x,y,w,h}=view;g.save();g.fillStyle='rgba(10,12,15,.08)';g.fillRect(x,y,w,h);
- for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+70<x||lx-70>x+w||ly+70<y||ly-70>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,66);rad.addColorStop(0,terrainThemes[map.id].glow);rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.13;g.fillStyle=rad;g.fillRect(lx-66,ly-66,132,132)}g.restore()
+ for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+85<x||lx-85>x+w||ly+85<y||ly-85>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,85);rad.addColorStop(0,terrainThemes[map.id].glow);rad.addColorStop(.35,terrainThemes[map.id].glow+'65');rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.23;g.fillStyle=rad;g.fillRect(lx-85,ly-85,170,170)}g.restore()
 }
 function draw(){
  const m=maps.find(x=>x.id===selectedMap);ctx.fillStyle=m.floor;ctx.fillRect(0,0,W,H);
@@ -2036,15 +2138,15 @@ function draw(){
  ctx.save();
  ctx.translate(Math.round(W/2-camera.x),Math.round(H/2-camera.y));
  // Cached world scenery; actors and attack warnings are still rendered above it.
- ctx.drawImage(getTerrain(m.id),0,0);paintArenaLighting(ctx,m,{x:camera.x-W/2,y:camera.y-H/2,w:W,h:H});
+ ctx.drawImage(getTerrain(m.id),0,0);const view={x:camera.x-W/2,y:camera.y-H/2,w:W,h:H};paintArenaLighting(ctx,m,view);paintArenaAtmosphere(ctx,m.id,view,horrorTime);
  // blood stains and corpses
  for(const b of blood){ctx.globalAlpha=b.a;ctx.fillStyle='#4f0913';ctx.fillRect(Math.round(b.x-b.r),Math.round(b.y-b.r*.45),Math.max(2,Math.round(b.r*2)),Math.max(2,Math.round(b.r*.9)));ctx.fillStyle='#9f1829';ctx.fillRect(Math.round(b.x-b.r*.55),Math.round(b.y-b.r*.25),Math.max(2,Math.round(b.r*1.1)),Math.max(2,Math.round(b.r*.5)))}ctx.globalAlpha=1;
  // enemy warnings: fixed radius, shrinking countdown ring, no reliance on color alone
  for(const h of hazards){
    const progress=clamp(h.remaining/h.duration,0,1);
-   ctx.save();ctx.fillStyle='rgba(255,55,68,.12)';ctx.strokeStyle='#ff6371';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(h.x,h.y,h.radius,0,TAU);ctx.fill();ctx.stroke();
+   const feature=arenaFeatures[h.kind],col=feature?.color||'#ff6371';ctx.save();ctx.fillStyle=feature?col:'rgba(255,55,68,.12)';ctx.globalAlpha=feature?.color?.length===7 ? .13 : 1;ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(h.x,h.y,h.radius,0,TAU);ctx.fill();ctx.globalAlpha=1;ctx.stroke();
    ctx.strokeStyle='#ffd4a4';ctx.beginPath();ctx.arc(h.x,h.y,h.radius*progress,0,TAU);ctx.stroke();
-   drawPixelText('!',h.x,h.y,11,'#ffd4a4','center');ctx.restore();
+   drawPixelText(h.kind==='foodcourt'?'+':'!',h.x,h.y,11,col,'center');ctx.restore();
  }
  for(const e of enemies){if(e.type!=='boss'||!e.charge)continue;ctx.save();ctx.strokeStyle='#ffaf65';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.lineTo(e.charge.x,e.charge.y);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.arc(e.charge.x,e.charge.y,26,0,TAU);ctx.stroke();ctx.restore();}
  // enemies + combat
