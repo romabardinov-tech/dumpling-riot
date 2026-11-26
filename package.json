@@ -1,0 +1,26 @@
+{
+  "name": "dumpling-riot",
+  "version": "0.48.0",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build:mobile": "node scripts/prepare-mobile.mjs",
+    "android:init": "npm run build:mobile && cap add android",
+    "ios:init": "npm run build:mobile && cap add ios",
+    "native:sync": "npm run build:mobile && cap sync",
+    "android:open": "cap open android",
+    "ios:open": "cap open ios",
+    "check:mobile": "node scripts/check-mobile.mjs"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "peerjs": "1.5.4"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.0.0"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "appId": "com.dumplingriot.game",
+  "appName": "Dumpling Riot",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "automatic"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
