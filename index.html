@@ -1179,6 +1179,40 @@ const camera={x:960,y:540,smooth:0.12};
 let relicOwned=false;
 let horrorTime=0;
 let audioCtx=null,masterGain=null,musicGain=null,musicTimer=null,musicMode='off',musicStep=0,musicNext=0,musicNoise=null;
+// V62: original procedural arena soundtracks and bounded positional cues.
+const arenaScores={
+ kitchen:{bpm:112,roots:[38,38,34,36],lead:[0,3,7,1],beat:[0,3,8,11],texture:'metal',tone:82},
+ basement:{bpm:92,roots:[33,34,33,39],lead:[0,1,6,1],beat:[0,6,10],texture:'metal',tone:54},
+ foodcourt:{bpm:120,roots:[41,37,39,36],lead:[0,7,3,10],beat:[0,4,8,12],texture:'hat',tone:190},
+ slaughter:{bpm:128,roots:[36,36,31,37],lead:[0,6,1,3],beat:[0,3,6,8,12,14],texture:'snare',tone:64},
+ cemetery:{bpm:80,roots:[34,29,32,33],lead:[0,3,1,7],beat:[0,8],texture:'metal',tone:110},
+ forest:{bpm:96,roots:[31,35,32,29],lead:[0,5,1,8],beat:[0,5,9,13],texture:'hat',tone:73}
+};
+function arenaScoreStep(map,step,phase=0,quiet=false){
+ const t=arenaScores[map]||arenaScores.kitchen,bar=Math.floor(step/16)%4,q=step%16,root=t.roots[bar],notes=[],add=(voice,n,d,v)=>notes.push({voice,n,d,v});
+ if(q===0){add('pad',root+12,14,.038);add('pad',root+19,14,.018)}
+ if(quiet){if(q===0||q===8)add('bell',root+24+t.lead[bar],4,.024);return notes}
+ if(t.beat.includes(q)){add('bass',root+(q===12?7:0),2,.075);add('kick',0,2,.105)}
+ if(q===4||q===12)add(t.texture,0,1,.038);
+ if(q===2||q===10||q===14)add('bell',root+24+t.lead[(bar+Math.floor(q/4))%4],2,.028);
+ if(phase>0){if(q===0||q===8)add('bass',root-12,5,.065);if(q%4===2)add('metal',0,1,.035);if(phase>=2&&q%4===0)add('hat',0,1,.026);if(phase>=3&&q===14)add('kick',0,2,.09)}
+ return notes;
+}
+function spatialMix(x,y,listener){const dx=x-listener.x,dy=y-listener.y,d=Math.hypot(dx,dy);return {pan:Math.max(-.85,Math.min(.85,dx/190)),gain:Math.max(0,1-d/310)**1.35}}
+let spatialTimer=0,warningAt=-Infinity,heartbeatTimer=0;
+function spatialTone(x,y,hz,duration=.16,volume=.055,type='sine'){
+ if(!horrorFx||!audioCtx||!masterGain||audioCtx.state!=='running'||document.hidden||state!=='game')return false;
+ const listener=onlineMode&&isOnlineGuest?player2:player;if(!listener||listener.dead)return false;const mix=spatialMix(x,y,listener);if(mix.gain<.025)return false;
+ const ac=audioCtx,at=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(hz,at);o.frequency.exponentialRampToValueAtTime(Math.max(25,hz*.66),at+duration);g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(Math.max(.00012,volume*mix.gain),at+.018);g.gain.exponentialRampToValueAtTime(.0001,at+duration);o.connect(g);
+ if(typeof ac.createStereoPanner==='function'){const pan=ac.createStereoPanner();pan.pan.value=mix.pan;g.connect(pan);pan.connect(masterGain);o.onended=()=>{try{o.disconnect();g.disconnect();pan.disconnect()}catch(_){}}}else{g.connect(masterGain);o.onended=()=>{try{o.disconnect();g.disconnect()}catch(_){}}}
+ o.start(at);o.stop(at+duration+.015);return true;
+}
+function updateSpatialAudio(dt){
+ if(state!=='game'||waveState!=='fighting'||!horrorFx)return;
+ const p=onlineMode&&isOnlineGuest?player2:player;if(p.dead)return;
+ spatialTimer-=dt;if(spatialTimer<=0){spatialTimer=1.8;const threat=nearestEnemy(p);if(threat&&!threat.dead){const t=arenaScores[selectedMap]||arenaScores.kitchen;spatialTone(threat.x,threat.y,threat.type==='boss'?43:t.tone,.19,.045,'triangle')}}
+ const danger=p.hp/p.maxhp<.35||(nightmare?.fear||0)>=85;heartbeatTimer-=dt;if(danger&&heartbeatTimer<=0){heartbeatTimer=.8;spatialTone(p.x,p.y,58,.12,.045,'sine')}else if(!danger)heartbeatTimer=0;
+}
 let musicVolume=Number(readStorage('dumpling-riot-music-volume','65'));if(!Number.isFinite(musicVolume))musicVolume=65;musicVolume=Math.max(0,Math.min(100,musicVolume));
 const scoreRoots=[38,38,34,36,38,38,31,33,38,41,34,36,38,34,31,33];
 const scoreLead=[[62,null,null,65,null,64,null,57],[null,62,null,null,60,null,57,null],[58,null,60,null,62,null,null,65],[null,60,null,57,null,55,null,null]];
@@ -1205,9 +1239,9 @@ const midiHz=n=>440*Math.pow(2,(n-69)/12);
 function musicVoice(event,when,stepTime){
  if(!audioCtx||!musicGain)return;const ac=audioCtx,dur=Math.max(.055,event.d*stepTime),vol=event.v;
  const env=ac.createGain();env.connect(musicGain);env.gain.setValueAtTime(.0001,when);
- const attack=event.voice==='pad'?.14:.008,release=event.voice==='pad'?.2:.035;
- env.gain.exponentialRampToValueAtTime(vol,when+Math.min(attack,dur*.35));
- env.gain.exponentialRampToValueAtTime(Math.max(.00012,vol*.45),when+Math.max(attack+.015,dur*.5));
+ const attack=Math.min(event.voice==='pad'?.14:.008,dur*.35),release=event.voice==='pad'?.2:.035;
+ env.gain.exponentialRampToValueAtTime(vol,when+attack);
+ env.gain.exponentialRampToValueAtTime(Math.max(.00012,vol*.45),when+Math.max(attack+.005,dur*.5));
  env.gain.exponentialRampToValueAtTime(.0001,when+dur+release);
  if(['hat','snare','metal'].includes(event.voice)){
   const src=ac.createBufferSource(),filter=ac.createBiquadFilter();src.buffer=musicNoise;
@@ -1218,7 +1252,7 @@ function musicVoice(event,when,stepTime){
  osc.connect(filter);filter.connect(env);osc.start(when);osc.stop(when+dur+release+.015);
  if(event.voice==='bell'){const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=midiHz(event.n)*2.01;g.gain.value=.25;o.connect(g);g.connect(env);o.start(when);o.stop(when+dur+release+.015)}
 }
-function applyMusicVolume(){if(!musicGain||!audioCtx)return;const now=audioCtx.currentTime;musicGain.gain.cancelScheduledValues(now);musicGain.gain.setTargetAtTime(Math.max(.0001,musicVolume/100*.82),now,.07)}
+function applyMusicVolume(){if(!musicGain||!audioCtx)return;const now=audioCtx.currentTime;musicGain.gain.cancelScheduledValues(now);musicGain.gain.setTargetAtTime(musicVolume/100*.82,now,.07)}
 function scheduleScore(){
  if(!audioCtx||musicMode==='off')return;
  if(document.hidden){musicTimer=setTimeout(scheduleScore,500);return}
@@ -1226,8 +1260,9 @@ function scheduleScore(){
  const now=audioCtx.currentTime;
  if(musicNext<now-.1)musicNext=now+.06;
  const intense=musicMode==='game'&&typeof boss!=='undefined'&&!!boss;
- const stepTime=60/(musicMode==='menu'?76:116)/4;
- while(musicNext<now+.14){for(const event of scoreStep(musicMode,musicStep,intense))musicVoice(event,musicNext,stepTime);musicNext+=stepTime;musicStep++}
+ const theme=arenaScores[selectedMap]||arenaScores.kitchen,phase=intense?(boss.stage||1):0,quiet=musicMode==='game'&&(state!=='game'||waveState!=='fighting');
+ const stepTime=60/(musicMode==='menu'?76:theme.bpm)/4;
+ while(musicNext<now+.14){if(musicVolume>0){const events=musicMode==='menu'?scoreStep('menu',musicStep):arenaScoreStep(selectedMap,musicStep,phase,quiet);for(const event of events)musicVoice(event,musicNext,stepTime)}musicNext+=stepTime;musicStep++}
  musicTimer=setTimeout(scheduleScore,45);
 }
 function setMusicMode(mode){
@@ -2293,7 +2328,7 @@ function startGame(fromNetwork=false){
 function goMenu(){clearCombatPresentation();livingStations=[];encounter=null;if(soloRun?.campaign)selectedMap=soloRun.campaign.start;secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
 function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlayers?7:4)+Math.floor(round/4))}
 function beginWave(){
- clearCombatPresentation();livingStations=makeLivingStations(selectedMap,soloRun,arena);
+ spatialTimer=0;heartbeatTimer=0;warningAt=-Infinity;clearCombatPresentation();livingStations=makeLivingStations(selectedMap,soloRun,arena);
  secretEncounter=soloRun?createSecret(selectedMap,campaignRound(soloRun,wave),player,arena,arenaFeatures[selectedMap].sites):null;if(secretEncounter)secretEncounter.w=wave;
  if(nightmare)resetNightmareWave(nightmare,chooseShelter(arenaLights[selectedMap],player,arena));
  waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];hazards=[];
@@ -2745,7 +2780,7 @@ function updateSecret(){
  toast(L('CACHE AMBUSH · DEFEAT TWO GUARDS','ЗАСАДА · ПОБЕДИ ДВУХ СТРАЖЕЙ'));toastTimer=3.5;
 }
 function scheduleHazard(x,y,radius,damage,delay=.75,source=null,kind=null){
- hazards.push({x,y,radius,damage,remaining:delay,duration:delay,source,kind});
+ hazards.push({x,y,radius,damage,remaining:delay,duration:delay,source,kind});if(damage>0&&horrorTime-warningAt>.45&&spatialTone(x,y,source?.type==='boss'?155:240,.13,.06,'triangle'))warningAt=horrorTime;
 }
 function updateHazards(dt){
  for(const h of hazards){
@@ -3021,7 +3056,7 @@ function update(dt){
    if(boss&&boss.netX!=null){boss.x=lerp(boss.x,boss.netX,smoothAlpha);boss.y=lerp(boss.y,boss.netY,smoothAlpha);}
    camera.x=clamp(lerp(camera.x,player2.x,1-Math.exp(-dt*9)),W/2,world.w-W/2);camera.y=clamp(lerp(camera.y,player2.y,1-Math.exp(-dt*9)),H/2,world.h-H/2);
    horrorTime+=dt;for(const p of coopPlayers()){p.fire=Math.max(0,p.fire-dt);p.dash=Math.max(0,p.dash-dt);p.inv=Math.max(0,p.inv-dt)}
-   updateFx(dt);
+   updateSpatialAudio(dt);updateFx(dt);
    return
 }
  if(onlineMode&&isOnlineHost){netSendTimer-=dt;if(netSendTimer<=0){netSendTimer=.083;sendNet({t:'state',n:++netSeq,s:netState()})}}
@@ -3049,7 +3084,7 @@ function update(dt){
  camera.x=clamp(camera.x,W/2,world.w-W/2);camera.y=clamp(camera.y,H/2,world.h-H/2);
  horrorTime+=dt;for(const p of coopPlayers()){p.fire=Math.max(0,p.fire-dt);p.dash=Math.max(0,p.dash-dt);p.inv=Math.max(0,p.inv-dt)}
  if(!player.dead&&(mouse.down||touchInput.attack))attack();
- if(state==='game'){updateNightmare(dt);updateSecret()}updateEnemies(dt);if(state==='game')updateLivingStations(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);updateFx(dt);
+ if(state==='game'){updateNightmare(dt);updateSecret();updateSpatialAudio(dt)}updateEnemies(dt);if(state==='game')updateLivingStations(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);updateFx(dt);
  enemies=enemies.filter(e=>!e.dead);
  if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if(waveTime>=delay||enemies.length===0){waveTime=0;spawnEnemy();spawned++}}
  if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';if(nightmare?.hunter){nightmare.hunter.dead=true;hazards=hazards.filter(h=>h.source!==nightmare.hunter);nightmare.hunter=null}if(nightmare){nightmare.echo=null;nightmare.fear=fearClamp(nightmare.fear-12)}between=soloRun?4:1.6;let reward=0;if(soloRun){reward=clearWaveReward(meta,soloRun,wave,selectedMap);if(reward)addCoins(soloRun,coinReward(wave));saveMeta()}toast(L('WAVE CLEARED · COLLECT XP','ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')+(reward?' · ◆ +'+reward:''));toastTimer=2.5}
