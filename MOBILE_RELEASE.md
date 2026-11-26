@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.58.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.59.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -17,7 +17,7 @@ Status: **source preparation**, not an approved, signed or device-tested store r
 ## Release blockers / acceptance
 - [ ] Install dependencies and commit package-lock.json; build native projects; validate final Android/iOS identifiers, signing and SDK.
 - [ ] Generate native launcher icons (existing PWA icons are not a complete native asset catalog); verify rights and third-party licenses.
-- [ ] Device QA: first launch in airplane mode, six heroes and arenas, all 15 bosses (12 arena bosses, campaign finale, two optional bosses), waves 1/3/7, shard awards, altar purchases, curse selection, ritual at wave 5, extraction at wave 10, corrupt save recovery, pause/resume, backgrounding, incoming call, touch controls, death/retry, record persistence, localization, notch and tablet layouts.
+- [ ] Device QA: first launch in airplane mode, eight heroes and six arenas, all 15 bosses (12 arena bosses, campaign finale, two optional bosses), waves 1/3/7, shard awards, altar purchases, curse selection, ritual at wave 5, extraction at wave 10, corrupt save recovery, pause/resume, backgrounding, incoming call, touch controls, death/retry, record persistence, localization, notch and tablet layouts.
 - [ ] Stress-test later waves and particles on lower-end Android; profile sustained frame time, memory and heat. No performance claims until measured.
 - [ ] Test real two-device co-op, offline failure, room disconnect/reconnect; replace public demo TURN/signaling with production-capable infrastructure or omit online mode from store build until verified. Verify provider terms, data flow/retention and third-party disclosures.
 - [ ] Confirm publisher's real identity and privacy contact; finalize privacy.html and public HTTPS URL, support contact, Apple privacy nutrition label and Google Data Safety. No ads/analytics planned for first version; do not claim no data collection without provider review.
@@ -27,7 +27,7 @@ Status: **source preparation**, not an approved, signed or device-tested store r
 
 ## Suggested store listing (draft)
 Dumpling Riot — Pixel Horror Survival
-Fight through six haunted arenas, choose one of six distinct heroes, upgrade your weapons, and survive waves of 24 enemy families and 15 bosses. Play solo offline or in optional co-op (online subject to release verification). 
+Fight through six haunted arenas, choose one of eight distinct heroes, upgrade your weapons, and survive waves of 24 enemy families and 15 bosses. Play solo offline or in optional co-op (online subject to release verification). 
 No in-app purchases or ads in this source.
 
 ## Official references
@@ -69,3 +69,6 @@ Two optional solo bosses (Bellkeeper and Veiled Widow), offered in side rooms af
 
 ## V58 — Three Fates
 Campaign finale now presents three selectable epilogues: Last Dawn (always available), Eternal Seal (complete the optional cache encounter in all three chapters of the current run), and Heir of the Void (defeat at least one optional hidden boss in the current run). All grant the same 40 base victory shards plus existing extraction reward. Added clue HUD, persistent ending counts, unlockable epilogues in altar, and ending labels in run history. Older victory counts preserved without retroactively assigning endings. Syntax and 898 isolated assertions covering contracts, eligibility combinations, reward deduplication, migration, clue tracking, and persistence passed. Browser/device runtime, native exports and human playtest remain unverified.
+
+## V59 — Forgotten Heroes
+Two unlockable solo-only heroes added without locking any of the six original heroes. Lantern Warden unlocks after any campaign victory (including existing wins); Revenant unlocks after discovery of either hidden boss in the journal. Eight hero-specific weapon attacks, inventory silhouettes, body art, dash profiles and elemental assignments. Warden dash reduces fear by up to 12; Revenant dash heals up to 6 HP based on nearby living enemies. Locked hero cards show requirements; saved selection is validated on load and mode change; co-op retains the six original heroes. Syntax and 144 isolated assertions covering unlock combinations, hero configuration and bounded dash bonuses passed. Browser/device runtime, weapon feel, balance and native exports remain unverified.
