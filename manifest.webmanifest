@@ -1,15 +1,25 @@
 {
-  "name":"Dumpling Riot",
-  "short_name":"Dumpling Riot",
-  "description":"Dumpling Riot — Pixel Horror mobile game",
-  "start_url":"./",
-  "scope":"./",
-  "display":"standalone",
-  "orientation":"landscape",
-  "background_color":"#09070b",
-  "theme_color":"#09070b",
-  "icons":[
-    {"src":"./icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"./icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  "name": "Dumpling Riot",
+  "short_name": "Dumpling Riot",
+  "description": "Dumpling Riot — Pixel Horror mobile game",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#09070b",
+  "theme_color": "#09070b",
+  "icons": [
+    {
+      "src": "./icon-v36-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-v36-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
