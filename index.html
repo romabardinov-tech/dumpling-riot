@@ -312,6 +312,58 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 #soundPanel{display:flex;align-items:center;gap:8px;font-size:11px;color:#bfb2a5;min-height:36px}
 #soundPanel input{min-width:40px;flex:1;accent-color:#d4a674;touch-action:pan-x}
 #soundPanel output{min-width:32px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* V38: a game roster, not a dashboard. One focal image, flat selections. */
+#menu .menuShell{background:#15171a;width:min(880px,100%);height:min(100%,790px);max-height:100%;color:#e7d8c1}
+#menu .menuHeader{background:#15171a;border-bottom:1px solid #3b3935}
+#menu .brandMark{display:none}#menu .title{font:900 clamp(21px,4vw,36px)/1 ui-monospace,monospace;letter-spacing:-1.8px;color:#eadbc1}
+#menu .title .red{color:#cc5b49}#menuTag[hidden]{display:none!important}
+#menuTabs{background:#181a1d;padding:0 18px;border-bottom-color:#393a37}
+#menuTabs button{font:600 13px system-ui,sans-serif;min-height:42px;color:#a7a69c}
+#menuTabs button[aria-pressed=true]{color:#f1dfc1;border-bottom-color:#bb5645}
+#menu .sectionHead{display:none}
+#menu .menuBody{padding:12px 18px}
+.heroStage{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;align-items:center;margin-bottom:11px;background:#1c201f;border-bottom:2px solid #555148}
+.heroStage canvas{width:100%;height:auto;image-rendering:pixelated;display:block}
+.stageInfo{padding:10px 10px 10px 0;min-width:0}
+.stageInfo h2,.mapStageCaption h2{margin:0 0 6px;font:800 20px/1.1 ui-monospace,monospace;color:#ead6b6}
+#heroStageStats{font:600 11px system-ui,sans-serif;color:#d4bd98}
+#menu .selectionDetail{font:400 11px/1.4 system-ui,sans-serif;color:#bebeb1;margin:5px 0 0;padding:0;border:0}
+#menu #charChoices,#menu #mapChoices{grid-template-columns:repeat(6,minmax(0,1fr));gap:3px}
+#menu #charChoices .choice,#menu #mapChoices .choice{background:#202322;border:0;border-bottom:2px solid #3a3d36;border-radius:0;box-shadow:none;padding:3px;display:grid;grid-template-columns:1fr;grid-template-rows:auto auto;min-height:0;gap:2px;text-align:center}
+#menu #charChoices .choice.sel,#menu #mapChoices .choice.sel{background:#36362d;border-bottom-color:#d1b17b;box-shadow:none}
+#menu #charChoices .heroPortrait,#menu #mapChoices .mapPortrait{width:100%;height:auto;max-height:63px;background:#232624;object-fit:contain;grid-row:1;grid-column:1}
+#menu #charChoices .choice b,#menu #mapChoices .choice b{font:650 10px/1.2 system-ui,sans-serif;text-align:center;grid-column:1;padding:3px 0}
+#menu .heroArsenal{background:none;border:0;gap:3px;margin-top:9px}
+#menu .heroArsenal>div{border:0;border-top:1px solid #3c4039;background:none;padding:5px 0}
+.mapStage{position:relative;margin-bottom:9px;background:#1d201e;overflow:hidden}
+.mapStage canvas{width:100%;height:auto;max-height:270px;object-fit:cover;image-rendering:pixelated;display:block}
+.mapStageCaption{position:absolute;bottom:0;left:0;right:0;background:rgba(15,17,18,.88);padding:8px 12px}
+.mapStageCaption h2{font-size:17px}
+#menu .modeChoices{grid-template-columns:1fr;gap:0}
+#menu .modeChoice{border:0;border-bottom:1px solid #46433c;border-radius:0;background:transparent;box-shadow:none;min-height:52px;padding:10px 14px}
+#menu .modeChoice.sel{background:#33352e;border-left:3px solid #ccaf7c;box-shadow:none}
+#menu .menuFooter{background:#15171a;border-top-color:#3b3935}
+#menu .btn{border-radius:0;background:#a7463a;border-bottom:3px solid #6b2d29;font-family:ui-monospace,monospace;font-weight:900}
+#menu .runSummary{color:#b3a698}#menu #recordLine{color:#94988e}
+#levelup{background:rgba(8,10,12,.65);padding:10px}
+#levelup .box{width:min(480px,96%);padding:16px;background:#1c201f;border:1px solid #6d6655;border-top:4px solid #bca171;border-radius:0;max-height:96%;overflow:auto;text-align:left}
+#levelup .upgradeHead{display:flex;align-items:center;gap:14px;padding:0 0 12px;border-bottom:1px solid #56564a}
+#levelup .upgradeHead canvas{width:58px;height:65px;image-rendering:pixelated;background:#242a26}
+#levelup .upgradeHead h2{font:900 25px/1.1 ui-monospace,monospace;color:#e8d5b4;margin:3px 0}
+#levelup .pauseBadge{font:600 10px system-ui,sans-serif;letter-spacing:.03em;color:#b7b8a8;background:none;border:0;padding:0}
+#levelup .tag{font:400 12px system-ui,sans-serif;color:#c6c6b8;background:none;border:0;padding:0;margin:0}
+#levelup .levelChoices{display:grid;grid-template-columns:1fr;gap:0;margin-top:8px}
+#levelup .upgrade{display:grid;grid-template-columns:46px minmax(0,1fr) auto 13px;align-items:center;gap:9px;text-align:left;min-height:72px;width:100%;padding:8px 4px;background:none;border:0;border-bottom:1px solid #55574b;border-radius:0;box-shadow:none;transform:none}
+#levelup .upgrade:active,#levelup .upgrade:hover{background:#333a30;border-color:#bca171;transform:none}
+#levelup .upgradeIcon{width:42px;height:42px;background:#2c302b;border:1px solid #56574a;display:grid;place-items:center}
+#levelup .upgradeIcon svg{width:33px;height:33px;image-rendering:pixelated}
+#levelup .upgradeCopy{min-width:0}#levelup .upgrade h4{font:700 13px system-ui,sans-serif;color:#e4d6bc;margin:0 0 3px}
+#levelup .upgrade p{font:400 11px/1.3 system-ui,sans-serif;color:#aeb5a5;margin:0}
+#levelup .upgradeEffect{font:800 13px ui-monospace,monospace;color:#cdd6b2;white-space:nowrap}
+#levelup .upgradeArrow{color:#b9a17a;font:700 22px system-ui,sans-serif}
+@media(max-width:650px) and (orientation:portrait){#menu .title{font-size:clamp(20px,5.5vw,30px)}.heroStage{grid-template-columns:1fr;gap:0}.heroStage canvas{max-height:190px;object-fit:cover}.stageInfo{padding:8px 12px}.stageInfo h2{font-size:18px}#menu #charChoices,#menu #mapChoices{grid-template-columns:repeat(3,minmax(0,1fr))}#menu .heroArsenal{grid-template-columns:repeat(2,minmax(0,1fr))}.mapStage canvas{max-height:205px}}
+@media(max-height:520px) and (orientation:landscape){#menu .menuBody{padding:4px 14px}.heroStage{grid-template-columns:1fr 1.3fr;margin-bottom:4px;gap:8px}.heroStage canvas{max-height:94px;object-fit:cover}.stageInfo h2{font-size:15px}.stageInfo{padding:2px}#menu #charChoices .heroPortrait,#menu #mapChoices .mapPortrait{max-height:36px}#menu .heroArsenal{margin-top:3px}.mapStage canvas{max-height:112px}.mapStageCaption{padding:3px 8px}.mapStageCaption h2{font-size:12px}#levelup .box{padding:8px 14px}#levelup .upgradeHead{padding-bottom:5px}#levelup .upgradeHead canvas{width:36px;height:40px}#levelup .upgradeHead h2{font-size:18px}#levelup .upgrade{min-height:53px;padding:4px}#levelup .upgradeIcon{width:36px;height:36px}}
 </style>
 </head>
 <body>
@@ -327,15 +379,15 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
   <div id="abilityHud" class="panel"><div class="abilityRow"><span id="dashHudLabel">РЫВОК</span><b id="dashHudValue">—</b></div><div class="bar"><div id="dashHudFill" class="fill" style="background:#6fe1a2"></div></div><div class="abilityRow"><span id="bombHudLabel">БОМБЫ</span><b id="bombHudValue">3</b></div></div><div id="toast">ГОТОВ</div>
 </div>
 <div id="menu"><div class="box menuShell">
-<header class="menuHeader"><div class="brand"><svg class="brandMark" viewBox="0 0 32 32" aria-hidden="true"><path fill="#e8c8a2" d="M4 15h2v-4h3V8h4V5h6v3h4v3h3v4h2v8h-4v3H8v-3H4z"/><path fill="#a96e5b" d="M6 20h20v3h-4v2H10v-2H6z"/><path fill="#261e24" d="M8 13h6v3H8zm10 0h6v3h-6zM12 19h8v2h-8z"/></svg><div><div class="title">DUMPLING <span class="red">RIOT</span></div><div id="menuTag">NIGHT SHIFT</div></div></div><div id="langBar"><span id="languageLabel">ЯЗЫК</span><button type="button" class="langBtn sel" data-lang="ru">RU</button><button type="button" class="langBtn" data-lang="en">EN</button></div></header>
-<nav id="menuTabs" aria-label="Выбор забега"><button type="button" data-menu-tab="hero" aria-pressed="true"><small>01</small><b id="heroTabLabel">Герой</b></button><button type="button" data-menu-tab="map" aria-pressed="false"><small>02</small><b id="mapTabLabel">Арена</b></button><button type="button" data-menu-tab="mode" aria-pressed="false"><small>03</small><b id="modeTabLabel">Режим</b></button></nav>
+<header class="menuHeader"><div class="brand"><svg class="brandMark" viewBox="0 0 32 32" aria-hidden="true"><path fill="#e8c8a2" d="M4 15h2v-4h3V8h4V5h6v3h4v3h3v4h2v8h-4v3H8v-3H4z"/><path fill="#a96e5b" d="M6 20h20v3h-4v2H10v-2H6z"/><path fill="#261e24" d="M8 13h6v3H8zm10 0h6v3h-6zM12 19h8v2h-8z"/></svg><div><div class="title">DUMPLING <span class="red">RIOT</span></div><div id="menuTag" hidden>NIGHT SHIFT</div></div></div><div id="langBar"><span id="languageLabel">ЯЗЫК</span><button type="button" class="langBtn sel" data-lang="ru">RU</button><button type="button" class="langBtn" data-lang="en">EN</button></div></header>
+<nav id="menuTabs" aria-label="Выбор забега"><button type="button" data-menu-tab="hero" aria-pressed="true"><b id="heroTabLabel">Герой</b></button><button type="button" data-menu-tab="map" aria-pressed="false"><b id="mapTabLabel">Арена</b></button><button type="button" data-menu-tab="mode" aria-pressed="false"><b id="modeTabLabel">Режим</b></button></nav>
 <div id="menuBody" class="menuBody">
-<section class="menuSection" data-menu-panel="hero"><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3><span>6</span></div><div id="charChoices" class="choices"></div><div id="heroDetail" class="selectionDetail"></div><div id="heroArsenal" class="heroArsenal"></div></section>
-<section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Выбери арену</h3><span>6</span></div><div id="mapChoices" class="choices"></div><div id="mapDetail" class="selectionDetail"></div></section>
+<section class="menuSection" data-menu-panel="hero"><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div></section>
+<section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Выбери арену</h3></div><div class="mapStage"><canvas id="mapStageCanvas" width="480" height="270" aria-hidden="true"></canvas><div class="mapStageCaption"><h2 id="mapStageName"></h2><div id="mapDetail" class="selectionDetail"></div></div></div><div id="mapChoices" class="choices"></div></section>
 <section class="menuSection" data-menu-panel="mode" hidden><div class="sectionHead"><h3 id="modeTitle">Режим игры</h3></div><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info">Онлайн: создай комнату или введи код друга.</div></div></section>
 </div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button></div><div id="soundPanel" hidden><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div></div></footer>
 </div></div>
-<div id="levelup" style="display:none"><div class="box"><div class="pauseBadge">ИГРА ОСТАНОВЛЕНА · УРОВЕНЬ ПОВЫШЕН</div><div class="title" style="font-size:38px">УР.<span class="red" id="levelUpNum">2</span></div><div class="tag">ВЫБЕРИ ОДНО УЛУЧШЕНИЕ</div><div id="upgradeChoices" class="levelChoices"></div></div></div>
+<div id="levelup" style="display:none"><div class="box"><header class="upgradeHead"><canvas id="upgradeHero" width="48" height="54" aria-hidden="true"></canvas><div><div class="pauseBadge">Уровень повышен</div><h2><span id="levelPrefix">Уровень</span> <span id="levelUpNum">2</span></h2><div class="tag">Выбери улучшение</div></div></header><div id="upgradeChoices" class="levelChoices"></div></div></div>
 <div id="pauseOverlay" style="display:none"><div class="box pauseBox"><div class="pauseBadge">ПЕЛЬМЕНЬ ВЗЯЛ ПАУЗУ</div><div class="title" style="font-size:44px">ПАУЗА</div><div class="hint">Игра остановлена. Выбери, что делать дальше.</div><button id="resumeBtn" class="btn">ПРОДОЛЖИТЬ</button><button id="pauseRestartBtn" class="btn">НАЧАТЬ ЗАНОВО</button><button id="pauseMenuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В ГЛАВНОЕ МЕНЮ</button></div></div>
 <div id="gameover" style="display:none"><div class="box" style="max-width:520px;text-align:center"><div class="tag">RUN ENDED</div><div class="title" style="font-size:38px">ТЕБЯ СЪЕЛИ</div><div class="hint" style="font-size:10px;margin-top:14px">СЧЁТ <b id="finalScore">0</b> · УРОВЕНЬ <b id="finalLevel">1</b> · ВОЛНА <b id="finalWave">1</b></div><div id="finalRecord" class="hint"></div><button id="retryBtn" class="btn">ЕЩЁ РАЗ</button><button id="menuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В МЕНЮ</button></div></div>
 <div id="fatalError" style="display:none;position:fixed;inset:0;z-index:999;background:#08060b;color:#f6efd9;place-items:center;padding:24px;font:12px ui-monospace,monospace"><div style="max-width:720px;width:100%;border:2px solid #a82f38;background:#140c12;padding:18px;box-shadow:6px 6px 0 #000"><h2 style="margin:0 0 10px;color:#ff6874">ОШИБКА ИГРЫ</h2><p style="margin:0 0 10px">Браузер остановил игру. Перезапусти страницу.</p><code style="display:block;white-space:pre-wrap;color:#ffd76b"></code><button onclick="location.reload()" style="margin-top:16px;padding:12px 16px;background:#d8414d;color:#fff;border:0;font:900 12px ui-monospace">ПЕРЕЗАПУСТИТЬ</button></div></div>
@@ -721,7 +773,7 @@ function applyLanguageStatic(){
  q('languageLabel','language');q('modeTitle','mode');document.getElementById('startBtn').textContent=lang==='en'?'START RUN':'В БОЙ';q('hpLabel','hp');q('xpLabel','xp');q('lvlLabel','lvl');q('waveLabel','wave');q('scoreLabel','score');q('relicLabel','relic');const resumeBtn=document.getElementById('resumeBtn');if(resumeBtn)resumeBtn.textContent=lang==='en'?'RESUME':'ПРОДОЛЖИТЬ';const pauseMenu=document.getElementById('pauseMenuBtn');if(pauseMenu)pauseMenu.textContent=lang==='en'?'MAIN MENU':'В ГЛАВНОЕ МЕНЮ';const pauseRestart=document.getElementById('pauseRestartBtn');if(pauseRestart)pauseRestart.textContent=lang==='en'?'RESTART':'НАЧАТЬ ЗАНОВО';const fireL=document.getElementById('fireBtn');if(fireL)fireL.textContent=lang==='en'?'FIRE':'ОГОНЬ';const dashL=document.getElementById('dashBtn');if(dashL){dashL.querySelector('.actionLabel').textContent=lang==='en'?'DASH':'РЫВОК';dashL.setAttribute('aria-label',lang==='en'?'Dash':'Рывок')}const menuMobile=document.getElementById('menuMobileBtn');if(menuMobile)menuMobile.textContent=lang==='en'?'MENU':'МЕНЮ';const bombL=document.getElementById('bombBtn');if(bombL){bombL.querySelector('.actionLabel').textContent=lang==='en'?'BOMB':'БОМБА';bombL.setAttribute('aria-label',lang==='en'?'Bomb':'Бомба')}
  const hs=document.querySelectorAll('#menu .hint');if(hs[0])hs[0].textContent=T('controls');if(hs[1])hs[1].textContent=T('guide');
  const en=lang==='en';for(const [id,label] of [['heroTabLabel',en?'Hero':'Герой'],['mapTabLabel',en?'Arena':'Арена'],['modeTabLabel',en?'Mode':'Режим'],['heroHeading',en?'Choose hero':'Выбери героя'],['mapHeading',en?'Choose arena':'Выбери арену'],['helpToggle',en?'Controls':'Управление'],['movePadLabel',en?'MOVE':'ХОД'],['aimPadLabel',en?'AIM':'ПРИЦЕЛ']])document.getElementById(id).textContent=label;document.getElementById('pauseBtn').setAttribute('aria-label',en?'Pause':'Пауза');updateRunSummary();updateSoundPanel();
- const pb=document.querySelector('#levelup .pauseBadge');if(pb)pb.textContent=T('levelPause');const lt=document.querySelector('#levelup .tag');if(lt)lt.textContent=T('pickUpgrade');
+ const pb=document.querySelector('#levelup .pauseBadge');if(pb)pb.textContent=lang==='en'?'Upgrade':'Прокачка';const lt=document.querySelector('#levelup .tag');if(lt)lt.textContent=lang==='en'?'Choose one upgrade':'Выбери одно улучшение';
  const gt=document.querySelector('#gameover .tag');if(gt)gt.textContent=T('run');const gtitle=document.querySelector('#gameover .title');if(gtitle)gtitle.textContent=T('dead');const buttons=document.querySelectorAll('#gameover .btn');if(buttons[0])buttons[0].textContent=T('retry');if(buttons[1])buttons[1].textContent=T('menu');
 }
 
@@ -777,7 +829,18 @@ function syncInventoryArt(p){
  }
 }
 
-function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(en?'Online':'Онлайн'):coop?(en?'Co-op':'2 игрока'):(en?'Solo':'Соло');document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(en?'Ability: ':'Способность: ')+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+((en?hero.enWeaponNames:hero.weaponNames)[i])+'</span></div>').join('');document.getElementById('mapDetail').textContent=locDesc(map)}
+function paintMenuStage(hero,map){
+ const g=document.getElementById('heroStageCanvas').getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,200,108);g.save();
+ // A crop of the real arena, behind the actual character model.
+ paintTerrain(g,map.id,860,486,200,108);g.restore();
+ g.clearRect(0,0,200,108);g.save();g.translate(-860,-486);paintTerrain(g,map.id,860,486,200,108);g.restore();
+ g.fillStyle='rgba(13,12,15,.35)';g.fillRect(0,0,200,108);g.save();g.translate(100,72);g.scale(1.75,1.75);pixelHeroBody(g,hero.id,0,0,0);pixelHeroWeapon(g,hero.id,0,-.35,0);g.restore();
+ document.getElementById('heroStageName').textContent=locName(hero);document.getElementById('heroStageStats').textContent=(lang==='en'?'Health ':'Здоровье ')+hero.hp+' / '+(lang==='en'?'Speed ':'Скорость ')+hero.speed;
+ const mg=document.getElementById('mapStageCanvas').getContext('2d');mg.save();mg.translate(-720,-405);paintTerrain(mg,map.id,720,405,480,270);mg.restore();
+ document.getElementById('mapStageName').textContent=locName(map).split(' — ')[0];
+}
+
+function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(en?'Online':'Онлайн'):coop?(en?'Co-op':'2 игрока'):(en?'Solo':'Соло');document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(en?'Ability: ':'Способность: ')+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+((en?hero.enWeaponNames:hero.weaponNames)[i])+'</span></div>').join('');document.getElementById('mapDetail').textContent=locDesc(map);paintMenuStage(hero,map)}
 function setMenuTab(next){if(!['hero','map','mode'].includes(next))return false;document.querySelectorAll('[data-menu-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.menuTab===next)));document.querySelectorAll('[data-menu-panel]').forEach(p=>p.hidden=p.dataset.menuPanel!==next);document.getElementById('menuBody').scrollTop=0;return true}
 document.querySelectorAll('[data-menu-tab]').forEach(b=>b.addEventListener('click',()=>setMenuTab(b.dataset.menuTab)));
 function updateSoundPanel(){document.getElementById('soundToggle').textContent=lang==='en'?'Music':'Музыка';document.getElementById('musicLabel').textContent=lang==='en'?'Music volume':'Громкость музыки';document.getElementById('musicVolume').value=musicVolume;document.getElementById('musicVolumeValue').textContent=musicVolume+'%'}
@@ -786,10 +849,10 @@ document.getElementById('musicVolume').addEventListener('input',e=>{musicVolume=
 document.getElementById('helpToggle').addEventListener('click',()=>{const h=document.getElementById('menuHelp');h.hidden=!h.hidden;document.getElementById('helpToggle').setAttribute('aria-expanded',String(!h.hidden))});
 function makeMenu(){
  const cc=document.getElementById('charChoices');cc.innerHTML='';document.getElementById('recordLine').textContent=recordText(loadRecord());
- for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b><p>HP ${ch.hp} · SPD ${ch.speed}</p>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);pixelHeroWeapon(pg,ch.id,0,0,0);d.prepend(portrait);d.onclick=()=>{selectedChar=ch.id;makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
+ for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);pixelHeroWeapon(pg,ch.id,0,0,0);d.prepend(portrait);d.onclick=()=>{selectedChar=ch.id;makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
  const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:T('onePlayer'),desc:T('modeOneDesc')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes){const d=document.createElement('button');d.type='button';d.className='modeChoice'+((md.id==='solo'&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.setAttribute('aria-pressed',String(d.classList.contains('sel')));d.innerHTML=`<b>${md.title}</b><p>${md.desc}</p>`;d.onclick=()=>{onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu();modeBox.querySelector('.sel')?.focus({preventScroll:true})};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||'нет комнаты'):'')}
  const mc=document.getElementById('mapChoices');mc.innerHTML='';
- for(const m of maps){const d=document.createElement('button');d.type='button';d.className='choice'+(m.id===selectedMap?' sel':'');d.style.setProperty('--accent',m.accent);d.style.setProperty('--card',m.tile);d.setAttribute('aria-pressed',String(m.id===selectedMap));d.innerHTML=`<b>${locName(m).split(' — ')[0]}</b><p>${locName(m).split(' — ')[1]||''}</p>`;const thumbnail=document.createElement('canvas');thumbnail.width=160;thumbnail.height=90;thumbnail.className='mapPortrait';thumbnail.setAttribute('aria-hidden','true');thumbnail.getContext('2d').drawImage(mapThumbnail(m.id),0,0);d.prepend(thumbnail);d.onclick=()=>{selectedMap=m.id;makeMenu();mc.querySelector('.sel')?.focus({preventScroll:true})};mc.appendChild(d)}
+ for(const m of maps){const d=document.createElement('button');d.type='button';d.className='choice'+(m.id===selectedMap?' sel':'');d.style.setProperty('--accent',m.accent);d.style.setProperty('--card',m.tile);d.setAttribute('aria-pressed',String(m.id===selectedMap));d.innerHTML=`<b>${locName(m).split(' — ')[0]}</b>`;const thumbnail=document.createElement('canvas');thumbnail.width=160;thumbnail.height=90;thumbnail.className='mapPortrait';thumbnail.setAttribute('aria-hidden','true');thumbnail.getContext('2d').drawImage(mapThumbnail(m.id),0,0);d.prepend(thumbnail);d.onclick=()=>{selectedMap=m.id;makeMenu();mc.querySelector('.sel')?.focus({preventScroll:true})};mc.appendChild(d)}
  applyLanguageStatic();
 }
 makeMenu();
@@ -1169,6 +1232,24 @@ function finishLevelUp(p,opt){
  toast((p===player?'P1':'P2')+' УЛУЧШЕНИЕ: '+chosen.title);
  if(!onlineMode){while(upgradeQueue.length){const next=upgradeQueue.shift();if(!next.dead){openLevelUpFor(next);break}}}
 }
+function upgradePresentation(p,o){
+ const id=o.id,en=lang==='en',ch=chars.find(x=>x.id===p.charId)||chars[0],w=/^weapon_([0-3])$/.exec(id);
+ if(w){const i=Number(w[1]),lv=p.weaponLevels?.[i]||1,old=heroWeaponStats(p,i).dmg*p.boost.dmg,newD=old*(1+lv*.22)/(1+(lv-1)*.22);return {icon:inventoryIcon(ch.id,i),title:locName(heroWeaponStats(p,i)),effect:(en?'Level ':'Уровень ')+lv+' → '+(lv+1),detail:(en?'Damage ':'Урон ')+Math.round(old)+' → '+Math.round(newD)}}
+ const effects={dmg:['damage',25],rate:['rate',20],move:['move',16],hp:['hp',35],bomb:['bomb',1],crit:['crit',8],scar_blade:['damage',35],scar_armor:['hp',45],scar_wide:['wide',35],vesa_bleed:['crit',12],vesa_rate:['rate',25],vesa_pierce:['pierce',2],nyx_move:['move',25],nyx_dmg:['damage',30],nyx_pierce:['pierce',2],pel_rate:['rate',28],pel_dmg:['damage',35],pel_wide:['wide',35],ass_crit:['crit',18],ass_move:['move',30],ass_dmg:['damage',35],gol_armor:['hp',70],gol_dmg:['damage',45],gol_tank:['armor',28]};
+ const [kind,v]=effects[id]||['damage',0];
+ const names={damage:['Урон','Damage'],rate:['Скорость атаки','Attack rate'],move:['Скорость движения','Movement speed'],hp:['Здоровье','Health'],bomb:['Бомба','Bomb'],crit:['Шанс крита','Critical chance'],wide:['Радиус атаки','Attack radius'],pierce:['Пробивание','Piercing'],armor:['Броня','Armor']};
+ const detail={damage:'×'+(p.boost.dmg||1).toFixed(2)+' → ×'+((p.boost.dmg||1)*(1+v/100)).toFixed(2),rate:'×'+(p.boost.rate||1).toFixed(2)+' → ×'+((p.boost.rate||1)*(1+v/100)).toFixed(2),move:'×'+(p.boost.move||1).toFixed(2)+' → ×'+((p.boost.move||1)*(1+v/100)).toFixed(2),hp:p.maxhp+' → '+(p.maxhp+v)+(en?' · full heal':' · лечение'),bomb:p.bomb+' → '+(p.bomb+1),crit:Math.round(p.boost.crit*100)+'% → '+Math.round((p.boost.crit+v/100)*100)+'%',wide:en?'Area attacks':'Атаки по площади',pierce:en?'Projectiles pass through enemies':'Снаряды проходят сквозь цели',armor:en?'Damage +10%':'Урон +10%'}[kind];
+ const glyphs={damage:'M4 25L21 5L27 3L28 9L11 28L4 28Z',rate:'M17 2L5 19H15L12 30L28 12H18Z',move:'M3 9H13V4L29 16L13 28V23H3Z',hp:'M4 5H13V9H19V5H28V17L16 29L4 17Z',bomb:'M10 6H22V10H26V25H22V29H10V25H6V10H10ZM22 2H28V8H22Z',crit:'M16 2L20 11L30 16L20 21L16 30L12 21L2 16L12 11Z',wide:'M4 11H8V6H13V2H19V6H24V11H28V21H24V26H19V30H13V26H8V21H4Z',pierce:'M3 14H21V6L30 16L21 26V18H3Z',armor:'M4 4H28V18L16 30L4 18Z'};
+ const color=kind==='hp'?'#bd6659':kind==='armor'?'#9eafb0':kind==='crit'?'#d9b47a':'#b8c5ad';
+ return {icon:'<svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true"><path d="'+glyphs[kind]+'" fill="'+color+'" stroke="#120f15" stroke-width="2"/><path d="M8 8h4v3H8z" fill="#f1e2c2"/></svg>',title:names[kind][en?1:0],effect:(kind==='armor'?'−':'+')+v+(['hp','bomb','pierce'].includes(kind)?'':kind==='crit'?(en?' pp':' п.п.'):'%'),detail};
+}
+function renderUpgradeChoice(d,p,o,i){
+ const a=upgradePresentation(p,o);
+ d.innerHTML='<span class="upgradeIcon">'+a.icon+'</span><span class="upgradeCopy"><h4></h4><p></p></span><strong class="upgradeEffect"></strong><span class="upgradeArrow">›</span>';
+ d.querySelector('h4').textContent=a.title;d.querySelector('p').textContent=a.detail;d.querySelector('.upgradeEffect').textContent=a.effect;
+ d.setAttribute('aria-label',a.title+' '+a.effect+' '+a.detail);
+}
+
 function openLevelUpFor(p,remoteOptions=null){
  if(!p||p.dead)return;
  if(levelupBusy)return;
@@ -1179,13 +1260,13 @@ function openLevelUpFor(p,remoteOptions=null){
  pendingUpgradeOptions=remoteOptions||buildUpgradeOptions(p);
  const canChoose=!onlineMode||(isOnlineHost&&p===player)||(isOnlineGuest&&p===player2);
  if(num)num.textContent=p.lvl;
- const badge=overlay.querySelector('.pauseBadge');if(badge)badge.textContent=(p===player?'P1':'P2')+' · ИГРА ОСТАНОВЛЕНА · ВЫБЕРИ ПРОКАЧКУ';
+ const badge=overlay.querySelector('.pauseBadge');if(badge)badge.textContent=coop?(p===player?'P1':'P2')+' / '+locName(chars.find(ch=>ch.id===p.charId)||chars[0]):locName(chars.find(ch=>ch.id===p.charId)||chars[0]);document.getElementById('levelPrefix').textContent=lang==='en'?'Level':'Уровень';overlay.querySelector('.tag').textContent=lang==='en'?'Choose one upgrade':'Выбери одно улучшение';const portrait=document.getElementById('upgradeHero').getContext('2d');portrait.clearRect(0,0,48,54);portrait.save();portrait.translate(21,37);pixelHeroBody(portrait,p.charId,0,0,0);portrait.restore();
  box.innerHTML='';
  // Online level-up choices are private: only the player who owns the level sees the overlay.
  if(canChoose){
    pendingUpgradeOptions.forEach((o,i)=>{
      const d=document.createElement('button');d.type='button';d.className='upgrade';
-     d.innerHTML='<h4>'+o.title+'</h4><p>'+o.desc+'</p>';
+     renderUpgradeChoice(d,p,o,i);
      const choose=e=>{e.preventDefault();e.stopPropagation();if(onlineMode&&isOnlineGuest&&p===player2){sendNet({t:'upgradeChoice',index:i});}else finishLevelUp(p,i)};
      d.addEventListener('click',choose,{passive:false});box.appendChild(d);
    });
