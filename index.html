@@ -579,6 +579,12 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 #menu #charChoices .choice.sel{border-color:var(--accent,#e7a26f);box-shadow:inset 0 -2px var(--accent,#e7a26f)}
 @media(max-width:650px) and (orientation:portrait){#menu #heroStageCanvas{max-height:185px}}
 @media(max-height:520px) and (orientation:landscape){#menu #heroStageCanvas{max-height:110px}}
+/* V46 map-specific enemy roster */
+#menu .arenaEnemyPreview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:7px}
+#menu .arenaEnemyLabel{grid-column:1/-1;color:#e9bd91;font:700 11px system-ui}
+#menu .arenaEnemyItem{min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;background:#17131e;border:1px solid #493646;padding:2px;font:600 10px/1.15 system-ui;color:#e9d7cf;overflow-wrap:anywhere}
+#menu .arenaEnemyItem canvas{position:static;transform:none;width:100%;height:36px;object-fit:contain;filter:none;image-rendering:pixelated;background:#17131e}
+@media(max-height:520px) and (orientation:landscape){#menu .arenaEnemyItem canvas{height:25px}#menu .arenaEnemyItem{font-size:9px}}
 </style>
 </head>
 <body>
@@ -607,7 +613,7 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 </section>
 <div id="menuBackBar" hidden><button type="button" id="menuBack" aria-label="Назад">‹ <span id="menuBackLabel">Назад</span></button><span id="menuCurrentTitle"></span><button type="button" id="menuDone">Готово</button></div>
 <section class="menuSection" data-menu-panel="hero" hidden><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div></section>
-<section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Выбери арену</h3></div><div class="mapStage"><canvas id="mapStageCanvas" width="480" height="270" aria-hidden="true"></canvas><div class="mapStageCaption"><h2 id="mapStageName"></h2><div id="mapDetail" class="selectionDetail"></div></div></div><div id="mapChoices" class="choices"></div></section>
+<section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Выбери арену</h3></div><div class="mapStage"><canvas id="mapStageCanvas" width="480" height="270" aria-hidden="true"></canvas><div class="mapStageCaption"><h2 id="mapStageName"></h2><div id="mapDetail" class="selectionDetail"></div><div id="arenaEnemyPreview" class="arenaEnemyPreview"></div></div></div><div id="mapChoices" class="choices"></div></section>
 <section class="menuSection" data-menu-panel="mode" hidden><div class="sectionHead"><h3 id="modeTitle">Режим игры</h3></div><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info" data-initial="true">Create or join a room.</div></div></section>
 </div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary" aria-hidden="true"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button></div><div id="soundPanel" hidden><button type="button" id="npcVoiceToggle" class="textBtn" aria-pressed="true">Voice: On</button><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div></div></footer>
 </div></div>
@@ -835,6 +841,15 @@ function bossForMap(id,w){const roster=bossRoster.filter(b=>b.map===id);return r
 function bossProfile(e){return bossRoster[e?.bossId]||bossRoster[0]}
 const npcGeneric=['You cannot hide.','I smell fear.','Come closer.','Behind you!','You look weak.','More are coming.'];
 const npcMapLines={kitchen:'You will not survive the shift.',basement:'We are not alone here.',foodcourt:"The lights won't save you.",slaughter:'The machine is hungry.',cemetery:'The dead are watching.',forest:'Do not trust the trees.'};
+// V46: each arena has its own exclusive four enemy families.
+const arenaEnemyRoster={kitchen:['fork','pepper','boiler','butcher'],basement:['crawler','cableMite','eye','wretch'],foodcourt:['plate','neonGhost','vendingDrone','siren'],slaughter:['knife','chainHound','slicer','maw'],cemetery:['boneWalker','hands','stalker','feaster'],forest:['sporeBeetle','rootHorror','spitter','parasite']};
+const arenaEnemyStats={fork:[36,48,8],pepper:[38,42,8],knife:[45,54,9],plate:[50,38,10],crawler:[30,78,7],stalker:[52,70,9],eye:[44,30,10],butcher:[105,25,14],wretch:[72,50,12],slicer:[58,92,9],maw:[150,24,17],boiler:[86,18,13],spitter:[54,31,10],parasite:[36,66,8],siren:[68,34,12],hands:[46,66,9],feaster:[125,38,15],cableMite:[38,49,8],neonGhost:[36,58,8],vendingDrone:[62,29,11],chainHound:[43,64,9],boneWalker:[40,48,9],sporeBeetle:[32,68,8],rootHorror:[50,37,11]};
+const arenaEnemyNames={fork:['Fork Imp','Вилочный бес'],pepper:['Pepper Fiend','Перечный бес'],boiler:['Boiler','Кипящий котёл'],butcher:['Butcher','Мясник'],crawler:['Drain Crawler','Канализационный ползун'],cableMite:['Cable Mite','Кабельный клещ'],eye:['Watcher','Наблюдатель'],wretch:['Basement Wretch','Подвальный урод'],plate:['Plate Mimic','Тарелка-мимик'],neonGhost:['Neon Ghost','Неоновый призрак'],vendingDrone:['Vending Drone','Автомат-дрон'],siren:['Siren','Сирена'],knife:['Knife','Оживший нож'],chainHound:['Chain Hound','Цепная гончая'],slicer:['Slicer','Резчик'],maw:['Industrial Maw','Промышленная пасть'],boneWalker:['Bone Walker','Костяной ходок'],hands:['Grave Hands','Могильные руки'],stalker:['Grave Stalker','Могильный охотник'],feaster:['Crypt Feaster','Пожиратель склепа'],sporeBeetle:['Spore Beetle','Споровый жук'],rootHorror:['Root Horror','Корневой ужас'],spitter:['Spore Spitter','Споровый плевун'],parasite:['Forest Parasite','Лесной паразит']};
+function arenaEnemyPool(map,round){return (arenaEnemyRoster[map]||arenaEnemyRoster.kitchen).slice(0,round>=7?4:round>=3?3:2)}
+function arenaEnemyType(map,round,random=Math.random){const pool=arenaEnemyPool(map,round);if((round===3||round===7)&&random()<.42)return pool[pool.length-1];return pool[Math.min(pool.length-1,Math.floor(random()*pool.length))]}
+function makeArenaEnemy(type,x,y,round,random=Math.random){const s=arenaEnemyStats[type];if(!s)throw Error('Unknown arena enemy: '+type);const hp=s[0]*(1+round*.07)*(round>=8?1+(round-7)*.035:1);return {type,x,y,hp,maxhp:hp,speed:s[1]+round*.7+(round>=6?(round-5)*.8:0),r:s[2],hit:0,phase:random()*Math.PI*2,attack:.2+random(),lunge:0,orbit:random()<.5?-1:1,hitT:0,hitLean:0}}
+function arenaEnemyName(type){const n=arenaEnemyNames[type];return n?L(n[0],n[1]):L(npcTypeNames[type]||'Enemy')}
+function enemyTier(type){return ['butcher','maw','feaster'].includes(type)?2:['wretch','boiler','siren','vendingDrone'].includes(type)?1:0}
 const npcTypeNames={fork:'Fork',pepper:'Pepper',knife:'Knife',plate:'Plate',crawler:'Crawler',stalker:'Stalker',eye:'Eye',siren:'Siren',wretch:'Wretch',spitter:'Spitter',parasite:'Parasite',feaster:'Feaster',hands:'Hands',butcher:'Butcher',slicer:'Slicer',boiler:'Boiler',maw:'Maw'};
 let npcVoiceEnabled=readStorage('dumpling-riot-npc-voice','1')!=='0',npcLineTimer=0,npcNext=7,npcEvent=null,npcSequence=0,npcSeen=0,npcLastLine='',npcBossSeen='';
 const npcLocales={en:'en-US',ru:'ru-RU',fi:'fi-FI',de:'de-DE',fr:'fr-FR',es:'es-ES',pt:'pt-PT',pl:'pl-PL',uk:'uk-UA'};
@@ -847,7 +862,7 @@ function speakNpc(line,isBoss){
 function clearNpc(){npcEvent=null;npcLineTimer=0;npcLastLine='';npcNext=7;npcSequence=0;npcSeen=0;npcBossSeen='';document.getElementById('npcSubtitle').hidden=true;try{window.speechSynthesis?.cancel()}catch(_){}}
 function displayNpc(event){
  if(!event||!event.line||event.n<=npcSeen)return;
- npcSeen=event.n;npcLineTimer=3.8;const line=L(event.line),speaker=event.bossId!=null?L(bossRoster[event.bossId]?.name||'Enemy'):L(npcTypeNames[event.enemyType]||'Enemy');
+ npcSeen=event.n;npcLineTimer=3.8;const line=L(event.line),speaker=event.bossId!=null?L(bossRoster[event.bossId]?.name||'Enemy'):arenaEnemyName(event.enemyType);
  document.getElementById('npcSpeaker').textContent=speaker;document.getElementById('npcWords').textContent=line;document.getElementById('npcSubtitle').hidden=false;speakNpc(line,event.bossId!=null);
 }
 function emitNpc(line,bossId=null,enemyType=null){if(onlineMode&&isOnlineGuest)return;npcEvent={n:++npcSequence,line,bossId,enemyType};npcLastLine=line;displayNpc(npcEvent)}
@@ -1301,6 +1316,11 @@ function paintHeroSelection(g,hero){
  pixelHeroBody(g,hero.id,0,0,0);pixelHeroWeapon(g,hero.id,0,0,0);
  g.restore();g.restore();
 }
+function paintArenaEnemyPreview(id){
+ const el=document.getElementById('arenaEnemyPreview');if(!el)return;el.replaceChildren();
+ const title=document.createElement('span');title.className='arenaEnemyLabel';title.textContent=L('Local enemies','Местные враги');el.append(title);
+ for(const type of arenaEnemyRoster[id]||arenaEnemyRoster.kitchen){const item=document.createElement('span');item.className='arenaEnemyItem';const cv=document.createElement('canvas');cv.width=64;cv.height=48;cv.setAttribute('aria-hidden','true');const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.translate(32,33);pixelEnemy(g,type,0,0,1);const name=document.createElement('span');name.textContent=arenaEnemyName(type);item.append(cv,name);el.append(item)}
+}
 function paintMenuStage(hero,map){
  const canvas=document.getElementById('heroStageCanvas');
  paintHeroSelection(canvas.getContext('2d'),hero);
@@ -1322,7 +1342,7 @@ function refreshMenuHome(hero,map,mode){
  for(const [cv,source] of [[hc,'heroStageCanvas'],[mc,'mapStageCanvas']]){const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,cv.width,cv.height);g.drawImage(document.getElementById(source),0,0,cv.width,cv.height)}
  const view=document.getElementById('menu').dataset.view;document.getElementById('menuCurrentTitle').textContent=view==='hero'?(L("Choose hero","Выбери героя")):view==='map'?(L("Choose arena","Выбери арену")):view==='mode'?(L("Game mode","Режим игры")):'';
 }
-function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(L("Online","Онлайн")):coop?(L("Co-op","2 игрока")):(L("Solo","Соло"));document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(L("Ability: ","Способность: "))+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+L(hero.enWeaponNames[i],hero.weaponNames[i])+'</span></div>').join('');const af=arenaFeatures[map.id];document.getElementById('mapDetail').textContent=(L(af.en,af.ru)+': '+L(af.hintEn,af.hint));paintMenuStage(hero,map);refreshMenuHome(hero,map,onlineMode?'online':coop?'local':'solo')}
+function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(L("Online","Онлайн")):coop?(L("Co-op","2 игрока")):(L("Solo","Соло"));document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(L("Ability: ","Способность: "))+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+L(hero.enWeaponNames[i],hero.weaponNames[i])+'</span></div>').join('');const af=arenaFeatures[map.id];document.getElementById('mapDetail').textContent=(L(af.en,af.ru)+': '+L(af.hintEn,af.hint));paintMenuStage(hero,map);paintArenaEnemyPreview(map.id);refreshMenuHome(hero,map,onlineMode?'online':coop?'local':'solo')}
 function menuViewAllowed(next){return ['home','hero','map','mode'].includes(next)}
 function setMenuTab(next){if(!menuViewAllowed(next))return false;const menu=document.getElementById('menu'),previous=menu.dataset.view;menu.dataset.view=next;document.querySelectorAll('[data-menu-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.menuTab===next)));document.querySelectorAll('[data-menu-panel]').forEach(p=>p.hidden=p.dataset.menuPanel!==next);document.getElementById('menuBackBar').hidden=next==='home';document.getElementById('menuBody').scrollTop=0;const en=lang==='en';document.getElementById('menuCurrentTitle').textContent=next==='hero'?(L("Choose hero","Выбери героя")):next==='map'?(L("Choose arena","Выбери арену")):next==='mode'?(L("Game mode","Режим игры")):'';if(next==='home'&&previous!=='home')menu.querySelector('[data-open-menu="'+previous+'"]')?.focus({preventScroll:true});return true}
 document.querySelectorAll('[data-open-menu]').forEach(b=>b.addEventListener('click',()=>setMenuTab(b.dataset.openMenu)));
@@ -1520,7 +1540,7 @@ function applyNetState(s){
  wave=s.wave||1;score=s.score||0;combo=s.combo||1;waveState=s.waveState||'fighting';targetCount=s.targetCount??enemies.length;spawned=s.spawned??targetCount;
 }
 function netState(){
- return {p1:{x:player.x,y:player.y,charId:player.charId,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:player.weapon,lvl:player.lvl,bomb:player.bomb,dash:player.dash,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,charId:player2.charId,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,dash:player2.dash,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,dead:e.dead,stage:e.stage,kind:e.kind,bossId:e.bossId,charge:e.charge})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy,kind:p.kind})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,value:d.value,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type,name:boss.name,enName:boss.enName,stage:boss.stage,kind:boss.kind,bossId:boss.bossId}:null,hazards:hazards.map(({x,y,radius,remaining,duration,kind})=>({x,y,radius,remaining,duration,kind})),wave,score,combo,waveState,targetCount,spawned,npcEvent}
+ return {p1:{x:player.x,y:player.y,charId:player.charId,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:player.weapon,lvl:player.lvl,bomb:player.bomb,dash:player.dash,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,charId:player2.charId,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,dash:player2.dash,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,dead:e.dead,stage:e.stage,kind:e.kind,bossId:e.bossId,charge:e.charge,lunge:e.lunge,attack:e.attack})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy,kind:p.kind})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,value:d.value,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type,name:boss.name,enName:boss.enName,stage:boss.stage,kind:boss.kind,bossId:boss.bossId}:null,hazards:hazards.map(({x,y,radius,remaining,duration,kind})=>({x,y,radius,remaining,duration,kind})),wave,score,combo,waveState,targetCount,spawned,npcEvent}
 }
 function sendNet(m){
  const c=m&&m.t==='state'?netStateConn:netConn;
@@ -1561,7 +1581,7 @@ function beginWave(){
    initAudio();bossDialogue(boss,true);
  }
  const first=waveSpawnBudget(wave,coop,targetCount);
- while(spawned<first){spawnEnemy();spawned++}
+ const localPool=arenaEnemyPool(selectedMap,wave);let localIndex=0;while(spawned<first){spawnEnemy(localIndex<localPool.length?localPool[localIndex]:null);localIndex++;spawned++}
  waveTime=0;
  toast((L("WAVE ","ВОЛНА "))+wave+(bossWave?(L(" · BOSS INCOMING"," · БОСС")) : ''));
 }
@@ -1581,26 +1601,11 @@ function enemySpawnPoint(focus,players,area,random=Math.random){
  }
  return best;
 }
-function spawnEnemy(){
- const {x,y}=enemySpawnPoint(camera,alivePlayers().length?alivePlayers():[player],arena);
- const base=['fork','pepper','knife','plate'];
- // Every wave unlocks another enemy family. New types are weighted heavily on their debut wave,
- // then become part of the growing pool so the roster keeps getting more dangerous.
- const unlocks={2:'crawler',3:'stalker',4:'eye',5:'siren',6:'wretch',7:'spitter',8:'parasite',9:'feaster',10:'hands',11:'butcher',12:'slicer',13:'boiler',14:'maw'};
- const unlocked=[];
- for(let w=2;w<=wave;w++)if(unlocks[w])unlocked.push(unlocks[w]);
- const pool=base.concat(unlocked);
- const fresh=unlocks[wave];
- const t=fresh&&Math.random()<.42?fresh:pick(pool);
- const stats={
-  fork:[36,48,8],pepper:[38,42,8],knife:[45,54,9],plate:[62,34,10],
-  crawler:[30,78,7],stalker:[52,70,9],eye:[44,30,10],butcher:[105,25,14],wretch:[72,50,12],
-  slicer:[58,92,9],maw:[150,24,17],boiler:[86,18,13],spitter:[54,31,10],parasite:[36,66,8],
-  siren:[68,34,12],hands:[46,82,9],feaster:[125,38,15]
- }[t];
- const mul=1+wave*.07;
- const eliteBoost=wave>=8?1+(wave-7)*.035:1;
- enemies.push({type:t,x,y,hp:stats[0]*mul*eliteBoost,maxhp:stats[0]*mul*eliteBoost,speed:stats[1]+wave*.7+(wave>=6?(wave-5)*.8:0),r:stats[2],hit:0,phase:rnd(0,TAU),attack:rnd(.2,1.2),lunge:0,orbit:rnd(-1,1),hitT:0,hitLean:0});
+function spawnEnemy(forcedType=null,position=null){
+ const pool=arenaEnemyPool(selectedMap,wave);
+ const type=forcedType&&arenaEnemyRoster[selectedMap]?.includes(forcedType)?forcedType:arenaEnemyType(selectedMap,wave);
+ const pos=position||enemySpawnPoint(camera,alivePlayers().length?alivePlayers():[player],arena);
+ const e=makeArenaEnemy(type,clamp(pos.x,arena.l+8,arena.r-8),clamp(pos.y,arena.t+8,arena.b-8),wave);enemies.push(e);return e;
 }
 
 function spawnParticles(x,y,n,color,force=1){for(let i=0;i<n;i++){const a=rnd(0,TAU),s=rnd(20,90)*force;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.25,.7),max:.7,size:rndi(1,3),color})}}
@@ -1895,9 +1900,9 @@ function finishEnemyDeath(e){
  if(!e||e.dead)return;
  e.hp=0;e.dead=true;
  enemyDeathVoice(e.type);
- score+=e.type==='boss'?3200:(['butcher','maw','feaster'].includes(e.type)?220:(['wretch','boiler','siren'].includes(e.type)?170:100));
+ score+=e.type==='boss'?3200:[100,170,220][enemyTier(e.type)];
  combo=Math.min(9,combo+.25);dropEnemyXP(e);
- if(e.type==='parasite'){for(let i=0;i<2;i++){const ang=rnd(0,TAU);spawnEnemy();const s=enemies[enemies.length-1];s.type='crawler';s.x=e.x+Math.cos(ang)*10;s.y=e.y+Math.sin(ang)*10;}}
+ if(e.type==='parasite'){for(let i=0;i<2;i++){const ang=rnd(0,TAU);spawnEnemy('sporeBeetle',{x:e.x+Math.cos(ang)*12,y:e.y+Math.sin(ang)*12})}}
  bloodBurst(e.x,e.y,e.type==='boss'?34:(e.type==='butcher'||e.type==='wretch'?22:15),e.type==='boss'?1.6:1.0);
  if(e.type==='boss'){
    initAudio();sfx('boss');
@@ -1990,6 +1995,23 @@ function updateEnemies(dt){
    if(!e.charge){if(e.kind===4&&e.lunge>0)e.x+=nx*230*dt,e.y+=ny*230*dt;else{e.x+=nx*e.speed*bm*dt;e.y+=ny*e.speed*bm*dt}}
    e.x=clamp(e.x,arena.l+24,arena.r-24);e.y=clamp(e.y,arena.t+24,arena.b-24);
    if(Math.hypot(tp.x-e.x,tp.y-e.y)<42)hurtPlayer(tp,dt*(18+e.stage*4),e.x,e.y);
+  }else if(e.type==='cableMite'){
+   e.attack-=dt;const side=e.orbit||1,approach=d>105?1:.1;e.x+=(nx*approach-ny*.55*side)*e.speed*dt;e.y+=(ny*approach+nx*.55*side)*e.speed*dt;
+   if(e.attack<=0&&d<175){e.attack=1.6;const a=Math.atan2(dy,dx);projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*145,vy:Math.sin(a)*145,life:1.4,r:3,damage:9,pierce:99,color:'#7edcff',enemy:true})}
+  }else if(e.type==='neonGhost'){
+   e.attack-=dt;const drift=Math.sin(e.phase*1.8)*.75;e.x+=(nx-ny*drift)*e.speed*dt;e.y+=(ny+nx*drift)*e.speed*dt;if(d<18)hurtPlayer(tp,dt*10,e.x,e.y);
+   if(e.attack<=0&&d<90){e.attack=2.2;scheduleHazard(tp.x,tp.y,22,8,.85,e)}
+  }else if(e.type==='vendingDrone'){
+   const desired=d>150?1:-.15;e.x+=nx*e.speed*desired*dt;e.y+=ny*e.speed*desired*dt;e.attack-=dt;
+   if(e.attack<=0&&d<240){e.attack=1.85;const a=Math.atan2(dy,dx);for(const k of [-1,1]){const q=a+k*.17;projectiles.push({x:e.x,y:e.y,vx:Math.cos(q)*130,vy:Math.sin(q)*130,life:1.7,r:3,damage:10,pierce:99,color:'#ffe080',enemy:true})}}
+  }else if(e.type==='chainHound'){
+   e.attack-=dt;if(e.attack<=0&&d<125){e.attack=1.8;e.lunge=.3}const m=e.lunge>0?2.15:1;e.x+=nx*e.speed*m*dt;e.y+=ny*e.speed*m*dt;if(d<20)hurtPlayer(tp,dt*(e.lunge>0?18:9),e.x,e.y);
+  }else if(e.type==='boneWalker'){
+   e.x+=nx*e.speed*dt;e.y+=ny*e.speed*dt;e.attack-=dt;if(e.attack<=0&&d<85){e.attack=1.9;scheduleHazard(e.x,e.y,28,10,.7,e)}if(d<18)hurtPlayer(tp,dt*9,e.x,e.y);
+  }else if(e.type==='sporeBeetle'){
+   const zig=Math.sin(e.phase*2)*.65;e.x+=(nx-ny*zig)*e.speed*dt;e.y+=(ny+nx*zig)*e.speed*dt;if(d<16)hurtPlayer(tp,dt*11,e.x,e.y);
+  }else if(e.type==='rootHorror'){
+   e.x+=nx*e.speed*dt;e.y+=ny*e.speed*dt;e.attack-=dt;if(e.attack<=0&&d<140){e.attack=2.15;scheduleHazard(tp.x,tp.y,28,11,.95,e)}if(d<22)hurtPlayer(tp,dt*10,e.x,e.y);
   }else if(e.type==='eye'){
    const desired=d>185?1:-1;e.x+=nx*e.speed*dt*desired;e.y+=ny*e.speed*dt*desired;e.attack-=dt;
    if(e.attack<=0){e.attack=1.0+Math.random()*.45;const a=Math.atan2(dy,dx);for(let q=-1;q<=1;q++){const aa=a+q*.08;projectiles.push({x:e.x,y:e.y,vx:Math.cos(aa)*150,vy:Math.sin(aa)*150,life:1.8,r:3,damage:9,pierce:99,color:'#e64b62',enemy:true})}}
@@ -2072,7 +2094,7 @@ function updateRings(dt){
  }
  rings=rings.filter(r=>r.life>0)
 }
-function enemyXPValue(type){return type==='boss'?150:['butcher','maw','feaster'].includes(type)?50:['wretch','boiler','siren'].includes(type)?42:34}
+function enemyXPValue(type){return type==='boss'?150:[34,42,50][enemyTier(type)]}
 function dropEnemyXP(e){
  const value=enemyXPValue(e.type),count=e.type==='boss'?5:1;
  for(let i=0;i<count;i++){
@@ -2337,7 +2359,37 @@ function drawHero(p=player,ch=chars.find(x=>x.id===selectedChar),isP2=false){
  ctx.restore();
 }
 // V34 original native pixel sprites: outlines, distinct silhouettes, animated limbs.
+// V46: seven new silhouettes, using the same native pixel scale as existing enemies.
+function pixelArenaEnemy(g,type,phase,lunge,attack){
+ const R=(col,x,y,w,h)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(col,p)=>{g.fillStyle=col;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ const ink='#100b15',step=Math.round(Math.sin(phase*2)*2);
+ if(type==='cableMite'){
+  for(const s of [-1,1])for(let i=0;i<3;i++){const y=-8+i*7;P(ink,[s*4,y,s*13,y-5,s*17,y+step,s*13,y+5+step,s*8,y+1]);P('#416a83',[s*5,y,s*13,y-3,s*15,y+step,s*12,y+3+step,s*8,y]);}
+  R(ink,-9,-13,18,23);R('#294353',-7,-11,14,19);R('#6798ac',-6,-10,12,3);R('#203341',-5,-5,10,9);R('#86edff',-4,-4,3,3);R('#86edff',2,-4,3,3);R('#c7fdff',-2,2,4,3);R('#648494',-2,-18,3,6);R('#8ceaff',-3,-19,5,2);
+ }else if(type==='neonGhost'){
+  const t=step;P(ink,[-12,-14,-7,-23,5,-23,12,-15,13,3,6,11+t,2,5,-4,13-t,-8,5,-14,9]);P('#412b59',[-10,-13,-5,-21,4,-21,10,-14,11,2,6,8+t,2,3,-4,10-t,-8,3,-12,6]);P('#b74d98',[-9,-13,-5,-20,4,-20,9,-14,8,-9,-9,-9]);R('#ff99ec',-7,-12,5,2);R('#84e9f7',2,-12,5,2);R(ink,-4,-6,8,4);R('#815fbd',-7,0,2,7);R('#ff8cd9',-13,-3,3,2);R('#7edcfe',11,2,3,2);
+ }else if(type==='vendingDrone'){
+  for(const s of [-1,1]){R(ink,s<0?-13:8,8,6,7+step*s);R('#65727d',s<0?-12:9,9,4,4+step*s)}
+  R(ink,-14,-24,28,35);R('#433952',-12,-22,24,31);R('#d88abd',-11,-21,22,3);R('#24263c',-9,-16,18,18);for(let i=0;i<3;i++){R(['#f8b85d','#eb6a9b','#80dacc'][i],-8+i*6,-14,4,7);R('#b4a4c8',-8+i*6,-5,4,2)}R(ink,-7,3,14,4);R('#f9ce76',-5,4,10,2);R('#f6dfab',-10,-20,2,2);R('#7ee8e0',9,-6,2,5);
+ }else if(type==='chainHound'){
+  for(const x of [-12,6]){R(ink,x,4,6,10+step*(x<0?1:-1));R('#7d7072',x+1,5,4,7+step*(x<0?1:-1))}
+  P(ink,[-18,-9,-8,-15,8,-14,15,-10,20,-3,16,6,4,7,-12,6]);P('#54484e',[-16,-8,-7,-13,7,-12,14,-8,18,-3,14,4,4,5,-11,4]);R('#92969b',-9,-11,14,4);R('#bc9980',-7,-9,3,3);R('#ff6c69',10,-7,4,3);R(ink,8,-1,11,5);R('#d6c1a8',10,-1,2,2);R('#d6c1a8',15,-1,2,2);for(let i=0;i<4;i++){R('#98999d',-18-i*3,-5+i,3,2);R(ink,-17-i*3,-4+i,1,1)}
+ }else if(type==='boneWalker'){
+  for(const s of [-1,1]){const x=s<0?-7:3;R(ink,x-1,2,5,13+step*s);R('#bba996',x,3,3,11+step*s);R('#e4d7ba',x,11+step*s,5,2);P(ink,[s*5,-10,s*12,-7,s*15,4+step*s,s*11,8+step*s,s*8,-3]);P('#c6b69e',[s*6,-9,s*10,-6,s*13,4+step*s,s*11,5+step*s,s*9,-3])}
+  R(ink,-9,-24,18,16);R('#e0d2b7',-7,-22,14,12);R('#9b8a81',-6,-11,12,4);R(ink,-5,-18,4,4);R(ink,2,-18,4,4);R('#a8d8c1',-4,-17,2,2);R('#a8d8c1',3,-17,2,2);R(ink,-1,-14,2,2);R('#b9a68f',-2,-8,4,13);for(let i=0;i<4;i++){R('#d9c6ab',-6,-7+i*3,12-i*2,2);R(ink,-1,-7+i*3,2,2)}
+ }else if(type==='sporeBeetle'){
+  for(const s of [-1,1])for(let i=0;i<3;i++){const y=-5+i*5;P(ink,[s*6,y,s*13,y-3,s*16,y+2+step,s*12,y+4+step,s*6,y+3]);R('#7b9160',s<0?-14:11,y+step,3,2)}
+  P(ink,[-10,-12,-5,-17,5,-17,11,-10,12,5,6,11,-6,11,-12,5]);P('#3d5039',[-8,-11,-4,-15,4,-15,9,-9,10,4,5,9,-5,9,-10,4]);R('#84934c',-7,-11,14,6);R('#c7db75',-5,-13,4,3);R('#d6ed98',3,-10,3,3);R('#d3f4a4',-5,0,3,2);R('#d3f4a4',2,0,3,2);R('#23372a',-2,-7,2,15);R('#728650',-7,5,5,2);R('#728650',2,5,5,2);
+ }else if(type==='rootHorror'){
+  P(ink,[-15,12,-9,-2,-15,-10,-9,-10,-5,-3,-6,-16,-11,-23,-5,-21,-1,-15,2,-28,7,-27,5,-17,12,-22,15,-19,8,-9,13,-5,17,10,11,14,3,8,-4,14]);P('#493c36',[-12,10,-7,-2,-12,-8,-8,-7,-3,1,-4,-15,-8,-20,-5,-19,0,-12,3,-25,5,-25,3,-15,12,-19,12,-17,6,-8,11,-4,14,9,10,11,3,5,-4,11]);R('#74784d',-4,-12,9,16);R('#a2b768',-6,-15,4,4);R('#8eaf64',4,-20,5,3);R('#c9e987',-5,-8,4,3);R('#c9e987',2,-8,4,3);R(ink,-4,-2,9,4);R('#8ca15a',-8,6,3,4);R('#81724c',8,4,3,6);
+ }else return false;
+ if(lunge>0)R('#e6b28b',-12,13,24,1);
+ if(attack>=0&&attack<.18){R('#f9d29b',-2,-32,4,2);R('#f9d29b',-1,-35,2,2)}
+ return true;
+}
 function pixelEnemy(g,type,phase=0,lunge=0,attack=1){
+ if(pixelArenaEnemy(g,type,phase,lunge,attack))return;
  const ink='#100b15',bone='#e3c8af',steel='#a9b9bf',hi='#f3e5ce';
  const step=Math.round(Math.sin(phase*1.5)*2),jaw=Math.round((Math.sin(phase)+1)*1.2);
  const R=(col,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
