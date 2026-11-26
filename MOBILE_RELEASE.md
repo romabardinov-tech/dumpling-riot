@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.54.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.55.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -57,3 +57,6 @@ Solo-only run currency (cleared waves, elite and boss rewards), merchant stops a
 
 ## V54 Path of Darkness
 Separate solo campaign: start arena, three five-wave chapters, route choices at 5/10 with healing or coins, no repeated arenas, distinct final boss on wave 15, victory count and 40 base bonus shards plus normal extraction reward. Survival and co-op unchanged. Route transition preserves character stats, artifacts, weapon levels, currency and contract; uncollected drops stay behind. Source syntax, 600 route cases, nine final hazard patterns and integrated progression/settlement rules checked. Browser/device and native builds remain unverified.
+
+## V55 Night Ledger
+Local history of up to 12 completed or abandoned solo runs with hero, mode, curse, arena route, cleared waves, kills, earned shards, score, level, artifact and evolution counts. Distinct outcomes for victory, extraction, defeat and abandonment; end screen includes route and kills. Legacy saves migrate without resetting prior progress. Inline JavaScript syntax and isolated rules checked (11 assertions, including 50-run rollover, old save migration, corruption and duplicate settlement). Browser/device runtime and native builds remain unverified.
