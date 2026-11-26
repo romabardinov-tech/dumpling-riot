@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.63.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.64.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -84,3 +84,6 @@ Six original procedural arena scores with distinct tempos, root progressions, mo
 
 ## V63 — Solo Balance Pass
 Solo base enemy counts on waves 1–4: 8/11/14/17 (previously 12/14/17/19); early enemy HP and speed eased. Base boss HP on waves 5/10/15: 2200/3525/4850 (previously 3075/4400/5725), before profile and contract multipliers. Late solo enemy/boss speed capped. Fourth weapon damage multipliers and per-slot charge floors revised; Shiv mobility charge remains at least 2.8 s. Solo boss XP increased to 250; ordinary boss relics now grant +20 max HP, heal 40% of new max HP, +15% damage, +8% rate, +5% speed and one bomb. Merchant artifact prices 28/48/72 coins. Co-op weapon stats, wave counts and relic rewards retained. Inline syntax and 2932 isolated numeric assertions passed, including all hero/slot/level combinations, 100 wave configurations and reward bounds. Theoretical fourth-slot output assumes hits land, excludes status/area interactions, and is not observed DPS. Balance requires integrated gameplay testing and human feedback; no claim of perfect balance.
+
+## V64 — First Nightmare
+Optional non-blocking tutorial in the first solo run (or replay via Controls). Six objectives track actual movement, attacks, dash, weapon selection, XP collection and wave clear; actions can be completed out of order. Skip disables further prompts, completion persists locally, and unfinished training can restart on the next solo run. No combat changes or rewards; co-op is excluded. Russian/English prompts and compact responsive HUD. Inline syntax and 5054 isolated rule assertions passed, including all 720 objective permutations, duplicate inputs, movement threshold and exclusion rules. Actual browser/mobile HUD layout, touch input and full gameplay still require verification.
