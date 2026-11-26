@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.62.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.63.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -81,3 +81,6 @@ Presentation-only changes: 140 ms weapon recoil with directional recovery, brief
 
 ## V62 — Sound of Nightmare
 Six original procedural arena scores with distinct tempos, root progressions, motifs and rhythm patterns; three escalating boss music layers and quiet intermission arrangement. Stereo-panned, distance-attenuated nearest-threat cues with mono fallback, throttled hazard warning tones and critical HP/high-fear heartbeat. New atmosphere cues respect horror FX setting; music volume zero suppresses music scheduling. No external music assets or audio downloads. Syntax and 3502 isolated assertions passed for distinct scores, bounded note events, boss layers, intermission and spatial mixing. Actual Web Audio playback, stereo separation, iOS interruption recovery, sound quality and native device performance remain unverified.
+
+## V63 — Solo Balance Pass
+Solo base enemy counts on waves 1–4: 8/11/14/17 (previously 12/14/17/19); early enemy HP and speed eased. Base boss HP on waves 5/10/15: 2200/3525/4850 (previously 3075/4400/5725), before profile and contract multipliers. Late solo enemy/boss speed capped. Fourth weapon damage multipliers and per-slot charge floors revised; Shiv mobility charge remains at least 2.8 s. Solo boss XP increased to 250; ordinary boss relics now grant +20 max HP, heal 40% of new max HP, +15% damage, +8% rate, +5% speed and one bomb. Merchant artifact prices 28/48/72 coins. Co-op weapon stats, wave counts and relic rewards retained. Inline syntax and 2932 isolated numeric assertions passed, including all hero/slot/level combinations, 100 wave configurations and reward bounds. Theoretical fourth-slot output assumes hits land, excludes status/area interactions, and is not observed DPS. Balance requires integrated gameplay testing and human feedback; no claim of perfect balance.
