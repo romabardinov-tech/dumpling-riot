@@ -2142,8 +2142,8 @@ function finishEnemyDeath(e){
 
  if(!e||e.dead)return;
  e.hp=0;e.dead=true;
- if(!onlineMode){if(e.type==='boss')discoverJournal('boss:'+e.bossId);else{discoverJournal('enemy:'+e.type);if(e.elite)discoverJournal('elite:'+e.elite)}}
- if(e.secretGuard&&secretEncounter?.stage==='ambush'&&secretEncounter.w===wave){secretEncounter.remaining=Math.max(0,secretEncounter.remaining-1);if(secretEncounter.remaining===0)completeSecret();}
+ if(!onlineMode&&state==='game'){if(e.type==='boss')discoverJournal('boss:'+e.bossId);else{discoverJournal('enemy:'+e.type);if(e.elite)discoverJournal('elite:'+e.elite)}}
+ if(state==='game'&&e.secretGuard&&secretEncounter?.stage==='ambush'&&secretEncounter.w===wave){secretEncounter.remaining=Math.max(0,secretEncounter.remaining-1);if(secretEncounter.remaining===0)completeSecret();}
  if(soloRun&&!soloRun.closed){soloRun.kills++;if(!player.dead&&player.artifacts?.includes('soul'))player.hp=Math.min(player.maxhp,player.hp+2);if(e.elite){const owned=player.artifacts.concat(drops.filter(d=>d.type==='artifact').map(d=>d.artifact));const a=chooseArtifact(owned);if(a)drops.push({x:e.x,y:e.y,type:'artifact',artifact:a.id,life:1,pulse:0});else drops.push({x:e.x,y:e.y,type:'heal',value:35,life:24,pulse:0});toast(L('ELITE DEFEATED','ЭЛИТА ПОВЕРЖЕНА'));toastTimer=2.5;}}
  enemyDeathVoice(e.type);
  score+=e.type==='boss'?3200:e.elite?800:[100,170,220][enemyTier(e.type)];
@@ -2791,7 +2791,7 @@ function paintSecret(g,event,time){
  if(!event||event.stage==='done')return;const q=arenaStories[event.map],x=Math.round(event.x),y=Math.round(event.y),pulse=reduceMotion?0:Math.round(Math.sin(time*3)*2);
  g.save();g.translate(x,y);g.fillStyle='#100d18';g.fillRect(-13,7,26,4);g.strokeStyle=q.color;g.lineWidth=1;g.beginPath();g.arc(0,0,24,0,TAU);g.stroke();
  g.fillStyle='#221a25';g.fillRect(-11,-10,22,18);g.fillStyle='#80604e';g.fillRect(-10,-9,20,5);g.fillStyle='#4b3748';g.fillRect(-9,-4,18,11);g.fillStyle=q.color;g.fillRect(-3,-4,6,7);g.fillRect(-8,-8,16,1);
- g.fillStyle=q.color;g.fillRect(-1,-20+pulse,2,6);g.fillRect(-1,-11+pulse,2,2);g.restore();
+ g.fillStyle=q.color;g.fillRect(-1,-20+pulse,2,6);g.fillRect(-1,-11+pulse,2,2);g.font='bold 8px monospace';g.textAlign='center';g.fillText(event.stage==='sealed'?L(q.cacheEn,q.cacheRu):L('AMBUSH','ЗАСАДА'),0,-29);g.restore();
 }
 function paintSecretDirection(g,event,view){
  if(!event||event.stage!=='sealed'||state!=='game'||waveState!=='fighting')return;
