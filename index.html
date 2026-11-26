@@ -384,6 +384,93 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 #dashBtn.cooling .uiPixelIcon,#bombBtn.empty .uiPixelIcon{opacity:.58;filter:grayscale(.65)}
 @media(max-height:520px) and (orientation:landscape){#menuTabs .uiPixelIcon{width:18px;height:18px}#menu .heroArsenal .inventoryIcon{width:27px;height:27px}#levelup .upgradeIcon svg{width:30px;height:30px}}
 @media(max-width:650px) and (orientation:portrait){#menuTabs .uiPixelIcon{width:20px;height:20px}#mobileWeapons .mw .inventoryIcon{width:32px;height:32px}}
+
+/* V41 — home first. Configuration is optional, one clear primary action. */
+#menu{background:#101417}
+#menu .menuShell{width:min(900px,100%);height:min(100%,790px);display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:#15191b;color:#f0e5d1}
+#menu .menuHeader{padding:10px 18px;background:#15191b;border-bottom:1px solid #343837}
+#menu .title{font:900 clamp(21px,4vw,34px)/1 ui-monospace,monospace;letter-spacing:-1.4px}
+#menu .brandMark{display:block;width:35px;height:35px;background:#202628;border:1px solid #454a44;padding:4px}
+#menuTabs{display:none!important}
+#menu .menuBody{padding:12px 18px;overflow:auto;min-height:0}
+#homePanel{max-width:760px;margin:0 auto}
+.homeIntro{margin:0 0 12px}
+.homeIntro>span{font:700 10px ui-monospace,monospace;color:#bd9b77;letter-spacing:.15em}
+.homeIntro h1{font:800 clamp(20px,3.5vw,32px)/1.15 system-ui,sans-serif;margin:3px 0 0;color:#f0e5d1}
+.homeCards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.homeCard{position:relative;display:grid;grid-template-rows:minmax(0,1fr) auto;padding:0;text-align:left;border:1px solid #46504d;border-radius:4px;background:#202726;color:#ede1ce;min-width:0;overflow:hidden;cursor:pointer;touch-action:manipulation}
+.homeCard canvas{display:block;width:100%;height:clamp(76px,20vh,180px);object-fit:cover;image-rendering:pixelated;background:#26302e}
+.homeCardCopy{display:grid;gap:3px;padding:10px 25px 10px 11px;min-width:0}
+.homeCardCopy small,.homeMode small{font:700 9px ui-monospace,monospace;letter-spacing:.12em;color:#bbad95}
+.homeCardCopy strong,.homeMode strong{font:750 clamp(13px,2vw,17px)/1.2 system-ui,sans-serif;color:#f0e5d1;overflow-wrap:anywhere}
+.homeCardCopy>span{font:500 11px/1.3 system-ui,sans-serif;color:#b6c4ba;overflow-wrap:anywhere}
+.homeChevron{position:absolute;right:10px;bottom:11px;font:400 23px/1 system-ui;color:#cfb584}
+.homeCard:hover,.homeMode:hover{border-color:#c9a46e;background:#2a302a}
+.homeCard:focus-visible,.homeMode:focus-visible,#menuBack:focus-visible,#menuDone:focus-visible{outline:2px solid #efcc89;outline-offset:-2px}
+.homeMode{position:relative;display:flex;align-items:center;gap:10px;text-align:left;width:100%;min-height:48px;margin-top:10px;padding:7px 28px 7px 10px;color:#f0e5d1;background:#202726;border:1px solid #46504d;border-radius:4px;cursor:pointer;touch-action:manipulation}
+.homeMode>span:nth-child(2){display:grid;gap:3px;flex:1}
+.homeMode .uiPixelIcon{width:30px;height:30px}
+.homeMode .homeChevron{bottom:50%;transform:translateY(50%)}
+#menuBackBar[hidden]{display:none!important}
+#menuBackBar{display:flex;align-items:center;gap:8px;margin-bottom:10px;position:sticky;top:0;background:#15191b;z-index:2;padding:1px 0 6px}
+#menuBack,#menuDone{min-height:36px;border:1px solid #46504d;background:#202726;color:#f0e5d1;border-radius:3px;padding:4px 11px;font:650 12px system-ui;cursor:pointer;touch-action:manipulation}
+#menuDone{border-color:#a48458;background:#3b3427;color:#f0d6a5}
+#menuCurrentTitle{flex:1;text-align:center;font:650 12px system-ui;color:#bdc3b6}
+#menu .heroStage{margin-bottom:8px;gap:10px}
+#menu .heroStage canvas{max-height:170px;object-fit:cover}
+#menu .stageInfo h2{font-size:18px}
+#menu #charChoices,#menu #mapChoices{grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+#menu #charChoices .choice,#menu #mapChoices .choice{border:1px solid #414943;border-radius:3px;background:#202624;min-height:44px}
+#menu #charChoices .choice.sel,#menu #mapChoices .choice.sel{border-color:#e7bd7c;background:#3a382c;box-shadow:inset 0 -2px #e7bd7c}
+#menu #charChoices .choice b,#menu #mapChoices .choice b{font:650 11px/1.2 system-ui,sans-serif}
+#menu .mapStage canvas{max-height:170px}
+#menu .mapStageCaption{position:static;background:#202624;padding:8px 10px}
+#menu .heroArsenal{gap:6px;margin-top:6px}
+#menu .heroArsenal span{font-size:10px;color:#c8bba5}
+#menu .menuFooter{padding:8px 18px max(8px,env(safe-area-inset-bottom));background:#15191b;border-top:1px solid #343837}
+#menu .runSummary{display:none}
+#menu #recordLine{font:500 10px system-ui;color:#b3b8ab;text-align:center;margin:0 0 4px}
+#menu .btn#startBtn{min-height:46px;margin:0;background:#b34d3e;border:1px solid #d16a54;border-bottom:3px solid #6f2e28;border-radius:4px;color:#fff1d8;font:900 17px ui-monospace,monospace;letter-spacing:.07em}
+#menu .footerTools{gap:12px;margin-top:3px}
+#menu .textBtn{min-height:32px;margin:0;color:#c2b6a4;font-size:12px}
+#menu:not([data-view=home]) .menuFooter{padding-top:6px;padding-bottom:max(6px,env(safe-area-inset-bottom))}
+#menu:not([data-view=home]) #recordLine,#menu:not([data-view=home]) .footerTools,#menu:not([data-view=home]) #soundPanel,#menu:not([data-view=home]) #menuHelp{display:none!important}
+@media(max-width:650px) and (orientation:portrait){
+ #menu .menuHeader{padding:10px 12px}#menu .menuBody{padding:12px}#menu .menuFooter{padding-left:12px;padding-right:12px}
+ .homeCards{grid-template-columns:1fr;gap:8px}
+ .homeCard{grid-template-columns:37% 1fr;grid-template-rows:1fr;min-height:83px}
+ .homeCard canvas{height:100%;min-height:83px;max-height:116px}
+ .homeCardCopy{align-content:center;padding:9px 26px 9px 10px}
+ .homeChevron{bottom:50%;transform:translateY(50%)}
+ #menu #charChoices,#menu #mapChoices{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #menu .heroStage canvas{max-height:150px}
+}
+@media(max-height:520px) and (orientation:landscape){
+ #menu .menuShell{width:100%}
+ #menu .menuHeader{padding:4px 12px}#menu .brandMark{width:27px;height:27px}
+ #menu .title{font-size:23px}#menu .langBtn{min-height:28px}
+ #menu .menuBody{padding:5px 12px}
+ .homeIntro{display:none}.homeCards{gap:7px}
+ .homeCard{grid-template-columns:40% 1fr;grid-template-rows:1fr;min-height:66px}
+ .homeCard canvas{height:100%;max-height:110px;min-height:66px}
+ .homeCardCopy{align-content:center;padding:6px 20px 6px 8px}
+ .homeCardCopy strong{font-size:13px}.homeCardCopy>span{font-size:10px}
+ .homeChevron{bottom:50%;transform:translateY(50%);right:6px}
+ .homeMode{margin-top:6px;min-height:38px;padding:3px 28px 3px 8px}
+ .homeMode .uiPixelIcon{width:26px;height:26px}
+ #menuBackBar{margin-bottom:4px;padding-bottom:2px}
+ #menuBack,#menuDone{min-height:30px}
+ #menu .heroStage canvas{max-height:92px}
+ #menu .mapStage{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:6px;margin-bottom:5px}
+ #menu .mapStage canvas{max-height:94px}
+ #menu .mapStageCaption{padding:3px 6px}
+ #menu .mapStageCaption h2{font-size:13px}
+ #menu .selectionDetail{font-size:10px}
+ #menu #charChoices .heroPortrait,#menu #mapChoices .mapPortrait{max-height:36px}
+ #menu .menuFooter{padding:4px 12px}
+ #menu .btn#startBtn{min-height:38px;font-size:15px}
+ #menu .footerTools{margin:0}#menu .textBtn{min-height:26px;padding:2px 8px;font-size:11px}
+}
 </style>
 </head>
 <body>
@@ -398,14 +485,23 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
   <div id="relicHud" class="panel relic-card" style="display:none;right:10px;bottom:52px;left:auto"><b>СЕРДЦЕ КУХНИ</b><span id="relicLabel">УНИКАЛЬНАЯ РЕЛИКВИЯ</span></div>
   <div id="abilityHud" class="panel"><div class="abilityRow"><span id="dashHudLabel">РЫВОК</span><b id="dashHudValue">—</b></div><div class="bar"><div id="dashHudFill" class="fill" style="background:#6fe1a2"></div></div><div class="abilityRow"><span id="bombHudLabel">БОМБЫ</span><b id="bombHudValue">3</b></div></div><div id="toast">ГОТОВ</div>
 </div>
-<div id="menu"><div class="box menuShell">
+<div id="menu" data-view="home"><div class="box menuShell">
 <header class="menuHeader"><div class="brand"><svg class="brandMark" viewBox="0 0 32 32" aria-hidden="true"><path fill="#e8c8a2" d="M4 15h2v-4h3V8h4V5h6v3h4v3h3v4h2v8h-4v3H8v-3H4z"/><path fill="#a96e5b" d="M6 20h20v3h-4v2H10v-2H6z"/><path fill="#261e24" d="M8 13h6v3H8zm10 0h6v3h-6zM12 19h8v2h-8z"/></svg><div><div class="title">DUMPLING <span class="red">RIOT</span></div><div id="menuTag" hidden>NIGHT SHIFT</div></div></div><div id="langBar"><span id="languageLabel">ЯЗЫК</span><button type="button" class="langBtn sel" data-lang="ru">RU</button><button type="button" class="langBtn" data-lang="en">EN</button></div></header>
 <nav id="menuTabs" aria-label="Выбор забега"><button type="button" data-menu-tab="hero" aria-pressed="true"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="12" y="5" width="8" height="2" fill="#131018"/><rect x="10" y="7" width="12" height="10" fill="#131018"/><rect x="12" y="7" width="8" height="8" fill="#e5b66e"/><rect x="13" y="8" width="6" height="2" fill="#f4e5c5"/><rect x="12" y="12" width="2" height="2" fill="#131018"/><rect x="18" y="12" width="2" height="2" fill="#131018"/><rect x="9" y="17" width="14" height="5" fill="#131018"/><rect x="11" y="17" width="10" height="4" fill="#e5b66e"/></svg><b id="heroTabLabel">Герой</b></button><button type="button" data-menu-tab="map" aria-pressed="false"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><polygon points="2,7 11,3 21,7 30,3 30,25 21,29 11,25 2,29" fill="#131018"/><polygon points="4,9 11,6 21,10 28,6 28,23 21,26 11,22 4,26" fill="#53616b"/><polygon points="4,9 11,6 11,22 4,26" fill="#a9bbc3"/><polygon points="21,10 28,6 28,23 21,26" fill="#a9bbc3"/><rect x="13" y="11" width="3" height="3" fill="#f4e5c5"/><rect x="16" y="14" width="3" height="3" fill="#e5b66e"/><rect x="19" y="11" width="3" height="3" fill="#dc5a59"/><rect x="19" y="17" width="3" height="3" fill="#dc5a59"/></svg><b id="mapTabLabel">Арена</b></button><button type="button" data-menu-tab="mode" aria-pressed="false"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="4" y="4" width="24" height="24" fill="#131018"/><rect x="6" y="6" width="20" height="20" fill="#53616b"/><rect x="9" y="10" width="14" height="2" fill="#f4e5c5"/><rect x="9" y="16" width="14" height="2" fill="#f4e5c5"/><rect x="9" y="22" width="14" height="2" fill="#f4e5c5"/><rect x="12" y="8" width="4" height="6" fill="#e5b66e"/><rect x="19" y="14" width="4" height="6" fill="#80dbab"/><rect x="10" y="20" width="4" height="6" fill="#dc5a59"/></svg><b id="modeTabLabel">Режим</b></button></nav>
 <div id="menuBody" class="menuBody">
-<section class="menuSection" data-menu-panel="hero"><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div></section>
+<section class="menuSection" data-menu-panel="home" id="homePanel">
+  <div class="homeIntro"><span id="homeEyebrow">НОЧНАЯ СМЕНА</span><h1 id="homeHeading">Готов к бунту?</h1></div>
+  <div class="homeCards">
+    <button type="button" class="homeCard" data-open-menu="hero"><canvas id="homeHeroCanvas" width="200" height="108" aria-hidden="true"></canvas><span class="homeCardCopy"><small id="homeHeroLabel">ГЕРОЙ</small><strong id="homeHeroName"></strong><span id="homeHeroStats"></span></span><span class="homeChevron" aria-hidden="true">›</span></button>
+    <button type="button" class="homeCard" data-open-menu="map"><canvas id="homeMapCanvas" width="240" height="135" aria-hidden="true"></canvas><span class="homeCardCopy"><small id="homeMapLabel">АРЕНА</small><strong id="homeMapName"></strong><span id="homeMapFeature"></span></span><span class="homeChevron" aria-hidden="true">›</span></button>
+  </div>
+  <button type="button" class="homeMode" data-open-menu="mode"><span id="homeModeIcon" aria-hidden="true"></span><span><small id="homeModeLabel">РЕЖИМ</small><strong id="homeModeName"></strong></span><span class="homeChevron" aria-hidden="true">›</span></button>
+</section>
+<div id="menuBackBar" hidden><button type="button" id="menuBack" aria-label="Назад">‹ <span id="menuBackLabel">Назад</span></button><span id="menuCurrentTitle"></span><button type="button" id="menuDone">Готово</button></div>
+<section class="menuSection" data-menu-panel="hero" hidden><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div></section>
 <section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Выбери арену</h3></div><div class="mapStage"><canvas id="mapStageCanvas" width="480" height="270" aria-hidden="true"></canvas><div class="mapStageCaption"><h2 id="mapStageName"></h2><div id="mapDetail" class="selectionDetail"></div></div></div><div id="mapChoices" class="choices"></div></section>
 <section class="menuSection" data-menu-panel="mode" hidden><div class="sectionHead"><h3 id="modeTitle">Режим игры</h3></div><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info">Онлайн: создай комнату или введи код друга.</div></div></section>
-</div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button></div><div id="soundPanel" hidden><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div></div></footer>
+</div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary" aria-hidden="true"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button></div><div id="soundPanel" hidden><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div></div></footer>
 </div></div>
 <div id="levelup" style="display:none"><div class="box"><header class="upgradeHead"><canvas id="upgradeHero" width="48" height="54" aria-hidden="true"></canvas><div><div class="pauseBadge">Уровень повышен</div><h2><span id="levelPrefix">Уровень</span> <span id="levelUpNum">2</span></h2><div class="tag">Выбери улучшение</div></div></header><div id="upgradeChoices" class="levelChoices"></div></div></div>
 <div id="pauseOverlay" style="display:none"><div class="box pauseBox"><div class="pauseBadge">ПЕЛЬМЕНЬ ВЗЯЛ ПАУЗУ</div><div class="title" style="font-size:44px">ПАУЗА</div><div class="hint">Игра остановлена. Выбери, что делать дальше.</div><button id="resumeBtn" class="btn">ПРОДОЛЖИТЬ</button><button id="pauseRestartBtn" class="btn">НАЧАТЬ ЗАНОВО</button><button id="pauseMenuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В ГЛАВНОЕ МЕНЮ</button></div></div>
@@ -994,8 +1090,23 @@ function paintMenuStage(hero,map){
  document.getElementById('mapStageName').textContent=locName(map).split(' — ')[0];
 }
 
-function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(en?'Online':'Онлайн'):coop?(en?'Co-op':'2 игрока'):(en?'Solo':'Соло');document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(en?'Ability: ':'Способность: ')+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+((en?hero.enWeaponNames:hero.weaponNames)[i])+'</span></div>').join('');const af=arenaFeatures[map.id];document.getElementById('mapDetail').textContent=locDesc(map)+' · '+(en?af.en+': '+af.hintEn:af.ru+': '+af.hint);paintMenuStage(hero,map)}
-function setMenuTab(next){if(!['hero','map','mode'].includes(next))return false;document.querySelectorAll('[data-menu-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.menuTab===next)));document.querySelectorAll('[data-menu-panel]').forEach(p=>p.hidden=p.dataset.menuPanel!==next);document.getElementById('menuBody').scrollTop=0;return true}
+function menuChoiceDefaults(savedHero,savedMap){return {hero:chars.some(x=>x.id===savedHero)?savedHero:chars[0].id,map:maps.some(x=>x.id===savedMap)?savedMap:maps[0].id}}
+function saveMenuSelection(){writeStorage('dumpling-riot-hero',selectedChar);writeStorage('dumpling-riot-arena',selectedMap)}
+function refreshMenuHome(hero,map,mode){
+ const en=lang==='en',f=arenaFeatures[map.id];
+ const labels={homeEyebrow:en?'NIGHT SHIFT':'НОЧНАЯ СМЕНА',homeHeading:en?'Ready for the riot?':'Готов к бунту?',homeHeroLabel:en?'HERO':'ГЕРОЙ',homeMapLabel:en?'ARENA':'АРЕНА',homeModeLabel:en?'MODE':'РЕЖИМ',homeHeroName:locName(hero),homeHeroStats:'HP '+hero.hp+' · '+(en?'Speed ':'Скорость ')+hero.speed,homeMapName:locName(map).split(' — ')[0],homeMapFeature:en?f.en:f.ru,homeModeName:mode==='online'?(en?'Online co-op':'Онлайн') : mode==='local'?(en?'Local co-op':'2 игрока'):(en?'Solo':'Соло'),menuBackLabel:en?'Back':'Назад',menuDone:en?'Done':'Готово'};
+ for(const [id,value] of Object.entries(labels))document.getElementById(id).textContent=value;
+ document.getElementById('homeModeIcon').innerHTML=uiPixelIcon(mode);
+ const hc=document.getElementById('homeHeroCanvas'),mc=document.getElementById('homeMapCanvas');
+ for(const [cv,source] of [[hc,'heroStageCanvas'],[mc,'mapStageCanvas']]){const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,cv.width,cv.height);g.drawImage(document.getElementById(source),0,0,cv.width,cv.height)}
+ const view=document.getElementById('menu').dataset.view;document.getElementById('menuCurrentTitle').textContent=view==='hero'?(en?'Choose hero':'Выбери героя'):view==='map'?(en?'Choose arena':'Выбери арену'):view==='mode'?(en?'Game mode':'Режим игры'):'';
+}
+function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(en?'Online':'Онлайн'):coop?(en?'Co-op':'2 игрока'):(en?'Solo':'Соло');document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(en?'Ability: ':'Способность: ')+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+((en?hero.enWeaponNames:hero.weaponNames)[i])+'</span></div>').join('');const af=arenaFeatures[map.id];document.getElementById('mapDetail').textContent=locDesc(map)+' · '+(en?af.en+': '+af.hintEn:af.ru+': '+af.hint);paintMenuStage(hero,map);refreshMenuHome(hero,map,onlineMode?'online':coop?'local':'solo')}
+function menuViewAllowed(next){return ['home','hero','map','mode'].includes(next)}
+function setMenuTab(next){if(!menuViewAllowed(next))return false;const menu=document.getElementById('menu'),previous=menu.dataset.view;menu.dataset.view=next;document.querySelectorAll('[data-menu-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.menuTab===next)));document.querySelectorAll('[data-menu-panel]').forEach(p=>p.hidden=p.dataset.menuPanel!==next);document.getElementById('menuBackBar').hidden=next==='home';document.getElementById('menuBody').scrollTop=0;const en=lang==='en';document.getElementById('menuCurrentTitle').textContent=next==='hero'?(en?'Choose hero':'Выбери героя'):next==='map'?(en?'Choose arena':'Выбери арену'):next==='mode'?(en?'Game mode':'Режим игры'):'';if(next==='home'&&previous!=='home')menu.querySelector('[data-open-menu="'+previous+'"]')?.focus({preventScroll:true});return true}
+document.querySelectorAll('[data-open-menu]').forEach(b=>b.addEventListener('click',()=>setMenuTab(b.dataset.openMenu)));
+document.getElementById('menuBack').addEventListener('click',()=>setMenuTab('home'));
+document.getElementById('menuDone').addEventListener('click',()=>setMenuTab('home'));
 document.querySelectorAll('[data-menu-tab]').forEach(b=>b.addEventListener('click',()=>setMenuTab(b.dataset.menuTab)));
 function updateSoundPanel(){document.getElementById('soundToggle').textContent=lang==='en'?'Music':'Музыка';document.getElementById('musicLabel').textContent=lang==='en'?'Music volume':'Громкость музыки';document.getElementById('musicVolume').value=musicVolume;document.getElementById('musicVolumeValue').textContent=musicVolume+'%'}
 document.getElementById('soundToggle').addEventListener('click',()=>{const p=document.getElementById('soundPanel');p.hidden=!p.hidden;document.getElementById('soundToggle').setAttribute('aria-expanded',String(!p.hidden))});
@@ -1003,13 +1114,15 @@ document.getElementById('musicVolume').addEventListener('input',e=>{musicVolume=
 document.getElementById('helpToggle').addEventListener('click',()=>{const h=document.getElementById('menuHelp');h.hidden=!h.hidden;document.getElementById('helpToggle').setAttribute('aria-expanded',String(!h.hidden))});
 function makeMenu(){
  const cc=document.getElementById('charChoices');cc.innerHTML='';document.getElementById('recordLine').textContent=recordText(loadRecord());
- for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);pixelHeroWeapon(pg,ch.id,0,0,0);d.prepend(portrait);d.onclick=()=>{selectedChar=ch.id;makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
+ for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);pixelHeroWeapon(pg,ch.id,0,0,0);d.prepend(portrait);d.onclick=()=>{selectedChar=ch.id;saveMenuSelection();makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
  const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:T('onePlayer'),desc:T('modeOneDesc')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes){const d=document.createElement('button');d.type='button';d.className='modeChoice'+((md.id==='solo'&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.setAttribute('aria-pressed',String(d.classList.contains('sel')));d.innerHTML=uiPixelIcon(md.id)+`<div class="modeCopy"><b>${md.title}</b><p>${md.desc}</p></div>`;d.onclick=()=>{onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu();modeBox.querySelector('.sel')?.focus({preventScroll:true})};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||'нет комнаты'):'')}
  const mc=document.getElementById('mapChoices');mc.innerHTML='';
- for(const m of maps){const d=document.createElement('button');d.type='button';d.className='choice'+(m.id===selectedMap?' sel':'');d.style.setProperty('--accent',m.accent);d.style.setProperty('--card',m.tile);d.setAttribute('aria-pressed',String(m.id===selectedMap));d.innerHTML=`<b>${locName(m).split(' — ')[0]}</b>`;const thumbnail=document.createElement('canvas');thumbnail.width=160;thumbnail.height=90;thumbnail.className='mapPortrait';thumbnail.setAttribute('aria-hidden','true');thumbnail.getContext('2d').drawImage(mapThumbnail(m.id),0,0);d.prepend(thumbnail);d.onclick=()=>{selectedMap=m.id;makeMenu();mc.querySelector('.sel')?.focus({preventScroll:true})};mc.appendChild(d)}
+ for(const m of maps){const d=document.createElement('button');d.type='button';d.className='choice'+(m.id===selectedMap?' sel':'');d.style.setProperty('--accent',m.accent);d.style.setProperty('--card',m.tile);d.setAttribute('aria-pressed',String(m.id===selectedMap));d.innerHTML=`<b>${locName(m).split(' — ')[0]}</b>`;const thumbnail=document.createElement('canvas');thumbnail.width=160;thumbnail.height=90;thumbnail.className='mapPortrait';thumbnail.setAttribute('aria-hidden','true');thumbnail.getContext('2d').drawImage(mapThumbnail(m.id),0,0);d.prepend(thumbnail);d.onclick=()=>{selectedMap=m.id;saveMenuSelection();makeMenu();mc.querySelector('.sel')?.focus({preventScroll:true})};mc.appendChild(d)}
  applyLanguageStatic();
 }
+const restoredMenuChoice=menuChoiceDefaults(readStorage('dumpling-riot-hero',''),readStorage('dumpling-riot-arena',''));selectedChar=restoredMenuChoice.hero;selectedMap=restoredMenuChoice.map;
 makeMenu();
+setMenuTab('home');
 
 function toast(s){const el=document.getElementById('toast');el.textContent=s;el.classList.add('show');toastTimer=.9}
 function setMobileControls(on){
@@ -1210,7 +1323,7 @@ function startGame(fromNetwork=false){
  player.weapon=0;player2.weapon=coop?1:0;
  weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;arenaEventTimer=8;arenaEventIndex=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast(coop?'2 ИГРОКА · ВОЛНА 1':'ВОЛНА 1');if(location.protocol!=='file:')requestMobileFullscreen();
 }
-function goMenu(){clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu()}
+function goMenu(){clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
 function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlayers?7:4)+Math.floor(round/4))}
 function beginWave(){
  waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];hazards=[];
@@ -2251,7 +2364,7 @@ document.querySelectorAll('.langBtn').forEach(b=>b.addEventListener('click',()=>
 document.addEventListener('pointerdown',()=>{initAudio();if(state==='menu')startMenuMusic()},{passive:true});
 setupMobile();
 setLanguage(lang);
-document.getElementById('startBtn').onclick=()=>{startHorrorMusic();startGame()};
+document.getElementById('startBtn').onclick=()=>{if(onlineMode&&!(netConn&&netConn.open)){setMenuTab('mode');setOnlineStatus(lang==='en'?'Create or join a room first.':'Сначала создай комнату или подключись.');return}startHorrorMusic();startGame()};
 document.getElementById('createRoomBtn')?.addEventListener('click',async()=>{
  setOnlineStatus('Создаём комнату...');
  try{await setupPeer(true);isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;if(document.getElementById('roomCodeInput'))document.getElementById('roomCodeInput').value=netRoom;
@@ -2295,7 +2408,7 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
 
 window.addEventListener('error',e=>{const msg=(e&&e.error&&e.error.message)||e.message||'Неизвестная ошибка';const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
 window.addEventListener('unhandledrejection',e=>{const msg=(e&&e.reason&&e.reason.message)||String(e.reason||'Promise error');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
-function frame(now){const raw=Math.min(.1,(now-last)/1000||0);last=now;acc+=raw;const step=1/60;while(acc>=step){update(step);acc-=step}shake=Math.max(0,shake-raw);if(state==='game')updateHud();render();requestAnimationFrame(frame)}
+function frame(now){const raw=Math.min(.1,(now-last)/1000||0);last=now;acc+=raw;const step=1/60;while(acc>=step){update(step);acc-=step}shake=Math.max(0,shake-raw);if(state==='game')updateHud();if(state!=='menu')render();requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('./sw.js').then(reg=>reg.update()).catch(()=>{})}
 </script>
