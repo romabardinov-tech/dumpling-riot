@@ -1430,6 +1430,51 @@ const arenaFeatures={
  cemetery:{ru:'Проклятые могилы',en:'Cursed graves',hint:'После проклятого всплеска остаётся кристалл опыта. Не стой в круге.',hintEn:'A cursed burst leaves an XP crystal. Stay out of the circle.',color:'#d9b8ff',radius:35,damage:11,delay:1.65,interval:13,sites:[[875,485],[1045,610],[770,370],[1190,370],[730,750],[1210,750]]},
  forest:{ru:'Ядовитые споры',en:'Toxic spores',hint:'Грибницы взрываются и ранят как героев, так и врагов. Заманивай врагов.',hintEn:'Mushroom colonies hurt heroes and enemies. Lure enemies into the blast.',color:'#b6e89b',radius:39,damage:9,delay:1.7,interval:12,sites:[[805,555],[1120,635],[890,450],[1040,475],[545,480],[1450,750]]}
 };
+// V60: walkable tactical stations. Once per station per wave, only in solo.
+const livingArenaSpecs={
+ kitchen:{en:'Pressure valve',ru:'Клапан давления',hintEn:'Step on the valve to trigger a delayed steam blast against enemies.',hintRu:'Наступи на клапан: пар поразит врагов после задержки.',color:'#f6b17d',sites:[[710,540],[1210,540]],radius:72,delay:.85,damage:95,kind:'steam'},
+ basement:{en:'Power relay',ru:'Силовое реле',hintEn:'A delayed pulse damages and slows nearby normal enemies.',hintRu:'Импульс с задержкой ранит и замедляет обычных врагов.',color:'#92d5ff',sites:[[960,315],[960,765]],radius:82,delay:.9,damage:55,kind:'shock'},
+ foodcourt:{en:'First-aid cabinet',ru:'Аптечка',hintEn:'Recover 18 HP by approaching a cabinet while injured.',hintRu:'Подойди к аптечке, чтобы восстановить 18 HP при ранении.',color:'#b0e7a6',sites:[[690,470],[1230,610]],radius:0,delay:0,kind:'heal'},
+ slaughter:{en:'Emergency cutter',ru:'Аварийный резак',hintEn:'Activate a blade strip; lure enemies into its marked area.',hintRu:'Запусти резак и заманивай врагов в отмеченную полосу.',color:'#f5a194',sites:[[730,610],[1190,470]],radius:92,delay:1.1,damage:125,kind:'blade'},
+ cemetery:{en:'Memorial shrine',ru:'Поминальный алтарь',hintEn:'Approach the shrine to reduce fear by 28 points.',hintRu:'Подойди к алтарю, чтобы снизить страх на 28 пунктов.',color:'#d6b7ff',sites:[[660,540],[1260,540]],radius:0,delay:0,kind:'calm'},
+ forest:{en:'Root snare',ru:'Корневая ловушка',hintEn:'A delayed snare damages and slows normal enemies in a circle.',hintRu:'Ловушка с задержкой ранит и замедляет обычных врагов в круге.',color:'#b6e89b',sites:[[730,460],[1190,620]],radius:86,delay:1,damage:38,kind:'root'}
+};
+let livingStations=[];
+function makeLivingStations(map,run,area){const spec=livingArenaSpecs[map];if(!run||run.closed||!spec)return [];return spec.sites.map(([x,y])=>({x:Math.max(area.l+110,Math.min(area.r-110,x)),y:Math.max(area.t+110,Math.min(area.b-110,y)),phase:'ready',left:0}))}
+function livingContains(spec,q,e){return spec.kind==='blade'?Math.abs(e.x-q.x)<=spec.radius+(e.r||0)&&Math.abs(e.y-q.y)<=28+(e.r||0):Math.hypot(e.x-q.x,e.y-q.y)<=spec.radius+(e.r||0)}
+function livingStationStep(spec,q,p,n,targets,dt){
+ if(!spec||!q||p.dead||p.hp<=0||q.phase==='spent')return '';
+ if(q.phase==='armed'){q.left=Math.max(0,q.left-dt);if(q.left>0)return '';q.phase='spent';return 'blast'}
+ if(Math.hypot(p.x-q.x,p.y-q.y)>23)return '';
+ if(spec.kind==='heal'){if(p.hp>=p.maxhp)return '';p.hp=Math.min(p.maxhp,p.hp+18);q.phase='spent';return 'heal'}
+ if(spec.kind==='calm'){if(!n||n.fear<8)return '';n.fear=Math.max(0,n.fear-28);q.phase='spent';return 'calm'}
+ if(!targets.some(e=>!e.dead&&Math.hypot(e.x-q.x,e.y-q.y)<=spec.radius+65))return '';
+ q.phase='armed';q.left=spec.delay;return 'armed';
+}
+function livingImpact(spec,q,targets){return targets.filter(e=>!e.dead&&livingContains(spec,q,e)).map(e=>({e,damage:e.type==='boss'?Math.min(30,Math.round(spec.damage*.25)):spec.damage,slow:e.type!=='boss'&&(spec.kind==='shock'||spec.kind==='root')?(spec.kind==='root'?3:2):0}))}
+function updateLivingStations(dt){
+ if(!soloRun||state!=='game'||waveState!=='fighting'||player.dead)return;
+ const spec=livingArenaSpecs[selectedMap];if(!spec)return;
+ for(const q of livingStations){
+  const result=livingStationStep(spec,q,player,nightmare,enemies,dt);if(!result)continue;
+  if(result==='armed'){toast(L('TRAP ARMED','ЛОВУШКА АКТИВИРОВАНА')+' · '+metaLabel(spec));toastTimer=1.5;continue}
+  if(result==='blast'){for(const hit of livingImpact(spec,q,enemies)){if(hit.e.dead)continue;damageEnemy(hit.e,hit.damage,'p1');if(!hit.e.dead&&hit.slow)hit.e.frozen=Math.max(hit.e.frozen||0,hit.slow)}ring(q.x,q.y,3,spec.color,.4,spec.radius);spawnParticles(q.x,q.y,18,spec.color,1.1)}
+  else{ring(q.x,q.y,3,spec.color,.35,36);spawnParticles(q.x,q.y,9,spec.color,.7);toast(result==='heal'?L('FIRST AID','ПЕРВАЯ ПОМОЩЬ'):L('FEAR REDUCED','СТРАХ СНИЖЕН'));toastTimer=1.5}
+  soloRun.stationUses=(soloRun.stationUses||0)+1;
+ }
+}
+function paintLivingStations(g,map,view){
+ const spec=livingArenaSpecs[map];if(!spec||!soloRun)return;
+ for(const q of livingStations){
+  const reach=q.phase==='armed'?spec.radius+10:35;if(q.x+reach<view.x||q.x-reach>view.x+view.w||q.y+reach<view.y||q.y-reach>view.y+view.h)continue;
+  g.save();g.translate(Math.round(q.x),Math.round(q.y));g.fillStyle='#130f1a';g.fillRect(-16,-12,32,24);g.fillStyle=q.phase==='spent'?'#544e57':spec.color;
+  const R=(x,y,w,h)=>g.fillRect(x,y,w,h);
+  switch(spec.kind){case 'steam':R(-13,-3,26,6);R(-3,-9,6,18);break;case 'shock':R(-9,-8,9,5);R(-3,-4,11,5);R(1,1,6,8);break;case 'heal':R(-4,-9,8,18);R(-10,-3,20,6);break;case 'blade':for(let i=-12;i<=8;i+=8){R(i,-8,4,16);R(i+2,-5,4,8)}break;case 'calm':R(-9,5,18,4);R(-5,-5,10,10);R(-2,-10,4,5);break;case 'root':R(-3,-9,6,18);R(-12,-3,9,4);R(3,0,9,4);break}
+  if(q.phase==='ready'){g.strokeStyle=spec.color;g.setLineDash([3,3]);g.beginPath();g.arc(0,0,23,0,TAU);g.stroke();g.setLineDash([]);drawPixelText('+',0,-23,9,spec.color,'center')}
+  if(q.phase==='armed'){g.strokeStyle=spec.color;g.lineWidth=1.5;g.fillStyle=spec.color;g.globalAlpha=.15;if(spec.kind==='blade')g.fillRect(-spec.radius,-28,spec.radius*2,56);else{g.beginPath();g.arc(0,0,spec.radius,0,TAU);g.fill()}g.globalAlpha=1;if(spec.kind==='blade')g.strokeRect(-spec.radius,-28,spec.radius*2,56);else{g.beginPath();g.arc(0,0,spec.radius,0,TAU);g.stroke()}g.beginPath();g.arc(0,0,17*q.left/spec.delay,0,TAU);g.stroke();drawPixelText('!',0,-24,10,spec.color,'center')}
+  g.restore();
+ }
+}
 let arenaEventTimer=8,arenaEventIndex=0;
 function arenaEventPattern(id,x,y,round=1){
  const f=arenaFeatures[id],cap=Math.min(5,Math.floor(round/5)),make=(xx,yy,d)=>({x:clamp(xx,arena.l+55,arena.r-55),y:clamp(yy,arena.t+55,arena.b-55),radius:f.radius,damage:f.damage===0?0:f.damage+cap,delay:d,kind:id});
@@ -1997,7 +2042,7 @@ function refreshMenuHome(hero,map,mode){
  for(const [cv,source] of [[hc,'heroStageCanvas'],[mc,'mapStageCanvas']]){const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,cv.width,cv.height);g.drawImage(document.getElementById(source),0,0,cv.width,cv.height)}
  const view=document.getElementById('menu').dataset.view;document.getElementById('menuCurrentTitle').textContent=view==='hero'?(L("Choose hero","Выбери героя")):view==='map'?(L("Choose arena","Выбери арену")):view==='mode'?(L("Game mode","Режим игры")):view==='altar'?L('Cursed altar','Проклятый алтарь'):view==='journal'?L('Night archives','Ночной архив'):'';
 }
-function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(L("Online","Онлайн")):coop?(L("Co-op","2 игрока")):campaignMode?L('Campaign','Кампания'):L('Survival','Выживание');document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(L("Ability: ","Способность: "))+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+L(hero.enWeaponNames[i],hero.weaponNames[i])+'<small style="color:'+elements[weaponElement(hero.id,i)].color+'">'+metaLabel(elements[weaponElement(hero.id,i)])+'</small></span></div>').join('');const af=arenaFeatures[map.id],aff=arenaAffinity[map.id];document.getElementById('mapDetail').textContent=(L(af.en,af.ru)+': '+L(af.hintEn,af.hint))+' · '+L('Solo resistance','Сопротивление в соло')+': '+metaLabel(elements[aff.resist])+' · '+L('Weakness','Слабость')+': '+metaLabel(elements[aff.weak]);paintMenuStage(hero,map);paintArenaEnemyPreview(map.id);refreshMenuHome(hero,map,onlineMode?'online':coop?'local':'solo')}
+function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(L("Online","Онлайн")):coop?(L("Co-op","2 игрока")):campaignMode?L('Campaign','Кампания'):L('Survival','Выживание');document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(L("Ability: ","Способность: "))+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+L(hero.enWeaponNames[i],hero.weaponNames[i])+'<small style="color:'+elements[weaponElement(hero.id,i)].color+'">'+metaLabel(elements[weaponElement(hero.id,i)])+'</small></span></div>').join('');const af=arenaFeatures[map.id],aff=arenaAffinity[map.id];document.getElementById('mapDetail').textContent=(L(af.en,af.ru)+': '+L(af.hintEn,af.hint))+' · '+L('Solo resistance','Сопротивление в соло')+': '+metaLabel(elements[aff.resist])+' · '+L('Weakness','Слабость')+': '+metaLabel(elements[aff.weak])+' · '+metaLabel(livingArenaSpecs[map.id])+': '+L(livingArenaSpecs[map.id].hintEn,livingArenaSpecs[map.id].hintRu);paintMenuStage(hero,map);paintArenaEnemyPreview(map.id);refreshMenuHome(hero,map,onlineMode?'online':coop?'local':'solo')}
 function menuViewAllowed(next){return ['home','hero','map','mode','altar','journal'].includes(next)}
 function setMenuTab(next){if(!menuViewAllowed(next))return false;const menu=document.getElementById('menu'),previous=menu.dataset.view;menu.dataset.view=next;document.querySelectorAll('[data-menu-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.menuTab===next)));document.querySelectorAll('[data-menu-panel]').forEach(p=>p.hidden=p.dataset.menuPanel!==next);document.getElementById('menuBackBar').hidden=next==='home';document.getElementById('menuBody').scrollTop=0;const en=lang==='en';document.getElementById('menuCurrentTitle').textContent=next==='hero'?(L("Choose hero","Выбери героя")):next==='map'?(L("Choose arena","Выбери арену")):next==='mode'?(L("Game mode","Режим игры")):next==='altar'?L('Cursed altar','Проклятый алтарь'):next==='journal'?L('Night archives','Ночной архив'):'';if(next==='journal')renderJournal();if(next==='home'&&previous!=='home')menu.querySelector('[data-open-menu="'+previous+'"]')?.focus({preventScroll:true});return true}
 document.querySelectorAll('[data-open-menu]').forEach(b=>b.addEventListener('click',()=>setMenuTab(b.dataset.openMenu)));
@@ -2237,7 +2282,7 @@ function startGame(fromNetwork=false){
  if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
  if(!heroPlayable(chars.find(c=>c.id===selectedChar),meta,journal,coop||onlineMode))selectedChar=chars[0].id;
  secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;
- if(soloRun?.campaign)selectedMap=soloRun.campaign.start;closeSoloRun();soloRun=!coop&&!onlineMode?{hero:selectedChar,startMap:selectedMap,campaign:campaignMode?newCampaign(selectedMap):null,contract:selectedContract,cleared:0,earned:0,kills:0,closed:false,coins:0,coinsEarned:0,coinsSpent:0,purchases:0,lastShop:0,pact:null,lastEncounter:0,seenRooms:[],roomChoices:0,nextRoomEffect:null,hiddenSummoned:[],hiddenDefeated:[],nextHidden:null}:null;document.getElementById('ritualOverlay').hidden=true;
+ if(soloRun?.campaign)selectedMap=soloRun.campaign.start;closeSoloRun();soloRun=!coop&&!onlineMode?{hero:selectedChar,startMap:selectedMap,campaign:campaignMode?newCampaign(selectedMap):null,contract:selectedContract,cleared:0,earned:0,kills:0,closed:false,coins:0,coinsEarned:0,coinsSpent:0,purchases:0,lastShop:0,pact:null,lastEncounter:0,seenRooms:[],roomChoices:0,nextRoomEffect:null,hiddenSummoned:[],hiddenDefeated:[],nextHidden:null,stationUses:0}:null;document.getElementById('ritualOverlay').hidden=true;
  startHorrorMusic();clearNpc();try{window.speechSynthesis?.getVoices()}catch(_){}clearLocalInput();levelupBusy=false;upgradeQueue.length=0;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
  resetPlayer(player,ch,world.w/2-18,world.h/2);resetPlayer(player2,ch2,world.w/2+18,world.h/2);
@@ -2245,9 +2290,10 @@ function startGame(fromNetwork=false){
  player.weapon=0;player2.weapon=coop?1:0;
  weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;arenaEventTimer=8;arenaEventIndex=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast((coop?T('twoPlayers')+' · ':'')+T('wave')+' 1');if(location.protocol!=='file:')requestMobileFullscreen();
 }
-function goMenu(){encounter=null;if(soloRun?.campaign)selectedMap=soloRun.campaign.start;secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
+function goMenu(){livingStations=[];encounter=null;if(soloRun?.campaign)selectedMap=soloRun.campaign.start;secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
 function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlayers?7:4)+Math.floor(round/4))}
 function beginWave(){
+ livingStations=makeLivingStations(selectedMap,soloRun,arena);
  secretEncounter=soloRun?createSecret(selectedMap,campaignRound(soloRun,wave),player,arena,arenaFeatures[selectedMap].sites):null;if(secretEncounter)secretEncounter.w=wave;
  if(nightmare)resetNightmareWave(nightmare,chooseShelter(arenaLights[selectedMap],player,arena));
  waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];hazards=[];
@@ -2983,7 +3029,7 @@ function update(dt){
  camera.x=clamp(camera.x,W/2,world.w-W/2);camera.y=clamp(camera.y,H/2,world.h-H/2);
  horrorTime+=dt;for(const p of coopPlayers()){p.fire=Math.max(0,p.fire-dt);p.dash=Math.max(0,p.dash-dt);p.inv=Math.max(0,p.inv-dt)}
  if(!player.dead&&(mouse.down||touchInput.attack))attack();
- if(state==='game'){updateNightmare(dt);updateSecret()}updateEnemies(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);updateFx(dt);
+ if(state==='game'){updateNightmare(dt);updateSecret()}updateEnemies(dt);if(state==='game')updateLivingStations(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);updateFx(dt);
  enemies=enemies.filter(e=>!e.dead);
  if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if(waveTime>=delay||enemies.length===0){waveTime=0;spawnEnemy();spawned++}}
  if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';if(nightmare?.hunter){nightmare.hunter.dead=true;hazards=hazards.filter(h=>h.source!==nightmare.hunter);nightmare.hunter=null}if(nightmare){nightmare.echo=null;nightmare.fear=fearClamp(nightmare.fear-12)}between=soloRun?4:1.6;let reward=0;if(soloRun){reward=clearWaveReward(meta,soloRun,wave,selectedMap);if(reward)addCoins(soloRun,coinReward(wave));saveMeta()}toast(L('WAVE CLEARED · COLLECT XP','ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')+(reward?' · ◆ +'+reward:''));toastTimer=2.5}
@@ -2991,7 +3037,7 @@ function update(dt){
  if(state==='game'&&waveState==='clear'){between-=dt;if(between<=0){if(soloRun?.campaign&&wave===FINAL_WAVE){if(!openCampaignEnding())endGame(true,false)}else if(soloRun&&wave%5===0)openRitual();else if(!(soloRun&&merchantWave(wave)&&openMerchant())&&!(soloRun&&encounterWave(wave)&&openEncounter())){wave++;beginWave()}}}
  combo=Math.max(1,combo-dt*.12);
 }
-function endGame(broadcast=true,escaped=false){encounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun(escaped,'dead');document.getElementById('ritualOverlay').hidden=true;clearNpc();startMenuMusic();
+function endGame(broadcast=true,escaped=false){livingStations=[];encounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun(escaped,'dead');document.getElementById('ritualOverlay').hidden=true;clearNpc();startMenuMusic();
  clearLocalInput();upgradeQueue.length=0;state='gameover';
  const recordEl=document.getElementById('finalRecord');document.querySelector('#gameover .title').textContent=soloRun?.campaign?.won?metaLabel(endingById(soloRun.campaign.ending)||campaignEndings[0]):escaped?L('YOU ESCAPED','ТЫ ВЫЖИЛ'):T('dead');document.getElementById('finalMeta').textContent=soloRun?'◆ +'+soloRun.earned+' · '+L('Total shards','Всего осколков')+': '+meta.shards+' · '+L('Artifacts','Артефакты')+' '+(player.artifacts?.length||0)+' · '+L('Evolutions','Эволюции')+' '+(player.evolved?.filter(Boolean).length||0)+' · '+L('Purchases','Покупки')+' '+soloRun.purchases:'';
  if(soloRun?.campaign){recordEl.textContent=soloRun.campaign.won?L((endingById(soloRun.campaign.ending)||campaignEndings[0]).textEn,(endingById(soloRun.campaign.ending)||campaignEndings[0]).textRu):L('Chapter reached','Достигнутая глава')+' '+soloRun.campaign.chapter+'/3'}else if(!coop&&!onlineMode){const old=loadRecord(),next=updateRecord(old,score,wave);writeStorage(RECORD_KEY,JSON.stringify(next));recordEl.textContent=recordText(next)+(next.score>old.score||next.wave>old.wave?(L(" · NEW BEST!"," · НОВЫЙ РЕКОРД!")):'')}else recordEl.textContent='';
@@ -3000,7 +3046,7 @@ function endGame(broadcast=true,escaped=false){encounter=null;nightmare=null;mer
  document.getElementById('finalScore').textContent=Math.floor(score);
  document.getElementById('finalLevel').textContent=player.lvl;
  document.getElementById('finalWave').textContent=wave;
- if(soloRun){const route=soloRun.campaign?.visited||[soloRun.startMap];document.getElementById('finalMeta').textContent+=' · '+L('Kills','Убийства')+' '+soloRun.kills+' · '+L('Cleared waves','Зачищено волн')+' '+soloRun.cleared+' · '+runRouteText(route)+' · '+L('Room choices','Решения в комнатах')+' '+soloRun.roomChoices+' · '+L('Hidden bosses','Скрытые боссы')+' '+soloRun.hiddenDefeated.length;}
+ if(soloRun){const route=soloRun.campaign?.visited||[soloRun.startMap];document.getElementById('finalMeta').textContent+=' · '+L('Kills','Убийства')+' '+soloRun.kills+' · '+L('Cleared waves','Зачищено волн')+' '+soloRun.cleared+' · '+runRouteText(route)+' · '+L('Room choices','Решения в комнатах')+' '+soloRun.roomChoices+' · '+L('Hidden bosses','Скрытые боссы')+' '+soloRun.hiddenDefeated.length+' · '+L('Stations used','Объекты использованы')+' '+soloRun.stationUses;}
  document.getElementById('gameover').style.display='grid';
  setMobileControls(false);
  if(broadcast&&onlineMode)sendNet({t:'gameover',score:Math.floor(score),wave,level:player.lvl});
@@ -3354,6 +3400,7 @@ function draw(){
  // Local light falloff is behind actors and warning rings, never over threat indicators.
  if(soloRun&&state!=='death'){const light=ctx.createRadialGradient(player.x,player.y,48,player.x,player.y,205);light.addColorStop(0,'rgba(0,0,0,0)');light.addColorStop(.65,'rgba(8,5,13,.035)');light.addColorStop(1,'rgba(8,5,13,.23)');ctx.fillStyle=light;ctx.fillRect(view.x,view.y,view.w,view.h)}
  if(nightmare)paintNightmareFloor(ctx,nightmare,nightmareThemes[m.id]);
+ if(waveState==='fighting')paintLivingStations(ctx,m.id,view);
  if(secretEncounter&&waveState==='fighting')paintSecret(ctx,secretEncounter,horrorTime);
  // blood stains and corpses
  for(const b of blood){ctx.globalAlpha=b.a;ctx.fillStyle='#4f0913';ctx.fillRect(Math.round(b.x-b.r),Math.round(b.y-b.r*.45),Math.max(2,Math.round(b.r*2)),Math.max(2,Math.round(b.r*.9)));ctx.fillStyle='#9f1829';ctx.fillRect(Math.round(b.x-b.r*.55),Math.round(b.y-b.r*.25),Math.max(2,Math.round(b.r*1.1)),Math.max(2,Math.round(b.r*.5)))}ctx.globalAlpha=1;
