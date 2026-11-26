@@ -778,10 +778,10 @@ function unlockAchievements(data,round,contract,escaped=false){
  const unlocked=[];for(const a of metaAchievements)if(checks[a.id]&&!data.achievements.includes(a.id)){data.achievements.push(a.id);unlocked.push(a.id)}return unlocked;
 }
 function clearWaveReward(data,run,round,map){
- if(!run||run.closed||round<=run.cleared||!Object.hasOwn(data.maps,map))return 0;
+ if(!run||run.closed||!Number.isInteger(round)||round!==run.cleared+1||!Object.hasOwn(data.maps,map))return 0;
  run.cleared=round;const n=waveReward(round,run.contract);run.earned+=n;data.shards=Math.min(1000000000,data.shards+n);data.best=Math.max(data.best,round);data.maps[map]=Math.max(data.maps[map],round);unlockAchievements(data,round,run.contract);return n;
 }
-function finishMetaRun(data,run,escaped){if(!run||run.closed)return false;run.closed=true;data.runs++;data.kills+=run.kills;if(escaped){data.escapes++;const n=10*contractFor(run.contract).mult;run.earned+=n;data.shards+=n;unlockAchievements(data,run.cleared,run.contract,true)}return true}
+function finishMetaRun(data,run,escaped){if(!run||run.closed||escaped&&run.cleared<10)return false;run.closed=true;data.runs=metaInt(data.runs+1);data.kills=metaInt(data.kills+run.kills);if(escaped){data.escapes=metaInt(data.escapes+1);const n=10*contractFor(run.contract).mult;run.earned+=n;data.shards=metaInt(data.shards+n);unlockAchievements(data,run.cleared,run.contract,true)}return true}
 function chooseOmen(round,random=Math.random){return round>=3&&round%5!==0&&random()<.38?waveOmens[1+Math.min(2,Math.floor(random()*3))]:waveOmens[0]}
 function applyRitual(p,id){if(id==='heal'){p.hp=Math.min(p.maxhp,p.hp+p.maxhp*.5)}else if(id==='blood'){p.maxhp=Math.max(1,Math.floor(p.maxhp*.85));p.hp=Math.min(p.hp,p.maxhp);p.boost.dmg*=1.2}else if(id==='supply'){p.bomb=Math.min(9,p.bomb+2);p.boost.move*=1.08}else return false;return true}
 let meta=readMeta(),selectedContract=contractFor(readStorage('dumpling-riot-contract','normal')).id,soloRun=null,activeOmen=waveOmens[0];
@@ -1418,12 +1418,12 @@ function renderAltar(){
 }
 function closeSoloRun(escaped=false){if(finishMetaRun(meta,soloRun,escaped))saveMeta()}
 function openRitual(){
- if(!soloRun||state!=='game')return;state='ritual';clearLocalInput();setMobileControls(false);
+ if(!soloRun||soloRun.closed||state!=='game'||wave%5!==0||soloRun.cleared!==wave)return;state='ritual';clearLocalInput();setMobileControls(false);
  const el=document.getElementById('ritualOverlay');document.getElementById('ritualTitle').textContent=L('The altar demands a choice','Алтарь требует выбора');
  document.getElementById('ritualHint').textContent=L('One blessing for the next stage.','Выбери одно благословение для следующего этапа.')+' · ◆ '+soloRun.earned;
  const box=document.getElementById('ritualChoices');box.replaceChildren();
  for(const q of ritualChoices){const b=document.createElement('button');b.type='button';b.className='ritualOption';const h=document.createElement('b'),d=document.createElement('small');h.textContent=metaLabel(q);d.textContent=metaDesc(q);b.append(h,d);b.onclick=()=>{if(state!=='ritual'||!applyRitual(player,q.id))return;el.hidden=true;state='game';setMobileControls(true);wave++;beginWave()};box.append(b)}
- const extract=document.getElementById('extractBtn');extract.hidden=wave<10;extract.textContent=L('Extract alive · bonus shards','Спастись живым · бонусные осколки');
+ const extract=document.getElementById('extractBtn');extract.hidden=soloRun.cleared<10;extract.textContent=L('Extract alive · bonus shards','Спастись живым · бонусные осколки');
  el.hidden=false;
 }
 function refreshMenuHome(hero,map,mode){
@@ -1448,7 +1448,7 @@ function updateSoundPanel(){document.getElementById('soundToggle').textContent=L
 document.getElementById('soundToggle').addEventListener('click',()=>{const p=document.getElementById('soundPanel');p.hidden=!p.hidden;document.getElementById('soundToggle').setAttribute('aria-expanded',String(!p.hidden))});
 document.getElementById('npcVoiceToggle').addEventListener('click',()=>{npcVoiceEnabled=!npcVoiceEnabled;writeStorage('dumpling-riot-npc-voice',npcVoiceEnabled?'1':'0');if(!npcVoiceEnabled)try{window.speechSynthesis?.cancel()}catch(_){}updateSoundPanel()});
 document.getElementById('musicVolume').addEventListener('input',e=>{musicVolume=Math.max(0,Math.min(100,Number(e.target.value)||0));writeStorage('dumpling-riot-music-volume',String(musicVolume));applyMusicVolume();updateSoundPanel()});
-document.getElementById('extractBtn').addEventListener('click',()=>{if(state==='ritual'&&soloRun&&wave>=10)endGame(true,true)});
+document.getElementById('extractBtn').addEventListener('click',()=>{if(state==='ritual'&&soloRun&&soloRun.cleared>=10&&wave>=10)endGame(true,true)});
 document.getElementById('privacyBtn').addEventListener('click',()=>{location.href='./privacy.html'});
 document.getElementById('helpToggle').addEventListener('click',()=>{const h=document.getElementById('menuHelp');h.hidden=!h.hidden;document.getElementById('helpToggle').setAttribute('aria-expanded',String(!h.hidden))});
 function makeMenu(){
