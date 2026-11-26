@@ -491,7 +491,7 @@ function otherCharId(){const order=chars.map(c=>c.id);const i=order.indexOf(sele
 function targetPlayer(e){const aps=alivePlayers();if(!aps.length)return null;let best=aps[0],bd=Math.hypot(best.x-e.x,best.y-e.y);for(let i=1;i<aps.length;i++){const p=aps[i],d=Math.hypot(p.x-e.x,p.y-e.y);if(d<bd){best=p;bd=d}}return best}
 function nearestEnemy(p){let best=null,bd=Infinity;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.x-p.x,e.y-p.y);if(d<bd){best=e;bd=d}}return best}
 let wave=1,waveTime=0,waveState='fighting',between=0,score=0,combo=1,boss=null,spawned=0,targetCount=0;
-let enemies=[],projectiles=[],particles=[],rings=[],texts=[],drops=[],blood=[];
+let enemies=[],projectiles=[],particles=[],rings=[],texts=[],drops=[],blood=[],hazards=[];
 let deathTimer=0,deathPhase=0;
 let toastTimer=0;
 const arena={l:52,r:1868,t:58,b:1022};
@@ -696,10 +696,11 @@ function applyNetState(s){
  projectiles=(s.projectiles||[]).map(p=>({...p,netX:p.x,netY:p.y}));
  drops=(s.drops||[]).map(d=>({...d,netX:d.x,netY:d.y}));
  boss=s.boss?({...s.boss,netX:s.boss.x,netY:s.boss.y}):null;
+ hazards=(s.hazards||[]).map(h=>({...h}));
  wave=s.wave||1;score=s.score||0;combo=s.combo||1;waveState=s.waveState||'fighting';targetCount=s.targetCount??enemies.length;spawned=s.spawned??targetCount;
 }
 function netState(){
- return {p1:{x:player.x,y:player.y,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:player.weapon,lvl:player.lvl,bomb:player.bomb,dash:player.dash,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,dash:player2.dash,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,dead:e.dead,stage:e.stage})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,r:p.r,life:p.life,color:p.color,enemy:p.enemy})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type}:null,wave,score,combo,waveState,targetCount,spawned}
+ return {p1:{x:player.x,y:player.y,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:player.weapon,lvl:player.lvl,bomb:player.bomb,dash:player.dash,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,dash:player2.dash,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,dead:e.dead,stage:e.stage,kind:e.kind,charge:e.charge})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,r:p.r,life:p.life,color:p.color,enemy:p.enemy})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type,name:boss.name,enName:boss.enName,stage:boss.stage,kind:boss.kind}:null,hazards:hazards.map(({x,y,radius,remaining,duration})=>({x,y,radius,remaining,duration})),wave,score,combo,waveState,targetCount,spawned}
 }
 function sendNet(m){
  const c=m&&m.t==='state'?netStateConn:netConn;
@@ -722,12 +723,12 @@ function startGame(fromNetwork=false){
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
  resetPlayer(player,ch,world.w/2-18,world.h/2);resetPlayer(player2,ch2,world.w/2+18,world.h/2);
  player.weapon=0;player2.weapon=coop?1:0;
- weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast(coop?'2 ИГРОКА · ВОЛНА 1':'ВОЛНА 1');if(location.protocol!=='file:')requestMobileFullscreen();
+ weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast(coop?'2 ИГРОКА · ВОЛНА 1':'ВОЛНА 1');if(location.protocol!=='file:')requestMobileFullscreen();
 }
 function goMenu(){clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu()}
 function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlayers?7:4)+Math.floor(round/4))}
 function beginWave(){
- waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];
+ waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];hazards=[];
  // Enemy count ramps hard: later waves become crowded, not just tougher individually.
  const bossWave=wave%5===0;
  // In two-player mode the arena gets a real co-op population boost.
@@ -750,8 +751,8 @@ function makeBoss(w){
   ['МЯСНИК БЕЗ ЛИЦА','THE FACELESS BUTCHER',0],['КОТЁЛ ПЫТКИ','THE TORTURE CAULDRON',1],['КРАСНЫЙ ПОВАР','THE RED CHEF',2],
   ['МАТЬ ПЕЛЬМЕНЕЙ','MOTHER OF DUMPLINGS',3],['ШЕФ ИЗ НОЖЕЙ','THE KNIFE CHEF',4],['ПОЖИРАТЕЛЬ ТАРЕЛОК','PLATE DEVOURER',5]
  ];
- const [n,en,k]=bosses[idx%bosses.length];const hp=1750+w*265;
- return {type:'boss',name:n,enName:en,x:rnd(arena.l+160,arena.r-160),y:rnd(arena.t+100,arena.b-100),hp,maxhp:hp,speed:44+w*2.4,r:25+((k===5)?7:0),hit:0,phase:rnd(0,TAU),attack:.65,kind:k,lunge:0,stage:1,hitT:0,hitLean:0,dashTimer:rnd(.8,1.6),specialTimer:rnd(1.2,2.2),nextTaunt:0};
+ const [n,en,k]=bosses[idx%bosses.length];const hp=1750+w*265;const pos=enemySpawnPoint(camera,alivePlayers().length?alivePlayers():[player],arena);
+ return {type:'boss',name:n,enName:en,x:pos.x,y:pos.y,hp,maxhp:hp,speed:44+w*2.4,r:25+((k===5)?7:0),hit:0,phase:rnd(0,TAU),attack:.65,kind:k,lunge:0,stage:1,hitT:0,hitLean:0,dashTimer:rnd(.8,1.6),specialTimer:rnd(1.2,2.2),nextTaunt:0};
 }
 function enemySpawnPoint(focus,players,area,random=Math.random){
  let best=null,bestDistance=-1;
@@ -1053,55 +1054,68 @@ function finishEnemyDeath(e){
    drops.push({x:e.x,y:e.y-4,type:'relic',life:24,pulse:0});
    boss=null;toast('БОСС ПОВЕРЖЕН — СЕРДЦЕ КУХНИ ЖДЁТ');
    // On boss waves the minions must also be cleared before the next wave starts.
-   if(enemies.every(x=>x.dead||x===e)) {waveState='clear';between=2.2}
+   hazards=hazards.filter(h=>h.source!==e);
  }else{
    drops.push({x:e.x,y:e.y,type:Math.random()<.18?'bomb':'xp',life:8});
  }
 }
 
+function scheduleHazard(x,y,radius,damage,delay=.75,source=null){
+ hazards.push({x,y,radius,damage,remaining:delay,duration:delay,source});
+}
+function updateHazards(dt){
+ for(const h of hazards){
+   if(h.source?.dead){h.remaining=-1;continue}
+   h.remaining-=dt;
+   if(h.remaining>0)continue;
+   for(const p of alivePlayers())if(Math.hypot(p.x-h.x,p.y-h.y)<=h.radius)hurtPlayer(p,h.damage,h.x,h.y);
+   ring(h.x,h.y,4,'#ff4055',.28,h.radius);
+   spawnParticles(h.x,h.y,18,'#ff9b4c',1.1);
+   shake=Math.max(shake,.10);
+ }
+ hazards=hazards.filter(h=>h.remaining>0);
+}
+function summonMinions(count){
+ const active=enemies.filter(e=>!e.dead).length;
+ const allowed=Math.max(0,Math.min(count,(coop?24:16)-active));
+ for(let i=0;i<allowed;i++)spawnEnemy();
+}
 function updateEnemies(dt){
  for(const e of enemies){
   if(e.dead)continue;
   if(e.bleed>0){e.bleed-=dt;e._bleedTick=(e._bleedTick||0)-dt;if(e._bleedTick<=0){e._bleedTick=.32;damageEnemy(e,3.5)}}
   if(e.poison>0){e.poison-=dt;e._poisonTick=(e._poisonTick||0)-dt;if(e._poisonTick<=0){e._poisonTick=.24;damageEnemy(e,4.5)}}
+  if(e.dead)continue;
   e.phase+=dt*4;e.hit=Math.max(0,e.hit-dt);e.hitT=Math.max(0,(e.hitT||0)-dt);
   const tp=targetPlayer(e);if(!tp)continue;tp.hurtT=Math.max(0,(tp.hurtT||0)-dt);
   if(e.lunge>0)e.lunge-=dt;
   const dx=tp.x-e.x,dy=tp.y-e.y,d=Math.hypot(dx,dy)||1,nx=dx/d,ny=dy/d;
   if(e.type==='boss'){
    const ratio=e.hp/e.maxhp;
-   e.stage=ratio<.25?3:(ratio<.55?2:1);
+   const stage=ratio<.25?3:(ratio<.55?2:1);
+   if(stage>e.stage){e.stage=stage;toast((lang==='en'?'BOSS PHASE ':'ФАЗА БОССА ')+stage);ring(e.x,e.y,4,'#ff8c4c',.65,65);e.specialTimer=Math.max(.7,e.specialTimer)}
    e.attack-=dt;
    e.dashTimer-=dt;
    e.specialTimer-=dt;
    const rage=e.stage===3?1.72:e.stage===2?1.42:1.18;
-   // Bosses constantly reposition and perform short violent dashes.
-   if(e.dashTimer<=0){
-    e.dashTimer=(.95+Math.random()*1.25)/rage;
-    const side=(Math.random()<.5?-1:1);
-    const da=Math.atan2(dy,dx)+(Math.random()<.35?side*1.15:0);
-    const dashLen=(e.stage===3?150:e.stage===2?125:105);
-    e.x=clamp(e.x+Math.cos(da)*dashLen,arena.l+35,arena.r-35);
-    e.y=clamp(e.y+Math.sin(da)*dashLen,arena.t+35,arena.b-35);
-    ring(e.x,e.y,28,'#ff4055',.25,54);
-    spawnParticles(e.x,e.y,16,'#ff4055',1.5);
-    shake=Math.max(shake,.08);
+   // Telegraph the charge before moving to the locked destination.
+   if(e.charge){e.charge.left-=dt;if(e.charge.left<=0){e.x=e.charge.x;e.y=e.charge.y;e.charge=null;ring(e.x,e.y,28,'#ff4055',.25,54);spawnParticles(e.x,e.y,16,'#ff4055',1.5);shake=Math.max(shake,.08)}}
+   else if(e.dashTimer<=0){
+    e.dashTimer=(1.5+Math.random()*1.25)/rage+.48;
+    const da=Math.atan2(dy,dx),length=e.stage===3?150:e.stage===2?125:105;
+    e.charge={x:clamp(e.x+Math.cos(da)*length,arena.l+35,arena.r-35),y:clamp(e.y+Math.sin(da)*length,arena.t+35,arena.b-35),left:.48};
    }
    if(e.specialTimer<=0){
     e.specialTimer=(2.1+Math.random()*1.4)/rage;
     // Large delayed-looking shockwave around the boss.
     const aoeDmg=18+e.stage*6;
     const ar=72+e.stage*16;
-    ring(e.x,e.y,12,'#ff304e',.5,ar);
-    rings[rings.length-1].damage=aoeDmg;
-    rings[rings.length-1].hit=new Set();
+    scheduleHazard(e.x,e.y,ar,aoeDmg,.85,e);
     // Stage 2+ also throws a second offset blast.
     if(e.stage>=2){
       const oa=e.phase+Math.PI;
       const ox=clamp(e.x+Math.cos(oa)*105,arena.l+30,arena.r-30),oy=clamp(e.y+Math.sin(oa)*105,arena.t+30,arena.b-30);
-      ring(ox,oy,10,'#c45cff',.55,58+e.stage*10);
-      rings[rings.length-1].damage=aoeDmg*.8;
-      rings[rings.length-1].hit=new Set();
+      scheduleHazard(ox,oy,58+e.stage*10,aoeDmg*.8,1.05,e);
     }
    }
    if(e.attack<=0){
@@ -1112,9 +1126,9 @@ function updateEnemies(dt){
     }else if(e.kind===1){
       ring(e.x,e.y,28,'#ffb04f',.34,48);const count=6+e.stage*2;for(let i=0;i<count;i++){const a=i*TAU/count+e.phase*.3;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*118,vy:Math.sin(a)*118,life:1.8,r:3,damage:18+e.stage*4,pierce:99,color:'#ffb04f',enemy:true})}
     }else if(e.kind===2){
-      const a=Math.atan2(dy,dx);for(let s=-2;s<=2;s++){const aa=a+s*.11;projectiles.push({x:e.x,y:e.y,vx:Math.cos(aa)*165,vy:Math.sin(aa)*165,life:1.6,r:3,damage:16+e.stage*3,pierce:99,color:'#ff6a6a',enemy:true})}if(e.stage>=2)for(let i=0;i<2;i++)spawnEnemy();
+      const a=Math.atan2(dy,dx);for(let s=-2;s<=2;s++){const aa=a+s*.11;projectiles.push({x:e.x,y:e.y,vx:Math.cos(aa)*165,vy:Math.sin(aa)*165,life:1.6,r:3,damage:16+e.stage*3,pierce:99,color:'#ff6a6a',enemy:true})}if(e.stage>=2)summonMinions(2);
     }else if(e.kind===3){
-      ring(e.x,e.y,34,'#c96cff',.45,58);for(let i=0;i<4+e.stage;i++){const a=i*TAU/(4+e.stage)+e.phase;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*92,vy:Math.sin(a)*92,life:2.2,r:4,damage:20+e.stage*3,pierce:99,color:'#c66cff',enemy:true})}if(e.stage>=2){spawnEnemy();spawnEnemy();}
+      ring(e.x,e.y,34,'#c96cff',.45,58);for(let i=0;i<4+e.stage;i++){const a=i*TAU/(4+e.stage)+e.phase;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*92,vy:Math.sin(a)*92,life:2.2,r:4,damage:20+e.stage*3,pierce:99,color:'#c66cff',enemy:true})}if(e.stage>=2)summonMinions(2);
     }else if(e.kind===4){
       const a=Math.atan2(dy,dx);for(let s=-3;s<=3;s++){const aa=a+s*.07;projectiles.push({x:e.x,y:e.y,vx:Math.cos(aa)*190,vy:Math.sin(aa)*190,life:1.4,r:2.5,damage:14+e.stage*3,pierce:99,color:'#dfe7f2',enemy:true})}
       if(e.stage===3)e.lunge=.42;
@@ -1123,9 +1137,9 @@ function updateEnemies(dt){
     }
    }
    const bm=e.stage===3?1.48:e.stage===2?1.28:1.12;
-   if(e.kind===4&&e.lunge>0)e.x+=nx*230*dt,e.y+=ny*230*dt;else{e.x+=nx*e.speed*bm*dt;e.y+=ny*e.speed*bm*dt}
+   if(!e.charge){if(e.kind===4&&e.lunge>0)e.x+=nx*230*dt,e.y+=ny*230*dt;else{e.x+=nx*e.speed*bm*dt;e.y+=ny*e.speed*bm*dt}}
    e.x=clamp(e.x,arena.l+24,arena.r-24);e.y=clamp(e.y,arena.t+24,arena.b-24);
-   if(d<42)hurtPlayer(tp,dt*(18+e.stage*4),e.x,e.y);
+   if(Math.hypot(tp.x-e.x,tp.y-e.y)<42)hurtPlayer(tp,dt*(18+e.stage*4),e.x,e.y);
   }else if(e.type==='eye'){
    const desired=d>185?1:-1;e.x+=nx*e.speed*dt*desired;e.y+=ny*e.speed*dt*desired;e.attack-=dt;
    if(e.attack<=0){e.attack=1.0+Math.random()*.45;const a=Math.atan2(dy,dx);for(let q=-1;q<=1;q++){const aa=a+q*.08;projectiles.push({x:e.x,y:e.y,vx:Math.cos(aa)*150,vy:Math.sin(aa)*150,life:1.8,r:3,damage:9,pierce:99,color:'#e64b62',enemy:true})}}
@@ -1134,13 +1148,13 @@ function updateEnemies(dt){
   }else if(e.type==='crawler'){
    e.x+=nx*e.speed*dt+Math.cos(e.phase*1.8)*1.1;e.y+=ny*e.speed*dt+Math.sin(e.phase*1.8)*1.1;if(d<17)hurtPlayer(tp,dt*14,e.x,e.y);
   }else if(e.type==='butcher'){
-   e.x+=nx*e.speed*dt;e.y+=ny*e.speed*dt;e.attack-=dt;if(e.attack<=0&&d<110){e.attack=.78;ring(e.x,e.y,24,'#ef5962',.22,30);hurtPlayer(tp,14,e.x,e.y)}if(d<25)hurtPlayer(tp,dt*10,e.x,e.y);
+   e.x+=nx*e.speed*dt;e.y+=ny*e.speed*dt;e.attack-=dt;if(e.attack<=0&&d<110){e.attack=.78;scheduleHazard(e.x,e.y,45,14,.48,e)}if(d<25)hurtPlayer(tp,dt*10,e.x,e.y);
   }else if(e.type==='wretch'){
    const wobble=Math.sin(e.phase*2)*.9;e.x+=nx*e.speed*dt+ny*wobble;e.y+=ny*e.speed*dt-nx*wobble;e.attack-=dt;if(e.attack<=0){e.attack=rnd(.95,1.55);const a=Math.atan2(dy,dx);projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*105,vy:Math.sin(a)*105,life:2.2,r:4,damage:12,pierce:99,color:'#b26bff',enemy:true})}if(d<19)hurtPlayer(tp,dt*12,e.x,e.y);
   }else if(e.type==='slicer'){
    e.attack-=dt;if(e.attack<=0&&d<240){e.attack=1.55;e.lunge=.28}const mult=e.lunge>0?3.2:1;e.x+=nx*e.speed*mult*dt;e.y+=ny*e.speed*mult*dt;if(d<22)hurtPlayer(tp,dt*(e.lunge>0?22:8),e.x,e.y);
   }else if(e.type==='maw'){
-   e.x+=nx*e.speed*dt;e.y+=ny*e.speed*dt;e.attack-=dt;if(e.attack<=0&&d<170){e.attack=1.8;ring(e.x,e.y,38,'#8d2635',.3,48);hurtPlayer(tp,18,e.x,e.y)}if(d<27)hurtPlayer(tp,dt*13,e.x,e.y);
+   e.x+=nx*e.speed*dt;e.y+=ny*e.speed*dt;e.attack-=dt;if(e.attack<=0&&d<170){e.attack=1.8;scheduleHazard(e.x,e.y,65,18,.65,e)}if(d<27)hurtPlayer(tp,dt*13,e.x,e.y);
   }else if(e.type==='boiler'){
    const desired=d>240?1:-.35;e.x+=nx*e.speed*dt*desired;e.y+=ny*e.speed*dt*desired;e.attack-=dt;if(e.attack<=0){e.attack=1.4+Math.random()*.5;for(let i=-1;i<=1;i++){const a=Math.atan2(dy,dx)+i*.14;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*115,vy:Math.sin(a)*115,life:2,r:4,damage:12,pierce:99,color:'#f29c52',enemy:true})}}
   }else if(e.type==='spitter'){
@@ -1148,13 +1162,13 @@ function updateEnemies(dt){
   }else if(e.type==='parasite'){
    const side=e.orbit||1;e.x+=(-ny)*e.speed*.9*side*dt+nx*e.speed*.72*dt;e.y+=(nx)*e.speed*.9*side*dt+ny*e.speed*.72*dt;e.attack-=dt;if(e.attack<=0){e.attack=2.1;spawnParticles(e.x,e.y,10,'#8bd96e',.5)}if(d<19)hurtPlayer(tp,dt*15,e.x,e.y);
   }else if(e.type==='siren'){
-   const desired=d>170?1:-1;e.x+=nx*e.speed*dt*desired+(-ny)*Math.sin(e.phase)*.7;e.y+=ny*e.speed*dt*desired+nx*Math.sin(e.phase)*.7;e.attack-=dt;if(e.attack<=0){e.attack=2.0;ring(e.x,e.y,46,'#78a9ff',.55,76);if(d<80)hurtPlayer(tp,18,e.x,e.y)}
+   const desired=d>170?1:-1;e.x+=nx*e.speed*dt*desired+(-ny)*Math.sin(e.phase)*.7;e.y+=ny*e.speed*dt*desired+nx*Math.sin(e.phase)*.7;e.attack-=dt;if(e.attack<=0){e.attack=2.0;scheduleHazard(e.x,e.y,80,18,.65,e)}
   }else if(e.type==='hands'){
    const side=e.orbit||1;e.x+=nx*e.speed*.45*dt+(-ny)*e.speed*.85*side*dt;e.y+=ny*e.speed*.45*dt+nx*e.speed*.85*side*dt;if(d<20)hurtPlayer(tp,dt*17,e.x,e.y);
   }else if(e.type==='feaster'){
-   const slow=d<150?.55:1;e.x+=nx*e.speed*slow*dt;e.y+=ny*e.speed*slow*dt;e.attack-=dt;if(e.attack<=0&&d<190){e.attack=1.15;ring(e.x,e.y,30,'#ff4e4e',.3,44);hurtPlayer(tp,15,e.x,e.y)}if(d<28)hurtPlayer(tp,dt*15,e.x,e.y);
+   const slow=d<150?.55:1;e.x+=nx*e.speed*slow*dt;e.y+=ny*e.speed*slow*dt;e.attack-=dt;if(e.attack<=0&&d<190){e.attack=1.15;scheduleHazard(e.x,e.y,58,15,.55,e)}if(d<28)hurtPlayer(tp,dt*15,e.x,e.y);
   }else{
-   const wobble=Math.sin(e.phase)*.14;e.x+=nx*e.speed*dt+Math.cos(e.phase)*wobble;e.y+=ny*e.speed*dt+Math.sin(e.phase)*wobble;e.attack-=dt;if(e.attack<=0){e.attack=rnd(.7,1.5);if(e.type==='knife'){const a=Math.atan2(dy,dx);projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*125,vy:Math.sin(a)*125,life:1.6,r:2.5,damage:8,pierce:99,color:'#cbd2e0',enemy:true})}}if(d<18&&player.inv<=0)hurtPlayer(tp,dt*9,e.x,e.y);
+   const wobble=Math.sin(e.phase)*.14;e.x+=nx*e.speed*dt+Math.cos(e.phase)*wobble;e.y+=ny*e.speed*dt+Math.sin(e.phase)*wobble;e.attack-=dt;if(e.attack<=0){e.attack=rnd(.7,1.5);if(e.type==='knife'){const a=Math.atan2(dy,dx);projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*125,vy:Math.sin(a)*125,life:1.6,r:2.5,damage:8,pierce:99,color:'#cbd2e0',enemy:true})}}if(d<18)hurtPlayer(tp,dt*9,e.x,e.y);
   }
   e.x=clamp(e.x,arena.l+4,arena.r-4);e.y=clamp(e.y,arena.t+4,arena.b-4);
  }
@@ -1163,23 +1177,26 @@ function updateEnemies(dt){
 function updateProjectiles(dt){
  for(const p of projectiles){
   p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;
+  if(p.life<=0)continue;
   if(p.enemy){
    const tp=targetPlayer(p);
-   if(tp&&Math.hypot(p.x-tp.x,p.y-tp.y)<8)hurtPlayer(tp,p.damage,p.x,p.y);
+   if(tp&&Math.hypot(p.x-tp.x,p.y-tp.y)<8){hurtPlayer(tp,p.damage,p.x,p.y);p.life=0;}
   }else{
+   if(!p.hit)p.hit=new Set();
    for(const e of enemies){
-    if(e.dead)continue;
+    if(e.dead||p.hit.has(e))continue;
     if(Math.hypot(p.x-e.x,p.y-e.y)<e.r+4){
+      p.hit.add(e);
       damageEnemy(e,p.damage,p.owner);
       if(p.bleed)e.bleed=Math.max(e.bleed||0,p.bleed);
       if(p.poison)e.poison=Math.max(e.poison||0,p.poison);
       if(p.explosive&&p.explosionRadius){
         ring(p.x,p.y,5,p.color,.25,p.explosionRadius);
-        rings[rings.length-1].damage=p.damage*.58;
+        rings[rings.length-1].damage=p.damage*.58;rings[rings.length-1].owner=p.owner;
         rings[rings.length-1].hit=new Set();
         spawnParticles(p.x,p.y,14,p.color,1.1);
       }
-      if(p.pierce>0)p.pierce--;else p.life=0;
+      if(p.pierce>0)p.pierce--;else{p.life=0;break}
     }
    }
   }
@@ -1300,10 +1317,10 @@ function update(dt){
  camera.x=clamp(camera.x,W/2,world.w-W/2);camera.y=clamp(camera.y,H/2,world.h-H/2);
  horrorTime+=dt;for(const p of coopPlayers()){p.fire=Math.max(0,p.fire-dt);p.dash=Math.max(0,p.dash-dt);p.inv=Math.max(0,p.inv-dt)}
  if(!player.dead&&(mouse.down||touchInput.attack))attack();
- updateEnemies(dt);updateProjectiles(dt);updateRings(dt);updateDrops(dt);updateFx(dt);
+ updateEnemies(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);updateFx(dt);
  enemies=enemies.filter(e=>!e.dead);
  if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if(waveTime>=delay||enemies.length===0){waveTime=0;spawnEnemy();spawned++}}
- if(waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';between=1.6;toast('ВОЛНА ЗАЧИЩЕНА');for(const cp of coopPlayers())gainXPFor(cp,35,cp===player)}
+ if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';between=1.6;toast('ВОЛНА ЗАЧИЩЕНА');for(const cp of coopPlayers())gainXPFor(cp,35,cp===player)}
  if(!alivePlayers().length)return;
  if(waveState==='clear'){between-=dt;if(between<=0){wave++;beginWave()}}
  combo=Math.max(1,combo-dt*.12);
@@ -1586,7 +1603,7 @@ function draw(){
  const sx=Math.max(arena.l-20,Math.floor(camera.x-W/2)-30), ex=Math.min(arena.r+20,Math.ceil(camera.x+W/2)+30);
  const sy=Math.max(arena.t-20,Math.floor(camera.y-H/2)-30), ey=Math.min(arena.b+20,Math.ceil(camera.y+H/2)+30);
  const tile=18;
- for(let y=Math.floor(sy/tile)*tile;y<ey;y+=tile){for(let x=Math.floor(sx/tile)*tile;x<ex;x+=tile){ctx.fillStyle=((x+y)/tile%2)?m.tile:'#191218';ctx.fillRect(x,y,17,17);ctx.fillStyle='#2a1b24';ctx.fillRect(x,y+16,17,1)}}
+ for(let y=Math.floor(sy/tile)*tile;y<ey;y+=tile){for(let x=Math.floor(sx/tile)*tile;x<ex;x+=tile){ctx.fillStyle=((x+y)/tile%2)?m.tile:m.floor;ctx.fillRect(x,y,17,17);ctx.globalAlpha=.22;ctx.fillStyle=m.accent;ctx.fillRect(x,y+16,17,1);if(((x/tile|0)*13+(y/tile|0)*7)%11===0){ctx.fillRect(x+3,y+6,5,1);ctx.fillRect(x+8,y+7,1,4)}ctx.globalAlpha=1}}
  // huge outer walls
  ctx.fillStyle='#060508';ctx.fillRect(0,0,world.w,arena.t-12);ctx.fillRect(0,arena.b+12,world.w,world.h-arena.b);ctx.fillRect(0,0,arena.l-12,world.h);ctx.fillRect(arena.r+12,0,world.w-arena.r,world.h);
  // repeating horror lamps / pipes / furniture
@@ -1667,6 +1684,14 @@ function draw(){
  }
  // blood stains and corpses
  for(const b of blood){ctx.globalAlpha=b.a;ctx.fillStyle='#4f0913';ctx.fillRect(Math.round(b.x-b.r),Math.round(b.y-b.r*.45),Math.max(2,Math.round(b.r*2)),Math.max(2,Math.round(b.r*.9)));ctx.fillStyle='#9f1829';ctx.fillRect(Math.round(b.x-b.r*.55),Math.round(b.y-b.r*.25),Math.max(2,Math.round(b.r*1.1)),Math.max(2,Math.round(b.r*.5)))}ctx.globalAlpha=1;
+ // enemy warnings: fixed radius, shrinking countdown ring, no reliance on color alone
+ for(const h of hazards){
+   const progress=clamp(h.remaining/h.duration,0,1);
+   ctx.save();ctx.fillStyle='rgba(255,55,68,.12)';ctx.strokeStyle='#ff6371';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(h.x,h.y,h.radius,0,TAU);ctx.fill();ctx.stroke();
+   ctx.strokeStyle='#ffd4a4';ctx.beginPath();ctx.arc(h.x,h.y,h.radius*progress,0,TAU);ctx.stroke();
+   drawPixelText('!',h.x,h.y,11,'#ffd4a4','center');ctx.restore();
+ }
+ for(const e of enemies){if(e.type!=='boss'||!e.charge)continue;ctx.save();ctx.strokeStyle='#ffaf65';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.lineTo(e.charge.x,e.charge.y);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.arc(e.charge.x,e.charge.y,26,0,TAU);ctx.stroke();ctx.restore();}
  // enemies + combat
  for(const d of drops){if(d.type==='relic'){const q=1+Math.floor((Math.sin(d.pulse*8)+1)*.5);ctx.fillStyle='#4b1b5f';ctx.fillRect(Math.round(d.x)-7-q,Math.round(d.y)-7-q,14+q*2,14+q*2);ctx.fillStyle='#cf79ff';ctx.fillRect(Math.round(d.x)-4,Math.round(d.y)-4,9,9);ctx.fillStyle='#f2d6ff';ctx.fillRect(Math.round(d.x)-1,Math.round(d.y)-5,3,11);ctx.fillRect(Math.round(d.x)-5,Math.round(d.y)-1,11,3)}else{ctx.fillStyle=d.type==='xp'?'#5fe0a5':'#f0b04e';ctx.fillRect(Math.round(d.x)-2,Math.round(d.y)-2,5,5);ctx.fillStyle='#0b0910';ctx.fillRect(Math.round(d.x)-1,Math.round(d.y)-1,3,3)}}
  for(const r of rings){ctx.strokeStyle=r.color;ctx.globalAlpha=clamp(r.life/r.maxlife,0,1);ctx.lineWidth=2;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,TAU);ctx.stroke();ctx.globalAlpha=1}
@@ -1676,7 +1701,7 @@ function draw(){
  for(const t of texts){ctx.globalAlpha=clamp(t.life/.7,0,1);drawPixelText(t.s,t.x,t.y,7,t.color,'center')}ctx.globalAlpha=1;
  // subtle pixel horror vignette/flicker over the world
  const vg=ctx.createRadialGradient(camera.x,camera.y,48,camera.x,camera.y,260);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(.72,'rgba(0,0,0,.22)');vg.addColorStop(1,'rgba(0,0,0,.74)');ctx.fillStyle=vg;ctx.fillRect(camera.x-W/2,camera.y-H/2,W,H);
- const fogA=.05+.035*Math.sin(horrorTime*2.3);ctx.fillStyle='rgba(115,24,38,'+fogA+')';ctx.fillRect(camera.x-W/2,camera.y-H/2,W,H);
+ const fogA=reduceMotion?.045:.045+.025*Math.sin(horrorTime*2.3);ctx.save();ctx.globalAlpha=fogA;ctx.fillStyle=m.accent;ctx.fillRect(camera.x-W/2,camera.y-H/2,W,H);ctx.restore();
  if(state==='death'){const v=clamp((deathTimer-.35)/2.2,0,1);ctx.fillStyle='rgba(18,0,5,'+(0.18+v*.56)+')';ctx.fillRect(camera.x-W/2,camera.y-H/2,W,H);drawPixelText('ПЕЛЬМЕНЬ ПРИГОВОРЁН',camera.x, camera.y-90,11,'#ef5862','center');if(deathTimer>.75)drawPixelText('ЕГО ЖРУТ',camera.x,camera.y+102,12,'#ffcf8d','center');if(deathTimer>1.35)drawPixelText('НЕ СМОТРИ НАЗАД',camera.x,camera.y+83,7,'#b83d49','center')}
  ctx.restore();
  if(state==='game'){const p=onlineMode&&isOnlineGuest?player2:player;if(!p.dead){const px=Math.round(p.x-camera.x+W/2),py=Math.round(p.y-camera.y+H/2);if(px>=12&&px<W-12&&py>=18&&py<H-16){ctx.save();ctx.globalAlpha=.9;ctx.strokeStyle=p.dash<=0?'#6fe1a2':'#ad7d66';ctx.lineWidth=1;ctx.beginPath();ctx.arc(px,py+12,14,0,Math.PI*2);ctx.stroke();ctx.restore()}}}
