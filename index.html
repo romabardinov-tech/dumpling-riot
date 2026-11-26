@@ -613,6 +613,12 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 html.inGame body:has(#ritualOverlay:not([hidden])){touch-action:pan-y}
 #finalMeta{color:#d8b1fc}
 @media(max-height:520px) and (orientation:landscape){#homePanel #altarHome{grid-column:2;min-height:36px;margin:0}.ritualOption{min-height:38px;padding:5px}#ritualOverlay .ritualBox{padding:8px}#ritualTitle{font-size:16px}}
+/* V49 loot and evolution accents */
+#levelup .evolutionChoice{border-color:#dfad70;background:#382839}
+#levelup .evolutionChoice .upgradeEffect{color:#ffdc9c}
+#mobileWeapons .mw.evolved,#weaponHud .weapon.evolved{border-color:#ffce83;box-shadow:inset 0 0 0 1px #b9824d}
+#lootHud{color:#d7b0ff;font-size:10px}
+#lootHud[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -622,7 +628,7 @@ html.inGame body:has(#ritualOverlay:not([hidden])){touch-action:pan-y}
   <div class="panel hud"><div class="stat"><span id="hpLabel">HP</span> <span id="hpTxt">100</span><div class="bar"><div id="hpFill" class="fill" style="background:#d94b57;width:100%"></div></div></div><div class="stat"><span id="xpLabel">XP</span> <span id="xpTxt">0/100</span><div class="bar"><div id="xpFill" class="fill" style="background:#5fe0a5;width:0%"></div></div></div><div><span id="lvlLabel">УР.</span><br><b id="lvlTxt">1</b></div><div><span id="waveLabel">ВОЛНА</span><br><b id="waveTxt">1</b></div></div>
   <div id="p2Hud" class="panel"><div><span id="p2Label">P2</span> <span id="p2HpTxt">0</span></div><div class="bar"><div id="p2HpFill" class="fill" style="background:#5fe0a5;width:100%"></div></div></div><div id="localLevelPanel" class="panel"><div class="localLevelTitle" id="localLevelTitle">ТВОЙ УРОВЕНЬ</div><div class="localLevelRow"><b id="localLvlTxt">1</b><div class="localXp"><i id="localXpFill"></i></div><span id="localXpTxt">0/100</span></div></div>
   <div id="bossHud" class="panel"><div class="bossTitle" id="bossName">БОСС</div><div class="bossbar"><div id="bossFill" class="bossfill" style="width:100%"></div></div></div>
-  <div id="rightHud" class="panel"><div><span id="scoreLabel">ОЧКИ</span> <b id="scoreTxt">0</b></div><div class="small" id="targetTxt">ВРАГОВ: 0</div></div>
+  <div id="rightHud" class="panel"><div><span id="scoreLabel">ОЧКИ</span> <b id="scoreTxt">0</b></div><div class="small" id="targetTxt">ВРАГОВ: 0</div><div id="lootHud" class="small" hidden></div></div>
   <div id="weaponHud"></div>
   <div id="relicHud" class="panel relic-card" style="display:none;right:10px;bottom:52px;left:auto"><b>СЕРДЦЕ КУХНИ</b><span id="relicLabel">УНИКАЛЬНАЯ РЕЛИКВИЯ</span></div>
   <div id="abilityHud" class="panel"><div class="abilityRow"><span id="dashHudLabel">РЫВОК</span><b id="dashHudValue">—</b></div><div class="bar"><div id="dashHudFill" class="fill" style="background:#6fe1a2"></div></div><div class="abilityRow"><span id="bombHudLabel">БОМБЫ</span><b id="bombHudValue">3</b></div></div><div id="toast">READY</div><div id="npcSubtitle" role="status" aria-live="polite" hidden><b id="npcSpeaker"></b><span id="npcWords"></span></div>
@@ -727,7 +733,8 @@ const heroWeaponTune={
 function heroWeaponStats(p,i){
  const base=weapons[i],lv=(p&&Array.isArray(p.weaponLevels)?p.weaponLevels[i]:weaponLevels[i])||1,ch=chars.find(c=>c.id===(p&&p.charId))||chars[0],mult=(heroWeaponMods[ch.id]||heroWeaponMods.scar)[i]||1,tune=(heroWeaponTune[ch.id]||heroWeaponTune.scar)[i]||{d:1,r:1};
  const rateMod=ch.id==='assassin'?1.28:ch.id==='golem'?.72:ch.id==='pelmage'?1.08:1,speedMod=ch.id==='nyx'?1.32:ch.id==='assassin'?1.45:ch.id==='golem'?.78:ch.id==='pelmage'?1.2:1;
- return {...base,name:ch.weaponNames?.[i]||base.name,enName:ch.enWeaponNames?.[i]||base.enName,dmg:base.dmg*mult*tune.d*(1+(lv-1)*.22),rate:base.rate*tune.r*Math.pow(.95,lv-1)/rateMod,speed:base.speed*speedMod*(1+(lv-1)*.045),pierce:base.pierce+Math.floor((lv-1)/4),level:lv};
+ const evo=p?.evolved?.[i]?evolutionPaths[i]:null;
+ return {...base,name:(evo?'✦ ':'')+(ch.weaponNames?.[i]||base.name),enName:(evo?'✦ ':'')+(ch.enWeaponNames?.[i]||base.enName),dmg:base.dmg*mult*tune.d*(1+(lv-1)*.22)*(evo?.damage||1),rate:base.rate*tune.r*Math.pow(.95,lv-1)/rateMod*(evo?.rate||1),speed:base.speed*speedMod*(1+(lv-1)*.045),pierce:base.pierce+Math.floor((lv-1)/4),level:lv};
 }
 function weaponStats(i){return heroWeaponStats(player,i);}
 function weaponChargeDuration(p,i){
@@ -752,6 +759,62 @@ function normalizeLanguage(value){return Object.prototype.hasOwnProperty.call(su
 let lang=normalizeLanguage(readStorage('dumpling-riot-lang','en'));
 document.documentElement.lang=lang;
 // V48: solo meta progression, risk contracts, and escalating ritual choices.
+// V49: run-only loot, local elite encounters, and weapon evolution.
+const lootRarities={rare:{en:'Rare',ru:'Редкий',color:'#76c9f5'},epic:{en:'Epic',ru:'Эпический',color:'#c192ff'},legendary:{en:'Legendary',ru:'Легендарный',color:'#ffca76'}};
+const runArtifacts=[
+ {id:'fang',rarity:'rare',en:'Iron fang',ru:'Железный клык',descEn:'+12% damage',descRu:'+12% урона'},
+ {id:'boots',rarity:'rare',en:'Grave boots',ru:'Могильные сапоги',descEn:'+12% movement speed',descRu:'+12% скорости'},
+ {id:'clock',rarity:'rare',en:'Broken clock',ru:'Разбитые часы',descEn:'+15% attack rate',descRu:'+15% скорости атаки'},
+ {id:'heart',rarity:'epic',en:'Hollow heart',ru:'Пустое сердце',descEn:'+25 maximum HP and recover 25 HP',descRu:'+25 максимального HP и лечение 25 HP'},
+ {id:'mirror',rarity:'epic',en:'Witch mirror',ru:'Зеркало ведьмы',descEn:'Incoming damage −12%',descRu:'Получаемый урон −12%'},
+ {id:'eye',rarity:'epic',en:'Third eye',ru:'Третий глаз',descEn:'+12 percentage points critical chance',descRu:'+12 п.п. шанса крита'},
+ {id:'crown',rarity:'legendary',en:'Crown of ashes',ru:'Корона пепла',descEn:'+25% damage, +2 bombs',descRu:'+25% урона, +2 бомбы'},
+ {id:'soul',rarity:'legendary',en:'Soul lantern',ru:'Фонарь душ',descEn:'Recover 2 HP after each kill',descRu:'Восстанавливает 2 HP за убийство'},
+ {id:'void',rarity:'legendary',en:'Void compass',ru:'Компас пустоты',descEn:'XP attraction radius ×2',descRu:'Радиус притяжения опыта ×2'}
+];
+const evolutionPaths=[
+ {en:'Ravenous',ru:'Пожирающее',descEn:'Damage +25%; close-range shockwave on each attack',descRu:'Урон +25%; ударная волна при атаке',damage:1.25,rate:1},
+ {en:'Phantom',ru:'Призрачное',descEn:'Attack rate +25%; extra piercing projectile',descRu:'Скорость атаки +25%; дополнительный пробивающий снаряд',damage:1,rate:.8},
+ {en:'Cataclysm',ru:'Катаклизм',descEn:'Damage +20%; blast at target',descRu:'Урон +20%; взрыв в направлении цели',damage:1.2,rate:1},
+ {en:'Nightfall',ru:'Сумеречное',descEn:'Damage +15%; two extra spectral shots',descRu:'Урон +15%; два дополнительных призрачных снаряда',damage:1.15,rate:1}
+];
+const eliteProfiles={
+ kitchen:{en:'Furnace butcher',ru:'Печной мясник',color:'#ff9b63',style:'furnace'},
+ basement:{en:'Circuit abomination',ru:'Кабельная тварь',color:'#8be6ff',style:'circuit'},
+ foodcourt:{en:'Neon mimic',ru:'Неоновый мимик',color:'#ff85d1',style:'neon'},
+ slaughter:{en:'Chain reaper',ru:'Цепной жнец',color:'#ff7b75',style:'blade'},
+ cemetery:{en:'Crypt sentinel',ru:'Страж склепа',color:'#e2c7ff',style:'grave'},
+ forest:{en:'Spore guardian',ru:'Страж спор',color:'#b0ed86',style:'spore'}
+};
+function artifactById(id){return runArtifacts.find(a=>a.id===id)}
+function chooseArtifact(owned,random=Math.random){
+ const pool=runArtifacts.filter(a=>!owned.includes(a.id));if(!pool.length)return null;
+ const roll=random(),tier=roll<.12?'legendary':roll<.43?'epic':'rare',available=pool.filter(a=>a.rarity===tier),options=available.length?available:pool;
+ return options[Math.min(options.length-1,Math.floor(random()*options.length))];
+}
+function applyArtifact(p,id){
+ const a=artifactById(id);if(!a||!Array.isArray(p.artifacts)||p.artifacts.includes(id))return false;
+ p.artifacts.push(id);
+ switch(id){case'fang':p.boost.dmg*=1.12;break;case'boots':p.boost.move*=1.12;break;case'clock':p.boost.rate*=1.15;break;case'heart':p.maxhp+=25;p.hp=Math.min(p.maxhp,p.hp+25);break;case'eye':p.boost.crit=Math.min(1,p.boost.crit+.12);break;case'crown':p.boost.dmg*=1.25;p.bomb=Math.min(9,p.bomb+2);break}
+ return true;
+}
+function canEvolve(p,i){return Number.isInteger(i)&&i>=0&&i<4&&(p.weaponLevels?.[i]||0)>=5&&Array.isArray(p.evolved)&&!p.evolved[i]}
+function evolveWeapon(p,i){if(!canEvolve(p,i))return false;p.evolved[i]=true;return true}
+function eliteWave(w){return Number.isInteger(w)&&w>=4&&w%5===4}
+function empowerElite(e,map){const p=eliteProfiles[map];if(!p)return false;e.elite=map;e.hp*=5;e.maxhp=e.hp;e.speed*=.86;e.r=Math.round(e.r*1.3);e.eliteTimer=1.5;return true}
+function elitePattern(e,tp){
+ const style=eliteProfiles[e.elite]?.style,a=Math.atan2(tp.y-e.y,tp.x-e.x),x=tp.x,y=tp.y;
+ const mark=(x,y,r,delay)=>({x,y,r,delay});
+ switch(style){
+ case'furnace':return [mark(e.x,e.y,60,.85)];
+ case'circuit':return [-1,0,1].map(i=>mark(x+Math.cos(a+Math.PI/2)*i*36,y+Math.sin(a+Math.PI/2)*i*36,21,.9+Math.abs(i)*.18));
+ case'neon':return [mark(x,y,38,1.05)];
+ case'blade':return [1,2,3].map(i=>mark(e.x+Math.cos(a)*i*39,e.y+Math.sin(a)*i*39,23,.7+i*.16));
+ case'grave':return [mark(e.x,e.y,44,.75),mark(x,y,30,1.15)];
+ case'spore':return [0,1,2].map(i=>mark(x+Math.cos(a+i*Math.PI*2/3)*38,y+Math.sin(a+i*Math.PI*2/3)*38,24,1.1));
+ default:return [];
+ }
+}
 const META_KEY='dumpling-riot-meta-v1';
 const metaPerks=[{id:'vitality',en:'Iron Heart',ru:'Железное сердце',descEn:'+8 starting HP per rank',descRu:'+8 начального HP за уровень'},{id:'power',en:'Blood Pact',ru:'Кровавый договор',descEn:'+4% starting damage per rank',descRu:'+4% начального урона за уровень'},{id:'haste',en:'Shadow Step',ru:'Теневой шаг',descEn:'+3% movement speed per rank',descRu:'+3% скорости за уровень'}];
 const runContracts=[{id:'normal',en:'Standard hunt',ru:'Обычная охота',descEn:'Standard rewards',descRu:'Обычная награда',mult:1,hp:1,speed:1,hurt:1},{id:'frenzy',en:'Frenzy',ru:'Безумие',descEn:'Enemies move 20% faster · +50% shards',descRu:'Враги быстрее на 20% · +50% осколков',mult:1.5,hp:1,speed:1.2,hurt:1},{id:'iron',en:'Iron nightmare',ru:'Железный кошмар',descEn:'Enemies have 30% more HP · +50% shards',descRu:'У врагов на 30% больше HP · +50% осколков',mult:1.5,hp:1.3,speed:1,hurt:1},{id:'blood',en:'Blood moon',ru:'Кровавая луна',descEn:'Take 30% more damage · double shards',descRu:'Получаемый урон +30% · двойные осколки',mult:2,hp:1,speed:1,hurt:1.3}];
@@ -1480,7 +1543,7 @@ function setHud(on){
  document.documentElement.classList.toggle('inGame',!!on)
 }
 function requestMobileFullscreen(){try{if(window.Capacitor?.isNativePlatform?.())return;if(!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}if(screen.orientation&&screen.orientation.lock){const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
-function resetPlayer(p,ch,x,y){p.weaponLevels=[1,1,1,1];p.charId=ch.id;p.x=x;p.y=y;p.serverX=x;p.serverY=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.canRevive=false;p.hurtT=0;p.hurtLean=0;p.weaponCharge=[1,1,1,1];p.shivCharge=1;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[]}
+function resetPlayer(p,ch,x,y){p.weaponLevels=[1,1,1,1];p.charId=ch.id;p.x=x;p.y=y;p.serverX=x;p.serverY=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.canRevive=false;p.hurtT=0;p.hurtLean=0;p.weaponCharge=[1,1,1,1];p.shivCharge=1;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[];p.artifacts=[];p.evolved=[false,false,false,false]}
 function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e){e.dataset.initial='false';e.textContent=t}}
 const makeRoomCode=()=>String(rndi(10000,99999));
 // V47: solo and local play never request a network library.
@@ -1698,9 +1761,9 @@ function beginWave(){
    initAudio();bossDialogue(boss,true);
  }
  const first=waveSpawnBudget(wave,coop,targetCount);
- const localPool=arenaEnemyPool(selectedMap,wave);let localIndex=0;while(spawned<first){spawnEnemy(localIndex<localPool.length?localPool[localIndex]:null);localIndex++;spawned++}
+ const localPool=arenaEnemyPool(selectedMap,wave);if(soloRun&&eliteWave(wave)&&spawned<first){const e=spawnEnemy(localPool[localPool.length-1]);empowerElite(e,selectedMap);spawned++;}let localIndex=0;while(spawned<first){spawnEnemy(localIndex<localPool.length?localPool[localIndex]:null);localIndex++;spawned++}
  waveTime=0;
- toast((L("WAVE ","ВОЛНА "))+wave+(bossWave?(L(" · BOSS INCOMING"," · БОСС")) : activeOmen.id!=='none'?' · '+metaLabel(activeOmen):''));if(activeOmen.id!=='none')toastTimer=3;
+ toast((L("WAVE ","ВОЛНА "))+wave+(bossWave?(L(" · BOSS INCOMING"," · БОСС")) : activeOmen.id!=='none'?' · '+metaLabel(activeOmen):''));if(activeOmen.id!=='none')toastTimer=3;if(soloRun&&eliteWave(wave)){toast(L('ELITE HUNT','ОХОТА НА ЭЛИТУ')+' · '+metaLabel(eliteProfiles[selectedMap]));toastTimer=3.5;}
 }
 function makeBoss(w){
  const p=bossForMap(selectedMap,w),hp=Math.round((1750+w*265)*p.hp),pos=enemySpawnPoint(camera,alivePlayers().length?alivePlayers():[player],arena);
@@ -1749,7 +1812,7 @@ function hurtPlayer(p,dmg,x=p.x,y=p.y){
  const ch=chars.find(c=>c.id===p.charId)||chars[0];
  if(p.heroUpgrades?.includes('armor'))dmg*=.72;
  if(ch.id==='golem')dmg*=.78;
- if(soloRun)dmg*=contractFor(soloRun.contract).hurt;
+ if(soloRun)dmg*=contractFor(soloRun.contract).hurt;if(p.artifacts?.includes('mirror'))dmg*=.88;
  p.hp-=dmg;p.inv=.16;p.hurtT=.24;p.hurtLean=(Math.random()<.5?-1:1)*(.16+Math.random()*.12);
  initAudio();sfx('hurt');playPainVoice(p);bloodBurst(p.x,p.y,5,.45);shake=Math.max(shake,.07);
  if(p.hp<=0)startDeath(p)
@@ -1807,24 +1870,25 @@ function buildUpgradeOptions(p){
    const lv=(p.weaponLevels||weaponLevels)[i]||1;
    if(lv<8)pool.push({id:'weapon_'+i,title:(ch.weaponNames?.[i]||weapons[i].name)+' · УР. '+(lv+1),desc:'Урон +22% · скорострельность +5% · скорость +4.5%.',weapon:i});
  }
- for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}return pool.slice(0,3);
+ for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}const eligible=soloRun?[0,1,2,3].filter(i=>canEvolve(p,i)):[];if(eligible.length){const i=eligible.includes(weapon)?weapon:eligible[Math.floor(Math.random()*eligible.length)];return [{id:'evolve_'+i},...pool.slice(0,2)]}return pool.slice(0,3);
 }
 function applyUpgrade(p,o){
  if(!p||!o)return;
+ const evolution=/^evolve_([0-3])$/.exec(o.id);if(evolution){if(soloRun){const i=Number(evolution[1]);if(evolveWeapon(p,i)){p.weapon=i;if(p===player)weapon=i;}}return}
  switch(o.id){
   case'dmg':p.boost.dmg*=1.25;break;
   case'rate':p.boost.rate*=1.2;break;
   case'move':p.boost.move*=1.16;break;
   case'hp':p.maxhp+=35;p.hp=p.maxhp;break;
   case'bomb':p.bomb=Math.min(9,p.bomb+1);break;
-  case'crit':p.boost.crit+=.08;break;
+  case'crit':p.boost.crit=Math.min(1,p.boost.crit+.08);break;
   case'scar_blade':p.boost.dmg*=1.35;break;case'scar_armor':p.maxhp+=45;p.hp=p.maxhp;break;case'scar_wide':p.heroUpgrades.push('wide');break;
-  case'vesa_bleed':p.boost.crit+=.12;break;case'vesa_rate':p.boost.rate*=1.25;break;case'vesa_pierce':p.heroUpgrades.push('pierce');break;
+  case'vesa_bleed':p.boost.crit=Math.min(1,p.boost.crit+.12);break;case'vesa_rate':p.boost.rate*=1.25;break;case'vesa_pierce':p.heroUpgrades.push('pierce');break;
   case'nyx_move':p.boost.move*=1.25;break;case'nyx_dmg':p.boost.dmg*=1.3;break;case'nyx_pierce':p.heroUpgrades.push('pierce');break;
   case'pel_rate':p.boost.rate*=1.28;break;case'pel_dmg':p.boost.dmg*=1.35;break;case'pel_wide':p.heroUpgrades.push('wide');break;
-  case'ass_crit':p.boost.crit+=.18;break;case'ass_move':p.boost.move*=1.3;break;case'ass_dmg':p.boost.dmg*=1.35;break;
+  case'ass_crit':p.boost.crit=Math.min(1,p.boost.crit+.18);break;case'ass_move':p.boost.move*=1.3;break;case'ass_dmg':p.boost.dmg*=1.35;break;
   case'gol_armor':p.maxhp+=70;p.hp=p.maxhp;break;case'gol_dmg':p.boost.dmg*=1.45;break;case'gol_tank':p.boost.dmg*=1.1;p.heroUpgrades.push('armor');break;
-  default: if(o.id.startsWith('weapon_')){const i=Number(o.id.split('_')[1]);p.weaponLevels[i]=Math.min(8,(p.weaponLevels[i]||1)+1);p.weapon=i;}
+  default: if(o.id.startsWith('weapon_')){const i=Number(o.id.split('_')[1]);if(Number.isInteger(i)&&i>=0&&i<4){p.weaponLevels[i]=Math.min(8,(p.weaponLevels[i]||1)+1);p.weapon=i;if(p===player)weapon=i;}}
  }
 }
 function finishLevelUp(p,opt){
@@ -1840,7 +1904,8 @@ function finishLevelUp(p,opt){
  if(!onlineMode){while(upgradeQueue.length){const next=upgradeQueue.shift();if(!next.dead){openLevelUpFor(next);break}}}
 }
 function upgradePresentation(p,o){
- const id=o.id,en=lang==='en',ch=chars.find(x=>x.id===p.charId)||chars[0],w=/^weapon_([0-3])$/.exec(id);
+ const id=o.id,en=lang==='en',ch=chars.find(x=>x.id===p.charId)||chars[0],w=/^weapon_([0-3])$/.exec(id),ev=/^evolve_([0-3])$/.exec(id);
+ if(ev){const i=Number(ev[1]),q=evolutionPaths[i];return {icon:inventoryIcon(ch.id,i),title:metaLabel(q)+' · '+locName(heroWeaponStats(p,i)),effect:L('EVOLVE','ЭВОЛЮЦИЯ'),detail:metaDesc(q)}}
  if(w){const i=Number(w[1]),lv=p.weaponLevels?.[i]||1,old=heroWeaponStats(p,i).dmg*p.boost.dmg,newD=old*(1+lv*.22)/(1+(lv-1)*.22);return {icon:inventoryIcon(ch.id,i),title:locName(heroWeaponStats(p,i)),effect:(L("Level ","Уровень "))+lv+' → '+(lv+1),detail:(L("Damage ","Урон "))+Math.round(old)+' → '+Math.round(newD)}}
  const effects={dmg:['damage',25],rate:['rate',20],move:['move',16],hp:['hp',35],bomb:['bomb',1],crit:['crit',8],scar_blade:['damage',35],scar_armor:['hp',45],scar_wide:['wide',35],vesa_bleed:['crit',12],vesa_rate:['rate',25],vesa_pierce:['pierce',2],nyx_move:['move',25],nyx_dmg:['damage',30],nyx_pierce:['pierce',2],pel_rate:['rate',28],pel_dmg:['damage',35],pel_wide:['wide',35],ass_crit:['crit',18],ass_move:['move',30],ass_dmg:['damage',35],gol_armor:['hp',70],gol_dmg:['damage',45],gol_tank:['armor',28]};
  const [kind,v]=effects[id]||['damage',0];
@@ -1852,7 +1917,7 @@ function renderUpgradeChoice(d,p,o,i){
  const a=upgradePresentation(p,o);
  d.innerHTML='<span class="upgradeIcon">'+a.icon+'</span><span class="upgradeCopy"><h4></h4><p></p></span><strong class="upgradeEffect"></strong><span class="upgradeArrow">›</span>';
  d.querySelector('h4').textContent=a.title;d.querySelector('p').textContent=a.detail;d.querySelector('.upgradeEffect').textContent=a.effect;
- d.setAttribute('aria-label',a.title+' '+a.effect+' '+a.detail);
+ d.setAttribute('aria-label',a.title+' '+a.effect+' '+a.detail);d.classList.toggle('evolutionChoice',o.id.startsWith('evolve_'));
 }
 
 function openLevelUpFor(p,remoteOptions=null){
@@ -1905,6 +1970,7 @@ function attackFor(p,weaponIndex,target=null){
  });
  const ringHit=(x,y,max,color,life,dmg=damage)=>rings.push({x,y,r:4,max:wide?Math.round(max*1.35):max,color,life,maxlife:life,damage:dmg,hit:new Set(),owner:p===player?'p1':'p2'});
  const fx=(color,n=7)=>spawnParticles(p.x+Math.cos(ang)*10,p.y+Math.sin(ang)*10,n,color,.8);
+ if(p.evolved?.[weaponIndex]){const col='#ffd38b';switch(weaponIndex){case 0:ringHit(p.x,p.y,42,col,.22,damage*.27);break;case 1:proj(ang,damage*.42,{pierce:w.pierce+3,color:col});break;case 2:{const length=Math.min(105,Math.hypot(tx-p.x,ty-p.y));ringHit(p.x+Math.cos(ang)*length,p.y+Math.sin(ang)*length,34,col,.3,damage*.36);break}case 3:for(const side of [-1,1])proj(ang+side*.22,damage*.3,{pierce:w.pierce+1,color:col});break}fx(col,4)}
 
  if(ch.id==='scar'){
   if(weaponIndex===0){ringHit(p.x+Math.cos(ang)*18,p.y+Math.sin(ang)*18,68,'#e34d55',.25,damage*.92);fx('#ff6668',10);shake=Math.max(shake,.08);return}
@@ -2017,9 +2083,9 @@ function finishEnemyDeath(e){
 
  if(!e||e.dead)return;
  e.hp=0;e.dead=true;
- if(soloRun&&!soloRun.closed)soloRun.kills++;
+ if(soloRun&&!soloRun.closed){soloRun.kills++;if(!player.dead&&player.artifacts?.includes('soul'))player.hp=Math.min(player.maxhp,player.hp+2);if(e.elite){const owned=player.artifacts.concat(drops.filter(d=>d.type==='artifact').map(d=>d.artifact));const a=chooseArtifact(owned);if(a)drops.push({x:e.x,y:e.y,type:'artifact',artifact:a.id,life:1,pulse:0});else drops.push({x:e.x,y:e.y,type:'heal',value:35,life:24,pulse:0});toast(L('ELITE DEFEATED','ЭЛИТА ПОВЕРЖЕНА'));toastTimer=2.5;}}
  enemyDeathVoice(e.type);
- score+=e.type==='boss'?3200:[100,170,220][enemyTier(e.type)];
+ score+=e.type==='boss'?3200:e.elite?800:[100,170,220][enemyTier(e.type)];
  combo=Math.min(9,combo+.25);dropEnemyXP(e);
  if(e.type==='parasite'){for(let i=0;i<2;i++){const ang=rnd(0,TAU);spawnEnemy('sporeBeetle',{x:e.x+Math.cos(ang)*12,y:e.y+Math.sin(ang)*12})}}
  bloodBurst(e.x,e.y,e.type==='boss'?34:(e.type==='butcher'||e.type==='wretch'?22:15),e.type==='boss'?1.6:1.0);
@@ -2072,6 +2138,7 @@ function updateEnemies(dt){
   const tp=targetPlayer(e);if(!tp)continue;tp.hurtT=Math.max(0,(tp.hurtT||0)-dt);
   if(e.lunge>0)e.lunge-=dt;
   const dx=tp.x-e.x,dy=tp.y-e.y,d=Math.hypot(dx,dy)||1,nx=dx/d,ny=dy/d;
+  if(e.elite){e.eliteTimer-=dt;if(e.eliteTimer<=0&&d<220){e.eliteTimer=3.4;for(const h of elitePattern(e,tp))scheduleHazard(clamp(h.x,arena.l+8,arena.r-8),clamp(h.y,arena.t+8,arena.b-8),h.r,14,h.delay,e);}}
   if(e.type==='boss'){
    const ratio=e.hp/e.maxhp;
    const stage=ratio<.25?3:(ratio<.55?2:1);
@@ -2215,7 +2282,7 @@ function updateRings(dt){
 }
 function enemyXPValue(type){return type==='boss'?150:[34,42,50][enemyTier(type)]}
 function dropEnemyXP(e){
- const value=enemyXPValue(e.type),count=e.type==='boss'?5:1;
+ const value=e.elite?120:enemyXPValue(e.type),count=e.type==='boss'?5:e.elite?3:1;
  for(let i=0;i<count;i++){
   const angle=i*Math.PI*2/count,dist=count>1?16:0;
   drops.push({x:clamp(e.x+Math.cos(angle)*dist,arena.l+5,arena.r-5),y:clamp(e.y+Math.sin(angle)*dist,arena.t+5,arena.b-5),type:'xp',value:value/count,life:1,pulse:i*.3});
@@ -2224,7 +2291,7 @@ function dropEnemyXP(e){
 function updateDrops(dt){
  for(const d of drops){
   if(state!=='game')break;
-  if(d.type!=='xp')d.life-=dt;
+  if(d.type!=='xp'&&d.type!=='artifact')d.life-=dt;
   if(d.life<=0)continue;
   d.pulse=(d.pulse||0)+dt;
   const cps=alivePlayers();
@@ -2233,9 +2300,10 @@ function updateDrops(dt){
   if(!cp)continue;
   if(d.type==='xp'){
    // A small local attraction helps collection on touch screens; no remote XP credit.
-   if(dist>10&&dist<32){const s=Math.min(dist-9,100*dt);d.x+=(cp.x-d.x)/dist*s;d.y+=(cp.y-d.y)/dist*s;dist=Math.hypot(cp.x-d.x,cp.y-d.y)}
+   if(dist>10&&dist<(cp.artifacts?.includes('void')?64:32)){const s=Math.min(dist-9,100*dt);d.x+=(cp.x-d.x)/dist*s;d.y+=(cp.y-d.y)/dist*s;dist=Math.hypot(cp.x-d.x,cp.y-d.y)}
    if(dist<13){d.life=0;const value=Math.max(1,Math.floor(d.value||15));spawnParticles(d.x,d.y,10,'#85f0bd',.65);sfx('pickup');floatText(d.x,d.y-15,'+'+value+' XP','#a5f2c9');gainXPFor(cp,value,true)}
-  }else if(d.type==='relic'&&dist<18){
+  }else if(d.type==='artifact'&&dist<20){const a=artifactById(d.artifact);d.life=0;if(a&&applyArtifact(cp,a.id)){const rarity=lootRarities[a.rarity];spawnParticles(d.x,d.y,24,rarity.color,1.2);ring(d.x,d.y,12,rarity.color,.5,40);sfx('pickup');toast(metaLabel(rarity)+' · '+metaLabel(a)+' · '+metaDesc(a));toastTimer=4;}}
+  else if(d.type==='relic'&&dist<18){
    relicOwned=true;for(const p of coopPlayers()){p.maxhp+=50;p.hp=p.maxhp;p.boost.dmg*=1.28;p.boost.rate*=1.12;p.boost.move*=1.12;p.bomb=Math.min(9,p.bomb+2)}
    d.life=0;spawnParticles(d.x,d.y,30,'#cf79ff',1.8);ring(d.x,d.y,18,'#cf79ff',.65,55);floatText(d.x,d.y-15,L('RELIC COLLECTED','РЕЛИКВИЯ ПОЛУЧЕНА'),'#e0a6ff');toast(L('RELIC COLLECTED','РЕЛИКВИЯ ПОЛУЧЕНА'))
   }else if(d.type==='heal'&&dist<15&&cp.hp<cp.maxhp){const healed=Math.min(d.value||18,cp.maxhp-cp.hp);cp.hp+=healed;d.life=0;spawnParticles(d.x,d.y,10,'#a9e6aa',.7);floatText(d.x,d.y-15,'+'+Math.round(healed)+' HP','#a9e6aa');sfx('pickup')}
@@ -2344,7 +2412,7 @@ function update(dt){
 }
 function endGame(broadcast=true,escaped=false){closeSoloRun(escaped);document.getElementById('ritualOverlay').hidden=true;clearNpc();startMenuMusic();
  clearLocalInput();upgradeQueue.length=0;state='gameover';
- const recordEl=document.getElementById('finalRecord');document.querySelector('#gameover .title').textContent=escaped?L('YOU ESCAPED','ТЫ ВЫЖИЛ'):T('dead');document.getElementById('finalMeta').textContent=soloRun?'◆ +'+soloRun.earned+' · '+L('Total shards','Всего осколков')+': '+meta.shards:'';
+ const recordEl=document.getElementById('finalRecord');document.querySelector('#gameover .title').textContent=escaped?L('YOU ESCAPED','ТЫ ВЫЖИЛ'):T('dead');document.getElementById('finalMeta').textContent=soloRun?'◆ +'+soloRun.earned+' · '+L('Total shards','Всего осколков')+': '+meta.shards+' · '+L('Artifacts','Артефакты')+' '+(player.artifacts?.length||0)+' · '+L('Evolutions','Эволюции')+' '+(player.evolved?.filter(Boolean).length||0):'';
  if(!coop&&!onlineMode){const old=loadRecord(),next=updateRecord(old,score,wave);writeStorage(RECORD_KEY,JSON.stringify(next));recordEl.textContent=recordText(next)+(next.score>old.score||next.wave>old.wave?(L(" · NEW BEST!"," · НОВЫЙ РЕКОРД!")):'')}else recordEl.textContent='';
  levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
  document.getElementById('levelup').style.display='none';
@@ -2609,8 +2677,8 @@ function drawEnemy(e){
  const phase=Number.isFinite(e.phase)?e.phase:0,hit=Math.max(0,Math.min(1,(e.hitT||0)/.22)),wave=hit*Math.sin((1-hit)*Math.PI*2.6),boss=e.type==='boss';
  ctx.save();ctx.translate(Math.round(e.x),Math.round(e.y));const shadow=boss?31:Math.max(9,e.r||9);ctx.fillStyle='#100c15';ctx.fillRect(-shadow,Math.round(shadow*.65),shadow*2,4);
  ctx.translate(0,Math.round(Math.sin(phase)*(boss?1.5:1)));ctx.rotate((e.hitLean||0)*wave*.7);ctx.scale(1+.05*wave,1-.08*wave);
- if(boss){pixelBoss(ctx,e.kind??0,e.stage||1,phase,!!e.charge);paintBossCrest(ctx,e)}else pixelEnemy(ctx,e.type,phase,e.lunge||0,e.attack??1);
- if(!boss&&e.hit>0&&e.maxhp>0){const w=Math.max(12,Math.min(24,Math.round((e.r||9)*1.5)));ctx.fillStyle='#1c111a';ctx.fillRect(-w/2,-34,w,3);ctx.fillStyle='#e56b67';ctx.fillRect(-w/2,-34,w*Math.max(0,Math.min(1,e.hp/e.maxhp)),2)}
+ if(boss){pixelBoss(ctx,e.kind??0,e.stage||1,phase,!!e.charge);paintBossCrest(ctx,e)}else if(e.elite){const q=eliteProfiles[e.elite];ctx.save();ctx.scale(1.35,1.35);pixelEnemy(ctx,e.type,phase,e.lunge||0,e.attack??1);ctx.restore();ctx.fillStyle=q.color;ctx.fillRect(-10,-43,20,2);ctx.fillRect(-8,-47,4,4);ctx.fillRect(4,-47,4,4);ctx.fillRect(-2,-50,4,7);drawPixelText(metaLabel(q),0,-57,7,q.color,'center');}else pixelEnemy(ctx,e.type,phase,e.lunge||0,e.attack??1);
+ if(!boss&&(e.hit>0||e.elite)&&e.maxhp>0){const w=e.elite?35:Math.max(12,Math.min(24,Math.round((e.r||9)*1.5))),y=e.elite?-40:-34;ctx.fillStyle='#1c111a';ctx.fillRect(-w/2,y,w,3);ctx.fillStyle=e.elite?eliteProfiles[e.elite].color:'#e56b67';ctx.fillRect(-w/2,y,w*Math.max(0,Math.min(1,e.hp/e.maxhp)),2)}
  ctx.restore();
 }
 
@@ -2623,6 +2691,8 @@ function paintCombatDrop(g,d,time=0){
  if(d.type==='xp'){
   const large=(d.value||0)>=40,w=large?6:5,h=large?9:7;
   P('#0e2425',[-w-1,-2,0,-h-1,w+1,-2,0,h-1]);P('#399b83',[-w,-2,0,-h,w,-2,0,h-2]);P('#b7f5cc',[-w+1,-2,0,-h,0,1]);P('#70dcb2',[0,-h,w,-2,0,1]);P('#1e7467',[0,1,w,-2,0,h-2]);R('#f1ffe3',-1,-h+2,2,2);if(!reduceMotion&&Math.sin(t*3)>.65)R('#d4ffe7',w+3,-h,1,3);
+ }else if(d.type==='artifact'){
+  const a=artifactById(d.artifact),col=lootRarities[a?.rarity]?.color||'#c192ff';P('#110c1a',[-12,-6,-6,-12,6,-12,12,-6,12,6,6,11,-6,11,-12,6]);R('#3a263e',-9,-7,18,13);P(col,[-7,-4,0,-10,7,-4,0,7]);P('#fff0d8',[-4,-4,0,-8,0,2]);R(col,-9,7,18,2);
  }else if(d.type==='heal'){
   R('#112520',-8,-6,16,13);R('#a4c7a2',-7,-5,14,10);R('#e8e5c5',-6,-4,12,7);R('#397b5c',-2,-3,4,6);R('#397b5c',-4,-1,8,2);R('#d6dfae',-4,-7,8,1);
  }else if(d.type==='bomb'){
@@ -2730,10 +2800,10 @@ function drawRemoteArrow(){
 }
 function render(){drawRemoteArrow();ctx.save();if(shake>0&&!reduceMotion){ctx.translate(rndi(-Math.ceil(shake*10),Math.ceil(shake*10)),rndi(-Math.ceil(shake*10),Math.ceil(shake*10)))}draw();ctx.restore();}
 
-function updateTouchHud(p,selected,ability){const dash=document.getElementById('dashBtn'),bomb=document.getElementById('bombBtn');dash.style.setProperty('--charge',String(clamp(1-p.dash/ability.cooldown,0,1)));dash.classList.toggle('cooling',p.dash>0);document.getElementById('touchDashValue').textContent=p.dash>0?p.dash.toFixed(1):'';bomb.classList.toggle('empty',p.bomb<=0);document.getElementById('touchBombValue').textContent=p.bomb;for(const b of document.querySelectorAll('#mobileWeapons .mw')){const i=Number(b.dataset.weapon);b.classList.toggle('sel',i===selected);b.setAttribute('aria-pressed',String(i===selected));b.querySelector('.mwLv').textContent=p.weaponLevels?.[i]||1;b.querySelector('.mwCharge').style.width=(100*clamp(p.weaponCharge?.[i]??1,0,1))+'%';b.setAttribute('aria-label',locName(heroWeaponStats(p,i)))}}
-function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;const dashReady=localP.dash<=0,ability=dashProfiles[localP.charId]||dashProfiles.scar;document.getElementById('dashHudLabel').textContent=locName(ability);const dashValue=document.getElementById('dashHudValue');dashValue.textContent=dashReady?(L("READY","ГОТОВ")):localP.dash.toFixed(1)+'s';dashValue.classList.toggle('abilityReady',dashReady);document.getElementById('dashHudFill').style.width=(clamp(1-localP.dash/ability.cooldown,0,1)*100)+'%';document.getElementById('bombHudLabel').textContent=L("BOMBS","БОМБЫ");document.getElementById('bombHudValue').textContent=localP.bomb;const remoteP=onlineMode&&isOnlineGuest?player:player2;const deathV=document.getElementById('remoteDeathVignette');if(deathV)deathV.style.display=(state==='game'&&coop&&remoteP.dead&&alivePlayers().length>0)?'block':'none';const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&localP.hp/localP.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display=relicOwned?'block':'none';relicEl.classList.toggle('relic-pulse',relicOwned)}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(localP.hp));document.getElementById('xpTxt').textContent=`${Math.floor(localP.xp)}/${localP.next}`;document.getElementById('lvlTxt').textContent=localP.lvl;const lp=document.getElementById('localLevelPanel');if(lp)lp.style.display=onlineMode?'block':'none';const ll=document.getElementById('localLvlTxt');if(ll)ll.textContent=localP.lvl;const lx=document.getElementById('localXpTxt');if(lx)lx.textContent=`${Math.floor(localP.xp)}/${localP.next}`;const lf=document.getElementById('localXpFill');if(lf)lf.style.width=clamp(localP.xp/localP.next*100,0,100)+'%';document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+(enemies.length+Math.max(0,targetCount-spawned));document.getElementById('hpFill').style.width=clamp(localP.hp/localP.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(localP.xp/localP.next*100,0,100)+'%';
+function updateTouchHud(p,selected,ability){const dash=document.getElementById('dashBtn'),bomb=document.getElementById('bombBtn');dash.style.setProperty('--charge',String(clamp(1-p.dash/ability.cooldown,0,1)));dash.classList.toggle('cooling',p.dash>0);document.getElementById('touchDashValue').textContent=p.dash>0?p.dash.toFixed(1):'';bomb.classList.toggle('empty',p.bomb<=0);document.getElementById('touchBombValue').textContent=p.bomb;for(const b of document.querySelectorAll('#mobileWeapons .mw')){const i=Number(b.dataset.weapon);b.classList.toggle('sel',i===selected);b.setAttribute('aria-pressed',String(i===selected));b.querySelector('.mwLv').textContent=(p.evolved?.[i]?'✦':'')+(p.weaponLevels?.[i]||1);b.classList.toggle('evolved',!!p.evolved?.[i]);b.querySelector('.mwCharge').style.width=(100*clamp(p.weaponCharge?.[i]??1,0,1))+'%';b.setAttribute('aria-label',locName(heroWeaponStats(p,i)))}}
+function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;const loot=document.getElementById('lootHud');loot.hidden=!soloRun;const lootText=soloRun?'◆ '+soloRun.earned+' · '+L('Loot','Артефакты')+' '+(localP.artifacts?.length||0)+'/9':'';if(loot.textContent!==lootText)loot.textContent=lootText;const dashReady=localP.dash<=0,ability=dashProfiles[localP.charId]||dashProfiles.scar;document.getElementById('dashHudLabel').textContent=locName(ability);const dashValue=document.getElementById('dashHudValue');dashValue.textContent=dashReady?(L("READY","ГОТОВ")):localP.dash.toFixed(1)+'s';dashValue.classList.toggle('abilityReady',dashReady);document.getElementById('dashHudFill').style.width=(clamp(1-localP.dash/ability.cooldown,0,1)*100)+'%';document.getElementById('bombHudLabel').textContent=L("BOMBS","БОМБЫ");document.getElementById('bombHudValue').textContent=localP.bomb;const remoteP=onlineMode&&isOnlineGuest?player:player2;const deathV=document.getElementById('remoteDeathVignette');if(deathV)deathV.style.display=(state==='game'&&coop&&remoteP.dead&&alivePlayers().length>0)?'block':'none';const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&localP.hp/localP.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display=relicOwned?'block':'none';relicEl.classList.toggle('relic-pulse',relicOwned)}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(localP.hp));document.getElementById('xpTxt').textContent=`${Math.floor(localP.xp)}/${localP.next}`;document.getElementById('lvlTxt').textContent=localP.lvl;const lp=document.getElementById('localLevelPanel');if(lp)lp.style.display=onlineMode?'block':'none';const ll=document.getElementById('localLvlTxt');if(ll)ll.textContent=localP.lvl;const lx=document.getElementById('localXpTxt');if(lx)lx.textContent=`${Math.floor(localP.xp)}/${localP.next}`;const lf=document.getElementById('localXpFill');if(lf)lf.style.width=clamp(localP.xp/localP.next*100,0,100)+'%';document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+(enemies.length+Math.max(0,targetCount-spawned));document.getElementById('hpFill').style.width=clamp(localP.hp/localP.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(localP.xp/localP.next*100,0,100)+'%';
  if(boss){document.getElementById('bossHud').style.display='block';document.getElementById('bossName').textContent=locName(boss)+' · '+T('boss');document.getElementById('bossFill').style.width=clamp(boss.hp/boss.maxhp*100,0,100)+'%'}else document.getElementById('bossHud').style.display='none';
- const selectedWeapon=onlineMode&&isOnlineGuest?player2.weapon:weapon;updateTouchHud(localP,selectedWeapon,ability);const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.dataset.weapon=String(i);d.innerHTML=`<b>${w.key}</b> <span class="wn">${chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(w)}</span><span class="wlv">УР. ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG</span><span class="weaponCharge"><i></i></span><i class="cd"></i>`;d.onclick=()=>{if(onlineMode&&isOnlineGuest)player2.weapon=i;else weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===selectedWeapon);d.querySelector('.wn').textContent=locName(heroWeaponStats(localP,i));d.querySelector('.wlv').textContent=`${L("LV","УР.")} ${localP.weaponLevels[i]} · ${Math.round(heroWeaponStats(localP,i).dmg*localP.boost.dmg)} DMG`;const chargeEl=d.querySelector('.weaponCharge i');const charge=clamp(localP.weaponCharge?.[i]??1,0,1);chargeEl.style.width=(charge*100)+'%';d.classList.toggle('charging',charge<.999);d.querySelector('.cd').textContent=i===selectedWeapon&&localP.fire>0?localP.fire.toFixed(1):''});syncInventoryArt(localP)}
+ const selectedWeapon=onlineMode&&isOnlineGuest?player2.weapon:weapon;updateTouchHud(localP,selectedWeapon,ability);const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.dataset.weapon=String(i);d.innerHTML=`<b>${w.key}</b> <span class="wn">${chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(w)}</span><span class="wlv">УР. ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG</span><span class="weaponCharge"><i></i></span><i class="cd"></i>`;d.onclick=()=>{if(onlineMode&&isOnlineGuest)player2.weapon=i;else weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===selectedWeapon);d.classList.toggle('evolved',!!localP.evolved?.[i]);d.querySelector('.wn').textContent=locName(heroWeaponStats(localP,i));d.querySelector('.wlv').textContent=`${L("LV","УР.")} ${localP.weaponLevels[i]} · ${Math.round(heroWeaponStats(localP,i).dmg*localP.boost.dmg)} DMG`;const chargeEl=d.querySelector('.weaponCharge i');const charge=clamp(localP.weaponCharge?.[i]??1,0,1);chargeEl.style.width=(charge*100)+'%';d.classList.toggle('charging',charge<.999);d.querySelector('.cd').textContent=i===selectedWeapon&&localP.fire>0?localP.fire.toFixed(1):''});syncInventoryArt(localP)}
 
 addEventListener('keydown',e=>{
  if(e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement||e.target?.isContentEditable)return;
