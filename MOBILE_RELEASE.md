@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.55.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.56.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -60,3 +60,6 @@ Separate solo campaign: start arena, three five-wave chapters, route choices at 
 
 ## V55 Night Ledger
 Local history of up to 12 completed or abandoned solo runs with hero, mode, curse, arena route, cleared waves, kills, earned shards, score, level, artifact and evolution counts. Distinct outcomes for victory, extraction, defeat and abandonment; end screen includes route and kills. Legacy saves migrate without resetting prior progress. Inline JavaScript syntax and isolated rules checked (11 assertions, including 50-run rollover, old save migration, corruption and duplicate settlement). Browser/device runtime and native builds remain unverified.
+
+## V56 — Secret Chambers
+Six illustrated optional side-room encounters (mirror, well, cage, shrine, clock, locker) appear after waves 2, 7, 12 and every five waves thereafter in solo modes. Two distinct choices or a free exit; costs and eligibility shown before choosing. Current-run health, fear, coins, bombs, damage, attack speed and unique artifact rewards; extra enemies or increased enemy speed apply only to the next wave. No room repeats before the six-room pool is exhausted. Existing altar, merchant, campaign finale and co-op schedule retained. Run recap shows accepted room choices. Inline JavaScript syntax passed; 126 isolated rule assertions passed (100 scheduling checks plus room availability, deduplication, transactions, next-wave effects, nonlethal sacrifice and exit). Browser/device runtime and native builds remain unverified.
