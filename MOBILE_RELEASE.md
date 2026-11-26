@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. Web V46 remains the stable public release. Proposed first store release: 1.0.0; development source 0.47.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.48.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -17,7 +17,7 @@ Status: **source preparation**, not an approved, signed or device-tested store r
 ## Release blockers / acceptance
 - [ ] Install dependencies and commit package-lock.json; build native projects; validate final Android/iOS identifiers, signing and SDK.
 - [ ] Generate native launcher icons (existing PWA icons are not a complete native asset catalog); verify rights and third-party licenses.
-- [ ] Device QA: first launch in airplane mode, six heroes and arenas, each of 12 bosses, waves 1/3/7, pause/resume, backgrounding, incoming call, touch controls, death/retry, record persistence, localization, notch and tablet layouts.
+- [ ] Device QA: first launch in airplane mode, six heroes and arenas, each of 12 bosses, waves 1/3/7, shard awards, altar purchases, curse selection, ritual at wave 5, extraction at wave 10, corrupt save recovery, pause/resume, backgrounding, incoming call, touch controls, death/retry, record persistence, localization, notch and tablet layouts.
 - [ ] Stress-test later waves and particles on lower-end Android; profile sustained frame time, memory and heat. No performance claims until measured.
 - [ ] Test real two-device co-op, offline failure, room disconnect/reconnect; replace public demo TURN/signaling with production-capable infrastructure or omit online mode from store build until verified. Verify provider terms, data flow/retention and third-party disclosures.
 - [ ] Confirm publisher's real identity and privacy contact; finalize privacy.html and public HTTPS URL, support contact, Apple privacy nutrition label and Google Data Safety. No ads/analytics planned for first version; do not claim no data collection without provider review.
@@ -36,3 +36,6 @@ No in-app purchases or ads in this source.
 - https://support.google.com/googleplay/android-developer/answer/11926878
 - https://support.google.com/googleplay/android-developer/answer/14151465
 - https://capacitorjs.com/docs/getting-started
+
+## V48 roguelite verification
+Local rules checks executed: capped purchases, save normalization, sequential wave rewards, duplicate reward rejection, four contracts, ritual effects, extraction eligibility and repeat-settlement rejection. Browser/device playtest still required. Progression intentionally solo-only; co-op retains previous rules.
