@@ -669,6 +669,10 @@ html.inGame body:has(#ritualOverlay:not([hidden])){touch-action:pan-y}
 html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 @media(max-width:420px) and (orientation:portrait){#merchantOffers{grid-template-columns:1fr}}
 @media(max-height:520px) and (orientation:landscape){#merchantOverlay .merchantBox{padding:7px}.merchantHeader{margin-bottom:4px}#merchantPortrait{width:48px;height:48px}#merchantTitle{font-size:15px}.merchantOffer{min-height:38px;padding:4px}#merchantLeave{min-height:36px}}
+/* V59: locked hero cards */
+#charChoices .heroLocked{opacity:.66;cursor:default}
+#charChoices .heroLocked small{display:block;font-size:10px;line-height:1.3;color:#e4c7a7;white-space:normal}
+#charChoices .heroLocked canvas{filter:grayscale(.65)}
 /* V58: ending choice and epilogue */
 .endingChoice{border-left:4px solid var(--ending-color,#a99baf)}
 #endingList .achievementItem small{white-space:normal}
@@ -757,7 +761,9 @@ const chars=[
  {id:'nyx',name:'НИКС',enName:'NYX',desc:'Тихий убийца · теневые снаряды',enDesc:'Silent killer · shadow shots',base:[48,31,48],speed:101,hp:88,dash:1.25,color:'#8e5de7',weaponNames:['ТЕНЕВОЙ ДАРТ','ТРИ ТЕНИ','РАЗРЕЗ ТЬМЫ','ПРОКЛЯТИЕ'],enWeaponNames:['SHADOW DART','THREE SHADOWS','DARK SLASH','CURSE']},
  {id:'pelmage',name:'МАГ ПЕЛЬМЕНЬ',enName:'DUMPLING MAGE',desc:'Маг хаоса · заклинания пельменной энергии',enDesc:'Chaos mage · dumpling energy spells',base:[28,50,38],speed:84,hp:92,dash:1.05,color:'#6e8cff',weaponNames:['ПЕЛЬМЕНЬ-ИСКРА','АРКАННЫЙ СОУС','МЕТЕОР ПЕЛЬМЕНЕЙ','ВИХРЬ ТЕСТА'],enWeaponNames:['DUMPLING SPARK','ARCANE SAUCE','DUMPLING METEOR','DOUGH VORTEX']},
  {id:'assassin',name:'ШИВ',enName:'SHIV',desc:'Ассасин · скорость, яд и критические удары',enDesc:'Assassin · speed, poison and critical hits',base:[52,27,55],speed:116,hp:78,dash:1.45,color:'#4fe0a0',weaponNames:['КУНАЙ','ЯДОВИТЫЕ НОЖИ','ТЕНЕВОЙ РЫВОК','СМЕРТЕЛЬНЫЙ ЗАЛП'],enWeaponNames:['KUNAI','POISON KNIVES','SHADOW DASH','DEATH VOLLEY']},
- {id:'golem',name:'КОТЁЛ-ГОЛЕМ',enName:'CAULDRON GOLEM',desc:'Танк · медленный, но почти неубиваемый',enDesc:'Tank · slow but extremely durable',base:[58,18,70],speed:68,hp:170,dash:.78,color:'#d18a4d',weaponNames:['КИПЯЩИЙ КОТЁЛ','ПАРОВОЙ УДАР','ЧУГУННАЯ ВОЛНА','ПЕЧНОЙ ВЗРЫВ'],enWeaponNames:['BOILING CAULDRON','STEAM BURST','IRON WAVE','FURNACE BLAST']}
+ {id:'golem',name:'КОТЁЛ-ГОЛЕМ',enName:'CAULDRON GOLEM',desc:'Танк · медленный, но почти неубиваемый',enDesc:'Tank · slow but extremely durable',base:[58,18,70],speed:68,hp:170,dash:.78,color:'#d18a4d',weaponNames:['КИПЯЩИЙ КОТЁЛ','ПАРОВОЙ УДАР','ЧУГУННАЯ ВОЛНА','ПЕЧНОЙ ВЗРЫВ'],enWeaponNames:['BOILING CAULDRON','STEAM BURST','IRON WAVE','FURNACE BLAST']},
+ {id:'warden',name:'ФОНАРЩИК',enName:'LANTERN WARDEN',desc:'Хранитель света · при рывке снижает страх на 12',enDesc:'Guardian of light · dash reduces fear by 12',base:[38,40,50],speed:86,hp:125,dash:1,color:'#e5ba78',unlock:'win',weaponNames:['ЛУЧ ФОНАРЯ','СВЕТОВЫЕ КОПЬЯ','ПЕЧАТЬ СВЕТА','ОГОНЬ ДУШ'],enWeaponNames:['LANTERN BEAM','LIGHT SPEARS','LIGHT SEAL','SOUL FIRE']},
+ {id:'revenant',name:'ВОЗВРАЩЁННЫЙ',enName:'REVENANT',desc:'Порождение пустоты · рывок восстанавливает до 6 HP за поражённых врагов',enDesc:'Voidborn · dash restores up to 6 HP from enemies struck',base:[50,30,38],speed:100,hp:84,dash:1.1,color:'#b68bdd',unlock:'hidden',weaponNames:['КОГТИ ПУСТОТЫ','ОСКОЛКИ ТЕНИ','РАЗЛОМ','ПЕПЕЛ КОШМАРА'],enWeaponNames:['VOID CLAWS','SHADOW SHARDS','RIFT','NIGHTMARE ASH']}
 ];
 const heroArt={
 scar:{dark:'#381720',mid:'#96313b',lit:'#d85650',metal:'#dbc3a5',glow:'#ffad68'},
@@ -765,7 +771,8 @@ vesa:{dark:'#321529',mid:'#7b2b50',lit:'#db6489',metal:'#eac3b2',glow:'#ff9eb4'}
 nyx:{dark:'#19162e',mid:'#47376b',lit:'#8e75cf',metal:'#b7a6eb',glow:'#d9b6ff'},
 pelmage:{dark:'#1e2747',mid:'#405793',lit:'#758fda',metal:'#c4d9ff',glow:'#a9e5ff'},
 assassin:{dark:'#112a27',mid:'#275646',lit:'#5a9678',metal:'#c2dbb7',glow:'#8affbc'},
-golem:{dark:'#332721',mid:'#735140',lit:'#bc8658',metal:'#e9b47a',glow:'#ffbf65'}
+golem:{dark:'#332721',mid:'#735140',lit:'#bc8658',metal:'#e9b47a',glow:'#ffbf65'},
+warden:{dark:'#302820',mid:'#826746',lit:'#c6a569',metal:'#d5c2a0',glow:'#ffe0a0'},revenant:{dark:'#211b32',mid:'#594166',lit:'#ab81ba',metal:'#d4c3d9',glow:'#edbaff'}
 };
 const dashProfiles={
  scar:{name:'КРОВАВЫЙ РАЗРЕЗ',enName:'BLOOD SLASH',distance:38,cooldown:1.35,inv:.32,damage:28,radius:31},
@@ -773,7 +780,8 @@ const dashProfiles={
  nyx:{name:'ТЕНЕВОЙ ШАГ',enName:'SHADOW STEP',distance:55,cooldown:1.25,inv:.52,damage:0},
  pelmage:{name:'АРКАННЫЙ ИМПУЛЬС',enName:'ARCANE PULSE',distance:34,cooldown:1.5,inv:.34,damage:24,radius:47},
  assassin:{name:'ЯДОВИТЫЙ СЛЕД',enName:'VENOM TRAIL',distance:62,cooldown:1.2,inv:.30,damage:13},
- golem:{name:'ЧУГУННЫЙ УДАР',enName:'IRON IMPACT',distance:28,cooldown:1.7,inv:.65,damage:38,radius:40}
+ golem:{name:'ЧУГУННЫЙ УДАР',enName:'IRON IMPACT',distance:28,cooldown:1.7,inv:.65,damage:38,radius:40},
+ warden:{name:'СВЕТ УБЕЖИЩА',enName:'SANCTUARY LIGHT',distance:34,cooldown:2.8,inv:.48,damage:22,radius:50},revenant:{name:'ПОГЛОЩЕНИЕ',enName:'SOUL SIPHON',distance:49,cooldown:2.3,inv:.38,damage:18,radius:38}
 };
 const maps=[
  {id:'kitchen',name:'КУХНЯ — КРОВЬ И СТАЛЬ',enName:'KITCHEN — BLOOD & STEEL',desc:'огромная кухня, сломанные плиты, вытяжки и мясные тени',enDesc:'huge kitchen, broken stoves, vents and meat-shadows',floor:'#100b10',tile:'#21151c',accent:'#a82f38'},
@@ -790,14 +798,14 @@ const weapons=[
  {key:'4',name:'ПЕРЕЦ',enName:'PEPPER',rate:.055,dmg:7,speed:205,spread:.16,pierce:0,color:'#8df06e',kind:'bullet'}
 ];
 const weaponLevels=[1,1,1,1];
-const heroWeaponMods={scar:[1.08,.95,1.05,.92],vesa:[.82,.92,.98,.72],nyx:[.95,.88,1.02,.9],pelmage:[.9,1.0,1.02,.82],assassin:[1.0,.88,1.05,.92],golem:[1.0,.92,1.02,.98]};
+const heroWeaponMods={scar:[1.08,.95,1.05,.92],vesa:[.82,.92,.98,.72],nyx:[.95,.88,1.02,.9],pelmage:[.9,1.0,1.02,.82],assassin:[1.0,.88,1.05,.92],golem:[1.0,.92,1.02,.98],warden:[.92,.9,.95,.9],revenant:[1.05,.95,.9,.86]};
 const heroWeaponTune={
  scar:[{d:1.0,r:1.12},{d:1.0,r:1.08},{d:.95,r:1.18},{d:.95,r:1.12}],
  vesa:[{d:1.0,r:1.08},{d:.95,r:1.12},{d:.9,r:1.18},{d:.82,r:1.15}],
  nyx:[{d:1.0,r:1.08},{d:.92,r:1.12},{d:.9,r:1.22},{d:.9,r:1.12}],
  pelmage:[{d:.95,r:1.12},{d:.9,r:1.1},{d:.86,r:1.2},{d:.8,r:1.18}],
  assassin:[{d:1.0,r:1.12},{d:.82,r:1.16},{d:.88,r:1.3},{d:.82,r:1.2}],
- golem:[{d:.9,r:1.18},{d:.88,r:1.18},{d:.82,r:1.22},{d:.72,r:1.3}]
+ golem:[{d:.9,r:1.18},{d:.88,r:1.18},{d:.82,r:1.22},{d:.72,r:1.3}],warden:[{d:.95,r:1.16},{d:.9,r:1.1},{d:.95,r:1.18},{d:.84,r:1.18}],revenant:[{d:1,r:1.12},{d:.9,r:1.12},{d:.9,r:1.2},{d:.84,r:1.18}]
 };
 function heroWeaponStats(p,i){
  const base=weapons[i],lv=(p&&Array.isArray(p.weaponLevels)?p.weaponLevels[i]:weaponLevels[i])||1,ch=chars.find(c=>c.id===(p&&p.charId))||chars[0],mult=(heroWeaponMods[ch.id]||heroWeaponMods.scar)[i]||1,tune=(heroWeaponTune[ch.id]||heroWeaponTune.scar)[i]||{d:1,r:1};
@@ -839,7 +847,7 @@ const elements={
  shock:{en:'Shock',ru:'Молния',color:'#f4df80',mark:'E',descEn:'Chains to one nearby enemy',descRu:'Перескакивает на одного ближайшего врага'},
  curse:{en:'Curse',ru:'Проклятие',color:'#cea6fa',mark:'C',descEn:'Target takes 12% more weapon damage for 3 seconds',descRu:'Цель получает на 12% больше урона оружия 3 секунды'}
 };
-const heroElements={scar:['physical','fire','curse','shock'],vesa:['poison','frost','physical','fire'],nyx:['curse','frost','shock','poison'],pelmage:['frost','fire','shock','curse'],assassin:['physical','poison','curse','shock'],golem:['physical','shock','frost','fire']};
+const heroElements={scar:['physical','fire','curse','shock'],vesa:['poison','frost','physical','fire'],nyx:['curse','frost','shock','poison'],pelmage:['frost','fire','shock','curse'],assassin:['physical','poison','curse','shock'],golem:['physical','shock','frost','fire'],warden:['fire','shock','frost','fire'],revenant:['curse','poison','curse','frost']};
 const arenaAffinity={kitchen:{resist:'fire',weak:'frost'},basement:{resist:'shock',weak:'fire'},foodcourt:{resist:'frost',weak:'shock'},slaughter:{resist:'physical',weak:'poison'},cemetery:{resist:'curse',weak:'fire'},forest:{resist:'poison',weak:'frost'}};
 const artifactCombos=[
  {id:'predator',items:['fang','eye'],en:'Predator',ru:'Хищник',descEn:'+15% direct weapon damage',descRu:'+15% прямого урона оружия'},
@@ -1381,7 +1389,7 @@ const player={weaponLevels:[1,1,1,1],x:240,y:145,vx:0,vy:0,aim:0,hp:100,maxhp:10
 const player2={weaponLevels:[1,1,1,1],x:260,y:145,vx:0,vy:0,aim:0,hp:100,maxhp:100,xp:0,next:100,lvl:1,speed:92,fire:0,dash:0,bomb:3,inv:0,shots:0,dead:false,boost:{dmg:1,rate:1,move:1,crit:0},weapon:1,charId:chars[1].id,serverX:260,serverY:145,remoteAimActive:false};
 const coopPlayers=()=>coop?[player,player2]:[player];
 const alivePlayers=()=>coopPlayers().filter(p=>!p.dead&&p.hp>0);
-function otherCharId(){const order=chars.map(c=>c.id);const i=order.indexOf(selectedChar);return order[(i+1)%order.length]}
+function otherCharId(){const order=chars.filter(c=>!c.unlock).map(c=>c.id);const i=order.indexOf(selectedChar);return order[(i+1)%order.length]}
 function targetPlayer(e){const aps=alivePlayers();if(!aps.length)return null;let best=aps[0],bd=Math.hypot(best.x-e.x,best.y-e.y);for(let i=1;i<aps.length;i++){const p=aps[i],d=Math.hypot(p.x-e.x,p.y-e.y);if(d<bd){best=p;bd=d}}return best}
 function nearestEnemy(p){let best=null,bd=Infinity;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.x-p.x,e.y-p.y);if(d<bd){best=e;bd=d}}return best}
 let wave=1,waveTime=0,waveState='fighting',between=0,score=0,combo=1,boss=null,spawned=0,targetCount=0;
@@ -1664,7 +1672,7 @@ const inventoryArt={
  nyx:['dart','shadows','slash','curse'],
  pelmage:['spark','flask','meteor','vortex'],
  assassin:['kunai','poison','step','volley'],
- golem:['cauldron','steam','iron','furnace']
+ golem:['cauldron','steam','iron','furnace'],warden:['lantern','lightSpears','lightSeal','soulFire'],revenant:['voidClaws','shadowShards','rift','nightAsh']
 };
 function inventoryIcon(id,i){
  const kind=(inventoryArt[id]||inventoryArt.scar)[i]||'blade',a=heroArt[id]||heroArt.scar;
@@ -1675,6 +1683,14 @@ function inventoryIcon(id,i){
  const gem=(x,y,col=accent)=>{P(x+','+(y-6)+' '+(x+5)+','+y+' '+x+','+(y+7)+' '+(x-5)+','+y,ink);P(x+','+(y-4)+' '+(x+4)+','+y+' '+x+','+(y+5)+' '+(x-4)+','+y,col);P(x+','+(y-4)+' '+x+','+(y+1)+' '+(x-4)+','+y,light)};
  const blade=()=>{P('4,25 10,17 8,14 11,11 14,14 23,2 29,3 27,10 17,21 13,19 8,28',ink);P('13,15 23,4 27,4 25,10 16,18',steel);P('15,14 23,4 26,4 19,12',light);P('6,25 12,18 15,21 9,27',wood)};
  switch(kind){
+ case 'lantern':R(10,2,12,5,ink);R(13,3,6,3,steel);R(7,7,18,22,ink);R(10,9,12,16,mid);R(13,11,6,12,accent);R(9,25,14,3,steel);break;
+ case 'lightSpears':for(let i=0;i<3;i++){R(4+i*7,12-i*3,3,16,steel);P((3+i*7)+','+(12-i*3)+' '+(5+i*7)+','+(4-i)+' '+(9+i*7)+','+(12-i*3),accent)}break;
+ case 'lightSeal':R(4,4,24,24,ink);R(7,7,18,18,mid);R(10,10,12,12,ink);R(14,8,4,16,accent);R(8,14,16,4,accent);break;
+ case 'soulFire':P('4,24 10,12 14,16 17,3 25,15 28,23 20,29 10,28',ink);P('8,23 13,16 17,20 20,10 25,23 19,26 12,26',accent);break;
+ case 'voidClaws':for(let i=0;i<3;i++){P((3+i*7)+',26 '+(5+i*7)+',13 '+(10+i*7)+',4 '+(11+i*7)+',13 '+(7+i*7)+',27',mid);R(6+i*7,19,2,6,accent)}break;
+ case 'shadowShards':gem(8,13,mid);gem(17,20,accent);gem(25,9,deep);break;
+ case 'rift':P('2,18 12,3 16,12 27,4 22,17 29,23 14,30 10,20',ink);P('8,18 14,8 17,17 23,11 19,20 22,24 14,26',accent);break;
+ case 'nightAsh':for(let i=0;i<6;i++)R(5+i*4,5+(i*7)%20,4,4,i%2?mid:accent);break;
  case 'blade':blade();R(18,13,3,2,mid);break;
  case 'boomerang':P('4,4 13,7 25,17 28,26 19,28 15,20 6,13',ink);P('6,6 13,9 23,18 25,24 20,25 17,19 8,12',mid);P('6,6 13,9 23,18 24,21 19,17 8,10',light);R(19,22,3,3,accent);break;
  case 'cleaver':P('4,26 12,18 9,11 19,2 29,10 27,17 15,23 11,29',ink);P('11,11 19,4 27,10 25,16 15,21',steel);P('11,11 19,4 26,10 24,11 18,7 13,12',light);P('5,26 13,19 15,22 10,27 7,28',wood);R(21,14,4,2,mid);R(22,8,2,2,ink);break;
@@ -1794,7 +1810,10 @@ function paintMenuStage(hero,map){
  document.getElementById('mapStageName').textContent=locName(map).split(' — ')[0];
 }
 
-function menuChoiceDefaults(savedHero,savedMap){return {hero:chars.some(x=>x.id===savedHero)?savedHero:chars[0].id,map:maps.some(x=>x.id===savedMap)?savedMap:maps[0].id}}
+function heroUnlocked(ch,data,entries){return !!ch&&(!ch.unlock||ch.unlock==='win'&&data.campaignWins>0||ch.unlock==='hidden'&&['boss:13','boss:14'].some(id=>entries.includes(id)))}
+function heroPlayable(ch,data,entries,twoPlayers=false){return heroUnlocked(ch,data,entries)&&(!twoPlayers||!ch.unlock)}
+function heroLockText(ch){return ch.unlock==='win'?L('Win the campaign','Победи в кампании'):L('Defeat a hidden boss','Победи скрытого босса')}
+function menuChoiceDefaults(savedHero,savedMap){return {hero:heroPlayable(chars.find(x=>x.id===savedHero),meta,journal)?savedHero:chars[0].id,map:maps.some(x=>x.id===savedMap)?savedMap:maps[0].id}}
 function saveMenuSelection(){writeStorage('dumpling-riot-hero',selectedChar);writeStorage('dumpling-riot-arena',selectedMap)}
 function renderJournal(){
  document.getElementById('journalHomeLabel').textContent=L('NIGHT ARCHIVES','НОЧНОЙ АРХИВ');
@@ -1994,8 +2013,9 @@ document.getElementById('extractBtn').addEventListener('click',()=>{if(state==='
 document.getElementById('privacyBtn').addEventListener('click',()=>{location.href='./privacy.html'});
 document.getElementById('helpToggle').addEventListener('click',()=>{const h=document.getElementById('menuHelp');h.hidden=!h.hidden;document.getElementById('helpToggle').setAttribute('aria-expanded',String(!h.hidden))});
 function makeMenu(){
+ if(!heroPlayable(chars.find(c=>c.id===selectedChar),meta,journal,coop||onlineMode))selectedChar=chars[0].id;
  const cc=document.getElementById('charChoices');cc.innerHTML='';document.getElementById('recordLine').textContent=recordText(loadRecord());
- for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);pixelHeroWeapon(pg,ch.id,0,0,0);d.prepend(portrait);d.onclick=()=>{selectedChar=ch.id;saveMenuSelection();makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
+ for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);pixelHeroWeapon(pg,ch.id,0,0,0);d.prepend(portrait);if(!heroPlayable(ch,meta,journal,coop||onlineMode)){d.classList.add('heroLocked');d.disabled=true;const note=document.createElement('small');note.textContent=ch.unlock&&(coop||onlineMode)?L('Solo only','Только соло'):heroLockText(ch);d.append(note)}d.onclick=()=>{if(!heroPlayable(ch,meta,journal,coop||onlineMode))return;selectedChar=ch.id;saveMenuSelection();makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
  const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:L('Endless survival','Бесконечное выживание'),desc:T('modeOneDesc')},{id:'campaign',title:L('Path of Darkness','Путь тьмы'),desc:L('Story campaign · 15 waves · three endings','Кампания · 15 волн · три концовки')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes){const d=document.createElement('button');d.type='button';d.className='modeChoice'+((md.id==='solo'&&!campaignMode&&!coop&&!onlineMode)||(md.id==='campaign'&&campaignMode&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.setAttribute('aria-pressed',String(d.classList.contains('sel')));d.innerHTML=uiPixelIcon(md.id==='campaign'?'solo':md.id)+`<div class="modeCopy"><b>${md.title}</b><p>${md.desc}</p></div>`;d.onclick=()=>{campaignMode=md.id==='campaign';onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu();modeBox.querySelector('.sel')?.focus({preventScroll:true})};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||L('No room')):'')}
  const mc=document.getElementById('mapChoices');mc.innerHTML='';
  for(const m of maps){const d=document.createElement('button');d.type='button';d.className='choice'+(m.id===selectedMap?' sel':'');d.style.setProperty('--accent',m.accent);d.style.setProperty('--card',m.tile);d.setAttribute('aria-pressed',String(m.id===selectedMap));d.innerHTML=`<b>${locName(m).split(' — ')[0]}</b>`;const thumbnail=document.createElement('canvas');thumbnail.width=160;thumbnail.height=90;thumbnail.className='mapPortrait';thumbnail.setAttribute('aria-hidden','true');thumbnail.getContext('2d').drawImage(mapThumbnail(m.id),0,0);d.prepend(thumbnail);d.onclick=()=>{selectedMap=m.id;saveMenuSelection();makeMenu();mc.querySelector('.sel')?.focus({preventScroll:true})};mc.appendChild(d)}
@@ -2215,6 +2235,7 @@ function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus(L("Create
 function startGame(fromNetwork=false){
  encounter=null;
  if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
+ if(!heroPlayable(chars.find(c=>c.id===selectedChar),meta,journal,coop||onlineMode))selectedChar=chars[0].id;
  secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;
  if(soloRun?.campaign)selectedMap=soloRun.campaign.start;closeSoloRun();soloRun=!coop&&!onlineMode?{hero:selectedChar,startMap:selectedMap,campaign:campaignMode?newCampaign(selectedMap):null,contract:selectedContract,cleared:0,earned:0,kills:0,closed:false,coins:0,coinsEarned:0,coinsSpent:0,purchases:0,lastShop:0,pact:null,lastEncounter:0,seenRooms:[],roomChoices:0,nextRoomEffect:null,hiddenSummoned:[],hiddenDefeated:[],nextHidden:null}:null;document.getElementById('ritualOverlay').hidden=true;
  startHorrorMusic();clearNpc();try{window.speechSynthesis?.getVoices()}catch(_){}clearLocalInput();levelupBusy=false;upgradeQueue.length=0;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
@@ -2493,6 +2514,18 @@ function attackFor(p,weaponIndex,target=null){
    spawnParticles(p.x,p.y,34,'#4fe0a0',1.5);bloodBurst(p.x,p.y,8,.65);shake=Math.max(shake,.13);toast(L('SHADOW SLASH · CHARGE USED'));return}
   if(weaponIndex===3){for(let i=-2;i<=2;i++)proj(ang+i*.055,damage*.56,{speed:w.speed*1.3,pierce:w.pierce+3,poison:1.25,color:'#a8ffcf'});fx('#a8ffcf',11);return}
  }
+ if(ch.id==='warden'){
+  if(weaponIndex===0){proj(ang,damage,{speed:w.speed*1.15,pierce:w.pierce+1,color:ch.color});fx(ch.color,5);return}
+  if(weaponIndex===1){for(const side of [-.18,0,.18])proj(ang+side,damage*.53,{pierce:w.pierce+1,color:'#ffe0a0'});fx(ch.color,8);return}
+  if(weaponIndex===2){ringHit(p.x+Math.cos(ang)*30,p.y+Math.sin(ang)*30,64,'#ffe0a0',.4,damage*.92);fx(ch.color,12);return}
+  if(weaponIndex===3){proj(ang,damage*.85,{speed:w.speed*.82,explosive:true,explosionRadius:32,color:'#f1c77d'});fx(ch.color,6);return}
+ }
+ if(ch.id==='revenant'){
+  if(weaponIndex===0){ringHit(p.x+Math.cos(ang)*19,p.y+Math.sin(ang)*19,52,ch.color,.22,damage);fx(ch.color,6);return}
+  if(weaponIndex===1){for(const side of [-.14,0,.14])proj(ang+side,damage*.5,{pierce:w.pierce+1,color:ch.color});fx(ch.color,8);return}
+  if(weaponIndex===2){const reach=Math.min(85,Math.hypot(tx-p.x,ty-p.y));ringHit(p.x+Math.cos(ang)*reach,p.y+Math.sin(ang)*reach,50,'#c1a0ed',.35,damage);fx(ch.color,10);return}
+  if(weaponIndex===3){for(const side of [-.12,.12])proj(ang+side,damage*.8,{speed:w.speed*.9,pierce:w.pierce+1,color:'#b7a1e2'});fx(ch.color,7);return}
+ }
  if(ch.id==='golem'){
   if(weaponIndex===0){ringHit(p.x+Math.cos(ang)*15,p.y+Math.sin(ang)*15,76,'#d18a4d',.34,damage*.92);shake=Math.max(shake,.13);fx('#d18a4d',12);return}
   if(weaponIndex===1){for(let i=-2;i<=2;i++)proj(ang+i*.16,damage*.56,{speed:w.speed*.72,pierce:w.pierce+2,r:3.8,color:'#d7b07a'});fx('#d7b07a',12);return}
@@ -2532,6 +2565,11 @@ function reviveNearby(p){
 function bomb(){if(reviveNearby(player))return;bombFor(player)}
 function dashForOnlineGuest(){sendNet({t:'dash'})}
 function bombOnlineGuest(){sendNet({t:'reviveOrBomb'})}
+function heroDashBonus(p,n,near){
+ if(p.charId==='warden'&&n){const old=n.fear;n.fear=Math.max(0,old-12);return old-n.fear}
+ if(p.charId==='revenant'){const old=p.hp;p.hp=Math.min(p.maxhp,p.hp+Math.min(6,Math.max(0,near)*2));return p.hp-old}
+ return 0;
+}
 function dashFor(p){
  if(!p||p.dead||p.dash>0||state!=='game')return;
  const ability=dashProfiles[p.charId]||dashProfiles.scar,ch=chars.find(x=>x.id===p.charId)||chars[0],owner=p===player?'p1':'p2';
@@ -2552,6 +2590,7 @@ function dashFor(p){
    const vx=p.x-ox,vy=p.y-oy,len2=vx*vx+vy*vy||1;
    for(const e of enemies){if(e.dead)continue;const t=clamp(((e.x-ox)*vx+(e.y-oy)*vy)/len2,0,1);if(Math.hypot(e.x-(ox+vx*t),e.y-(oy+vy*t))<e.r+12){e.poison=Math.max(e.poison||0,1.5);damageEnemy(e,damage,owner)}}
  }
+ if(soloRun&&p===player&&(p.charId==='warden'||p.charId==='revenant')){const near=enemies.filter(e=>!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<=ability.radius+(e.r||0)).length;const bonus=heroDashBonus(p,nightmare,near);if(bonus>0)floatText(p.x,p.y-30,(p.charId==='warden'?L('Fear −','Страх −'): 'HP +')+Math.ceil(bonus),ch.color)}
  floatText(p.x,p.y-20,locName(ability),ch.color);
 }
 function dash(){dashFor(player)}
@@ -3040,6 +3079,10 @@ function pixelHeroBody(g,id,step=0,phase=0,aim=0){
    R(a.lit,-5,-23,3,2);R(a.lit,-8,-18,2,4);R(ink,-7,-15,14,5);R(a.glow,-6,-14,4,2);R(a.glow,2,-14,4,2);
    R('#d5ffe1',-4,-14,1,1);R('#d5ffe1',4,-14,1,1);R(a.mid,-5,-11,10,2);R(a.lit,-5,-10,10,1);
    P(a.mid,[-8,-10,-13,-5,-16+stride,2,-12,1,-7,-4]);
+ }else if(id==='warden'){
+   P(ink,[-14,-12,-8,-18,8,-18,14,-12,12,13,-12,13]);P(a.mid,[-12,-11,-7,-16,7,-16,12,-11,10,10,-10,10]);R(a.dark,-7,-9,14,17);R(a.metal,-9,6,18,3);R(a.glow,-2,-4,4,8);R(ink,-10,-25,20,18);R(a.lit,-8,-23,16,14);R(ink,-6,-19,12,8);R(a.glow,-5,-17,3,2);R(a.glow,2,-17,3,2);R(a.dark,-12,-25,24,4);R(a.metal,-4,-28,8,3);
+ }else if(id==='revenant'){
+   P(ink,[-13,-12,-8,-18,8,-18,13,-12,16,11,7,15,0,9,-7,15,-16,11]);P(a.mid,[-11,-11,-7,-16,7,-16,11,-11,13,10,7,12,0,7,-7,12,-13,10]);R(a.dark,-7,-9,14,14);R(a.glow,-2,-4,4,5);P(ink,[-12,-16,-7,-26,-2,-22,6,-28,12,-16,8,-7,-8,-7]);P(a.lit,[-9,-16,-6,-23,-2,-19,5,-24,9,-16,6,-9,-6,-9]);R(ink,-6,-16,12,6);R(a.glow,-5,-14,3,2);R(a.glow,2,-14,3,2);R(a.metal,-8,2,3,5);R(a.metal,5,2,3,5);
  }else{
    // Heavy cauldron: broad shoulders, rivets, glowing furnace and split iron plates.
    R(ink,-16,-6,8,18);R(ink,8,-6,8,18);R(a.dark,-14,-4,5,14);R(a.dark,9,-4,5,14);R(a.lit,-14,-3,5,3);R(a.lit,9,-3,5,3);
@@ -3068,6 +3111,8 @@ function pixelHeroWeapon(g,id,wi,angle,fire=0){
  else if(id==='nyx'){R(ink,13,-5,19,9);R(a.dark,14,-3,14,5);R(a.lit,17,-4,11,2);R(a.glow,27,-2,4,2)}
  else if(id==='pelmage'){R(ink,13,-3,19,6);R(a.metal,14,-1,15,2);R(a.mid,27,-6,7,12);R(a.glow,29,-4,3,8);R('#f0fbff',30,-3,1,2)}
  else if(id==='assassin'){R(ink,13,-4,18,8);R(a.dark,14,-2,8,4);R(a.metal,21,-3,8,5);R(a.glow,25,-3,5,1)}
+ else if(id==='warden'){R(ink,13,-7,16,14);R(a.metal,15,-6,12,12);R(a.mid,17,-4,8,8);R(a.glow,19,-3,4,6);R(ink,18,-9,6,3)}
+ else if(id==='revenant'){R(ink,12,-5,20,10);for(let i=0;i<3;i++){R(a.lit,18+i*3,-4+i*3,10-i*2,2);R(a.glow,25+i,-4+i*3,3,1)}}
  else {R(ink,12,-7,19,14);R(a.mid,13,-5,15,10);R(a.lit,13,-5,15,2);R(a.glow,25,-3,4,6);R(a.metal,14,-7,3,14)}
  if(wi===1)R(a.glow,18,-6,8,1);
  if(wi===2){R(a.metal,15,3,10,3);R(a.glow,18,5,5,1)}
