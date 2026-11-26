@@ -664,84 +664,99 @@ const terrainThemes={
 };
 const terrainThumbs=new Map();let terrainCache=null;
 function terrainHash(x,y,s=0){let n=Math.imul(x+317,374761393)^Math.imul(y+719,668265263)^Math.imul(s+11,1274126177);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967296}
+// V38: individually composed, world-anchored arena art. Decorations inside the
+// playable rectangle are flat: solid scenery sits outside the collision boundary.
+const arenaLights={
+ kitchen:[[650,428],[1080,585],[1450,330],[300,755]],
+ basement:[[830,405],[1140,670],[400,280],[1600,800]],
+ foodcourt:[[790,456],[1130,620],[300,310],[1570,780]],
+ slaughter:[[730,420],[1110,660],[380,830],[1530,280]],
+ cemetery:[[760,440],[1160,625],[280,700],[1530,320]],
+ forest:[[820,425],[1150,620],[320,280],[1580,790]]
+};
 function paintTerrain(g,id,left,top,width,height){
- const t=terrainThemes[id]||terrainThemes.kitchen;
- const right=left+width,bottom=top+height;
+ const t=terrainThemes[id]||terrainThemes.kitchen,right=left+width,bottom=top+height,natural=id==='cemetery'||id==='forest';
  const R=(color,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
- const P=(color,pts)=>{g.fillStyle=color;g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill()};
- const natural=id==='cemetery'||id==='forest',tile=natural?32:24;
+ const P=(color,xy)=>{const xs=xy.filter((_,i)=>i%2===0),ys=xy.filter((_,i)=>i%2===1);if(Math.max(...xs)<left||Math.min(...xs)>right||Math.max(...ys)<top||Math.min(...ys)>bottom)return;g.fillStyle=color;g.beginPath();g.moveTo(xy[0],xy[1]);for(let i=2;i<xy.length;i+=2)g.lineTo(xy[i],xy[i+1]);g.closePath();g.fill()};
+ const line=(color,pts,w=1)=>{for(let i=0;i<pts.length-2;i+=2){const x=pts[i],y=pts[i+1],dx=pts[i+2]-x,dy=pts[i+3]-y,n=Math.max(1,Math.abs(dx),Math.abs(dy));for(let j=0;j<=n;j+=Math.max(1,w/2))R(color,x+dx*j/n,y+dy*j/n,w,w)}};
+ const stain=(x,y,sz,colors,seed)=>{for(let k=0;k<9;k++){const a=terrainHash(x,y,seed+k)*6.283,b=terrainHash(y,x,k+seed+30)*sz;R(colors[k%colors.length],x+Math.cos(a)*b,y+Math.sin(a)*b*.55,3+Math.floor(sz*.32*(1-b/sz)),1+Math.floor(sz*.18*(1-b/sz)))}};
+ const plate=(x,y,w,h,base,edge,hi)=>{R(edge,x,y,w,h);R(base,x+2,y+2,w-4,h-4);R(hi,x+3,y+2,w-6,1);R(edge,x+w-3,y+3,1,h-6);R(edge,x+3,y+h-3,w-6,1)};
+ const grate=(x,y,w,h,base,hi)=>{plate(x,y,w,h,base,'#171a1d',hi);for(let i=x+5;i<x+w-4;i+=5)R('#15181a',i,y+4,2,h-8);for(let i=y+5;i<y+h-4;i+=8)R(hi,x+4,i,w-8,1)};
+ const paving=(x,y,w,h,sz,colors)=>{for(let yy=y;yy<y+h;yy+=sz)for(let xx=x;xx<x+w;xx+=sz){const z=terrainHash(xx,yy,9);R(colors[z<.25?0:z<.8?1:2],xx,yy,Math.min(sz-1,x+w-xx),Math.min(sz-1,y+h-yy));if(z>.4)R(colors[2],xx+1,yy+1,Math.min(sz-3,x+w-xx-2),1)}};
+ const crack=(x,y,k)=>{const d=k%2?-1:1;line(t.edge,[x,y,x+6*d,y+2,x+9*d,y+9,x+15*d,y+10,x+19*d,y+17],1);R(t.light,x+7*d,y+3,3,1)};
  R(t.base,left,top,width,height);
- for(let y=Math.floor(top/tile)*tile;y<bottom;y+=tile)for(let x=Math.floor(left/tile)*tile;x<right;x+=tile){
-  const u=x/tile,v=y/tile,z=terrainHash(u,v);
-  if(!natural){
-   R(z<.36?t.base:z<.89?t.tile:t.light,x,y,tile-1,tile-1);
-   R(t.edge,x,y+tile-1,tile,1);R(t.edge,x+tile-1,y,1,tile);
-   if(z>.3)R(t.light,x+1,y+1,tile-3,1);
-   if(z<.12){R(t.edge,x+5,y+8,6,1);R(t.edge,x+10,y+9,1,7);R(t.edge,x+10,y+15,5,1)}
-   if(z>.7){R(t.trim,x+4,y+7,2,1);R(t.trim,x+16,y+18,1,2)}
-  }else{
-   R(z<.5?t.base:t.tile,x+1,y+2,tile-3,tile-5);
-   for(let j=0;j<6;j++){const a=terrainHash(u,v,j+1),b=terrainHash(v,u,j+9);R(j%3===0?t.trim:t.light,x+Math.floor(a*28),y+Math.floor(b*28),j%2+1,1)}
-  }
+ // Fine texture underneath the unique large composition.
+ const size=natural?16:id==='basement'?48:id==='slaughter'?36:24;
+ for(let y=Math.floor(top/size)*size;y<bottom;y+=size)for(let x=Math.floor(left/size)*size;x<right;x+=size){
+  const z=terrainHash(x,y,3),v=terrainHash(y,x,8);
+  if(natural){if(z<.65)R(z<.3?t.base:t.tile,x+1,y+2,Math.floor(7+v*10),Math.floor(5+z*9));for(let j=0;j<3;j++){const u=terrainHash(x,y,j+50),v2=terrainHash(y,x,j+15);R(z>.7?t.trim:t.light,x+u*14,y+v2*14,j===0?2:1,1)}}
+  else{R(z<.22?t.base:z<.91?t.tile:t.light,x,y,size-1,size-1);R(t.edge,x,y+size-1,size,1);R(t.edge,x+size-1,y,1,size);if(v>.5)R(t.light,x+1,y+1,size-3,1);if(z<.045)crack(x+4,y+4,Math.floor(v*10));if(v<.08)stain(x+size/2,y+size/2,9,[t.edge,t.trim,t.base],4)}
  }
- // Large-scale walkable layout: aisles and environmental zoning.
- for(let gy=Math.floor((top-100)/144)*144;gy<bottom+80;gy+=144)for(let gx=Math.floor((left-100)/176)*176;gx<right+80;gx+=176){
-  const ix=gx/176,iy=gy/144,q=Math.floor(terrainHash(ix,iy,5)*3),x=gx+26,y=gy+24;
-  if(id==='kitchen'){
-   // Flush steel preparation panels, drains, faded sanitation lines.
-   R(t.edge,x,y,102,44);R('#35383e',x+2,y+2,98,40);R('#45484a',x+3,y+3,96,2);
-   for(let i=0;i<6;i++){R('#27272f',x+7+i*15,y+8,12,28);R('#5e5b58',x+8+i*15,y+9,10,1);R('#79706a',x+9+i*15,y+33,2,1)}
-   R('#151921',x+43,y+17,16,10);for(let i=0;i<4;i++)R('#686b6b',x+45+i*3,y+18,1,8);
-   R('#95764e',x-7,y+50,116,2);for(let i=0;i<8;i++)R('#503e35',x-6+i*15,y+50,6,2);
-   if(q===1){R('#592932',x+77,y+30,10,4);R('#3c222b',x+81,y+35,6,3)}
-  }else if(id==='basement'){
-   // Utility conduits embedded in the concrete, service hatches and numbered lanes.
-   R('#0d141d',gx+8,y-9,160,19);R('#344653',gx+9,y-7,158,4);R('#4c6571',gx+9,y-7,158,1);
-   R('#24323f',gx+9,y+1,158,5);R('#536471',gx+9,y+1,158,1);
-   for(let i=0;i<5;i++){R('#566773',gx+18+i*30,y-8,3,16);R('#171e26',gx+19+i*30,y-3,1,5)}
-   R('#0c121b',x+35,y+22,66,46);R('#2d3a47',x+37,y+24,62,42);R('#4c5c68',x+39,y+26,58,2);
-   for(let i=0;i<9;i++)R('#111b24',x+41+i*6,y+30,3,30);
-   R('#9b7748',x+33,y+70,70,2);for(let i=0;i<6;i++)R('#26303a',x+35+i*12,y+70,6,2);
-  }else if(id==='foodcourt'){
-   // Worn mosaic, recessed seating-zone borders and reflected broken neon.
-   R('#1e1727',x,y,104,60);R('#423149',x+2,y+2,100,56);R('#705267',x+4,y+4,96,2);R('#705267',x+4,y+54,96,2);
-   for(let j=0;j<4;j++)for(let i=0;i<7;i++)R((i+j)%2?'#41334a':'#2b2336',x+7+i*13,y+8+j*11,12,10);
-   R('#65415e',x+10,y+17,28,2);R('#3b5661',x+63,y+33,27,2);
-   R('#b86995',x+11,y+17,9,1);R('#76a4ae',x+63,y+33,12,1);
-   if(q===0){R('#725665',x+46,y+25,8,3);R('#e1aa83',x+47,y+25,5,1)}
-  }else if(id==='slaughter'){
-   // Grated conveyor trenches, recessed rails, industrial warning paint.
-   R('#1c1419',gx+10,y,158,40);R('#6b4d44',gx+12,y+2,154,2);R('#6b4d44',gx+12,y+36,154,2);
-   for(let i=0;i<13;i++){R('#483438',gx+14+i*11,y+6,9,28);R('#71605b',gx+14+i*11,y+6,9,1);R('#272127',gx+22+i*11,y+8,1,23)}
-   R('#ae8654',gx+12,y-6,154,3);for(let i=0;i<13;i++)R('#392b2b',gx+12+i*12,y-6,6,3);
-   R('#6e3038',x+24,y+49,39,8);R('#4e252e',x+21,y+53,47,2);R('#a14a48',x+32,y+48,7,2);
-   R('#241b23',x+85,y+60,22,12);for(let i=0;i<4;i++)R('#6c504a',x+87+i*5,y+62,2,8);
-  }else if(id==='cemetery'){
-   // Broken flagstones and flush memorial slabs, with moss growing in joints.
-   for(let i=0;i<5;i++){const sx=x+i*20,sy=y+Math.floor(terrainHash(ix+i,iy,8)*8);R('#17221f',sx,sy,19,45);R('#46504a',sx+1,sy+1,17,42);R('#5e6960',sx+2,sy+2,15,2);R('#2d3830',sx+5,sy+35,11,5)}
-   for(let i=0;i<3;i++){const sx=x+12+i*32,sy=y+59+(i%2)*9;R('#151f1c',sx,sy,25,15);R('#4c534e',sx+1,sy+1,23,12);R('#7b8173',sx+2,sy+2,21,1);R('#28392e',sx+4,sy+8,10,3);R('#73786b',sx+15,sy+5,5,2)}
-   R('#2e4840',x+105,y+22,20,8);R('#456358',x+108,y+24,12,1);
-  }else{
-   // Forest paths and roots are painted into the soil, not invisible obstacles.
-   P('#263a2d',[gx+11,y+17,gx+45,y+6,gx+88,y+19,gx+127,y+11,gx+165,y+22,gx+165,y+38,gx+111,y+29,gx+73,y+41,gx+35,y+28,gx+11,y+36]);
-   for(let i=0;i<5;i++){const sx=x+i*22,sy=y+47+Math.floor(terrainHash(ix+i,iy,4)*20);P('#443c32',[sx,sy,sx+5,sy-4,sx+18,sy+1,sx+21,sy+3,sx+5,sy+2]);R('#675348',sx+4,sy-2,8,1);R('#526a4c',sx+3,sy+7,2,3);R('#9f7460',sx+6,sy+6,3,2)}
-   if(q===2){P('#142b2a',[x+74,y-9,x+102,y-5,x+110,y+5,x+94,y+13,x+70,y+7]);R('#43665c',x+80,y+1,19,1);R('#66857a',x+89,y+4,7,1)}
-  }
+ if(id==='kitchen'){
+  // Kitchen: a broad central tiled work hall, a warm service lane and cold wash bays.
+  R('#353a39',514,286,890,510);paving(518,290,882,502,24,['#3f4340','#444843','#50534b']);
+  for(const y of [305,775]){R('#202825',535,y,850,5);R('#7d7962',535,y+1,850,1)}
+  R('#292e2c',920,290,82,502);R('#73705e',921,290,2,502);R('#73705e',1000,290,2,502);
+  for(const y of [382,540,698]){grate(940,y,42,17,'#404747','#77776a');R('#6a6756',930,y+19,62,1)}
+  for(const [x,y] of [[620,378],[1100,378],[620,620],[1100,620]]){R('#343834',x,y,204,95);paving(x+3,y+3,198,89,18,['#45433b','#514e43','#5b5748']);R('#8d7959',x,y,204,2);R('#8d7959',x,y+93,204,2);stain(x+68,y+33,24,['#453235','#603b39','#352c2d'],7)}
+  for(const x of [180,1570]){R('#343e40',x,135,220,780);for(let y=160;y<900;y+=132){plate(x+40,y,140,62,'#3b4544','#252c2e','#6c7770');grate(x+78,y+21,62,19,'#414848','#788078')}}
+  for(const [x,y] of [[755,482],[1200,565],[970,730],[690,700]])stain(x,y,22,['#42292b','#573133','#34292a'],5);
+ }else if(id==='basement'){
+  // Basement: long concrete strips, branching recessed pipe trenches and hatch junction.
+  for(const y of [275,520,805]){R('#171e25',90,y,1740,44);R('#5a625e',90,y,1740,2);R('#5b645d',90,y+42,1740,2);for(let x=100;x<1830;x+=44){R('#303d43',x,y+7,40,30);R('#536165',x,y+7,40,2);R('#202b31',x+38,y+7,2,30)}}
+  for(const x of [340,1070,1550]){R('#1a232b',x,60,37,950);R('#43555d',x+5,60,8,950);R('#68736e',x+5,60,2,950);R('#39464c',x+21,60,9,950);for(let y=90;y<1000;y+=96){R('#68706c',x+3,y,28,4);R('#202a2e',x+4,y+4,26,2)}}
+  R('#29343b',720,350,310,330);plate(740,365,270,298,'#343d41','#1b232b','#5f6865');grate(788,470,132,86,'#363e3e','#717871');
+  for(let x=758;x<1010;x+=18){R('#a38b5a',x,370,8,3);R('#a38b5a',x,656,8,3)}
+  for(const [x,y] of [[760,432],[964,605],[1280,680],[420,400]]){P('#243d42',[x-18,y,x-10,y-10,x+18,y-8,x+24,y+6,x+7,y+13,x-17,y+8]);R('#4a6367',x-9,y-2,20,1)}
+ }else if(id==='foodcourt'){
+  // Food court: an octagonal terrazzo plaza, mosaic edge and separate worn carpet wings.
+  P('#4b4140',[680,320,1240,320,1390,465,1390,690,1240,805,680,805,530,690,530,465]);
+  P('#332f36',[704,342,1216,342,1367,480,1367,674,1216,783,704,783,554,674,554,480]);
+  P('#57504a',[728,365,1192,365,1342,495,1342,655,1192,760,728,760,579,655,579,495]);
+  // The central diamond is inlaid, not a repeated square.
+  P('#322e35',[960,407,1140,545,960,686,780,545]);P('#6c5c50',[960,420,1123,545,960,672,797,545]);P('#453b41',[960,437,1100,545,960,654,820,545]);P('#90765d',[960,508,1008,545,960,583,912,545]);P('#34353a',[960,521,992,545,960,570,928,545]);
+  for(const [x,y,w,h] of [[120,150,350,340],[1440,150,350,340],[120,610,350,300],[1440,610,350,300]]){R('#4f3c43',x,y,w,h);R('#3a303b',x+5,y+5,w-10,h-10);for(let i=14;i<h-8;i+=13)R('#55434a',x+8,y+i,w-16,1);for(let i=22;i<w-15;i+=45){R('#645059',x+i,y+16,20,3);R('#645059',x+i,y+h-19,20,3)}}
+  for(const [x,y] of [[620,434],[1280,621],[752,718],[1180,410]]){R('#76625a',x,y,15,2);R('#4c3b40',x+3,y+3,8,3);R('#a18e71',x+4,y+1,5,1)}
+ }else if(id==='slaughter'){
+  // A long recessed industrial rail line crosses the arena diagonally via a service junction.
+  R('#403838',120,338,1680,396);R('#282b2b',120,445,1680,162);
+  for(const y of [450,598]){R('#977d59',120,y,1680,3);for(let x=120;x<1800;x+=20)R('#3b332b',x,y,10,3)}
+  for(const y of [477,547]){R('#171c1e',120,y,1680,37);R('#6c6c60',120,y+2,1680,2);R('#69675d',120,y+33,1680,2);for(let x=125;x<1800;x+=19){R('#454746',x,y+5,15,27);R('#686760',x,y+5,15,1)}}
+  R('#282d2b',875,150,168,780);for(const x of [889,1024]){R('#8c785a',x,150,3,780);for(let y=150;y<930;y+=22)R('#40372d',x,y,3,10)}
+  plate(911,467,93,115,'#4a4b44','#171c1d','#76776a');grate(925,486,65,78,'#434641','#777b6a');
+  for(const [x,y] of [[550,398],[770,651],[1180,660],[1350,390],[980,765]]){stain(x,y,32,['#4b2a2e','#70383a','#37282a'],3);crack(x+10,y+15,1)}
+ }else if(id==='cemetery'){
+  // A broken stone avenue, a circular memorial plaza and damp soil.
+  P('#414740',[873,58,1035,58,1047,380,1100,480,1100,650,1040,720,1037,1022,875,1022,880,720,820,650,820,480,878,380]);
+  P('#585b4d',[893,58,1015,58,1027,385,1078,490,1078,640,1020,710,1017,1022,895,1022,900,710,842,640,842,490,898,385]);
+  P('#303c35',[960,402,1080,454,1134,545,1080,648,960,700,840,648,786,545,840,454]);P('#616657',[960,418,1069,466,1118,545,1069,636,960,684,851,636,802,545,851,466]);P('#454d41',[960,435,1058,478,1100,545,1058,622,960,665,862,622,820,545,862,478]);
+  for(let y=80;y<1020;y+=29){if(y>386&&y<712)continue;for(let x=897;x<1016;x+=30){const z=terrainHash(x,y,6);R(z>.5?'#636457':'#50564a',x,y,28,27);R('#757568',x+1,y+1,26,1);if(z<.22)R('#3d5040',x+3,y+20,15,4)}}
+  for(const [x,y] of [[660,415],[1230,410],[640,690],[1250,700],[350,280],[1560,830]]){P('#1c3433',[x-35,y-9,x-12,y-20,x+31,y-14,x+43,y+5,x+16,y+18,x-32,y+10]);P('#2b4842',[x-28,y-7,x-10,y-14,x+25,y-11,x+35,y+5,x+12,y+12,x-25,y+6]);R('#5a7262',x-16,y-2,25,1);R('#47685a',x+5,y+6,14,1)}
+  for(const [x,y] of [[750,370],[1190,370],[730,750],[1210,750]]){plate(x,y,47,25,'#4e554d','#252e28','#888b79');R('#777c6d',x+11,y+7,25,2);R('#37483a',x+5,y+18,17,4)}
+ }else{
+  // Natural forest floor: an asymmetric winding trail, split clearing and scattered roots.
+  P('#303b2d',[130,58,290,58,390,190,620,290,850,375,1010,414,1200,362,1440,250,1700,180,1868,230,1868,325,1680,280,1440,355,1240,460,1080,530,850,488,600,390,340,300,200,170,52,150,52,80]);
+  P('#4a4435',[130,75,262,75,365,208,610,320,850,400,1010,440,1210,395,1450,280,1700,208,1840,253,1840,300,1680,250,1450,326,1240,435,1080,502,850,461,600,365,365,272,215,150,65,125]);
+  P('#4f4938',[845,440,1090,465,1250,580,1180,720,960,765,740,650,710,540]);
+  P('#3b4432',[865,467,1080,492,1217,582,1155,692,960,738,767,630,742,545]);
+  P('#4a4435',[927,650,1012,675,1025,810,1190,905,1265,1022,1158,1022,1090,950,920,845,900,750]);
+  for(const [x,y] of [[690,470],[1190,450],[1260,650],[700,725],[960,850],[430,370],[1550,480]]){line('#29281e',[x-34,y+13,x-12,y+1,x,y-5,x+13,y+5,x+30,y+2],4);line('#736047',[x-31,y+11,x-12,y-1,x,y-7,x+13,y+3],2);line('#403629',[x,y-4,x+7,y-18,x+15,y-22],3)}
+  for(const [x,y] of [[805,555],[1120,635],[545,480],[1450,750]]){P('#192f2b',[x-35,y-7,x-12,y-19,x+22,y-13,x+34,y+4,x+18,y+18,x-22,y+12]);P('#28453a',[x-25,y-5,x-9,y-12,x+18,y-9,x+24,y+3,x+12,y+11,x-20,y+6]);R('#607364',x-10,y-1,22,1)}
+  for(let i=0;i<95;i++){const x=70+Math.floor(terrainHash(i,3,1)*1760),y=70+Math.floor(terrainHash(i,5,2)*930);if(Math.hypot(x-960,y-550)<130)continue;for(let j=0;j<3;j++){R('#4d6944',x+j*3,y-j,2,4);R('#283d2a',x+j*3,y+3,2,2)}if(i%9===0){R('#ac785b',x-3,y+1,5,2);R('#a4936b',x-1,y+3,1,2)}}
  }
- // Perimeter silhouettes. They sit outside player traversal bounds.
- R('#0b0a10',left,top,width,Math.max(0,arena.t-top));R('#0b0a10',left,Math.max(top,arena.b),width,Math.max(0,bottom-Math.max(top,arena.b)));
- R('#0b0a10',left,top,Math.max(0,arena.l-left),height);R('#0b0a10',Math.max(left,arena.r),top,Math.max(0,right-Math.max(left,arena.r)),height);
- R(t.trim,arena.l,arena.t-3,arena.r-arena.l,2);R(t.edge,arena.l,arena.b,arena.r-arena.l,3);R(t.trim,arena.l-3,arena.t,2,arena.b-arena.t);R(t.edge,arena.r,arena.t,3,arena.b-arena.t);
- for(let x=Math.max(arena.l+8,Math.floor((left-60)/88)*88);x<Math.min(arena.r,right+60);x+=88){
-  const y=arena.t-34;
-  if(natural){P('#101c17',[x-7,y+30,x+10,y-10,x+26,y+30]);P('#30483a',[x-3,y+23,x+10,y-8,x+20,y+23]);R('#624a38',x+9,y+23,3,10)}
-  else{R(t.edge,x,y,65,30);R(t.tile,x+2,y+2,61,26);R(t.light,x+3,y+3,59,3);R(t.trim,x+4,y+8,3,16);R(t.trim,x+57,y+8,3,16);R('#11141b',x+12,y+8,41,13);for(let j=0;j<5;j++)R(t.trim,x+14+j*7,y+10,4,2);R(t.glow,x+29,y+25,5,2)}
+ // Dirt and damage distributed at authored-looking irregular positions, not tiled stamps.
+ for(let i=0;i<125;i++){const x=70+Math.floor(terrainHash(i,9,20)*1760),y=70+Math.floor(terrainHash(i,13,2)*930);if(x<left-25||x>right+25||y<top-25||y>bottom+25)continue;if(i%5===0&&!natural)crack(x,y,i);else stain(x,y,5+i%9,[t.edge,t.base,t.trim],i)}
+ // Perimeter wall and silhouettes, outside the walkable rectangle.
+ R('#111417',left,top,width,Math.max(0,arena.t-top));R('#111417',left,Math.max(top,arena.b),width,Math.max(0,bottom-Math.max(top,arena.b)));R('#111417',left,top,Math.max(0,arena.l-left),height);R('#111417',Math.max(left,arena.r),top,Math.max(0,right-Math.max(left,arena.r)),height);
+ R(t.trim,arena.l,arena.t-3,arena.r-arena.l,2);R(t.edge,arena.l,arena.b,arena.r-arena.l,4);R(t.trim,arena.l-3,arena.t,2,arena.b-arena.t);R(t.edge,arena.r,arena.t,3,arena.b-arena.t);
+ for(let x=65;x<arena.r-60;x+=84){
+  if(x+85<left||x-30>right)continue;const y=arena.t-44;
+  if(natural){const h=26+Math.floor(terrainHash(x,6,0)*16);P('#182a20',[x-15,y+42,x+4,y+42-h,x+19,y+42]);P('#314634',[x-9,y+35,x+4,y+43-h,x+14,y+35]);R('#6c5140',x+3,y+32,4,11)}
+  else{plate(x,y+7,65,34,t.tile,t.edge,t.trim);if(id==='kitchen'){R('#171d20',x+7,y+13,51,13);for(let j=0;j<4;j++){R('#555f5d',x+10+j*12,y+15,7,8);R('#9b8270',x+10+j*12,y+15,7,1)}}else if(id==='foodcourt'){R('#2f2e34',x+8,y+12,49,21);R('#bc8b69',x+12,y+15,41,2);R('#4d7773',x+12,y+21,25,2)}else{grate(x+8,y+12,49,20,t.tile,t.trim)}}
  }
- // Low-profile in-floor lamps provide readable pools of coloured light.
- for(let y=Math.floor((top-50)/144)*144+104;y<bottom+50;y+=144)for(let x=Math.floor((left-50)/176)*176+148;x<right+50;x+=176){
-  if(x<arena.l+14||x>arena.r-14||y<arena.t+14||y>arena.b-14)continue;
-  g.save();g.globalAlpha=.07;R(t.glow,x-22,y-14,44,28);g.globalAlpha=.10;R(t.glow,x-13,y-8,26,16);g.restore();
-  R(t.edge,x-5,y-4,10,8);R(t.trim,x-4,y-3,8,6);R(t.glow,x-3,y-2,6,4);R('#f8e7c8',x-2,y-1,2,1);
+ // Sparse ground lanterns, placed to support navigation instead of repeating a grid.
+ for(const [x,y] of arenaLights[id]||arenaLights.kitchen){
+  R(t.edge,x-5,y-4,10,8);R(t.trim,x-4,y-3,8,6);R(t.glow,x-3,y-2,6,4);R('#eadac0',x-2,y-1,2,1)
  }
 }
 function getTerrain(id){
@@ -753,7 +768,7 @@ function getTerrain(id){
 function mapThumbnail(id){
  if(terrainThumbs.has(id))return terrainThumbs.get(id);
  const cv=document.createElement('canvas');cv.width=160;cv.height=90;
- const g=cv.getContext('2d',{alpha:false});g.imageSmoothingEnabled=false;g.translate(-880,-495);paintTerrain(g,id,880,495,160,90);
+ const g=cv.getContext('2d',{alpha:false});g.imageSmoothingEnabled=false;g.scale(1/3,1/3);g.translate(-720,-405);paintTerrain(g,id,720,405,480,270);
  terrainThumbs.set(id,cv);return cv;
 }
 
@@ -830,10 +845,8 @@ function syncInventoryArt(p){
 }
 
 function paintMenuStage(hero,map){
- const g=document.getElementById('heroStageCanvas').getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,200,108);g.save();
- // A crop of the real arena, behind the actual character model.
- paintTerrain(g,map.id,860,486,200,108);g.restore();
- g.clearRect(0,0,200,108);g.save();g.translate(-860,-486);paintTerrain(g,map.id,860,486,200,108);g.restore();
+ const g=document.getElementById('heroStageCanvas').getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,200,108);// A crop of the real arena behind the actual character model.
+ g.save();g.translate(-860,-486);paintTerrain(g,map.id,860,486,200,108);g.restore();
  g.fillStyle='rgba(13,12,15,.35)';g.fillRect(0,0,200,108);g.save();g.translate(100,72);g.scale(1.75,1.75);pixelHeroBody(g,hero.id,0,0,0);pixelHeroWeapon(g,hero.id,0,-.35,0);g.restore();
  document.getElementById('heroStageName').textContent=locName(hero);document.getElementById('heroStageStats').textContent=(lang==='en'?'Health ':'Здоровье ')+hero.hp+' / '+(lang==='en'?'Speed ':'Скорость ')+hero.speed;
  const mg=document.getElementById('mapStageCanvas').getContext('2d');mg.save();mg.translate(-720,-405);paintTerrain(mg,map.id,720,405,480,270);mg.restore();
@@ -1968,17 +1981,9 @@ function paintCombatProjectile(g,p){
  g.globalAlpha=1;g.fillStyle=p.color||'#d9c3a0';g.fillRect(x-w/2,y-w/2,w,w);g.fillStyle=p.enemy?'#ffc6a4':'#f5edcf';g.fillRect(x-1,y-1,2,2);g.restore();
 }
 function paintArenaLighting(g,map,view){
- // Lighting on the ground only. Combat cues and actors are drawn later at full contrast.
- const {x,y,w,h}=view;g.save();
- g.fillStyle='rgba(8,10,16,.14)';g.fillRect(x,y,w,h);
- const step=176;
- for(let ly=Math.floor((y-60)/144)*144+104;ly<y+h+60;ly+=144)for(let lx=Math.floor((x-60)/step)*step+148;lx<x+w+60;lx+=step){
-  if(lx<arena.l+14||lx>arena.r-14||ly<arena.t+14||ly>arena.b-14)continue;
-  const rad=g.createRadialGradient(lx,ly,2,lx,ly,43);rad.addColorStop(0,terrainThemes[map.id].glow);rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.11;g.fillStyle=rad;g.fillRect(lx-43,ly-43,86,86)
- }
- g.restore();
+ const {x,y,w,h}=view;g.save();g.fillStyle='rgba(10,12,15,.08)';g.fillRect(x,y,w,h);
+ for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+70<x||lx-70>x+w||ly+70<y||ly-70>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,66);rad.addColorStop(0,terrainThemes[map.id].glow);rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.13;g.fillStyle=rad;g.fillRect(lx-66,ly-66,132,132)}g.restore()
 }
-
 function draw(){
  const m=maps.find(x=>x.id===selectedMap);ctx.fillStyle=m.floor;ctx.fillRect(0,0,W,H);
  // world camera: preserve the 480x270 pixel canvas, move the world underneath it
