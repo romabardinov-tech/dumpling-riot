@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.60.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.61.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -75,3 +75,6 @@ Two unlockable solo-only heroes added without locking any of the six original he
 
 ## V60 — Living Arenas
 Two proximity-activated tactical stations per arena in solo modes, reset each wave: kitchen steam blast, basement electrical pulse and slow, food court first aid, factory rectangular cutting strip, cemetery fear reduction, forest root snare. Enemy-only traps have telegraphed delay and limited boss damage; no repeated activations per station per wave. Terrain remains walkable rather than introducing unverified collision barriers. Arena selection hints and run recap updated. Inline syntax and 133 isolated rule assertions passed for bounds, proximity, timing, effects, boss caps, reset configuration and co-op exclusion. Browser/device visual, runtime and native verification remain open.
+
+## V61 — Brutal Combat
+Presentation-only changes: 140 ms weapon recoil with directional recovery, brief muzzle glint, bounded impact marks, dash afterimages and cosmetic enemy death sprites. Existing collisions, damage, rewards and cooldowns unchanged. Effects respect reduced-motion preference and horror FX toggle; screen shake capped at 3 world pixels. Particle/text budgets (340/48), impact/ghost/death budgets (32/12/18) and viewport culling. Syntax and 3232 isolated assertions passed for caps, recoil, expiry, impact hierarchy and reduced-motion behavior. No device frame-time measurements or human game-feel evaluation yet; browser/device runtime and native exports remain unverified.
