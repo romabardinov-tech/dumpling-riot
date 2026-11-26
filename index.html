@@ -669,6 +669,11 @@ html.inGame body:has(#ritualOverlay:not([hidden])){touch-action:pan-y}
 html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 @media(max-width:420px) and (orientation:portrait){#merchantOffers{grid-template-columns:1fr}}
 @media(max-height:520px) and (orientation:landscape){#merchantOverlay .merchantBox{padding:7px}.merchantHeader{margin-bottom:4px}#merchantPortrait{width:48px;height:48px}#merchantTitle{font-size:15px}.merchantOffer{min-height:38px;padding:4px}#merchantLeave{min-height:36px}}
+/* V56: encounter room, using the existing mobile-safe ritual dialog. */
+.encounterScene{display:flex;align-items:center;gap:10px;background:#191320;padding:6px;border:1px solid #674957;color:#e8c6a2;font:600 12px system-ui}
+.encounterScene canvas{position:static;transform:none;width:128px;height:64px;image-rendering:pixelated;flex:none}
+#ritualChoices .ritualOption:disabled{opacity:.55;cursor:not-allowed}
+@media(max-height:520px){.encounterScene canvas{width:88px;height:44px}.encounterScene{padding:3px}}
 /* V54 campaign gates */
 #campaignHud[hidden]{display:none!important}
 #campaignHud{color:#f0c98c;font-weight:700}
@@ -1029,6 +1034,77 @@ function clearWaveReward(data,run,round,map){
 function finishMetaRun(data,run,escaped,outcome='abandoned'){if(!run||run.closed||escaped&&run.cleared<10)return false;run.closed=true;data.runs=metaInt(data.runs+1);data.kills=metaInt(data.kills+run.kills);if(escaped){data.escapes=metaInt(data.escapes+1);const n=10*contractFor(run.contract).mult;run.earned+=n;data.shards=metaInt(data.shards+n);unlockAchievements(data,run.cleared,run.contract,true)}rememberRun(data,run,escaped,outcome);return true}
 function chooseOmen(round,random=Math.random){return round>=3&&round%5!==0&&random()<.38?waveOmens[1+Math.min(2,Math.floor(random()*3))]:waveOmens[0]}
 function applyRitual(p,id){if(id==='heal'){p.hp=Math.min(p.maxhp,p.hp+p.maxhp*.5)}else if(id==='blood'){p.maxhp=Math.max(1,Math.floor(p.maxhp*.85));p.hp=Math.min(p.hp,p.maxhp);p.boost.dmg*=1.2}else if(id==='supply'){p.bomb=Math.min(9,p.bomb+2);p.boost.move*=1.08}else return false;return true}
+// V56: optional side rooms between waves. No new network or persistent rewards.
+const encounterRooms=[
+ {id:'mirror',en:'The broken mirror',ru:'Разбитое зеркало',lineEn:'Your reflection raises a blade you do not own.',lineRu:'Отражение поднимает клинок, которого у тебя нет.',color:'#af9ddc',choices:[
+  {id:'shatter',en:'Shatter it',ru:'Разбить',descEn:'Lose 20% of max HP as current HP · +25 coins',descRu:'Потерять 20% от максимального HP · +25 монет'},
+  {id:'stare',en:'Look into it',ru:'Вглядеться',descEn:'+35 fear next wave · +1 bomb',descRu:'+35 страха в следующей волне · +1 бомба'}]},
+ {id:'well',en:'The silent well',ru:'Безмолвный колодец',lineEn:'A voice beneath the water asks for an offering.',lineRu:'Голос под водой требует подношение.',color:'#7dbbab',choices:[
+  {id:'drink',en:'Drink',ru:'Выпить',descEn:'Recover 40% max HP · +25 fear next wave',descRu:'Восстановить 40% HP · +25 страха в следующей волне'},
+  {id:'offering',en:'Offer 12 coins',ru:'Отдать 12 монет',descEn:'Clear fear before next wave',descRu:'Обнулить страх перед следующей волной'}]},
+ {id:'cage',en:'The rusted cage',ru:'Ржавая клетка',lineEn:'Something moves behind the bars. A bag lies at its feet.',lineRu:'За прутьями что-то шевелится. Рядом лежит мешок.',color:'#d2a26d',choices:[
+  {id:'release',en:'Open the cage',ru:'Открыть клетку',descEn:'+30 coins · 4 extra enemies next wave',descRu:'+30 монет · 4 дополнительных врага в следующей волне'},
+  {id:'search',en:'Search the bag',ru:'Обыскать мешок',descEn:'Spend 1 bomb · +18 coins',descRu:'Потратить 1 бомбу · +18 монет'}]},
+ {id:'shrine',en:'The hungry shrine',ru:'Голодное святилище',lineEn:'The idol offers power in exchange for flesh.',lineRu:'Идол предлагает силу в обмен на плоть.',color:'#d77688',choices:[
+  {id:'sacrifice',en:'Make a sacrifice',ru:'Принести жертву',descEn:'Lose 10% max HP permanently this run · +12% damage',descRu:'Потерять 10% максимального HP до конца забега · +12% урона'},
+  {id:'incense',en:'Burn incense',ru:'Сжечь благовония',descEn:'Spend 8 coins · recover 25% max HP',descRu:'Потратить 8 монет · восстановить 25% HP'}]},
+ {id:'clock',en:'The dead clock',ru:'Мёртвые часы',lineEn:'Its hands move backwards when you approach.',lineRu:'Стрелки идут назад, когда ты приближаешься.',color:'#89aecf',choices:[
+  {id:'wind',en:'Wind the clock',ru:'Завести часы',descEn:'Spend 15 coins · +10% attack speed this run',descRu:'Потратить 15 монет · +10% скорости атаки до конца забега'},
+  {id:'break',en:'Break the mechanism',ru:'Сломать механизм',descEn:'+18 coins · enemies 15% faster next wave',descRu:'+18 монет · враги на 15% быстрее в следующей волне'}]},
+ {id:'cache',en:'The sealed locker',ru:'Запечатанный шкаф',lineEn:'A faint light escapes through a crack in the door.',lineRu:'Из щели в двери пробивается слабый свет.',color:'#d5c88f',choices:[
+  {id:'force',en:'Force it open',ru:'Взломать',descEn:'Spend 2 bombs · random unowned artifact',descRu:'Потратить 2 бомбы · случайный новый артефакт'},
+  {id:'trade',en:'Open with a key',ru:'Открыть ключом',descEn:'Spend 35 coins · random unowned artifact',descRu:'Потратить 35 монет · случайный новый артефакт'}]}
+];
+function encounterWave(w){return Number.isInteger(w)&&w>=2&&w%5===2}
+function createEncounter(run,w,random=Math.random){
+ if(!run||run.closed||run.cleared!==w||!encounterWave(w)||run.lastEncounter===w)return null;
+ let pool=encounterRooms.filter(q=>!(run.seenRooms||[]).includes(q.id));
+ if(!pool.length){run.seenRooms=[];pool=encounterRooms}
+ const room=pool[Math.min(pool.length-1,Math.max(0,Math.floor(random()*pool.length)))];
+ if(!room)return null;run.seenRooms=[...(run.seenRooms||[]),room.id];run.lastEncounter=w;
+ return {room,w,closed:false};
+}
+function encounterReason(run,p,n,event,id){
+ if(!run||run.closed||!p||p.dead||p.hp<=0||!event||event.closed||event.w!==run.cleared||event.w!==run.lastEncounter)return 'unavailable';
+ if(id==='leave')return '';
+ if(!event.room.choices.some(q=>q.id===id))return 'unavailable';
+ if(id==='shatter'&&p.hp<=Math.ceil(p.maxhp*.2))return 'health';
+ if(id==='sacrifice'&&p.maxhp-Math.ceil(p.maxhp*.1)<35)return 'health';
+ if((id==='drink'||id==='incense')&&p.hp>=p.maxhp)return 'full';
+ if(id==='stare'&&p.bomb>=9)return 'full';
+ const cost={offering:12,incense:8,wind:15,trade:35}[id]||0;
+ if(run.coins<cost)return 'coins';
+ if((id==='search'&&p.bomb<1)||(id==='force'&&p.bomb<2))return 'bombs';
+ if((id==='force'||id==='trade')&&!runArtifacts.some(a=>!p.artifacts.includes(a.id)))return 'full';
+ if(['stare','drink','offering'].includes(id)&&!n)return 'unavailable';
+ return '';
+}
+function resolveEncounter(run,p,n,event,id,random=Math.random,unclaimed=[]){
+ if(encounterReason(run,p,n,event,id))return false;
+ const cost={offering:12,incense:8,wind:15,trade:35}[id]||0;
+ switch(id){
+ case 'shatter':p.hp-=Math.ceil(p.maxhp*.2);addCoins(run,25);break;
+ case 'stare':p.bomb++;run.nextRoomEffect={fear:35};break;
+ case 'drink':p.hp=Math.min(p.maxhp,p.hp+Math.ceil(p.maxhp*.4));run.nextRoomEffect={fear:25};break;
+ case 'offering':n.fear=0;break;
+ case 'release':addCoins(run,30);run.nextRoomEffect={count:4};break;
+ case 'search':p.bomb--;addCoins(run,18);break;
+ case 'sacrifice':p.maxhp-=Math.ceil(p.maxhp*.1);p.hp=Math.min(p.hp,p.maxhp);p.boost.dmg*=1.12;break;
+ case 'incense':p.hp=Math.min(p.maxhp,p.hp+Math.ceil(p.maxhp*.25));break;
+ case 'wind':p.boost.rate*=1.1;break;
+ case 'break':addCoins(run,18);run.nextRoomEffect={speed:1.15};break;
+ case 'force':case 'trade':{const a=chooseArtifact([...p.artifacts,...unclaimed],random);if(!a||!applyArtifact(p,a.id))return false;if(id==='force')p.bomb-=2;break}
+ case 'leave':break;
+ default:return false;
+ }
+ run.coins-=cost;run.coinsSpent+=cost;event.closed=true;if(id!=='leave')run.roomChoices=(run.roomChoices||0)+1;return true;
+}
+function applyRoomEffect(run,n,omen){
+ const effect=run?.nextRoomEffect;if(!effect)return omen;run.nextRoomEffect=null;
+ if(n&&effect.fear){n.fear=Math.min(100,n.fear+effect.fear);n.stage=n.fear>=85?2:n.fear>=55?1:0}
+ return {...omen,count:omen.count+(effect.count||0),speed:omen.speed*(effect.speed||1)};
+}
+let encounter=null;
 // V51: solo fear pressure. No extra mandatory enemy and no input impairment.
 const nightmareThemes={
  kitchen:{name:'Pilot light',ru:'Дежурный огонь',color:'#f4b681',tones:[47,71],line:'The pots are breathing.',lineRu:'Котлы дышат.'},
@@ -1791,6 +1867,44 @@ function leaveMerchant(){
  if(state!=='merchant'||!merchant||merchant.closed)return false;merchant.closed=true;merchant=null;document.getElementById('merchantOverlay').hidden=true;state='game';setMobileControls(true);wave++;beginWave();return true;
 }
 document.getElementById('merchantLeave').addEventListener('click',leaveMerchant);
+function paintEncounterRoom(cv,room){
+ const g=cv.getContext('2d'),R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};g.imageSmoothingEnabled=false;
+ R('#100d18',0,0,128,64);R('#211a29',5,5,118,49);for(let i=0;i<6;i++)R('#302635',8+i*20,8,2,42);
+ R('#17131c',0,50,128,14);R(room.color,14,22,3,6);R(room.color,111,22,3,6);
+ R('#0b0912',46,9,36,42);R('#433748',49,12,30,36);
+ switch(room.id){
+ case 'mirror':R(room.color,53,15,22,30);R('#252034',55,17,18,26);R(room.color,57,19,2,12);R(room.color,59,30,8,2);R(room.color,65,31,2,9);break;
+ case 'well':R('#655c62',45,33,38,15);R(room.color,49,31,30,5);R('#11131b',50,33,28,3);R('#8b8f95',45,46,38,3);break;
+ case 'cage':R('#100c12',51,15,26,31);R(room.color,56,29,5,3);R(room.color,67,29,5,3);for(let i=0;i<5;i++)R('#918071',51+i*6,13,2,35);break;
+ case 'shrine':R(room.color,58,15,12,12);R('#1b111d',61,19,2,2);R('#1b111d',65,19,2,2);R(room.color,54,27,20,15);R('#8b5364',48,42,32,6);break;
+ case 'clock':R(room.color,53,15,22,22);R('#221e30',56,18,16,16);R(room.color,63,20,2,7);R(room.color,63,26,6,2);R('#89747c',61,37,6,9);break;
+ case 'cache':R('#776c62',49,17,30,30);R('#30232c',52,20,24,24);R(room.color,62,23,3,18);R(room.color,67,31,5,3);break;
+ }
+}
+function openEncounter(){
+ if(state!=='game'||waveState!=='clear'||!soloRun)return false;
+ const event=createEncounter(soloRun,wave);if(!event)return false;encounter=event;state='encounter';clearLocalInput();setMobileControls(false);
+ const el=document.getElementById('ritualOverlay'),box=document.getElementById('ritualChoices');box.replaceChildren();
+ document.getElementById('ritualTitle').textContent=metaLabel(event.room);
+ document.getElementById('ritualHint').textContent=L('Optional side room','Необязательная тайная комната')+' · ◈ '+soloRun.coins+' · HP '+Math.ceil(player.hp)+'/'+player.maxhp;
+ document.getElementById('extractBtn').hidden=true;
+ const scene=document.createElement('div');scene.className='encounterScene';const cv=document.createElement('canvas');cv.width=128;cv.height=64;cv.setAttribute('aria-hidden','true');paintEncounterRoom(cv,event.room);
+ const line=document.createElement('span');line.textContent=L(event.room.lineEn,event.room.lineRu);scene.append(cv,line);box.append(scene);
+ const unclaimed=drops.filter(d=>d.type==='artifact'&&d.life>0).map(d=>d.artifact);
+ for(const q of [...event.room.choices,{id:'leave',en:'Walk away',ru:'Уйти',descEn:'No cost, no reward',descRu:'Без затрат и награды'}]){
+  const b=document.createElement('button');b.type='button';b.className='ritualOption';const h=document.createElement('b'),d=document.createElement('small');h.textContent=metaLabel(q);d.textContent=metaDesc(q);
+  let reason=encounterReason(soloRun,player,nightmare,event,q.id);
+  if(!reason&&['force','trade'].includes(q.id)&&!runArtifacts.some(a=>!player.artifacts.includes(a.id)&&!unclaimed.includes(a.id)))reason='full';
+  if(reason)d.textContent+=' · '+({health:L('Not enough HP','Недостаточно HP'),coins:L('Not enough coins','Мало монет'),bombs:L('Not enough bombs','Мало бомб'),full:L('Not needed or available','Не требуется или недоступно')}[reason]||L('Unavailable','Недоступно'));
+  b.disabled=!!reason;b.append(h,d);b.onclick=()=>leaveEncounter(q.id,event,unclaimed);box.append(b);
+ }
+ el.hidden=false;return true;
+}
+function leaveEncounter(id='leave',event=encounter,unclaimed=[]){
+ if(state!=='encounter'||!event||event!==encounter||!resolveEncounter(soloRun,player,nightmare,event,id,Math.random,unclaimed))return false;
+ encounter=null;document.getElementById('ritualOverlay').hidden=true;state='game';setMobileControls(true);wave++;beginWave();
+ if(id!=='leave'){initAudio();sfx('pickup');toast(L('CHOICE SEALED','ВЫБОР СДЕЛАН')+' · '+metaLabel(event.room));toastTimer=2.5}return true;
+}
 function openCampaignRoute(){
  const c=soloRun?.campaign;if(!c||state!=='ritual')return false;const choices=routeOptions(c,wave);if(!choices.length)return false;
  state='route';document.getElementById('ritualTitle').textContent=L('Choose your next path','Выбери следующий путь');
@@ -2055,9 +2169,10 @@ function wireStateNet(c){
 }
 function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus(L("Create or join a room first.","Сначала создай комнату и дождись игрока."));return false}sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false){
+ encounter=null;
  if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
  secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;
- if(soloRun?.campaign)selectedMap=soloRun.campaign.start;closeSoloRun();soloRun=!coop&&!onlineMode?{hero:selectedChar,startMap:selectedMap,campaign:campaignMode?newCampaign(selectedMap):null,contract:selectedContract,cleared:0,earned:0,kills:0,closed:false,coins:0,coinsEarned:0,coinsSpent:0,purchases:0,lastShop:0,pact:null}:null;document.getElementById('ritualOverlay').hidden=true;
+ if(soloRun?.campaign)selectedMap=soloRun.campaign.start;closeSoloRun();soloRun=!coop&&!onlineMode?{hero:selectedChar,startMap:selectedMap,campaign:campaignMode?newCampaign(selectedMap):null,contract:selectedContract,cleared:0,earned:0,kills:0,closed:false,coins:0,coinsEarned:0,coinsSpent:0,purchases:0,lastShop:0,pact:null,lastEncounter:0,seenRooms:[],roomChoices:0,nextRoomEffect:null}:null;document.getElementById('ritualOverlay').hidden=true;
  startHorrorMusic();clearNpc();try{window.speechSynthesis?.getVoices()}catch(_){}clearLocalInput();levelupBusy=false;upgradeQueue.length=0;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
  resetPlayer(player,ch,world.w/2-18,world.h/2);resetPlayer(player2,ch2,world.w/2+18,world.h/2);
@@ -2065,7 +2180,7 @@ function startGame(fromNetwork=false){
  player.weapon=0;player2.weapon=coop?1:0;
  weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;arenaEventTimer=8;arenaEventIndex=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast((coop?T('twoPlayers')+' · ':'')+T('wave')+' 1');if(location.protocol!=='file:')requestMobileFullscreen();
 }
-function goMenu(){if(soloRun?.campaign)selectedMap=soloRun.campaign.start;secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
+function goMenu(){encounter=null;if(soloRun?.campaign)selectedMap=soloRun.campaign.start;secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
 function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlayers?7:4)+Math.floor(round/4))}
 function beginWave(){
  secretEncounter=soloRun?createSecret(selectedMap,campaignRound(soloRun,wave),player,arena,arenaFeatures[selectedMap].sites):null;if(secretEncounter)secretEncounter.w=wave;
@@ -2073,7 +2188,7 @@ function beginWave(){
  waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];hazards=[];
  // Enemy count ramps hard: later waves become crowded, not just tougher individually.
  const bossWave=wave%5===0;
- activeOmen=soloRun?chooseOmen(wave):waveOmens[0];
+ activeOmen=applyRoomEffect(soloRun,nightmare,soloRun?chooseOmen(wave):waveOmens[0]);
  // In two-player mode the arena gets a real co-op population boost.
  targetCount=coop
    ? (bossWave?1+Math.min(11+Math.floor(wave*1.2),28):Math.min(16+Math.floor(wave*3.2),56))
@@ -2788,10 +2903,10 @@ function update(dt){
  if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if(waveTime>=delay||enemies.length===0){waveTime=0;spawnEnemy();spawned++}}
  if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';if(nightmare?.hunter){nightmare.hunter.dead=true;hazards=hazards.filter(h=>h.source!==nightmare.hunter);nightmare.hunter=null}if(nightmare){nightmare.echo=null;nightmare.fear=fearClamp(nightmare.fear-12)}between=soloRun?4:1.6;let reward=0;if(soloRun){reward=clearWaveReward(meta,soloRun,wave,selectedMap);if(reward)addCoins(soloRun,coinReward(wave));saveMeta()}toast(L('WAVE CLEARED · COLLECT XP','ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')+(reward?' · ◆ +'+reward:''));toastTimer=2.5}
  if(!alivePlayers().length)return;
- if(state==='game'&&waveState==='clear'){between-=dt;if(between<=0){if(soloRun?.campaign&&wave===FINAL_WAVE){const victory=campaignVictory(soloRun,meta);if(victory){saveMeta();endGame(true,true)}else endGame(true,false)}else if(soloRun&&wave%5===0)openRitual();else if(!(soloRun&&merchantWave(wave)&&openMerchant())){wave++;beginWave()}}}
+ if(state==='game'&&waveState==='clear'){between-=dt;if(between<=0){if(soloRun?.campaign&&wave===FINAL_WAVE){const victory=campaignVictory(soloRun,meta);if(victory){saveMeta();endGame(true,true)}else endGame(true,false)}else if(soloRun&&wave%5===0)openRitual();else if(!(soloRun&&merchantWave(wave)&&openMerchant())&&!(soloRun&&encounterWave(wave)&&openEncounter())){wave++;beginWave()}}}
  combo=Math.max(1,combo-dt*.12);
 }
-function endGame(broadcast=true,escaped=false){nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun(escaped,'dead');document.getElementById('ritualOverlay').hidden=true;clearNpc();startMenuMusic();
+function endGame(broadcast=true,escaped=false){encounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun(escaped,'dead');document.getElementById('ritualOverlay').hidden=true;clearNpc();startMenuMusic();
  clearLocalInput();upgradeQueue.length=0;state='gameover';
  const recordEl=document.getElementById('finalRecord');document.querySelector('#gameover .title').textContent=soloRun?.campaign?.won?L('NIGHTMARE BROKEN','КОШМАР РАЗРУШЕН'):escaped?L('YOU ESCAPED','ТЫ ВЫЖИЛ'):T('dead');document.getElementById('finalMeta').textContent=soloRun?'◆ +'+soloRun.earned+' · '+L('Total shards','Всего осколков')+': '+meta.shards+' · '+L('Artifacts','Артефакты')+' '+(player.artifacts?.length||0)+' · '+L('Evolutions','Эволюции')+' '+(player.evolved?.filter(Boolean).length||0)+' · '+L('Purchases','Покупки')+' '+soloRun.purchases:'';
  if(soloRun?.campaign){recordEl.textContent=soloRun.campaign.won?L('The six horrors have lost their source. Dawn returns.','Шесть кошмаров лишились источника. Возвращается рассвет.'):L('Chapter reached','Достигнутая глава')+' '+soloRun.campaign.chapter+'/3'}else if(!coop&&!onlineMode){const old=loadRecord(),next=updateRecord(old,score,wave);writeStorage(RECORD_KEY,JSON.stringify(next));recordEl.textContent=recordText(next)+(next.score>old.score||next.wave>old.wave?(L(" · NEW BEST!"," · НОВЫЙ РЕКОРД!")):'')}else recordEl.textContent='';
@@ -2800,7 +2915,7 @@ function endGame(broadcast=true,escaped=false){nightmare=null;merchant=null;docu
  document.getElementById('finalScore').textContent=Math.floor(score);
  document.getElementById('finalLevel').textContent=player.lvl;
  document.getElementById('finalWave').textContent=wave;
- if(soloRun){const route=soloRun.campaign?.visited||[soloRun.startMap];document.getElementById('finalMeta').textContent+=' · '+L('Kills','Убийства')+' '+soloRun.kills+' · '+L('Cleared waves','Зачищено волн')+' '+soloRun.cleared+' · '+runRouteText(route);}
+ if(soloRun){const route=soloRun.campaign?.visited||[soloRun.startMap];document.getElementById('finalMeta').textContent+=' · '+L('Kills','Убийства')+' '+soloRun.kills+' · '+L('Cleared waves','Зачищено волн')+' '+soloRun.cleared+' · '+runRouteText(route)+' · '+L('Room choices','Решения в комнатах')+' '+soloRun.roomChoices;}
  document.getElementById('gameover').style.display='grid';
  setMobileControls(false);
  if(broadcast&&onlineMode)sendNet({t:'gameover',score:Math.floor(score),wave,level:player.lvl});
@@ -3237,7 +3352,7 @@ function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;const
 
 addEventListener('keydown',e=>{
  if(e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement||e.target?.isContentEditable)return;
- if(e.code==='Escape'){if(e.repeat)return;if(state==='game'||state==='pause'){e.preventDefault();togglePause()}else if(state==='gameover'){e.preventDefault();goMenu()}else if(state==='merchant'){e.preventDefault();leaveMerchant()}return}
+ if(e.code==='Escape'){if(e.repeat)return;if(state==='game'||state==='pause'){e.preventDefault();togglePause()}else if(state==='gameover'){e.preventDefault();goMenu()}else if(state==='merchant'){e.preventDefault();leaveMerchant()}else if(state==='encounter'){e.preventDefault();leaveEncounter()}return}
  if(state!=='game')return;
  keys.add(e.code);
  if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();
