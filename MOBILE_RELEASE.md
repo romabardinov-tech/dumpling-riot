@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.49.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.50.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -42,3 +42,6 @@ Local rules checks executed: capped purchases, save normalization, sequential wa
 
 ## V49 Forbidden Relics
 Nine run-only artifacts, three rarity classes, four weapon-slot evolution paths across six heroes, and six map-specific elite encounters on waves 4, 9, 14, etc. Solo only. Rules checked: 900 deterministic loot draws, 100 evolution scenarios, six elite attack patterns and wave schedule. Browser/device smoke and visual tests remain open.
+
+## V50 Night Archives
+48 persistent records (24 enemies, 12 bosses, six elite enemies and six lore entries). Optional cache encounters on solo waves 2 and 7: approach cache, defeat two added guards, receive shards, healing drop and lore. Local combat unlocks bestiary; online mode unchanged. Ambient floor lighting preserves warnings and actors. Source syntax and 30 encounter rule scenarios checked; native, visual and device QA still open.
