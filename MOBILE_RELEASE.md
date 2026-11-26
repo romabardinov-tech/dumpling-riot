@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.52.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.53.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -51,3 +51,6 @@ Solo fear pressure, six limited light refuges, non-colliding spectral echoes, a 
 
 ## V52 Cursed Combat
 Solo-only physical + five elemental types assigned to 24 hero weapons; six arena resistance/weakness profiles, bounded DOT and status durations, one-target shock chaining, four artifact pair synergies and readouts in arsenal, archive, altar and combat HUD. Source syntax, 72 resistance combinations, DOT expiration, shock cooldown/chain, frost limits, artifact purchase ordering and isolated hit integration with co-op bypass verified. Browser/device playtest and native builds remain open.
+
+## V53 Lost Merchant
+Solo-only run currency (cleared waves, elite and boss rewards), merchant stops after waves 3/8/13 etc., randomized unique artifact offers with affordable rare first option when available, healing, bombs, fear cleanse and one max-HP pact per run. Wallet and transactions are separate from persistent shards. Syntax, 100 stock/transaction scenarios, 99 wave schedule cases and 100 first-stop affordability checks passed. Device/browser runtime and visual tests remain open.
