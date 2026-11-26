@@ -6,20 +6,20 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "landscape",
-  "background_color": "#09070b",
-  "theme_color": "#09070b",
+  "background_color": "#171818",
+  "theme_color": "#171818",
   "icons": [
     {
-      "src": "./icon-v36-192.png",
+      "src": "./icon-v38-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-v36-512.png",
+      "src": "./icon-v38-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

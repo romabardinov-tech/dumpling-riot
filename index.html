@@ -8,8 +8,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dumpling Riot">
-<link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/png" href="./icon-v36-192.png">
-<link rel="apple-touch-icon" sizes="192x192" href="./icon-v36-192.png">
+<link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/png" href="./icon-v38-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon-v38-180.png">
 <title>DUMPLING RIOT — Pixel Horror</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#09070b;color:#f6efd9;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
@@ -1208,7 +1208,7 @@ function buildUpgradeOptions(p){
   {id:'bomb',title:'+1 БОМБА',desc:'Добавляет заряд бомбы этому игроку.'},
   {id:'crit',title:'КРИТИЧЕСКИЙ УКУС',desc:'+8% критического урона этому игроку.'}
  ];
- for(const [id,title,desc] of hero)pool.push({id,title,desc});
+ for(const [id,title,desc] of hero){const flag=id.endsWith('_wide')?'wide':id.endsWith('_pierce')?'pierce':id==='gol_tank'?'armor':null;if(!flag||!p.heroUpgrades?.includes(flag))pool.push({id,title,desc})}
  for(let i=0;i<weapons.length;i++){
    const lv=(p.weaponLevels||weaponLevels)[i]||1;
    if(lv<8)pool.push({id:'weapon_'+i,title:(ch.weaponNames?.[i]||weapons[i].name)+' · УР. '+(lv+1),desc:'Урон +22% · скорострельность +5% · скорость +4.5%.',weapon:i});
