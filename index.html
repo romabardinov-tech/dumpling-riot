@@ -1502,7 +1502,7 @@ function updateNpc(dt){
  if(onlineMode&&isOnlineGuest)return;
  if(boss){bossDialogue(boss);return}
  npcNext-=dt;if(npcNext>0)return;
- const live=alivePlayers(),p=live[0],speaker=p&&enemies.filter(e=>!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<175).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];if(!speaker){npcNext=2;return}
+ const live=alivePlayers(),p=live[0],candidate=p&&nearestEnemy(p),speaker=candidate&&Math.hypot(candidate.x-p.x,candidate.y-p.y)<175?candidate:null;if(!speaker){npcNext=2;return}
  const options=(p.hp/p.maxhp<.35?['You look weak.','I smell fear.']:[...npcGeneric,npcMapLines[selectedMap]]).filter(x=>x&&x!==npcLastLine);
  emitNpc(pick(options.length?options:npcGeneric),null,speaker.type);npcNext=8+Math.random()*7;
 }
@@ -1549,7 +1549,7 @@ const coopPlayers=()=>coop?[player,player2]:[player];
 const alivePlayers=()=>coopPlayers().filter(p=>!p.dead&&p.hp>0);
 function otherCharId(){const order=chars.filter(c=>!c.unlock).map(c=>c.id);const i=order.indexOf(selectedChar);return order[(i+1)%order.length]}
 function targetPlayer(e){const aps=alivePlayers();if(!aps.length)return null;let best=aps[0],bd=Math.hypot(best.x-e.x,best.y-e.y);for(let i=1;i<aps.length;i++){const p=aps[i],d=Math.hypot(p.x-e.x,p.y-e.y);if(d<bd){best=p;bd=d}}return best}
-function nearestEnemy(p){let best=null,bd=Infinity;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.x-p.x,e.y-p.y);if(d<bd){best=e;bd=d}}return best}
+function nearestEnemy(p){let best=null,bd=Infinity;for(const e of enemies){if(e.dead)continue;const dx=e.x-p.x,dy=e.y-p.y,d=dx*dx+dy*dy;if(d<bd){best=e;bd=d}}return best}
 let wave=1,waveTime=0,waveState='fighting',between=0,score=0,combo=1,boss=null,spawned=0,targetCount=0;
 let enemies=[],projectiles=[],particles=[],rings=[],texts=[],drops=[],blood=[],hazards=[];
 let deathTimer=0,deathPhase=0;
@@ -2486,7 +2486,7 @@ function wireStateNet(c){
 }
 function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus(L("Create or join a room first.","Сначала создай комнату и дождись игрока."));return false}sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false,checkpoint=null){
- touchAimMode=false;if(savedCheckpoint&&!coop&&!onlineMode&&!checkpoint)return;saveAtBoundary=false;encounter=null;
+ touchAimMode=false;hudElapsed=1;if(savedCheckpoint&&!coop&&!onlineMode&&!checkpoint)return;saveAtBoundary=false;encounter=null;
  if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
  if(!heroPlayable(chars.find(c=>c.id===selectedChar),meta,journal,coop||onlineMode))selectedChar=chars[0].id;
  secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;
@@ -2988,7 +2988,7 @@ function updateEnemies(dt){
   if(soloRun){for(const d of statusTicks(e,dt)){if(e.dead)break;damageEnemy(e,d,e.lastOwner)}}if(e.dead)continue;
   const frost=soloRun?frostFactor(e):1,prevX=e.x,prevY=e.y;
   e.phase+=dt*4;e.hit=Math.max(0,e.hit-dt);e.hitT=Math.max(0,(e.hitT||0)-dt);
-  const tp=targetPlayer(e);if(!tp)continue;tp.hurtT=Math.max(0,(tp.hurtT||0)-dt);
+  const tp=targetPlayer(e);if(!tp)continue;
   if(e.lunge>0)e.lunge-=dt;
   const dx=tp.x-e.x,dy=tp.y-e.y,d=Math.hypot(dx,dy)||1,nx=dx/d,ny=dy/d;
   if(e.elite){e.eliteTimer-=dt;if(e.eliteTimer<=0&&d<220){e.eliteTimer=3.4;for(const h of elitePattern(e,tp))scheduleHazard(clamp(h.x,arena.l+8,arena.r-8),clamp(h.y,arena.t+8,arena.b-8),h.r,14,h.delay,e);}}
@@ -3229,7 +3229,7 @@ function update(dt){
    for(const d of drops){if(d.netX!=null){d.x=lerp(d.x,d.netX,smoothAlpha);d.y=lerp(d.y,d.netY,smoothAlpha);}}
    if(boss&&boss.netX!=null){boss.x=lerp(boss.x,boss.netX,smoothAlpha);boss.y=lerp(boss.y,boss.netY,smoothAlpha);}
    camera.x=clamp(lerp(camera.x,player2.x,1-Math.exp(-dt*9)),W/2,world.w-W/2);camera.y=clamp(lerp(camera.y,player2.y,1-Math.exp(-dt*9)),H/2,world.h-H/2);
-   horrorTime+=dt;for(const p of coopPlayers()){p.fire=Math.max(0,p.fire-dt);p.dash=Math.max(0,p.dash-dt);p.inv=Math.max(0,p.inv-dt)}
+   horrorTime+=dt;for(const p of coopPlayers())advancePlayerTimers(p,dt)
    updateSpatialAudio(dt);updateFx(dt);
    return
 }
@@ -3256,7 +3256,7 @@ function update(dt){
  const live=alivePlayers();
  if(live.length){const focus=onlineMode&&isOnlineGuest?player2:(onlineMode&&isOnlineHost?player:live.length===1?live[0]:null);if(focus){camera.x=lerp(camera.x,focus.x,camera.smooth);camera.y=lerp(camera.y,focus.y,camera.smooth)}else{const cx=live.reduce((a,p)=>a+p.x,0)/live.length,cy=live.reduce((a,p)=>a+p.y,0)/live.length;camera.x=lerp(camera.x,cx,camera.smooth);camera.y=lerp(camera.y,cy,camera.smooth)}}
  camera.x=clamp(camera.x,W/2,world.w-W/2);camera.y=clamp(camera.y,H/2,world.h-H/2);
- horrorTime+=dt;for(const p of coopPlayers()){p.fire=Math.max(0,p.fire-dt);p.dash=Math.max(0,p.dash-dt);p.inv=Math.max(0,p.inv-dt)}
+ horrorTime+=dt;for(const p of coopPlayers())advancePlayerTimers(p,dt)
  if(!player.dead&&(mouse.down||touchInput.attack))attack();
  if(state==='game'){updateNightmare(dt);updateSecret();updateSpatialAudio(dt)}updateEnemies(dt);if(state==='game')updateLivingStations(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);updateFx(dt);
  enemies=enemies.filter(e=>!e.dead);
@@ -3619,6 +3619,9 @@ function paintArenaLighting(g,map,view){
  const {x,y,w,h}=view;g.save();g.fillStyle='rgba(10,12,15,.08)';g.fillRect(x,y,w,h);
  for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+85<x||lx-85>x+w||ly+85<y||ly-85>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,85);rad.addColorStop(0,terrainThemes[map.id].glow);rad.addColorStop(.35,terrainThemes[map.id].glow+'65');rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.23;g.fillStyle=rad;g.fillRect(lx-85,ly-85,170,170)}g.restore()
 }
+// V67: cull presentation only; never remove off-screen simulation objects.
+function visibleWorld(q,view,pad=0){return q.x+pad>=view.x&&q.x-pad<=view.x+view.w&&q.y+pad>=view.y&&q.y-pad<=view.y+view.h}
+function advancePlayerTimers(p,dt){p.fire=Math.max(0,p.fire-dt);p.dash=Math.max(0,p.dash-dt);p.inv=Math.max(0,p.inv-dt);p.hurtT=Math.max(0,(p.hurtT||0)-dt)}
 function draw(){
  const m=maps.find(x=>x.id===selectedMap);ctx.fillStyle=m.floor;ctx.fillRect(0,0,W,H);
  // world camera: preserve the 480x270 pixel canvas, move the world underneath it
@@ -3632,9 +3635,10 @@ function draw(){
  if(waveState==='fighting')paintLivingStations(ctx,m.id,view);
  if(secretEncounter&&waveState==='fighting')paintSecret(ctx,secretEncounter,horrorTime);
  // blood stains and corpses
- for(const b of blood){ctx.globalAlpha=b.a;ctx.fillStyle='#4f0913';ctx.fillRect(Math.round(b.x-b.r),Math.round(b.y-b.r*.45),Math.max(2,Math.round(b.r*2)),Math.max(2,Math.round(b.r*.9)));ctx.fillStyle='#9f1829';ctx.fillRect(Math.round(b.x-b.r*.55),Math.round(b.y-b.r*.25),Math.max(2,Math.round(b.r*1.1)),Math.max(2,Math.round(b.r*.5)))}ctx.globalAlpha=1;
+ for(const b of blood){if(!visibleWorld(b,view,b.r+4))continue;ctx.globalAlpha=b.a;ctx.fillStyle='#4f0913';ctx.fillRect(Math.round(b.x-b.r),Math.round(b.y-b.r*.45),Math.max(2,Math.round(b.r*2)),Math.max(2,Math.round(b.r*.9)));ctx.fillStyle='#9f1829';ctx.fillRect(Math.round(b.x-b.r*.55),Math.round(b.y-b.r*.25),Math.max(2,Math.round(b.r*1.1)),Math.max(2,Math.round(b.r*.5)))}ctx.globalAlpha=1;
  // enemy warnings: fixed radius, shrinking countdown ring, no reliance on color alone
  for(const h of hazards){
+   if(!visibleWorld(h,view,h.radius+16))continue;
    const progress=clamp(h.remaining/h.duration,0,1);
    const feature=arenaFeatures[h.kind],col=feature?.color||'#ff6371';ctx.save();ctx.fillStyle=feature?col:'rgba(255,55,68,.12)';ctx.globalAlpha=feature?.color?.length===7 ? .13 : 1;ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(h.x,h.y,h.radius,0,TAU);ctx.fill();ctx.globalAlpha=1;ctx.stroke();
    ctx.strokeStyle='#ffd4a4';ctx.beginPath();ctx.arc(h.x,h.y,h.radius*progress,0,TAU);ctx.stroke();
@@ -3643,13 +3647,13 @@ function draw(){
  for(const e of enemies){if(e.type!=='boss'||!e.charge)continue;ctx.save();ctx.strokeStyle='#ffaf65';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.lineTo(e.charge.x,e.charge.y);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.arc(e.charge.x,e.charge.y,26,0,TAU);ctx.stroke();ctx.restore();}
  // enemies + combat
  if(nightmare)paintNightmareActors(ctx,nightmare);
- for(const d of drops)paintCombatDrop(ctx,d,horrorTime);
- for(const r of rings){ctx.strokeStyle=r.color;const fade=clamp(r.life/r.maxlife,0,1);ctx.globalAlpha=fade*.23;ctx.lineWidth=6;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,TAU);ctx.stroke();ctx.globalAlpha=fade;ctx.lineWidth=1.5;ctx.stroke();ctx.globalAlpha=1}
- for(const p of projectiles)paintCombatProjectile(ctx,p);
+ for(const d of drops)if(visibleWorld(d,view,24))paintCombatDrop(ctx,d,horrorTime);
+ for(const r of rings){if(!visibleWorld(r,view,r.r+8))continue;ctx.strokeStyle=r.color;const fade=clamp(r.life/r.maxlife,0,1);ctx.globalAlpha=fade*.23;ctx.lineWidth=6;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,TAU);ctx.stroke();ctx.globalAlpha=fade;ctx.lineWidth=1.5;ctx.stroke();ctx.globalAlpha=1}
+ for(const p of projectiles)if(visibleWorld(p,view,20))paintCombatProjectile(ctx,p);
  paintCombatPresentation(ctx,view,'under');
- const actors=enemies.filter(e=>!e.dead).map(e=>({y:e.y,draw:()=>drawEnemy(e)}));actors.push({y:player.y,draw:()=>drawHero(player,chars.find(x=>x.id===player.charId)||chars[0],false)});if(coop)actors.push({y:player2.y,draw:()=>drawHero(player2,chars.find(x=>x.id===player2.charId)||chars[1],true)});actors.sort((a,b)=>a.y-b.y);for(const a of actors)a.draw();paintCombatPresentation(ctx,view,'over');
- for(const p of particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.fillStyle=p.color;ctx.fillRect(Math.round(p.x),Math.round(p.y),p.size,p.size)}ctx.globalAlpha=1;
- for(const t of texts){ctx.globalAlpha=clamp(t.life/.7,0,1);drawPixelText(t.s,t.x,t.y,7,t.color,'center')}ctx.globalAlpha=1;
+ const actors=enemies.filter(e=>!e.dead&&visibleWorld(e,view,e.type==='boss'?90:e.elite?70:45));if(visibleWorld(player,view,60))actors.push(player);if(coop&&visibleWorld(player2,view,60))actors.push(player2);actors.sort((a,b)=>a.y-b.y);for(const a of actors){if(a===player||a===player2)drawHero(a,chars.find(x=>x.id===a.charId)||chars[0],a===player2);else drawEnemy(a)}paintCombatPresentation(ctx,view,'over');
+ for(const p of particles){if(!visibleWorld(p,view,p.size+2))continue;ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.fillStyle=p.color;ctx.fillRect(Math.round(p.x),Math.round(p.y),p.size,p.size)}ctx.globalAlpha=1;
+ for(const t of texts){if(!visibleWorld(t,view,48))continue;ctx.globalAlpha=clamp(t.life/.7,0,1);drawPixelText(t.s,t.x,t.y,7,t.color,'center')}ctx.globalAlpha=1;
  // subtle pixel horror vignette/flicker over the world
  const vg=ctx.createRadialGradient(camera.x,camera.y,48,camera.x,camera.y,260);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(.72,'rgba(0,0,0,.13)');vg.addColorStop(1,'rgba(0,0,0,.48)');ctx.fillStyle=vg;ctx.fillRect(camera.x-W/2,camera.y-H/2,W,H);
  const fogA=.018;ctx.save();ctx.globalAlpha=fogA;ctx.fillStyle=m.accent;ctx.fillRect(camera.x-W/2,camera.y-H/2,W,H);ctx.restore();
@@ -3794,7 +3798,9 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
 
 window.addEventListener('error',e=>{const msg=(e&&e.error&&e.error.message)||e.message||L('Unknown error','Неизвестная ошибка');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
 window.addEventListener('unhandledrejection',e=>{const msg=(e&&e.reason&&e.reason.message)||String(e.reason||'Promise error');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
-function frame(now){if(document.hidden){last=now;acc=0;requestAnimationFrame(frame);return}const raw=last?Math.min(.1,(now-last)/1000||0):0;last=now;acc+=raw;const step=1/60;while(acc>=step){update(step);acc-=step}shake=Math.max(0,shake-raw);if(state==='game')updateHud();renderTutorial();if(state!=='menu')render();requestAnimationFrame(frame)}
+// Keep the fixed 60Hz simulation independent from display refresh/HUD cadence.
+let hudElapsed=1,previousFrameState='',previousFrameWave=0;
+function frame(now){if(document.hidden){last=now;acc=0;hudElapsed=1;requestAnimationFrame(frame);return}const raw=last?Math.max(0,Math.min(.1,(now-last)/1000||0)):0;last=now;const step=1/60;const active=state==='game'||state==='death';if(active){acc+=raw;while(acc>=step){update(step);acc-=step;if(state!=='game'&&state!=='death'){acc=0;break}}}else{acc=0;updateNpc(0)}shake=Math.max(0,shake-raw);hudElapsed+=raw;const changed=state!==previousFrameState||wave!==previousFrameWave;if(state==='game'&&(changed||hudElapsed>=1/20)){updateHud();hudElapsed=0}renderTutorial();if(state!=='menu'&&(state==='game'||state==='death'||changed))render();previousFrameState=state;previousFrameWave=wave;requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 if(!nativeMobile()&&'serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('./sw.js').then(reg=>reg.update()).catch(()=>{})}
 </script>
