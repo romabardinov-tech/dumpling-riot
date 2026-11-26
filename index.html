@@ -1874,19 +1874,19 @@ function buildUpgradeOptions(p){
 }
 function applyUpgrade(p,o){
  if(!p||!o)return;
- const evolution=/^evolve_([0-3])$/.exec(o.id);if(evolution){if(soloRun)evolveWeapon(p,Number(evolution[1]));return}
+ const evolution=/^evolve_([0-3])$/.exec(o.id);if(evolution){if(soloRun){const i=Number(evolution[1]);if(evolveWeapon(p,i)){p.weapon=i;if(p===player)weapon=i;}}return}
  switch(o.id){
   case'dmg':p.boost.dmg*=1.25;break;
   case'rate':p.boost.rate*=1.2;break;
   case'move':p.boost.move*=1.16;break;
   case'hp':p.maxhp+=35;p.hp=p.maxhp;break;
   case'bomb':p.bomb=Math.min(9,p.bomb+1);break;
-  case'crit':p.boost.crit+=.08;break;
+  case'crit':p.boost.crit=Math.min(1,p.boost.crit+.08);break;
   case'scar_blade':p.boost.dmg*=1.35;break;case'scar_armor':p.maxhp+=45;p.hp=p.maxhp;break;case'scar_wide':p.heroUpgrades.push('wide');break;
-  case'vesa_bleed':p.boost.crit+=.12;break;case'vesa_rate':p.boost.rate*=1.25;break;case'vesa_pierce':p.heroUpgrades.push('pierce');break;
+  case'vesa_bleed':p.boost.crit=Math.min(1,p.boost.crit+.12);break;case'vesa_rate':p.boost.rate*=1.25;break;case'vesa_pierce':p.heroUpgrades.push('pierce');break;
   case'nyx_move':p.boost.move*=1.25;break;case'nyx_dmg':p.boost.dmg*=1.3;break;case'nyx_pierce':p.heroUpgrades.push('pierce');break;
   case'pel_rate':p.boost.rate*=1.28;break;case'pel_dmg':p.boost.dmg*=1.35;break;case'pel_wide':p.heroUpgrades.push('wide');break;
-  case'ass_crit':p.boost.crit+=.18;break;case'ass_move':p.boost.move*=1.3;break;case'ass_dmg':p.boost.dmg*=1.35;break;
+  case'ass_crit':p.boost.crit=Math.min(1,p.boost.crit+.18);break;case'ass_move':p.boost.move*=1.3;break;case'ass_dmg':p.boost.dmg*=1.35;break;
   case'gol_armor':p.maxhp+=70;p.hp=p.maxhp;break;case'gol_dmg':p.boost.dmg*=1.45;break;case'gol_tank':p.boost.dmg*=1.1;p.heroUpgrades.push('armor');break;
   default: if(o.id.startsWith('weapon_')){const i=Number(o.id.split('_')[1]);if(Number.isInteger(i)&&i>=0&&i<4){p.weaponLevels[i]=Math.min(8,(p.weaponLevels[i]||1)+1);p.weapon=i;if(p===player)weapon=i;}}
  }
