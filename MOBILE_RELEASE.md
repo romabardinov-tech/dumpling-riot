@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.59.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.60.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -72,3 +72,6 @@ Campaign finale now presents three selectable epilogues: Last Dawn (always avail
 
 ## V59 — Forgotten Heroes
 Two unlockable solo-only heroes added without locking any of the six original heroes. Lantern Warden unlocks after any campaign victory (including existing wins); Revenant unlocks after discovery of either hidden boss in the journal. Eight hero-specific weapon attacks, inventory silhouettes, body art, dash profiles and elemental assignments. Warden dash reduces fear by up to 12; Revenant dash heals up to 6 HP based on nearby living enemies. Locked hero cards show requirements; saved selection is validated on load and mode change; co-op retains the six original heroes. Syntax and 144 isolated assertions covering unlock combinations, hero configuration and bounded dash bonuses passed. Browser/device runtime, weapon feel, balance and native exports remain unverified.
+
+## V60 — Living Arenas
+Two proximity-activated tactical stations per arena in solo modes, reset each wave: kitchen steam blast, basement electrical pulse and slow, food court first aid, factory rectangular cutting strip, cemetery fear reduction, forest root snare. Enemy-only traps have telegraphed delay and limited boss damage; no repeated activations per station per wave. Terrain remains walkable rather than introducing unverified collision barriers. Arena selection hints and run recap updated. Inline syntax and 133 isolated rule assertions passed for bounds, proximity, timing, effects, boss caps, reset configuration and co-op exclusion. Browser/device visual, runtime and native verification remain open.
