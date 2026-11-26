@@ -178,6 +178,9 @@ button:focus-visible{outline:2px solid #6fe1a2;outline-offset:2px}
 #menu .choice:has(.heroPortrait) b{grid-column:2}
 #menu .choice:has(.heroPortrait) p{grid-column:2;margin-top:3px}
 @media(max-width:650px) and (orientation:portrait){#menu .choice:has(.heroPortrait){grid-template-columns:1fr;grid-template-rows:auto auto 1fr;text-align:center}#menu .heroPortrait{grid-row:1;justify-self:center;width:88px}#menu .choice:has(.heroPortrait) b,#menu .choice:has(.heroPortrait) p{grid-column:1}}
+#menu .choice:has(.mapPortrait){display:grid;grid-template-columns:1fr;grid-template-rows:auto auto 1fr;gap:3px;min-height:106px}
+#menu .mapPortrait{width:100%;height:auto;max-height:76px;position:static;transform:none;filter:none;object-fit:cover;background:#17111c;image-rendering:pixelated;border:1px solid #51404e}
+#menu .choice:has(.mapPortrait) p{margin:0}
 </style>
 </head>
 <body>
@@ -517,6 +520,112 @@ let deathTimer=0,deathPhase=0;
 let toastTimer=0;
 const arena={l:52,r:1868,t:58,b:1022};
 
+// v33: world-anchored, deterministic pixel environments.
+// The arena remains walkable: internal details are recessed/flat scenery,
+// tall walls and equipment are confined to the perimeter.
+const terrainThemes={
+ kitchen:{base:'#28232b',tile:'#302a32',light:'#3b343b',edge:'#18161e',trim:'#7d6864',glow:'#ffb071'},
+ basement:{base:'#1a2330',tile:'#222d3a',light:'#304050',edge:'#101822',trim:'#526b80',glow:'#8bafff'},
+ foodcourt:{base:'#292034',tile:'#34263f',light:'#43314d',edge:'#18121f',trim:'#745977',glow:'#f49edb'},
+ slaughter:{base:'#302429',tile:'#3b2b2e',light:'#4b3738',edge:'#1c1319',trim:'#936b58',glow:'#ff845c'},
+ cemetery:{base:'#202a27',tile:'#29332d',light:'#354139',edge:'#141d1a',trim:'#68786c',glow:'#b3dba0'},
+ forest:{base:'#192920',tile:'#22372b',light:'#304839',edge:'#101d17',trim:'#5d775e',glow:'#b1e6b7'}
+};
+const terrainThumbs=new Map();let terrainCache=null;
+function terrainHash(x,y,s=0){let n=Math.imul(x+317,374761393)^Math.imul(y+719,668265263)^Math.imul(s+11,1274126177);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967296}
+function paintTerrain(g,id,left,top,width,height){
+ const t=terrainThemes[id]||terrainThemes.kitchen;
+ const right=left+width,bottom=top+height;
+ const R=(color,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(color,pts)=>{g.fillStyle=color;g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill()};
+ const natural=id==='cemetery'||id==='forest',tile=natural?32:24;
+ R(t.base,left,top,width,height);
+ for(let y=Math.floor(top/tile)*tile;y<bottom;y+=tile)for(let x=Math.floor(left/tile)*tile;x<right;x+=tile){
+  const u=x/tile,v=y/tile,z=terrainHash(u,v);
+  if(!natural){
+   R(z<.36?t.base:z<.89?t.tile:t.light,x,y,tile-1,tile-1);
+   R(t.edge,x,y+tile-1,tile,1);R(t.edge,x+tile-1,y,1,tile);
+   if(z>.3)R(t.light,x+1,y+1,tile-3,1);
+   if(z<.12){R(t.edge,x+5,y+8,6,1);R(t.edge,x+10,y+9,1,7);R(t.edge,x+10,y+15,5,1)}
+   if(z>.7){R(t.trim,x+4,y+7,2,1);R(t.trim,x+16,y+18,1,2)}
+  }else{
+   R(z<.5?t.base:t.tile,x+1,y+2,tile-3,tile-5);
+   for(let j=0;j<6;j++){const a=terrainHash(u,v,j+1),b=terrainHash(v,u,j+9);R(j%3===0?t.trim:t.light,x+Math.floor(a*28),y+Math.floor(b*28),j%2+1,1)}
+  }
+ }
+ // Large-scale walkable layout: aisles and environmental zoning.
+ for(let gy=Math.floor((top-100)/144)*144;gy<bottom+80;gy+=144)for(let gx=Math.floor((left-100)/176)*176;gx<right+80;gx+=176){
+  const ix=gx/176,iy=gy/144,q=Math.floor(terrainHash(ix,iy,5)*3),x=gx+26,y=gy+24;
+  if(id==='kitchen'){
+   // Flush steel preparation panels, drains, faded sanitation lines.
+   R(t.edge,x,y,102,44);R('#35383e',x+2,y+2,98,40);R('#45484a',x+3,y+3,96,2);
+   for(let i=0;i<6;i++){R('#27272f',x+7+i*15,y+8,12,28);R('#5e5b58',x+8+i*15,y+9,10,1);R('#79706a',x+9+i*15,y+33,2,1)}
+   R('#151921',x+43,y+17,16,10);for(let i=0;i<4;i++)R('#686b6b',x+45+i*3,y+18,1,8);
+   R('#95764e',x-7,y+50,116,2);for(let i=0;i<8;i++)R('#503e35',x-6+i*15,y+50,6,2);
+   if(q===1){R('#592932',x+77,y+30,10,4);R('#3c222b',x+81,y+35,6,3)}
+  }else if(id==='basement'){
+   // Utility conduits embedded in the concrete, service hatches and numbered lanes.
+   R('#0d141d',gx+8,y-9,160,19);R('#344653',gx+9,y-7,158,4);R('#4c6571',gx+9,y-7,158,1);
+   R('#24323f',gx+9,y+1,158,5);R('#536471',gx+9,y+1,158,1);
+   for(let i=0;i<5;i++){R('#566773',gx+18+i*30,y-8,3,16);R('#171e26',gx+19+i*30,y-3,1,5)}
+   R('#0c121b',x+35,y+22,66,46);R('#2d3a47',x+37,y+24,62,42);R('#4c5c68',x+39,y+26,58,2);
+   for(let i=0;i<9;i++)R('#111b24',x+41+i*6,y+30,3,30);
+   R('#9b7748',x+33,y+70,70,2);for(let i=0;i<6;i++)R('#26303a',x+35+i*12,y+70,6,2);
+  }else if(id==='foodcourt'){
+   // Worn mosaic, recessed seating-zone borders and reflected broken neon.
+   R('#1e1727',x,y,104,60);R('#423149',x+2,y+2,100,56);R('#705267',x+4,y+4,96,2);R('#705267',x+4,y+54,96,2);
+   for(let j=0;j<4;j++)for(let i=0;i<7;i++)R((i+j)%2?'#41334a':'#2b2336',x+7+i*13,y+8+j*11,12,10);
+   R('#65415e',x+10,y+17,28,2);R('#3b5661',x+63,y+33,27,2);
+   R('#b86995',x+11,y+17,9,1);R('#76a4ae',x+63,y+33,12,1);
+   if(q===0){R('#725665',x+46,y+25,8,3);R('#e1aa83',x+47,y+25,5,1)}
+  }else if(id==='slaughter'){
+   // Grated conveyor trenches, recessed rails, industrial warning paint.
+   R('#1c1419',gx+10,y,158,40);R('#6b4d44',gx+12,y+2,154,2);R('#6b4d44',gx+12,y+36,154,2);
+   for(let i=0;i<13;i++){R('#483438',gx+14+i*11,y+6,9,28);R('#71605b',gx+14+i*11,y+6,9,1);R('#272127',gx+22+i*11,y+8,1,23)}
+   R('#ae8654',gx+12,y-6,154,3);for(let i=0;i<13;i++)R('#392b2b',gx+12+i*12,y-6,6,3);
+   R('#6e3038',x+24,y+49,39,8);R('#4e252e',x+21,y+53,47,2);R('#a14a48',x+32,y+48,7,2);
+   R('#241b23',x+85,y+60,22,12);for(let i=0;i<4;i++)R('#6c504a',x+87+i*5,y+62,2,8);
+  }else if(id==='cemetery'){
+   // Broken flagstones and flush memorial slabs, with moss growing in joints.
+   for(let i=0;i<5;i++){const sx=x+i*20,sy=y+Math.floor(terrainHash(ix+i,iy,8)*8);R('#17221f',sx,sy,19,45);R('#46504a',sx+1,sy+1,17,42);R('#5e6960',sx+2,sy+2,15,2);R('#2d3830',sx+5,sy+35,11,5)}
+   for(let i=0;i<3;i++){const sx=x+12+i*32,sy=y+59+(i%2)*9;R('#151f1c',sx,sy,25,15);R('#4c534e',sx+1,sy+1,23,12);R('#7b8173',sx+2,sy+2,21,1);R('#28392e',sx+4,sy+8,10,3);R('#73786b',sx+15,sy+5,5,2)}
+   R('#2e4840',x+105,y+22,20,8);R('#456358',x+108,y+24,12,1);
+  }else{
+   // Forest paths and roots are painted into the soil, not invisible obstacles.
+   P('#263a2d',[gx+11,y+17,gx+45,y+6,gx+88,y+19,gx+127,y+11,gx+165,y+22,gx+165,y+38,gx+111,y+29,gx+73,y+41,gx+35,y+28,gx+11,y+36]);
+   for(let i=0;i<5;i++){const sx=x+i*22,sy=y+47+Math.floor(terrainHash(ix+i,iy,4)*20);P('#443c32',[sx,sy,sx+5,sy-4,sx+18,sy+1,sx+21,sy+3,sx+5,sy+2]);R('#675348',sx+4,sy-2,8,1);R('#526a4c',sx+3,sy+7,2,3);R('#9f7460',sx+6,sy+6,3,2)}
+   if(q===2){P('#142b2a',[x+74,y-9,x+102,y-5,x+110,y+5,x+94,y+13,x+70,y+7]);R('#43665c',x+80,y+1,19,1);R('#66857a',x+89,y+4,7,1)}
+  }
+ }
+ // Perimeter silhouettes. They sit outside player traversal bounds.
+ R('#0b0a10',left,top,width,Math.max(0,arena.t-top));R('#0b0a10',left,Math.max(top,arena.b),width,Math.max(0,bottom-Math.max(top,arena.b)));
+ R('#0b0a10',left,top,Math.max(0,arena.l-left),height);R('#0b0a10',Math.max(left,arena.r),top,Math.max(0,right-Math.max(left,arena.r)),height);
+ R(t.trim,arena.l,arena.t-3,arena.r-arena.l,2);R(t.edge,arena.l,arena.b,arena.r-arena.l,3);R(t.trim,arena.l-3,arena.t,2,arena.b-arena.t);R(t.edge,arena.r,arena.t,3,arena.b-arena.t);
+ for(let x=Math.max(arena.l+8,Math.floor((left-60)/88)*88);x<Math.min(arena.r,right+60);x+=88){
+  const y=arena.t-34;
+  if(natural){P('#101c17',[x-7,y+30,x+10,y-10,x+26,y+30]);P('#30483a',[x-3,y+23,x+10,y-8,x+20,y+23]);R('#624a38',x+9,y+23,3,10)}
+  else{R(t.edge,x,y,65,30);R(t.tile,x+2,y+2,61,26);R(t.light,x+3,y+3,59,3);R(t.trim,x+4,y+8,3,16);R(t.trim,x+57,y+8,3,16);R('#11141b',x+12,y+8,41,13);for(let j=0;j<5;j++)R(t.trim,x+14+j*7,y+10,4,2);R(t.glow,x+29,y+25,5,2)}
+ }
+ // Low-profile in-floor lamps provide readable pools of coloured light.
+ for(let y=Math.floor((top-50)/144)*144+104;y<bottom+50;y+=144)for(let x=Math.floor((left-50)/176)*176+148;x<right+50;x+=176){
+  if(x<arena.l+14||x>arena.r-14||y<arena.t+14||y>arena.b-14)continue;
+  g.save();g.globalAlpha=.07;R(t.glow,x-22,y-14,44,28);g.globalAlpha=.10;R(t.glow,x-13,y-8,26,16);g.restore();
+  R(t.edge,x-5,y-4,10,8);R(t.trim,x-4,y-3,8,6);R(t.glow,x-3,y-2,6,4);R('#f8e7c8',x-2,y-1,2,1);
+ }
+}
+function getTerrain(id){
+ if(terrainCache?.id===id)return terrainCache.canvas;
+ const cv=document.createElement('canvas');cv.width=world.w;cv.height=world.h;
+ const g=cv.getContext('2d',{alpha:false});g.imageSmoothingEnabled=false;paintTerrain(g,id,0,0,world.w,world.h);
+ terrainCache={id,canvas:cv};return cv;
+}
+function mapThumbnail(id){
+ if(terrainThumbs.has(id))return terrainThumbs.get(id);
+ const cv=document.createElement('canvas');cv.width=160;cv.height=90;
+ const g=cv.getContext('2d',{alpha:false});g.imageSmoothingEnabled=false;g.translate(-880,-495);paintTerrain(g,id,880,495,160,90);
+ terrainThumbs.set(id,cv);return cv;
+}
+
 const I18N={
  ru:{language:'ЯЗЫК',chooseChar:'ВЫБЕРИ ПЕРСОНАЖА',mode:'РЕЖИМ ИГРЫ',onePlayer:'1 ИГРОК',twoPlayers:'2 ИГРОКА',modeOneDesc:'Обычный одиночный режим.',modeTwoDesc:'Локальный кооператив.',onlinePlayers:'ОНЛАЙН 2 ИГРОКА',onlineDesc:'Код комнаты из 5 цифр.',p2Info:'P2: стрелки · 7–0 оружие · SHIFT рывок · ENTER бомба · авто-стрельба',start:'НАЧАТЬ НОЧНУЮ СМЕНУ',controls:'P1: WASD · мышь · 1–4 оружие · SPACE рывок · E бомба · ESC меню · P2: стрелки · 7–0 оружие · SHIFT рывок · ENTER бомба',guide:'Босс появляется каждые 5 волн и оставляет уникальную реликвию. Оружие улучшается при повышении уровня.',levelPause:'ИГРА ОСТАНОВЛЕНА · УРОВЕНЬ ПОВЫШЕН',pickUpgrade:'ВЫБЕРИ ОДНО УЛУЧШЕНИЕ',dead:'ТЕБЯ СЪЕЛИ',retry:'ЕЩЁ РАЗ',menu:'В МЕНЮ',hp:'HP',xp:'XP',lvl:'УР.',wave:'ВОЛНА',score:'ОЧКИ',enemies:'ВРАГОВ',boss:'БОСС',relic:'УНИКАЛЬНАЯ РЕЛИКВИЯ',run:'RUN ENDED'},
  en:{language:'LANGUAGE',chooseChar:'CHOOSE CHARACTER',mode:'GAME MODE',onePlayer:'1 PLAYER',twoPlayers:'2 PLAYERS',modeOneDesc:'Classic solo mode.',modeTwoDesc:'Local co-op.',onlinePlayers:'ONLINE 2 PLAYERS',onlineDesc:'5-digit room code.',p2Info:'P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb · auto-fire',start:'START NIGHT SHIFT',controls:'P1: WASD · mouse · 1–4 weapons · SPACE dash · E bomb · ESC menu · P2: arrows · 7–0 weapons · SHIFT dash · ENTER bomb',guide:'A boss appears every 5 waves and leaves a unique relic. Weapons upgrade when you level up.',levelPause:'GAME PAUSED · LEVEL UP',pickUpgrade:'CHOOSE ONE UPGRADE',dead:'YOU GOT EATEN',retry:'TRY AGAIN',menu:'MAIN MENU',hp:'HP',xp:'XP',lvl:'LV.',wave:'WAVE',score:'SCORE',enemies:'ENEMIES',boss:'BOSS',relic:'UNIQUE RELIC',run:'RUN ENDED'}
@@ -542,7 +651,7 @@ function makeMenu(){
  for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b><p>${locDesc(ch)}<br>HP ${ch.hp} · SPD ${ch.speed}<br><strong style="color:${ch.color}">${lang==='en'?'DASH':'РЫВОК'}: ${locName(dashProfiles[ch.id])}</strong></p>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);pixelHeroWeapon(pg,ch.id,0,0,0);d.prepend(portrait);d.onclick=()=>{selectedChar=ch.id;makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
  const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:T('onePlayer'),desc:T('modeOneDesc')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes){const d=document.createElement('button');d.type='button';d.className='modeChoice'+((md.id==='solo'&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.setAttribute('aria-pressed',String(d.classList.contains('sel')));d.innerHTML=`<b>${md.title}</b><p>${md.desc}</p>`;d.onclick=()=>{onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu();modeBox.querySelector('.sel')?.focus({preventScroll:true})};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||'нет комнаты'):'')}
  const mc=document.getElementById('mapChoices');mc.innerHTML='';
- for(const m of maps){const d=document.createElement('button');d.type='button';d.className='choice'+(m.id===selectedMap?' sel':'');d.style.setProperty('--accent',m.accent);d.style.setProperty('--card',m.tile);d.setAttribute('aria-pressed',String(m.id===selectedMap));d.innerHTML=`<b>${locName(m)}</b><p>${locDesc(m)}</p>`;d.onclick=()=>{selectedMap=m.id;makeMenu();mc.querySelector('.sel')?.focus({preventScroll:true})};mc.appendChild(d)}
+ for(const m of maps){const d=document.createElement('button');d.type='button';d.className='choice'+(m.id===selectedMap?' sel':'');d.style.setProperty('--accent',m.accent);d.style.setProperty('--card',m.tile);d.setAttribute('aria-pressed',String(m.id===selectedMap));d.innerHTML=`<b>${locName(m)}</b><p>${locDesc(m)}</p>`;const thumbnail=document.createElement('canvas');thumbnail.width=160;thumbnail.height=90;thumbnail.className='mapPortrait';thumbnail.setAttribute('aria-hidden','true');thumbnail.getContext('2d').drawImage(mapThumbnail(m.id),0,0);d.prepend(thumbnail);d.onclick=()=>{selectedMap=m.id;makeMenu();mc.querySelector('.sel')?.focus({preventScroll:true})};mc.appendChild(d)}
  applyLanguageStatic();
 }
 makeMenu();
@@ -1668,89 +1777,8 @@ function draw(){
  // world camera: preserve the 480x270 pixel canvas, move the world underneath it
  ctx.save();
  ctx.translate(Math.round(W/2-camera.x),Math.round(H/2-camera.y));
- // giant pixel tiled world, but only around the visible region
- const sx=Math.max(arena.l-20,Math.floor(camera.x-W/2)-30), ex=Math.min(arena.r+20,Math.ceil(camera.x+W/2)+30);
- const sy=Math.max(arena.t-20,Math.floor(camera.y-H/2)-30), ey=Math.min(arena.b+20,Math.ceil(camera.y+H/2)+30);
- const tile=18;
- for(let y=Math.floor(sy/tile)*tile;y<ey;y+=tile){for(let x=Math.floor(sx/tile)*tile;x<ex;x+=tile){ctx.fillStyle=((x+y)/tile%2)?m.tile:m.floor;ctx.fillRect(x,y,17,17);ctx.globalAlpha=.22;ctx.fillStyle=m.accent;ctx.fillRect(x,y+16,17,1);if(((x/tile|0)*13+(y/tile|0)*7)%11===0){ctx.fillRect(x+3,y+6,5,1);ctx.fillRect(x+8,y+7,1,4)}ctx.globalAlpha=1}}
- // huge outer walls
- ctx.fillStyle='#060508';ctx.fillRect(0,0,world.w,arena.t-12);ctx.fillRect(0,arena.b+12,world.w,world.h-arena.b);ctx.fillRect(0,0,arena.l-12,world.h);ctx.fillRect(arena.r+12,0,world.w-arena.r,world.h);
- // repeating horror lamps / pipes / furniture
- for(let x=arena.l+20;x<arena.r;x+=108){ctx.fillStyle=m.accent;ctx.fillRect(x,arena.t-2,2,7);if(((x/108)|0)%3===0){ctx.fillStyle='#321820';ctx.fillRect(x-8,arena.t+18,16,4);ctx.fillRect(x-14,arena.t+22,3,18);ctx.fillRect(x+11,arena.t+22,3,18)}}
- for(let y=arena.t+90;y<arena.b;y+=180){ctx.fillStyle='#0b080d';ctx.fillRect(arena.l+42,y,44,25);ctx.fillStyle='#3b2028';ctx.fillRect(arena.l+50,y+5,27,3);ctx.fillRect(arena.l+50,y+12,12,4);ctx.fillRect(arena.l+67,y+12,10,4);ctx.fillStyle=m.accent;ctx.fillRect(arena.l+55,y-5,18,3)}
- // occasional occult-looking floor marks, still pure pixels
- for(let i=0;i<26;i++){const x=arena.l+70+(i*173)%Math.floor(arena.r-arena.l-110), y=arena.t+58+(i*97)%Math.floor(arena.b-arena.t-100);ctx.fillStyle='rgba(92,21,31,.45)';ctx.fillRect(x,y,18,2);ctx.fillRect(x+7,y-7,2,16);ctx.fillRect(x+4,y-4,8,2)}
- // map-specific pixel landscapes and landmarks
- const drawLand=(map)=>{
-  const baseX=Math.floor(sx/96)*96, baseY=Math.floor(sy/96)*96;
-  for(let x=baseX;x<ex;x+=96){
-   for(let y=baseY;y<ey;y+=96){
-    const q=((x/96|0)*17+(y/96|0)*31)%7;
-    if(map.id==='kitchen'){
-     if(q===0){ctx.fillStyle='#2b1c20';ctx.fillRect(x+8,y+35,34,24);ctx.fillStyle='#4b2a27';ctx.fillRect(x+12,y+30,26,5);ctx.fillStyle='#171018';ctx.fillRect(x+15,y+41,20,12);ctx.fillStyle=map.accent;ctx.fillRect(x+21,y+27,3,4);}
-    }else if(map.id==='basement'){
-     if(q<2){ctx.fillStyle='#202834';ctx.fillRect(x+14,y+5,5,70);ctx.fillRect(x+49,y+5,5,70);ctx.fillStyle='#344254';ctx.fillRect(x+14,y+18,40,3);ctx.fillRect(x+14,y+40,40,3);ctx.fillStyle='#0c0a10';ctx.fillRect(x+22,y+24,25,11);}
-    }else if(map.id==='foodcourt'){
-     if(q===0||q===3){ctx.fillStyle='#2a1b2f';ctx.fillRect(x+8,y+48,46,4);ctx.fillRect(x+29,y+35,4,13);ctx.fillStyle='#552a5d';ctx.fillRect(x+15,y+55,5,16);ctx.fillRect(x+42,y+55,5,16);ctx.fillStyle=map.accent;ctx.fillRect(x+22,y+25,18,4);ctx.fillRect(x+28,y+17,6,8);}
-    }else if(map.id==='slaughter'){
-     if(q<3){ctx.fillStyle='#372026';ctx.fillRect(x+5,y+58,68,5);ctx.fillStyle='#0c080c';ctx.fillRect(x+12,y+39,3,19);ctx.fillRect(x+61,y+39,3,19);ctx.fillStyle='#7e2b31';ctx.fillRect(x+20,y+22,3,17);ctx.fillRect(x+51,y+22,3,17);ctx.fillRect(x+21,y+20,30,3);ctx.fillStyle='#d13d46';ctx.fillRect(x+32,y+23,3,12);}
-    }else if(map.id==='cemetery'){
-     if(q<4){ctx.fillStyle='#162019';ctx.fillRect(x+18,y+9,6,67);ctx.fillRect(x+26,y+6,4,70);ctx.fillRect(x+11,y+18,24,4);ctx.fillRect(x+14,y+28,20,4);ctx.fillStyle='#263a29';ctx.fillRect(x+8,y+72,42,4);ctx.fillStyle='#7a6a5a';ctx.fillRect(x+55,y+42,20,28);ctx.fillRect(x+61,y+34,8,8);}
-    }else if(map.id==='forest'){
-     // Dense original forest pixel landscape: trunks, layered crowns, roots, paths, creek and mushrooms.
-     if(q<=2){
-       ctx.fillStyle='#2b4b2d';ctx.fillRect(x+9,y+10,40,14);ctx.fillRect(x+3,y+20,55,16);ctx.fillStyle='#17301d';ctx.fillRect(x+17,y+5,24,11);ctx.fillRect(x+1,y+31,61,13);
-       ctx.fillStyle='#0b170e';ctx.fillRect(x+24,y+28,11,45);ctx.fillStyle='#4a3427';ctx.fillRect(x+27,y+39,5,38);ctx.fillStyle='#1c3920';ctx.fillRect(x+8,y+45,18,11);ctx.fillRect(x+36,y+48,22,11);
-       ctx.fillStyle='#5f7d53';ctx.fillRect(x+13,y+16,7,3);ctx.fillRect(x+40,y+20,8,3);
-     }else if(q===3||q===4){
-       ctx.fillStyle='#1d3120';ctx.fillRect(x+8,y+61,68,6);ctx.fillStyle='#314d30';ctx.fillRect(x+14,y+52,6,22);ctx.fillRect(x+49,y+50,6,24);
-       ctx.fillStyle='#3e2e24';ctx.fillRect(x+22,y+14,6,44);ctx.fillRect(x+43,y+21,5,37);ctx.fillStyle='#5b4030';ctx.fillRect(x+18,y+13,19,4);ctx.fillRect(x+42,y+20,17,4);
-       ctx.fillStyle='#8e5f48';ctx.fillRect(x+10,y+69,5,4);ctx.fillRect(x+33,y+67,4,5);ctx.fillRect(x+56,y+70,5,4);
-       ctx.fillStyle='#b44b57';ctx.fillRect(x+18,y+56,3,3);ctx.fillRect(x+21,y+58,2,3);ctx.fillStyle='#c4a84b';ctx.fillRect(x+53,y+42,3,3);
-     }else{
-       // Narrow dark creek cutting the forest in irregular segments.
-       ctx.fillStyle='#091511';ctx.fillRect(x+29,y+3,16,73);ctx.fillStyle='#174136';ctx.fillRect(x+32,y+3,9,73);ctx.fillStyle='#2b6753';ctx.fillRect(x+33,y+12,5,2);ctx.fillRect(x+34,y+35,4,2);ctx.fillRect(x+33,y+58,5,2);
-       ctx.fillStyle='#4d392b';ctx.fillRect(x+4,y+36,22,5);ctx.fillRect(x+49,y+45,23,5);ctx.fillStyle='#6c4b35';ctx.fillRect(x+9,y+35,5,7);ctx.fillRect(x+57,y+44,5,8);
-       ctx.fillStyle='#6a8c63';ctx.fillRect(x+12,y+22,3,3);ctx.fillRect(x+17,y+25,4,2);ctx.fillRect(x+55,y+62,4,3);
-     }
-    }
-   }
-  }
- };
- drawLand(m);
- if(m.id==='forest'){
-   // Canopy clusters and foreground brush, kept lightweight for the 480x270 pixel canvas.
-   const fx=Math.floor(sx/54)*54, fy=Math.floor(sy/54)*54;
-   for(let yy=fy;yy<ey;yy+=54){for(let xx=fx;xx<ex;xx+=54){
-     const z=((xx/54|0)*13+(yy/54|0)*7)%5;
-     if(z<2){ctx.fillStyle='#0a130d';ctx.fillRect(xx+3,yy+7,22,8);ctx.fillRect(xx+9,yy+2,13,14);ctx.fillStyle='#19351e';ctx.fillRect(xx+7,yy+12,18,7);}
-     if(z===3){ctx.fillStyle='#314b2f';ctx.fillRect(xx+29,yy+30,4,7);ctx.fillRect(xx+35,yy+32,3,4);ctx.fillStyle='#a74b55';ctx.fillRect(xx+30,yy+27,3,3);}
-   }}
- }
- // Разнотипные фонари: железные, подвесные, настенные; в лесу — на деревянных столбах.
- const drawLanterns=(map)=>{
-   const colors={kitchen:'#ff7d4f',basement:'#7c8dff',foodcourt:'#ff42b8',slaughter:'#ff424b',cemetery:'#b9ff8a',forest:'#d7ffb0'};
-   const glow=colors[map.id]||'#ff6a5c';
-   for(let i=0;i<14;i++){
-     const lx=arena.l+70+((i*137+41)%Math.max(1,arena.r-arena.l-130));
-     const ly=arena.t+55+((i*83+23)%Math.max(1,arena.b-arena.t-110));
-     const style=i%3;
-     if(map.id==='forest'){
-       ctx.fillStyle='#20231e';ctx.fillRect(lx,ly-16,2,28);ctx.fillRect(lx-4,ly-17,10,2);ctx.fillStyle='#10140f';ctx.fillRect(lx-5,ly-14,12,9);ctx.fillStyle=glow;ctx.fillRect(lx-2,ly-12,6,5);
-       if(i%3===0){ctx.globalAlpha=.10;ctx.fillStyle=glow;ctx.fillRect(lx-10,ly-20,21,15);ctx.globalAlpha=1;}
-     }else if(style===0){
-       ctx.fillStyle='#252128';ctx.fillRect(lx,ly-15,2,23);ctx.fillRect(lx-4,ly-16,10,2);ctx.fillStyle=glow;ctx.fillRect(lx-2,ly-13,6,6);
-     }else if(style===1){
-       ctx.fillStyle='#27222a';ctx.fillRect(lx-1,ly-18,3,31);ctx.fillRect(lx-5,ly-17,11,3);ctx.fillRect(lx-4,ly-10,9,8);ctx.fillStyle=glow;ctx.fillRect(lx-1,ly-9,3,6);
-     }else{
-       ctx.fillStyle='#2d2221';ctx.fillRect(lx-1,ly-12,3,23);ctx.fillRect(lx-7,ly-14,15,3);ctx.fillStyle=glow;ctx.fillRect(lx-5,ly-11,11,7);ctx.fillStyle='#fff1b0';ctx.fillRect(lx-2,ly-9,5,3);
-     }
-   }
- };
- drawLanterns(m);
- if(m.id==='forest'){
-   ctx.globalAlpha=.045+.018*Math.sin(horrorTime*1.7);ctx.fillStyle='#9eb4c4';ctx.fillRect(camera.x-W/2,camera.y-H/2,W,H);ctx.globalAlpha=1;
- }
+ // Cached world scenery; actors and attack warnings are still rendered above it.
+ ctx.drawImage(getTerrain(m.id),0,0);
  // blood stains and corpses
  for(const b of blood){ctx.globalAlpha=b.a;ctx.fillStyle='#4f0913';ctx.fillRect(Math.round(b.x-b.r),Math.round(b.y-b.r*.45),Math.max(2,Math.round(b.r*2)),Math.max(2,Math.round(b.r*.9)));ctx.fillStyle='#9f1829';ctx.fillRect(Math.round(b.x-b.r*.55),Math.round(b.y-b.r*.25),Math.max(2,Math.round(b.r*1.1)),Math.max(2,Math.round(b.r*.5)))}ctx.globalAlpha=1;
  // enemy warnings: fixed radius, shrinking countdown ring, no reliance on color alone
