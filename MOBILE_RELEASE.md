@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.64.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.65.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -87,3 +87,6 @@ Solo base enemy counts on waves 1–4: 8/11/14/17 (previously 12/14/17/19); earl
 
 ## V64 — First Nightmare
 Optional non-blocking tutorial in the first solo run (or replay via Controls). Six objectives track actual movement, attacks, dash, weapon selection, XP collection and wave clear; actions can be completed out of order. Skip disables further prompts, completion persists locally, and unfinished training can restart on the next solo run. No combat changes or rewards; co-op is excluded. Russian/English prompts and compact responsive HUD. Inline syntax and 5054 isolated rule assertions passed, including all 720 objective permutations, duplicate inputs, movement threshold and exclusion rules. Actual browser/mobile HUD layout, touch input and full gameplay still require verification.
+
+## V65 — Save Your Soul
+Explicit solo checkpoint: pause, choose Save & exit after wave, finish the current wave and any rest-stop choices. Before next-wave setup the game stores one local snapshot and returns to menu without settling the run as abandoned. Restore hero, health, XP, weapon levels/charges, buffs, inventory, coins, route/clues, fear, queued hidden boss/room effects and remaining pickups. Consume checkpoint before resuming; existing meta currency already banked, not granted again. Menu offers resume or confirmed discard; a saved run blocks starting a new solo run until resolved. Malformed data rejected; storage failure keeps active run. 247 isolated validation, round-trip and single-use assertions plus inline syntax check passed. This is not an automatic crash recovery system: save must complete before closing, current combat cannot be suspended, and crash during resume after consumption can lose the checkpoint. No cross-device sync; co-op excluded. Browser storage integration, interruption and mobile layout remain unverified.
