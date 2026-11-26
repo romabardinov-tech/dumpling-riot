@@ -883,18 +883,18 @@ const merchantStories=[
 ];
 function merchantWave(w){return Number.isInteger(w)&&w>=3&&w%5===3}
 function coinReward(w){return 8+Math.min(w,15)+(w%5===0?12:0)}
-function addCoins(run,n){if(!run||run.closed||!Number.isFinite(n)||n<0)return 0;const old=run.coins;run.coins=Math.min(9999,run.coins+Math.floor(n));run.coinsEarned+=run.coins-old;return run.coins-old}
+function addCoins(run,n){if(!run||run.closed||!Number.isFinite(n)||n<0||!Number.isFinite(run.coins)||!Number.isFinite(run.coinsEarned))return 0;const old=run.coins;run.coins=Math.min(9999,run.coins+Math.floor(n));run.coinsEarned+=run.coins-old;return run.coins-old}
 function createMerchant(run,p,w,unclaimed=[],random=Math.random){
  if(!run||run.closed||run.cleared!==w||!merchantWave(w)||run.lastShop===w)return null;
  const owned=[...p.artifacts,...unclaimed],available=runArtifacts.filter(a=>!owned.includes(a.id)),offers=[];
- for(let i=0;i<2&&available.length;i++){const chosen=chooseArtifact(owned,random);if(!chosen)break;owned.push(chosen.id);available.splice(available.findIndex(a=>a.id===chosen.id),1);offers.push({id:'artifact:'+chosen.id,kind:'artifact',artifact:chosen.id,price:merchantPrices[chosen.rarity],sold:false})}
+ for(let i=0;i<2&&available.length;i++){const cheap=i===0&&w===3?available.filter(a=>a.rarity==='rare'):[];const chosen=cheap.length?cheap[Math.min(cheap.length-1,Math.floor(random()*cheap.length))]:chooseArtifact(owned,random);if(!chosen)break;owned.push(chosen.id);available.splice(available.findIndex(a=>a.id===chosen.id),1);offers.push({id:'artifact:'+chosen.id,kind:'artifact',artifact:chosen.id,price:merchantPrices[chosen.rarity],sold:false})}
  for(const s of merchantServices)offers.push({id:s.id,kind:'service',price:s.price,sold:false});
  if(!run.pact){const q=merchantPacts[Math.min(merchantPacts.length-1,Math.floor(random()*merchantPacts.length))];offers.push({id:'pact:'+q.id,kind:'pact',pact:q.id,price:0,sold:false})}
  run.lastShop=w;return {wave:w,closed:false,offers,line:merchantStories[Math.min(merchantStories.length-1,Math.floor(random()*merchantStories.length))]};
 }
 function pactCost(p,id){return Math.ceil(p.maxhp*(id==='blood'?.2:.15))}
 function merchantReason(run,p,n,shop,offer){
- if(!run||run.closed||!shop||shop.closed||!offer||!shop.offers.includes(offer)||offer.sold||p.dead||shop.wave!==run.cleared)return 'unavailable';
+ if(!run||run.closed||!p||!shop||shop.closed||!offer||!shop.offers.includes(offer)||offer.sold||p.dead||shop.wave!==run.cleared)return 'unavailable';
  if(run.coins<offer.price)return 'coins';
  if(offer.kind==='artifact')return p.artifacts.includes(offer.artifact)?'owned':'';
  if(offer.id==='heal')return p.hp>=p.maxhp?'full':'';
