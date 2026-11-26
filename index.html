@@ -827,6 +827,16 @@ const chars=[
  {id:'warden',name:'ФОНАРЩИК',enName:'LANTERN WARDEN',desc:'Хранитель света · при рывке снижает страх на 12',enDesc:'Guardian of light · dash reduces fear by 12',base:[38,40,50],speed:86,hp:125,dash:1,color:'#e5ba78',unlock:'win',weaponNames:['ЛУЧ ФОНАРЯ','СВЕТОВЫЕ КОПЬЯ','ПЕЧАТЬ СВЕТА','ОГОНЬ ДУШ'],enWeaponNames:['LANTERN BEAM','LIGHT SPEARS','LIGHT SEAL','SOUL FIRE']},
  {id:'revenant',name:'ВОЗВРАЩЁННЫЙ',enName:'REVENANT',desc:'Порождение пустоты · рывок восстанавливает до 6 HP за поражённых врагов',enDesc:'Voidborn · dash restores up to 6 HP from enemies struck',base:[50,30,38],speed:100,hp:84,dash:1.1,color:'#b68bdd',unlock:'hidden',weaponNames:['КОГТИ ПУСТОТЫ','ОСКОЛКИ ТЕНИ','РАЗЛОМ','ПЕПЕЛ КОШМАРА'],enWeaponNames:['VOID CLAWS','SHADOW SHARDS','RIFT','NIGHTMARE ASH']}
 ];
+const weaponSilhouettes={
+ scar:['cleaver','boomerang','axe','trident'],
+ vesa:['needles','scythe','crossbow','fan'],
+ nyx:['dart','shards','crescent','orb'],
+ pelmage:['spark','flask','meteor','spiral'],
+ assassin:['kunai','knives','twinblade','fanblades'],
+ golem:['cauldron','nozzle','hammer','furnace'],
+ warden:['lantern','spear','seal','torch'],
+ revenant:['claws','crystals','rift','ash']
+};
 const heroArt={
 scar:{dark:'#381720',mid:'#96313b',lit:'#d85650',metal:'#dbc3a5',glow:'#ffad68'},
 vesa:{dark:'#321529',mid:'#7b2b50',lit:'#db6489',metal:'#eac3b2',glow:'#ff9eb4'},
@@ -1718,6 +1728,41 @@ function paintArenaAtmosphere(g,id,view,time){
  g.restore();
 }
 
+// V68.1: flat authored landmarks integrated into cached terrain and map previews.
+const arenaIdentity={
+ kitchen:{marks:[[805,464],[960,594],[1115,464],[960,735]],color:'#9b8070'},
+ basement:{marks:[[790,550],[960,665],[1130,550],[960,360]],color:'#658fa7'},
+ foodcourt:{marks:[[960,443],[960,647],[810,545],[1110,545]],color:'#9e719b'},
+ slaughter:{marks:[[805,465],[1115,465],[805,665],[1115,665]],color:'#ac7863'},
+ cemetery:{marks:[[810,500],[1110,500],[960,690],[960,355]],color:'#82978a'},
+ forest:{marks:[[850,530],[1080,540],[960,695],[960,420]],color:'#7a996c'}
+};
+function paintArenaIdentity(g,id,left,top,width,height){
+ const q=arenaIdentity[id];if(!q)return;const R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};g.save();
+ for(const [x,y] of q.marks){if(x+50<left||x-50>left+width||y+50<top||y-50>top+height)continue;g.save();g.translate(x,y);const c=q.color;
+ switch(id){
+ case 'kitchen':R('#232529',-28,-14,56,28);R('#55524e',-26,-12,52,24);for(let i=-20;i<=20;i+=8){R('#25292b',i,-9,5,18);R(c,i,-9,1,18)}R('#ae6c48',-26,12,52,1);break;
+ case 'basement':R('#17212c',-31,-17,62,34);R('#354958',-29,-15,58,30);for(const x of [-24,18])for(const y of [-11,7])R(c,x,y,4,4);R('#17212c',-15,-7,30,14);for(let i=-11;i<=11;i+=5)R('#557386',i,-4,2,8);R('#94b6b8',-4,-1,8,2);break;
+ case 'foodcourt':R('#37293b',-30,-17,60,34);for(let i=-24;i<24;i+=8){R(i%16===0?'#76506b':'#4a6270',i,-12,7,7);R(i%16===0?'#4a6270':'#76506b',i,5,7,7)}R(c,-20,-1,40,2);R('#b5a08d',-3,-5,6,10);break;
+ case 'slaughter':R('#282127',-32,-13,64,26);for(let i=-28;i<28;i+=8){R('#6d483e',i,-9,5,18);R(c,i,-9,2,5)}R('#b29270',-31,-13,62,2);R('#65463f',-31,11,62,2);break;
+ case 'cemetery':R('#202b29',-22,-19,44,38);R('#46564d',-20,-17,40,34);R('#35413a',-17,-14,34,28);R(c,-2,-10,4,20);R(c,-9,-5,18,3);for(const yy of [-16,13])R('#65756a',-14,yy,28,1);break;
+ case 'forest':R('#263b2a',-26,-15,52,30);for(let i=0;i<5;i++){const xx=-20+i*10,yy=(i%2)*6-6;R('#4a5038',xx,yy,7,4);R('#8b8462',xx+1,yy-2,5,3);R(c,xx+2,yy-3,3,2)}R('#5b6743',-20,9,40,2);break;
+ }g.restore()}
+ g.restore();
+}
+function paintArenaSignature(g,id,view,time){
+ if(!horrorFx)return;const q=arenaIdentity[id];if(!q)return;const t=reduceMotion?0:time;g.save();g.fillStyle=q.color;
+ for(const [x,y] of q.marks){if(!visibleWorld({x,y},view,60))continue;g.save();g.translate(x,y);g.globalAlpha=.25;
+ for(let i=0;i<5;i++){const k=terrainHash(x,y,i+90),n=reduceMotion?i*3:((t*(id==='kitchen'?7:3)+i*9)%27),xx=Math.round(-22+i*10+Math.sin(t*.6+k*6)*3),yy=Math.round(-9-n);
+ switch(id){
+ case 'kitchen':g.fillRect(xx,yy,4,2);g.fillRect(xx-2,yy-2,2,1);break;
+ case 'basement':g.fillRect(xx,yy,1,4);g.fillRect(xx+1,yy+3,2,1);break;
+ case 'foodcourt':g.fillRect(xx-4,yy,9,1);break;
+ case 'slaughter':g.fillRect(xx,yy,2,1);g.fillRect(xx-2,yy+3,1,1);break;
+ case 'cemetery':g.fillRect(xx-9,yy+12,19,2);break;
+ case 'forest':g.fillRect(xx,yy,2,2);if(i%2===0)g.fillRect(xx+2,yy-1,1,1);break;
+ }}g.restore()}g.restore();
+}
 function paintTerrain(g,id,left,top,width,height){
  const t=terrainThemes[id]||terrainThemes.kitchen,right=left+width,bottom=top+height,natural=id==='cemetery'||id==='forest';
  const R=(color,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
@@ -1798,7 +1843,7 @@ function paintTerrain(g,id,left,top,width,height){
   if(natural){const h=26+Math.floor(terrainHash(x,6,0)*16);P('#182a20',[x-15,y+42,x+4,y+42-h,x+19,y+42]);P('#314634',[x-9,y+35,x+4,y+43-h,x+14,y+35]);R('#6c5140',x+3,y+32,4,11)}
   else{plate(x,y+7,65,34,t.tile,t.edge,t.trim);if(id==='kitchen'){R('#171d20',x+7,y+13,51,13);for(let j=0;j<4;j++){R('#555f5d',x+10+j*12,y+15,7,8);R('#9b8270',x+10+j*12,y+15,7,1)}}else if(id==='foodcourt'){R('#2f2e34',x+8,y+12,49,21);R('#bc8b69',x+12,y+15,41,2);R('#4d7773',x+12,y+21,25,2)}else{grate(x+8,y+12,49,20,t.tile,t.trim)}}
  }
- paintArenaFeatures(g,id,left,top,width,height);
+ paintArenaFeatures(g,id,left,top,width,height);paintArenaIdentity(g,id,left,top,width,height);
  // Sparse ground lanterns, placed to support navigation instead of repeating a grid.
  for(const [x,y] of arenaLights[id]||arenaLights.kitchen){
   R(t.edge,x-5,y-4,10,8);R(t.trim,x-4,y-3,8,6);R(t.glow,x-3,y-2,6,4);R('#eadac0',x-2,y-1,2,1)
@@ -2270,7 +2315,7 @@ document.getElementById('discardRunBtn').onclick=()=>{if(state!=='menu'||!savedC
 function makeMenu(){
  if(!heroPlayable(chars.find(c=>c.id===selectedChar),meta,journal,coop||onlineMode))selectedChar=chars[0].id;
  const cc=document.getElementById('charChoices');cc.innerHTML='';document.getElementById('recordLine').textContent=recordText(loadRecord());
- for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);pixelHeroWeapon(pg,ch.id,0,0,0);d.prepend(portrait);if(!heroPlayable(ch,meta,journal,coop||onlineMode)){d.classList.add('heroLocked');d.disabled=true;const note=document.createElement('small');note.textContent=ch.unlock&&(coop||onlineMode)?L('Solo only','Только соло'):heroLockText(ch);d.append(note)}d.onclick=()=>{if(!heroPlayable(ch,meta,journal,coop||onlineMode))return;selectedChar=ch.id;saveMenuSelection();makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
+ for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);paintHeroSignature(pg,ch.id,0,0);pixelHeroWeapon(pg,ch.id,0,0,0);d.prepend(portrait);if(!heroPlayable(ch,meta,journal,coop||onlineMode)){d.classList.add('heroLocked');d.disabled=true;const note=document.createElement('small');note.textContent=ch.unlock&&(coop||onlineMode)?L('Solo only','Только соло'):heroLockText(ch);d.append(note)}d.onclick=()=>{if(!heroPlayable(ch,meta,journal,coop||onlineMode))return;selectedChar=ch.id;saveMenuSelection();makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
  const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:L('Endless survival','Бесконечное выживание'),desc:T('modeOneDesc')},{id:'campaign',title:L('Path of Darkness','Путь тьмы'),desc:L('Story campaign · 15 waves · three endings','Кампания · 15 волн · три концовки')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes){const d=document.createElement('button');d.type='button';d.className='modeChoice'+((md.id==='solo'&&!campaignMode&&!coop&&!onlineMode)||(md.id==='campaign'&&campaignMode&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.setAttribute('aria-pressed',String(d.classList.contains('sel')));d.innerHTML=uiPixelIcon(md.id==='campaign'?'solo':md.id)+`<div class="modeCopy"><b>${md.title}</b><p>${md.desc}</p></div>`;d.onclick=()=>{if(md.id!=='online'&&onlineMode&&(netConn||peer))disconnectOnline(L('Left the room','Выход из комнаты'));campaignMode=md.id==='campaign';onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu();modeBox.querySelector('.sel')?.focus({preventScroll:true})};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||L('No room')):'')}
  const mc=document.getElementById('mapChoices');mc.innerHTML='';
  for(const m of maps){const d=document.createElement('button');d.type='button';d.className='choice'+(m.id===selectedMap?' sel':'');d.style.setProperty('--accent',m.accent);d.style.setProperty('--card',m.tile);d.setAttribute('aria-pressed',String(m.id===selectedMap));d.innerHTML=`<b>${locName(m).split(' — ')[0]}</b>`;const thumbnail=document.createElement('canvas');thumbnail.width=160;thumbnail.height=90;thumbnail.className='mapPortrait';thumbnail.setAttribute('aria-hidden','true');thumbnail.getContext('2d').drawImage(mapThumbnail(m.id),0,0);d.prepend(thumbnail);d.onclick=()=>{selectedMap=m.id;saveMenuSelection();makeMenu();mc.querySelector('.sel')?.focus({preventScroll:true})};mc.appendChild(d)}
@@ -3394,25 +3439,81 @@ function pixelHeroBody(g,id,step=0,phase=0,aim=0){
  // Aim-facing eye highlight and subtle surface rim on all costumes.
  if(id!=='golem'&&id!=='pelmage')R(a.lit,dir*8+(dir<0?0:-1),-8,1,2);
 }
+// V68.1: hand-authored native pixel silhouettes, one for each of 32 weapons.
+// Geometry is cosmetic; weapon damage, collision and timing remain unchanged.
 function pixelHeroWeapon(g,id,wi,angle,fire=0,pose=null){
- const a=heroArt[id]||heroArt.scar,ink='#100c17';
- const R=(color,x,y,w,h)=>{g.fillStyle=color;g.fillRect(x,y,w,h)};
- g.save();g.rotate(angle);
- const recoil=pose?pose.offset:fire>0?2:0;
- g.translate(-recoil,0);if(pose)g.rotate(pose.angle);
+ const a=heroArt[id]||heroArt.scar,ink='#100c17',steel='#b9b9be',shine='#f7e4c5';
+ const R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};
+ const P=(c,pts)=>{g.fillStyle=c;g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill()};
+ const blade=(x,y,length=15,width=4)=>{P(ink,[x-1,y-width-1,x+length-4,y-width-1,x+length+2,y,x+length-4,y+width+1,x-1,y+width+1]);P(steel,[x,y-width,x+length-4,y-width,x+length,y,x+length-4,y+width,x,y+width]);R(shine,x,y-width,length-4,1);R(a.lit,x+1,y+width-1,length-5,1)};
+ const gem=(x,y,r=5)=>{P(ink,[x,y-r-1,x+r+1,y,x,y+r+1,x-r-1,y]);P(a.lit,[x,y-r,x+r,y,x,y+r,x-r,y]);P(a.glow,[x,y-r,x+1,y,x-r,y]);R(shine,x-1,y-2,2,2)};
+ const shaft=(end=33)=>{R(ink,12,-3,end-11,6);R(a.dark,13,-2,end-13,4);R(a.metal,14,-2,end-15,1)};
+ g.save();g.rotate(angle||0);g.translate(-(pose?pose.offset:fire>0?2:0),0);if(pose)g.rotate(pose.angle);
  R(ink,5,-4,11,8);R(a.mid,6,-3,6,6);R(a.metal,10,-2,4,4);
- if(id==='scar'){R(ink,13,-6,21,11);R(a.dark,13,-4,4,8);R('#b6b7be',17,-5,15,8);R('#f5dfc9',17,-5,15,2);R('#90343b',26,0,6,2);R(a.metal,14,-7,2,11)}
- else if(id==='vesa'){R(ink,13,-5,18,9);R(a.mid,14,-3,12,5);R(a.glow,19,-2,11,2);R(a.metal,14,-5,2,8);R(a.glow,29,-1,3,1)}
- else if(id==='nyx'){R(ink,13,-5,19,9);R(a.dark,14,-3,14,5);R(a.lit,17,-4,11,2);R(a.glow,27,-2,4,2)}
- else if(id==='pelmage'){R(ink,13,-3,19,6);R(a.metal,14,-1,15,2);R(a.mid,27,-6,7,12);R(a.glow,29,-4,3,8);R('#f0fbff',30,-3,1,2)}
- else if(id==='assassin'){R(ink,13,-4,18,8);R(a.dark,14,-2,8,4);R(a.metal,21,-3,8,5);R(a.glow,25,-3,5,1)}
- else if(id==='warden'){R(ink,13,-7,16,14);R(a.metal,15,-6,12,12);R(a.mid,17,-4,8,8);R(a.glow,19,-3,4,6);R(ink,18,-9,6,3)}
- else if(id==='revenant'){R(ink,12,-5,20,10);for(let i=0;i<3;i++){R(a.lit,18+i*3,-4+i*3,10-i*2,2);R(a.glow,25+i,-4+i*3,3,1)}}
- else {R(ink,12,-7,19,14);R(a.mid,13,-5,15,10);R(a.lit,13,-5,15,2);R(a.glow,25,-3,4,6);R(a.metal,14,-7,3,14)}
- if(wi===1)R(a.glow,18,-6,8,1);
- if(wi===2){R(a.metal,15,3,10,3);R(a.glow,18,5,5,1)}
- if(wi===3){R(a.glow,18,-5,2,2);R(a.glow,22,-5,2,2);R(a.glow,26,-5,2,2)}
- if(pose?.flash){R(a.glow,34,-2,5,4);R('#ffeac4',36,-1,4,2)}g.restore();
+ switch((weaponSilhouettes[id]||weaponSilhouettes.scar)[wi]||'cleaver'){
+ case 'cleaver':R(ink,13,-7,24,14);R(steel,17,-6,18,11);R(shine,17,-6,18,2);R('#913744',28,2,6,2);R(a.metal,14,-8,2,15);break;
+ case 'boomerang':P(ink,[12,-7,23,-12,37,1,33,9,23,1,15,3]);P(a.mid,[14,-6,23,-10,35,1,32,6,23,-1,15,1]);P(a.metal,[15,-6,23,-9,32,0,29,0,22,-5]);break;
+ case 'axe':shaft(31);P(ink,[23,-13,37,-10,39,7,24,13,19,6,19,-6]);P(steel,[24,-11,35,-8,37,6,25,11,21,5,21,-5]);R(shine,34,-7,2,12);R(a.lit,23,-4,5,8);break;
+ case 'trident':shaft(29);for(const y of [-8,0,8]){P(a.dark,[22,y-3,34,y-3,39,y,34,y+3,22,y+3]);P(a.glow,[24,y-1,36,y-1,39,y,36,y+1,24,y+1])}break;
+ case 'needles':for(const y of [-5,0,5]){R(ink,13,y-1,22,3);R(a.glow,16,y,19,1);R(shine,33,y,2,1)}break;
+ case 'scythe':shaft(32);P(ink,[25,-13,38,-11,41,-3,33,-5,28,2,23,0]);P(steel,[26,-11,36,-9,38,-5,32,-7,27,0,25,-1]);R(a.glow,28,-10,6,1);break;
+ case 'crossbow':shaft(34);P(ink,[19,-12,32,-10,36,0,32,10,19,12,24,0]);P(a.mid,[21,-10,30,-8,34,0,30,8,21,10,26,0]);R(a.glow,29,-9,1,18);R(shine,22,-1,17,2);break;
+ case 'fan':for(let i=-2;i<=2;i++){const y=i*5;P(a.dark,[13,-2,31,y-2,38,y,31,y+2,13,2]);P(a.glow,[20,0,35,y,31,y+1])}break;
+ case 'dart':blade(14,0,21,3);R(a.glow,17,-1,12,2);break;
+ case 'shards':for(const [x,y,r] of [[19,-7,4],[27,0,6],[19,7,4]])gem(x,y,r);break;
+ case 'crescent':P(ink,[14,-11,29,-13,39,-7,34,-2,27,-6,21,0,27,6,34,2,39,7,29,13,14,11,18,0]);P(a.lit,[16,-10,29,-11,36,-7,30,-5,26,-8,19,0,26,8,30,5,36,7,29,11,16,10,20,0]);R(a.glow,17,-2,3,4);break;
+ case 'orb':shaft(24);gem(28,0,9);R(a.glow,27,-12,2,3);R(a.glow,27,9,2,3);break;
+ case 'spark':shaft(30);gem(33,0,6);break;
+ case 'flask':shaft(20);R(ink,21,-5,7,10);P(ink,[27,-9,36,-7,39,0,36,7,27,9,24,4,24,-4]);P(a.lit,[28,-7,35,-5,37,0,35,5,28,7,26,3,26,-3]);R(a.glow,29,0,6,4);R(shine,27,-5,2,4);break;
+ case 'meteor':shaft(24);P(ink,[23,-9,31,-13,40,-5,39,6,31,11,23,6]);P('#c9a986',[25,-8,31,-11,38,-4,37,5,31,9,25,5]);R(a.glow,28,-5,3,3);R(a.lit,33,1,3,4);break;
+ case 'spiral':shaft(24);P(a.dark,[23,-10,37,-10,40,3,33,10,23,7,20,-3]);P(a.lit,[24,-8,36,-8,38,2,32,8,25,5,23,-2]);P(a.glow,[27,-5,34,-5,35,2,31,5,28,2,31,0,32,2,33,-2,28,-2]);break;
+ case 'kunai':blade(15,0,17,5);R(a.glow,18,-1,12,1);R(a.dark,13,-2,2,4);break;
+ case 'knives':blade(14,-5,16,3);blade(17,5,17,3);break;
+ case 'twinblade':shaft(29);P(a.lit,[13,-4,26,-12,37,-10,31,-6,20,0]);P(steel,[13,4,26,12,37,10,31,6,20,0]);break;
+ case 'fanblades':for(let i=-2;i<=2;i++){const y=i*4;P(steel,[14,-1,30,y-2,38,y,30,y+2,14,1]);R(a.glow,30,y,3,1)}break;
+ case 'cauldron':R(ink,13,-10,23,20);R(a.mid,15,-8,19,16);R(a.metal,15,-8,19,3);R(a.dark,18,-4,14,9);R(a.glow,28,-3,4,7);R(shine,17,-7,2,2);break;
+ case 'nozzle':shaft(25);R(ink,23,-8,15,16);R(a.metal,24,-7,12,14);R(a.dark,28,-5,8,10);R(a.glow,34,-4,3,8);for(const y of [-6,5])R(shine,25,y,7,1);break;
+ case 'hammer':shaft(29);R(ink,24,-13,15,26);R(a.mid,26,-11,11,22);R(a.metal,26,-11,11,3);R(a.lit,27,8,9,3);R(a.glow,30,-3,3,6);break;
+ case 'furnace':R(ink,13,-10,26,20);R(a.mid,15,-8,22,16);R(a.metal,17,-9,3,18);R(a.dark,22,-6,13,12);for(const y of [-4,0,4])R(a.glow,26,y,10,2);break;
+ case 'lantern':shaft(21);R(ink,21,-10,14,20);R(a.metal,22,-8,12,16);R(a.dark,24,-6,8,12);R(a.glow,26,-5,4,10);R(shine,27,-3,2,6);R(a.metal,25,-12,6,2);break;
+ case 'spear':shaft(28);P(a.metal,[26,-6,40,0,26,6,29,0]);P(a.glow,[28,-4,39,0,29,1]);break;
+ case 'seal':shaft(22);P(ink,[21,-7,27,-12,34,-10,40,0,34,10,27,12,21,7]);P(a.metal,[23,-6,28,-10,33,-8,37,0,33,8,28,10,23,6]);R(a.dark,26,-5,8,10);R(a.glow,29,-6,2,12);R(a.glow,25,-1,10,2);break;
+ case 'torch':shaft(27);P(a.dark,[25,-8,29,-12,32,-7,39,-4,36,5,28,9,25,5]);P(a.lit,[27,-6,30,-9,32,-4,36,-2,34,4,29,6]);P(a.glow,[29,-3,32,-5,34,0,31,4]);break;
+ case 'claws':for(const y of [-6,0,6])P(a.lit,[13,y-2,26,y-4,39,y,28,y+2,15,y+2]);break;
+ case 'crystals':for(const [x,y,r] of [[18,0,4],[27,-6,5],[31,6,5]])gem(x,y,r);break;
+ case 'rift':P(a.dark,[14,-7,26,-12,38,-6,31,0,40,7,26,12,14,7,22,0]);P(a.glow,[24,-10,31,-5,27,0,34,6,25,10,29,4,23,0,27,-5]);break;
+ case 'ash':shaft(21);for(const [x,y,r] of [[24,-4,4],[31,-8,3],[34,3,5],[24,7,2]]){R(a.dark,x-r,y-r,r*2,r*2);R(a.lit,x-r+1,y-r+1,r,r);R(a.glow,x,y,1,1)}break;
+ }
+ if(pose?.flash){R(a.glow,40,-2,4,4);R(shine,42,-1,3,2)}g.restore();
+}
+// Native pixel costume detailing in the same sprite coordinate system.
+function paintHeroSignature(g,id,phase=0,walk=0){
+ const a=heroArt[id]||heroArt.scar,t=reduceMotion?0:Math.round(Math.sin(phase)*2);const R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+ g.save();
+ switch(id){
+ case 'scar':R('#c4b6a3',-9,-6,3,2);R('#c4b6a3',7,-6,3,2);R('#e8bda2',-2,5,3,2);R(a.dark,-15,-3,6,3);R(a.lit,-19,-2+t,7,2);break;
+ case 'vesa':R(a.metal,-8,-10,2,3);R(a.glow,8,-10,2,2);R(a.dark,11,2,3,7);R(a.lit,12,6+t,2,5);break;
+ case 'nyx':R(a.glow,-1,-22,2,2);R(a.lit,-12,5,2,6);R(a.lit,10,5,2,6);R(a.dark,-14,9+t,3,4);break;
+ case 'pelmage':R(a.glow,-1,-28,2,3);R(a.metal,-6,6,3,2);R(a.metal,4,6,3,2);R(a.glow,-3,1,6,1);break;
+ case 'assassin':R(a.metal,-8,0,3,2);R(a.metal,6,0,3,2);R(a.glow,-18,0+t,4,1);R(a.lit,-20,2+t,3,1);break;
+ case 'golem':for(const x of [-12,10]){R(a.metal,x,-5,2,2);R('#4c3934',x,0,2,4)}R(a.glow,-3,3,6,1);R('#e0bc90',-2,-34+t,2,2);break;
+ case 'warden':R(a.metal,-7,-24,14,1);R(a.glow,-1,-27,2,3);R(a.metal,-8,5,3,2);R(a.metal,5,5,3,2);break;
+ case 'revenant':for(const x of [-12,9]){R(a.glow,x,-9,2,4);R(a.lit,x,0,3,2)}R(a.glow,-1,-5,2,6);R(a.lit,-3,8+t,1,3);break;
+ }g.restore();
+}
+function paintHeroAccent(g,id,phase,moving,attacking){
+ if(!horrorFx)return;const a=heroArt[id]||heroArt.scar,t=reduceMotion?0:phase;g.save();g.fillStyle=a.glow;g.globalAlpha=attacking?.7:.35;
+ // Distinct readable geometry, not only a different hue; never a danger telegraph.
+ switch(id){
+ case 'scar':for(let i=0;i<3;i++)g.fillRect(-21-i*3,8+(i%2)*3,3,1);break;
+ case 'vesa':for(let i=0;i<3;i++){const y=8+Math.round(Math.sin(t*.4+i)*3);g.fillRect(-20+i*4,y,1,3)}break;
+ case 'nyx':for(let i=0;i<3;i++)g.fillRect(-17-i*4,11-i,2,2);break;
+ case 'pelmage':for(let i=0;i<4;i++){const q=t*.23+i*TAU/4;g.fillRect(Math.round(Math.cos(q)*20),Math.round(9+Math.sin(q)*5),2,2)}break;
+ case 'assassin':for(let i=0;i<3;i++)g.fillRect(-20-i*4,9+i,4,1);break;
+ case 'golem':for(let i=0;i<3;i++)g.fillRect(-19-i*3,8+Math.round(Math.sin(t*.5+i)*2),2,2);break;
+ case 'warden':g.fillRect(-20,9,2,2);g.fillRect(18,9,2,2);g.fillRect(-1,17,2,2);break;
+ case 'revenant':for(let i=0;i<4;i++)g.fillRect((i%2?1:-1)*(16+i*2),9+Math.round(Math.sin(t*.3+i)*3),1,4);break;
+ }g.restore();
 }
 function drawHero(p=player,ch=chars.find(x=>x.id===selectedChar),isP2=false){
  const motion=Math.min(1,Math.hypot(p.vx,p.vy)/40),phase=horrorTime*9,walk=Math.sin(phase)*motion;
@@ -3422,7 +3523,7 @@ function drawHero(p=player,ch=chars.find(x=>x.id===selectedChar),isP2=false){
  if(p.dead){ctx.rotate(Math.PI*.42);ctx.globalAlpha=.6;pixelHeroBody(ctx,ch.id,0,phase,p.aim);ctx.restore();return}
  const bob=Math.round(Math.abs(walk)*1.2+(motion<.1?Math.sin(phase*.25)*.5:0));
  ctx.translate(0,-bob);ctx.rotate((p.hurtLean||0)*hurtWave);ctx.scale(1+.05*hurtWave,1-.08*hurtWave);
- pixelHeroBody(ctx,ch.id,walk,phase,p.aim);
+ paintHeroAccent(ctx,ch.id,phase,motion,(p.recoilT||0)>0);pixelHeroBody(ctx,ch.id,walk,phase,p.aim);paintHeroSignature(ctx,ch.id,phase,walk);
  const wi=p===player?weapon:(p.weapon??0),active=(p.recoilT||0)>0&&p.recoilSlot===wi,pose=recoilPose(active?p.recoilT:0,wi,reduceMotion||!horrorFx);pixelHeroWeapon(ctx,ch.id,wi,active&&!reduceMotion&&horrorFx?p.recoilAim:(p.aim||0),p.fire||0,pose);
  if(p.inv>0&&p.dash>0){ctx.globalAlpha=.65;ctx.strokeStyle=(heroArt[ch.id]||heroArt.scar).glow;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-14,5);ctx.lineTo(-14,11);ctx.lineTo(-8,11);ctx.moveTo(14,5);ctx.lineTo(14,11);ctx.lineTo(8,11);ctx.stroke();ctx.globalAlpha=1}
  if(isP2)drawPixelText('P2',0,-39,7,'#6fe1a2','center');
@@ -3648,7 +3749,7 @@ function draw(){
  ctx.save();
  ctx.translate(Math.round(W/2-camera.x),Math.round(H/2-camera.y));
  // Cached world scenery; actors and attack warnings are still rendered above it.
- ctx.drawImage(getTerrain(m.id),0,0);const view={x:camera.x-W/2,y:camera.y-H/2,w:W,h:H};paintArenaLighting(ctx,m,view);paintArenaAtmosphere(ctx,m.id,view,horrorTime);
+ ctx.drawImage(getTerrain(m.id),0,0);const view={x:camera.x-W/2,y:camera.y-H/2,w:W,h:H};paintArenaLighting(ctx,m,view);paintArenaAtmosphere(ctx,m.id,view,horrorTime);paintArenaSignature(ctx,m.id,view,horrorTime);
  // Local light falloff is behind actors and warning rings, never over threat indicators.
  if(soloRun&&state!=='death'){const light=ctx.createRadialGradient(player.x,player.y,48,player.x,player.y,205);light.addColorStop(0,'rgba(0,0,0,0)');light.addColorStop(.65,'rgba(8,5,13,.035)');light.addColorStop(1,'rgba(8,5,13,.23)');ctx.fillStyle=light;ctx.fillRect(view.x,view.y,view.w,view.h)}
  if(nightmare)paintNightmareFloor(ctx,nightmare,nightmareThemes[m.id]);
