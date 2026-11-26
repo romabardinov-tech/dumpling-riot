@@ -647,6 +647,28 @@ html.inGame body:has(#ritualOverlay:not([hidden])){touch-action:pan-y}
 #elementHud{font-weight:700}
 #mobileWeapons .mw.elemental{border-top:2px solid var(--element-color)}
 #heroArsenal small{display:block;font-size:9px;line-height:1.15}
+/* V53 merchant rest stop */
+#merchantOverlay[hidden]{display:none!important}
+#merchantOverlay:not([hidden]){position:absolute;inset:0;z-index:86;display:grid;place-items:center;background:#0d0914ee;touch-action:pan-y}
+#merchantOverlay .merchantBox{box-sizing:border-box;width:min(560px,94%);max-height:94%;overflow:auto;overscroll-behavior:contain;touch-action:pan-y;background:#211923;border:1px solid #8a6551;padding:12px;font-family:system-ui;color:#f3e1d0}
+.merchantHeader{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+#merchantPortrait{width:64px;height:64px;position:static;transform:none;image-rendering:pixelated;flex:none}
+#merchantTitle{margin:0;font:800 19px system-ui;color:#ffdb9d}
+#merchantLine{font:500 11px system-ui;color:#ccb8c7;margin:3px 0}
+#merchantWallet,#coinHud{color:#f0c275;font-weight:700}
+#coinHud[hidden]{display:none!important}
+#merchantOffers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.merchantOffer{display:flex;justify-content:space-between;align-items:center;gap:5px;text-align:left;min-height:48px;padding:6px;background:#312631;border:1px solid #6d5561;border-left:3px solid var(--offer-color);color:#f2e1d0;touch-action:manipulation}
+.merchantOffer span{display:grid;gap:2px;min-width:0}
+.merchantOffer b{font:700 12px system-ui;color:var(--offer-color)}
+.merchantOffer small{font:500 10px/1.2 system-ui;overflow-wrap:anywhere}
+.merchantOffer strong{font:700 11px system-ui;color:#ffcf86;white-space:nowrap}
+.merchantOffer:disabled{opacity:.5}
+#merchantNotice{font:600 11px system-ui;color:#bce9c4;min-height:13px;margin-top:5px}
+#merchantLeave{font:700 13px system-ui;min-height:44px;background:#3a453a;box-shadow:none}
+html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
+@media(max-width:420px) and (orientation:portrait){#merchantOffers{grid-template-columns:1fr}}
+@media(max-height:520px) and (orientation:landscape){#merchantOverlay .merchantBox{padding:7px}.merchantHeader{margin-bottom:4px}#merchantPortrait{width:48px;height:48px}#merchantTitle{font-size:15px}.merchantOffer{min-height:38px;padding:4px}#merchantLeave{min-height:36px}}
 </style>
 </head>
 <body>
@@ -656,7 +678,7 @@ html.inGame body:has(#ritualOverlay:not([hidden])){touch-action:pan-y}
   <div class="panel hud"><div class="stat"><span id="hpLabel">HP</span> <span id="hpTxt">100</span><div class="bar"><div id="hpFill" class="fill" style="background:#d94b57;width:100%"></div></div></div><div class="stat"><span id="xpLabel">XP</span> <span id="xpTxt">0/100</span><div class="bar"><div id="xpFill" class="fill" style="background:#5fe0a5;width:0%"></div></div></div><div><span id="lvlLabel">УР.</span><br><b id="lvlTxt">1</b></div><div><span id="waveLabel">ВОЛНА</span><br><b id="waveTxt">1</b></div></div>
   <div id="p2Hud" class="panel"><div><span id="p2Label">P2</span> <span id="p2HpTxt">0</span></div><div class="bar"><div id="p2HpFill" class="fill" style="background:#5fe0a5;width:100%"></div></div></div><div id="localLevelPanel" class="panel"><div class="localLevelTitle" id="localLevelTitle">ТВОЙ УРОВЕНЬ</div><div class="localLevelRow"><b id="localLvlTxt">1</b><div class="localXp"><i id="localXpFill"></i></div><span id="localXpTxt">0/100</span></div></div>
   <div id="bossHud" class="panel"><div class="bossTitle" id="bossName">БОСС</div><div class="bossbar"><div id="bossFill" class="bossfill" style="width:100%"></div></div></div>
-  <div id="rightHud" class="panel"><div><span id="scoreLabel">ОЧКИ</span> <b id="scoreTxt">0</b></div><div class="small" id="targetTxt">ВРАГОВ: 0</div><div id="lootHud" class="small" hidden></div><div id="elementHud" class="small" hidden></div><div id="fearHud" hidden><span id="fearLabel"></span> <b id="fearValue">0%</b><div class="fearTrack"><i id="fearFill"></i></div><small id="fearStatus"></small></div></div>
+  <div id="rightHud" class="panel"><div><span id="scoreLabel">ОЧКИ</span> <b id="scoreTxt">0</b></div><div class="small" id="targetTxt">ВРАГОВ: 0</div><div id="lootHud" class="small" hidden></div><div id="elementHud" class="small" hidden></div><div id="coinHud" class="small" hidden></div><div id="fearHud" hidden><span id="fearLabel"></span> <b id="fearValue">0%</b><div class="fearTrack"><i id="fearFill"></i></div><small id="fearStatus"></small></div></div>
   <div id="weaponHud"></div>
   <div id="relicHud" class="panel relic-card" style="display:none;right:10px;bottom:52px;left:auto"><b>СЕРДЦЕ КУХНИ</b><span id="relicLabel">УНИКАЛЬНАЯ РЕЛИКВИЯ</span></div>
   <div id="abilityHud" class="panel"><div class="abilityRow"><span id="dashHudLabel">РЫВОК</span><b id="dashHudValue">—</b></div><div class="bar"><div id="dashHudFill" class="fill" style="background:#6fe1a2"></div></div><div class="abilityRow"><span id="bombHudLabel">БОМБЫ</span><b id="bombHudValue">3</b></div></div><div id="toast">READY</div><div id="npcSubtitle" role="status" aria-live="polite" hidden><b id="npcSpeaker"></b><span id="npcWords"></span></div>
@@ -685,6 +707,7 @@ html.inGame body:has(#ritualOverlay:not([hidden])){touch-action:pan-y}
 <div id="levelup" style="display:none"><div class="box"><header class="upgradeHead"><div><div class="pauseBadge">Уровень повышен</div><h2><span id="levelPrefix">Уровень</span> <span id="levelUpNum">2</span></h2><div class="tag">Выбери улучшение</div></div></header><div id="upgradeChoices" class="levelChoices"></div></div></div>
 <div id="pauseOverlay" style="display:none"><div class="box pauseBox"><div class="pauseBadge">ПЕЛЬМЕНЬ ВЗЯЛ ПАУЗУ</div><div class="title" style="font-size:44px">ПАУЗА</div><div class="hint">Игра остановлена. Выбери, что делать дальше.</div><button id="resumeBtn" class="btn">ПРОДОЛЖИТЬ</button><button id="pauseRestartBtn" class="btn">НАЧАТЬ ЗАНОВО</button><button id="pauseMenuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В ГЛАВНОЕ МЕНЮ</button></div></div>
 <div id="gameover" style="display:none"><div class="box" style="max-width:520px;text-align:center"><div class="tag">RUN ENDED</div><div class="title" style="font-size:38px">ТЕБЯ СЪЕЛИ</div><div class="hint" style="font-size:10px;margin-top:14px"><span id="finalScoreLabel">SCORE</span> <b id="finalScore">0</b> · <span id="finalLevelLabel">LEVEL</span> <b id="finalLevel">1</b> · <span id="finalWaveLabel">WAVE</span> <b id="finalWave">1</b></div><div id="finalRecord" class="hint"></div><div id="finalMeta" class="hint"></div><button id="retryBtn" class="btn">ЕЩЁ РАЗ</button><button id="menuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В МЕНЮ</button></div></div>
+<div id="merchantOverlay" hidden><div class="box merchantBox" role="dialog" aria-labelledby="merchantTitle"><div class="merchantHeader"><canvas id="merchantPortrait" width="64" height="64" aria-hidden="true"></canvas><div><h2 id="merchantTitle"></h2><p id="merchantLine"></p><div id="merchantWallet"></div></div></div><div id="merchantOffers"></div><div id="merchantNotice" role="status"></div><button type="button" class="btn" id="merchantLeave"></button></div></div>
 <div id="ritualOverlay" hidden><div class="box ritualBox"><h2 id="ritualTitle"></h2><p id="ritualHint"></p><div id="ritualChoices"></div><button type="button" class="btn" id="extractBtn" hidden></button></div></div>
 <div id="fatalError" style="display:none;position:fixed;inset:0;z-index:999;background:#08060b;color:#f6efd9;place-items:center;padding:24px;font:12px ui-monospace,monospace"><div style="max-width:720px;width:100%;border:2px solid #a82f38;background:#140c12;padding:18px;box-shadow:6px 6px 0 #000"><h2 style="margin:0 0 10px;color:#ff6874">ОШИБКА ИГРЫ</h2><p style="margin:0 0 10px">Браузер остановил игру. Перезапусти страницу.</p><code style="display:block;white-space:pre-wrap;color:#ffd76b"></code><button onclick="location.reload()" style="margin-top:16px;padding:12px 16px;background:#d8414d;color:#fff;border:0;font:900 12px ui-monospace">ПЕРЕЗАПУСТИТЬ</button></div></div>
 </div>
@@ -841,6 +864,56 @@ const runArtifacts=[
  {id:'soul',rarity:'legendary',en:'Soul lantern',ru:'Фонарь душ',descEn:'Recover 2 HP after each kill',descRu:'Восстанавливает 2 HP за убийство'},
  {id:'void',rarity:'legendary',en:'Void compass',ru:'Компас пустоты',descEn:'XP attraction radius ×2',descRu:'Радиус притяжения опыта ×2'}
 ];
+// V53: temporary run currency and optional rest-stop merchant.
+const merchantPrices={rare:30,epic:45,legendary:65};
+const merchantServices=[
+ {id:'heal',en:'Bandages',ru:'Перевязка',descEn:'Restore 35% of maximum HP',descRu:'Восстановить 35% максимального HP',price:12},
+ {id:'bomb',en:'Powder bag',ru:'Мешок пороха',descEn:'+2 bombs (maximum 9)',descRu:'+2 бомбы (максимум 9)',price:14},
+ {id:'cleanse',en:'Silver incense',ru:'Серебряные благовония',descEn:'Reduce fear by 45 points',descRu:'Снизить страх на 45 пунктов',price:10}
+];
+const merchantPacts=[
+ {id:'blood',en:'Blood signature',ru:'Кровавая подпись',descEn:'Lose 20% maximum HP; gain 30% damage',descRu:'Потеря 20% максимального HP; +30% урона'},
+ {id:'glass',en:'Glass oath',ru:'Стеклянная клятва',descEn:'Lose 15% maximum HP; gain 25% attack rate',descRu:'Потеря 15% максимального HP; +25% скорости атаки'}
+];
+const merchantStories=[
+ {en:'A customer? After midnight?',ru:'Покупатель? После полуночи?'},
+ {en:'Coins remember the hands that held them.',ru:'Монеты помнят руки, которые их держали.'},
+ {en:'Everything has a price. Even silence.',ru:'У всего есть цена. Даже у тишины.'},
+ {en:'No refunds from the other side.',ru:'С того света возврата нет.'}
+];
+function merchantWave(w){return Number.isInteger(w)&&w>=3&&w%5===3}
+function coinReward(w){return 8+Math.min(w,15)+(w%5===0?12:0)}
+function addCoins(run,n){if(!run||run.closed||!Number.isFinite(n)||n<0||!Number.isFinite(run.coins)||!Number.isFinite(run.coinsEarned))return 0;const old=run.coins;run.coins=Math.min(9999,run.coins+Math.floor(n));run.coinsEarned+=run.coins-old;return run.coins-old}
+function createMerchant(run,p,w,unclaimed=[],random=Math.random){
+ if(!run||run.closed||run.cleared!==w||!merchantWave(w)||run.lastShop===w)return null;
+ const owned=[...p.artifacts,...unclaimed],available=runArtifacts.filter(a=>!owned.includes(a.id)),offers=[];
+ for(let i=0;i<2&&available.length;i++){const cheap=i===0&&w===3?available.filter(a=>a.rarity==='rare'):[];const chosen=cheap.length?cheap[Math.min(cheap.length-1,Math.floor(random()*cheap.length))]:chooseArtifact(owned,random);if(!chosen)break;owned.push(chosen.id);available.splice(available.findIndex(a=>a.id===chosen.id),1);offers.push({id:'artifact:'+chosen.id,kind:'artifact',artifact:chosen.id,price:merchantPrices[chosen.rarity],sold:false})}
+ for(const s of merchantServices)offers.push({id:s.id,kind:'service',price:s.price,sold:false});
+ if(!run.pact){const q=merchantPacts[Math.min(merchantPacts.length-1,Math.floor(random()*merchantPacts.length))];offers.push({id:'pact:'+q.id,kind:'pact',pact:q.id,price:0,sold:false})}
+ run.lastShop=w;return {wave:w,closed:false,offers,line:merchantStories[Math.min(merchantStories.length-1,Math.floor(random()*merchantStories.length))]};
+}
+function pactCost(p,id){return Math.ceil(p.maxhp*(id==='blood'?.2:.15))}
+function merchantReason(run,p,n,shop,offer){
+ if(!run||run.closed||!p||!shop||shop.closed||!offer||!shop.offers.includes(offer)||offer.sold||p.dead||shop.wave!==run.cleared)return 'unavailable';
+ if(run.coins<offer.price)return 'coins';
+ if(offer.kind==='artifact')return p.artifacts.includes(offer.artifact)?'owned':'';
+ if(offer.id==='heal')return p.hp>=p.maxhp?'full':'';
+ if(offer.id==='bomb')return p.bomb>=9?'full':'';
+ if(offer.id==='cleanse')return !n||n.fear<1?'full':'';
+ if(offer.kind==='pact')return run.pact||p.maxhp-pactCost(p,offer.pact)<35?'unavailable':'';
+ return 'unavailable';
+}
+function buyMerchant(run,p,n,shop,id){
+ const offer=shop?.offers.find(q=>q.id===id);if(merchantReason(run,p,n,shop,offer))return false;
+ if(offer.kind==='artifact'){if(!applyArtifact(p,offer.artifact))return false}
+ else if(offer.id==='heal')p.hp=Math.min(p.maxhp,p.hp+Math.ceil(p.maxhp*.35));
+ else if(offer.id==='bomb')p.bomb=Math.min(9,p.bomb+2);
+ else if(offer.id==='cleanse')n.fear=Math.max(0,n.fear-45);
+ else if(offer.kind==='pact'){p.maxhp-=pactCost(p,offer.pact);p.hp=Math.min(p.hp,p.maxhp);if(offer.pact==='blood')p.boost.dmg*=1.3;else p.boost.rate*=1.25;run.pact=offer.pact}
+ else return false;
+ run.coins-=offer.price;run.coinsSpent+=offer.price;run.purchases++;offer.sold=true;return true;
+}
+let merchant=null;
 const evolutionPaths=[
  {en:'Ravenous',ru:'Пожирающее',descEn:'Damage +25%; close-range shockwave on each attack',descRu:'Урон +25%; ударная волна при атаке',damage:1.25,rate:1},
  {en:'Phantom',ru:'Призрачное',descEn:'Attack rate +25%; extra piercing projectile',descRu:'Скорость атаки +25%; дополнительный пробивающий снаряд',damage:1,rate:.8},
@@ -1616,6 +1689,46 @@ function renderAltar(){
  fill('achievementList',metaAchievements,a=>{const b=document.createElement('div');b.className='achievementItem'+(meta.achievements.includes(a.id)?' unlocked':'');const h=document.createElement('b'),p=document.createElement('small');h.textContent=(meta.achievements.includes(a.id)?'✓ ':'◇ ')+metaLabel(a);p.textContent=metaDesc(a);b.append(h,p);return b});
 }
 function closeSoloRun(escaped=false){if(finishMetaRun(meta,soloRun,escaped))saveMeta()}
+function paintMerchantPortrait(){
+ const cv=document.getElementById('merchantPortrait'),g=cv.getContext('2d');g.clearRect(0,0,64,64);g.imageSmoothingEnabled=false;
+ const R=(col,x,y,w,h)=>{g.fillStyle=col;g.fillRect(x,y,w,h)};
+ R('#17111c',0,0,64,64);R('#302335',3,3,58,58);R('#180f1c',5,48,54,13);
+ R('#0e0b13',20,10,24,42);R('#4e374b',24,7,16,4);R('#65475c',19,11,26,7);R('#4d334b',15,18,34,11);R('#271a29',20,22,24,19);
+ R('#171018',24,25,16,11);R('#e6c48a',25,28,5,2);R('#e6c48a',34,28,5,2);
+ R('#3b2939',13,35,38,21);R('#735347',18,38,7,17);R('#735347',39,38,7,17);R('#b48a5a',29,39,6,6);R('#e9bb70',30,40,4,4);
+ R('#6b4d40',4,45,13,12);R('#b29363',5,44,11,3);R('#e9bb70',9,48,3,3);
+ R('#342237',48,43,10,14);R('#f1c878',50,46,6,6);R('#fff0b6',52,47,2,3);
+}
+function merchantOfferCopy(o){
+ if(o.kind==='artifact'){const a=artifactById(o.artifact);return {title:metaLabel(a),description:metaLabel(lootRarities[a.rarity])+' · '+metaDesc(a),color:lootRarities[a.rarity].color}}
+ if(o.kind==='pact'){const q=merchantPacts.find(q=>q.id===o.pact);return {title:metaLabel(q),description:metaDesc(q),color:'#eb8597'}}
+ const q=merchantServices.find(q=>q.id===o.id);return {title:metaLabel(q),description:metaDesc(q),color:'#c4ddbe'}
+}
+function renderMerchant(){
+ if(!merchant||!soloRun)return;const box=document.getElementById('merchantOffers');box.replaceChildren();
+ document.getElementById('merchantTitle').textContent=L('The Lost Merchant','Потерянный торговец');
+ document.getElementById('merchantLine').textContent=metaLabel(merchant.line);
+ document.getElementById('merchantWallet').textContent='◈ '+soloRun.coins+' · HP '+Math.ceil(player.hp)+'/'+player.maxhp+' · '+L('Wave','Волна')+' '+wave;
+ document.getElementById('merchantLeave').textContent=L('Leave · next wave','Уйти · следующая волна');
+ for(const offer of merchant.offers){
+  const q=merchantOfferCopy(offer),b=document.createElement('button');b.type='button';b.className='merchantOffer';b.style.setProperty('--offer-color',q.color);
+  const text=document.createElement('span'),h=document.createElement('b'),d=document.createElement('small'),price=document.createElement('strong');h.textContent=q.title;d.textContent=q.description;text.append(h,d);
+  const reason=merchantReason(soloRun,player,nightmare,merchant,offer);
+  price.textContent=offer.sold?L('SOLD','КУПЛЕНО'):offer.kind==='pact'?'-'+pactCost(player,offer.pact)+' HP':'◈ '+offer.price;
+  b.disabled=!!reason;b.append(text,price);
+  if(reason&&!offer.sold){const note=document.createElement('small');note.textContent=reason==='coins'?L('Not enough coins','Мало монет'):reason==='full'?L('Not needed','Не требуется'):reason==='owned'?L('Already owned','Уже есть'):L('Unavailable','Недоступно');text.append(note)}
+  b.onclick=()=>{if(state!=='merchant'||!buyMerchant(soloRun,player,nightmare,merchant,offer.id))return;initAudio();sfx('pickup');document.getElementById('merchantNotice').textContent=L('Acquired','Получено')+' · '+q.title;renderMerchant()};box.append(b)
+ }
+}
+function openMerchant(){
+ if(!soloRun||state!=='game'||waveState!=='clear')return false;
+ merchant=createMerchant(soloRun,player,wave,drops.filter(d=>d.type==='artifact'&&d.life>0).map(d=>d.artifact));if(!merchant)return false;
+ state='merchant';clearLocalInput();setMobileControls(false);document.getElementById('merchantNotice').textContent='';paintMerchantPortrait();renderMerchant();document.getElementById('merchantOverlay').hidden=false;return true;
+}
+function leaveMerchant(){
+ if(state!=='merchant'||!merchant||merchant.closed)return false;merchant.closed=true;merchant=null;document.getElementById('merchantOverlay').hidden=true;state='game';setMobileControls(true);wave++;beginWave();return true;
+}
+document.getElementById('merchantLeave').addEventListener('click',leaveMerchant);
 function openRitual(){
  if(!soloRun||soloRun.closed||state!=='game'||wave%5!==0||soloRun.cleared!==wave)return;state='ritual';clearLocalInput();setMobileControls(false);
  const el=document.getElementById('ritualOverlay');document.getElementById('ritualTitle').textContent=L('The altar demands a choice','Алтарь требует выбора');
@@ -1872,8 +1985,8 @@ function wireStateNet(c){
 function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus(L("Create or join a room first.","Сначала создай комнату и дождись игрока."));return false}sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false){
  if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
- secretEncounter=null;nightmare=null;
- closeSoloRun();soloRun=!coop&&!onlineMode?{contract:selectedContract,cleared:0,earned:0,kills:0,closed:false}:null;document.getElementById('ritualOverlay').hidden=true;
+ secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;
+ closeSoloRun();soloRun=!coop&&!onlineMode?{contract:selectedContract,cleared:0,earned:0,kills:0,closed:false,coins:0,coinsEarned:0,coinsSpent:0,purchases:0,lastShop:0,pact:null}:null;document.getElementById('ritualOverlay').hidden=true;
  startHorrorMusic();clearNpc();try{window.speechSynthesis?.getVoices()}catch(_){}clearLocalInput();levelupBusy=false;upgradeQueue.length=0;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
  resetPlayer(player,ch,world.w/2-18,world.h/2);resetPlayer(player2,ch2,world.w/2+18,world.h/2);
@@ -1881,7 +1994,7 @@ function startGame(fromNetwork=false){
  player.weapon=0;player2.weapon=coop?1:0;
  weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;arenaEventTimer=8;arenaEventIndex=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast((coop?T('twoPlayers')+' · ':'')+T('wave')+' 1');if(location.protocol!=='file:')requestMobileFullscreen();
 }
-function goMenu(){secretEncounter=null;nightmare=null;closeSoloRun();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
+function goMenu(){secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
 function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlayers?7:4)+Math.floor(round/4))}
 function beginWave(){
  secretEncounter=soloRun?createSecret(selectedMap,wave,player,arena,arenaFeatures[selectedMap].sites):null;
@@ -2232,7 +2345,7 @@ function finishEnemyDeath(e){
  e.hp=0;e.dead=true;
  if(!onlineMode&&state==='game'){if(e.type==='boss')discoverJournal('boss:'+e.bossId);else{discoverJournal('enemy:'+e.type);if(e.elite)discoverJournal('elite:'+e.elite)}}
  if(state==='game'&&e.secretGuard&&secretEncounter?.stage==='ambush'&&secretEncounter.w===wave){secretEncounter.remaining=Math.max(0,secretEncounter.remaining-1);if(secretEncounter.remaining===0)completeSecret();}
- if(soloRun&&!soloRun.closed){soloRun.kills++;if(!player.dead&&player.artifacts?.includes('soul'))player.hp=Math.min(player.maxhp,player.hp+2+(hasCombo(player,'reaper')?1:0));if(e.elite){const owned=player.artifacts.concat(drops.filter(d=>d.type==='artifact').map(d=>d.artifact));const a=chooseArtifact(owned);if(a)drops.push({x:e.x,y:e.y,type:'artifact',artifact:a.id,life:1,pulse:0});else drops.push({x:e.x,y:e.y,type:'heal',value:35,life:24,pulse:0});toast(L('ELITE DEFEATED','ЭЛИТА ПОВЕРЖЕНА'));toastTimer=2.5;}}
+ if(soloRun&&!soloRun.closed){soloRun.kills++;if(e.type==='boss')addCoins(soloRun,12);else if(e.elite)addCoins(soloRun,6);if(!player.dead&&player.artifacts?.includes('soul'))player.hp=Math.min(player.maxhp,player.hp+2+(hasCombo(player,'reaper')?1:0));if(e.elite){const owned=player.artifacts.concat(drops.filter(d=>d.type==='artifact').map(d=>d.artifact));const a=chooseArtifact(owned);if(a)drops.push({x:e.x,y:e.y,type:'artifact',artifact:a.id,life:1,pulse:0});else drops.push({x:e.x,y:e.y,type:'heal',value:35,life:24,pulse:0});toast(L('ELITE DEFEATED','ЭЛИТА ПОВЕРЖЕНА'));toastTimer=2.5;}}
  enemyDeathVoice(e.type);
  score+=e.type==='boss'?3200:e.elite?800:[100,170,220][enemyTier(e.type)];
  combo=Math.min(9,combo+.25);dropEnemyXP(e);
@@ -2600,14 +2713,14 @@ function update(dt){
  if(state==='game'){updateNightmare(dt);updateSecret()}updateEnemies(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);updateFx(dt);
  enemies=enemies.filter(e=>!e.dead);
  if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if(waveTime>=delay||enemies.length===0){waveTime=0;spawnEnemy();spawned++}}
- if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';if(nightmare?.hunter){nightmare.hunter.dead=true;hazards=hazards.filter(h=>h.source!==nightmare.hunter);nightmare.hunter=null}if(nightmare){nightmare.echo=null;nightmare.fear=fearClamp(nightmare.fear-12)}between=soloRun?4:1.6;let reward=0;if(soloRun){reward=clearWaveReward(meta,soloRun,wave,selectedMap);saveMeta()}toast(L('WAVE CLEARED · COLLECT XP','ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')+(reward?' · ◆ +'+reward:''));toastTimer=2.5}
+ if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';if(nightmare?.hunter){nightmare.hunter.dead=true;hazards=hazards.filter(h=>h.source!==nightmare.hunter);nightmare.hunter=null}if(nightmare){nightmare.echo=null;nightmare.fear=fearClamp(nightmare.fear-12)}between=soloRun?4:1.6;let reward=0;if(soloRun){reward=clearWaveReward(meta,soloRun,wave,selectedMap);if(reward)addCoins(soloRun,coinReward(wave));saveMeta()}toast(L('WAVE CLEARED · COLLECT XP','ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')+(reward?' · ◆ +'+reward:''));toastTimer=2.5}
  if(!alivePlayers().length)return;
- if(state==='game'&&waveState==='clear'){between-=dt;if(between<=0){if(soloRun&&wave%5===0)openRitual();else{wave++;beginWave()}}}
+ if(state==='game'&&waveState==='clear'){between-=dt;if(between<=0){if(soloRun&&wave%5===0)openRitual();else if(!(soloRun&&merchantWave(wave)&&openMerchant())){wave++;beginWave()}}}
  combo=Math.max(1,combo-dt*.12);
 }
-function endGame(broadcast=true,escaped=false){nightmare=null;closeSoloRun(escaped);document.getElementById('ritualOverlay').hidden=true;clearNpc();startMenuMusic();
+function endGame(broadcast=true,escaped=false){nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun(escaped);document.getElementById('ritualOverlay').hidden=true;clearNpc();startMenuMusic();
  clearLocalInput();upgradeQueue.length=0;state='gameover';
- const recordEl=document.getElementById('finalRecord');document.querySelector('#gameover .title').textContent=escaped?L('YOU ESCAPED','ТЫ ВЫЖИЛ'):T('dead');document.getElementById('finalMeta').textContent=soloRun?'◆ +'+soloRun.earned+' · '+L('Total shards','Всего осколков')+': '+meta.shards+' · '+L('Artifacts','Артефакты')+' '+(player.artifacts?.length||0)+' · '+L('Evolutions','Эволюции')+' '+(player.evolved?.filter(Boolean).length||0):'';
+ const recordEl=document.getElementById('finalRecord');document.querySelector('#gameover .title').textContent=escaped?L('YOU ESCAPED','ТЫ ВЫЖИЛ'):T('dead');document.getElementById('finalMeta').textContent=soloRun?'◆ +'+soloRun.earned+' · '+L('Total shards','Всего осколков')+': '+meta.shards+' · '+L('Artifacts','Артефакты')+' '+(player.artifacts?.length||0)+' · '+L('Evolutions','Эволюции')+' '+(player.evolved?.filter(Boolean).length||0)+' · '+L('Purchases','Покупки')+' '+soloRun.purchases:'';
  if(!coop&&!onlineMode){const old=loadRecord(),next=updateRecord(old,score,wave);writeStorage(RECORD_KEY,JSON.stringify(next));recordEl.textContent=recordText(next)+(next.score>old.score||next.wave>old.wave?(L(" · NEW BEST!"," · НОВЫЙ РЕКОРД!")):'')}else recordEl.textContent='';
  levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
  document.getElementById('levelup').style.display='none';
@@ -3035,13 +3148,13 @@ function drawRemoteArrow(){
 function render(){drawRemoteArrow();ctx.save();if(shake>0&&!reduceMotion){ctx.translate(rndi(-Math.ceil(shake*10),Math.ceil(shake*10)),rndi(-Math.ceil(shake*10),Math.ceil(shake*10)))}draw();ctx.restore();}
 
 function updateTouchHud(p,selected,ability){const dash=document.getElementById('dashBtn'),bomb=document.getElementById('bombBtn');dash.style.setProperty('--charge',String(clamp(1-p.dash/ability.cooldown,0,1)));dash.classList.toggle('cooling',p.dash>0);document.getElementById('touchDashValue').textContent=p.dash>0?p.dash.toFixed(1):'';bomb.classList.toggle('empty',p.bomb<=0);document.getElementById('touchBombValue').textContent=p.bomb;for(const b of document.querySelectorAll('#mobileWeapons .mw')){const i=Number(b.dataset.weapon);b.classList.toggle('sel',i===selected);b.setAttribute('aria-pressed',String(i===selected));b.querySelector('.mwLv').textContent=(p.evolved?.[i]?'✦':'')+(p.weaponLevels?.[i]||1);b.classList.toggle('evolved',!!p.evolved?.[i]);b.querySelector('.mwCharge').style.width=(100*clamp(p.weaponCharge?.[i]??1,0,1))+'%';b.setAttribute('aria-label',locName(heroWeaponStats(p,i))+(soloRun?' · '+metaLabel(elements[weaponElement(p.charId,i)]):''));b.style.setProperty('--element-color',soloRun?elements[weaponElement(p.charId,i)].color:'transparent');b.classList.toggle('elemental',!!soloRun)}}
-function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;const fh=document.getElementById('fearHud');fh.hidden=!nightmare;if(nightmare){const n=nightmare,pct=Math.round(n.fear),txt=n.hunter?L('HOLLOW','ПУСТОЙ'):n.inside?L('REFUGE','УКРЫТИЕ'):n.charge<=0?L('LIGHT SPENT','СВЕТ ПОГАС'):n.fear>=55?L('FIND LIGHT','НАЙДИ СВЕТ'):'';document.getElementById('fearLabel').textContent=L('FEAR','СТРАХ');document.getElementById('fearValue').textContent=pct+'%';document.getElementById('fearFill').style.width=pct+'%';document.getElementById('fearStatus').textContent=txt;fh.classList.toggle('panic',pct>=85);}const loot=document.getElementById('lootHud');loot.hidden=!soloRun;const lootText=soloRun?'◆ '+soloRun.earned+' · '+L('Loot','Артефакты')+' '+(localP.artifacts?.length||0)+'/9'+(secretEncounter?.stage==='sealed'&&waveState==='fighting'?' · '+L('Cache','Тайник'):secretEncounter?.stage==='ambush'?' · '+L('Guards','Стражи')+' '+secretEncounter.remaining:''):'';if(loot.textContent!==lootText)loot.textContent=lootText;const dashReady=localP.dash<=0,ability=dashProfiles[localP.charId]||dashProfiles.scar;document.getElementById('dashHudLabel').textContent=locName(ability);const dashValue=document.getElementById('dashHudValue');dashValue.textContent=dashReady?(L("READY","ГОТОВ")):localP.dash.toFixed(1)+'s';dashValue.classList.toggle('abilityReady',dashReady);document.getElementById('dashHudFill').style.width=(clamp(1-localP.dash/ability.cooldown,0,1)*100)+'%';document.getElementById('bombHudLabel').textContent=L("BOMBS","БОМБЫ");document.getElementById('bombHudValue').textContent=localP.bomb;const remoteP=onlineMode&&isOnlineGuest?player:player2;const deathV=document.getElementById('remoteDeathVignette');if(deathV)deathV.style.display=(state==='game'&&coop&&remoteP.dead&&alivePlayers().length>0)?'block':'none';const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&localP.hp/localP.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display=relicOwned?'block':'none';relicEl.classList.toggle('relic-pulse',relicOwned)}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(localP.hp));document.getElementById('xpTxt').textContent=`${Math.floor(localP.xp)}/${localP.next}`;document.getElementById('lvlTxt').textContent=localP.lvl;const lp=document.getElementById('localLevelPanel');if(lp)lp.style.display=onlineMode?'block':'none';const ll=document.getElementById('localLvlTxt');if(ll)ll.textContent=localP.lvl;const lx=document.getElementById('localXpTxt');if(lx)lx.textContent=`${Math.floor(localP.xp)}/${localP.next}`;const lf=document.getElementById('localXpFill');if(lf)lf.style.width=clamp(localP.xp/localP.next*100,0,100)+'%';document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+(enemies.length+Math.max(0,targetCount-spawned));document.getElementById('hpFill').style.width=clamp(localP.hp/localP.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(localP.xp/localP.next*100,0,100)+'%';
+function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;const fh=document.getElementById('fearHud');fh.hidden=!nightmare;if(nightmare){const n=nightmare,pct=Math.round(n.fear),txt=n.hunter?L('HOLLOW','ПУСТОЙ'):n.inside?L('REFUGE','УКРЫТИЕ'):n.charge<=0?L('LIGHT SPENT','СВЕТ ПОГАС'):n.fear>=55?L('FIND LIGHT','НАЙДИ СВЕТ'):'';document.getElementById('fearLabel').textContent=L('FEAR','СТРАХ');document.getElementById('fearValue').textContent=pct+'%';document.getElementById('fearFill').style.width=pct+'%';document.getElementById('fearStatus').textContent=txt;fh.classList.toggle('panic',pct>=85);}const loot=document.getElementById('lootHud');loot.hidden=!soloRun;const lootText=soloRun?'◆ '+soloRun.earned+' · '+L('Loot','Артефакты')+' '+(localP.artifacts?.length||0)+'/9'+(secretEncounter?.stage==='sealed'&&waveState==='fighting'?' · '+L('Cache','Тайник'):secretEncounter?.stage==='ambush'?' · '+L('Guards','Стражи')+' '+secretEncounter.remaining:''):'';if(loot.textContent!==lootText)loot.textContent=lootText;const coins=document.getElementById('coinHud');coins.hidden=!soloRun;if(soloRun){const value='◈ '+soloRun.coins;if(coins.textContent!==value)coins.textContent=value;}const dashReady=localP.dash<=0,ability=dashProfiles[localP.charId]||dashProfiles.scar;document.getElementById('dashHudLabel').textContent=locName(ability);const dashValue=document.getElementById('dashHudValue');dashValue.textContent=dashReady?(L("READY","ГОТОВ")):localP.dash.toFixed(1)+'s';dashValue.classList.toggle('abilityReady',dashReady);document.getElementById('dashHudFill').style.width=(clamp(1-localP.dash/ability.cooldown,0,1)*100)+'%';document.getElementById('bombHudLabel').textContent=L("BOMBS","БОМБЫ");document.getElementById('bombHudValue').textContent=localP.bomb;const remoteP=onlineMode&&isOnlineGuest?player:player2;const deathV=document.getElementById('remoteDeathVignette');if(deathV)deathV.style.display=(state==='game'&&coop&&remoteP.dead&&alivePlayers().length>0)?'block':'none';const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&localP.hp/localP.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display=relicOwned?'block':'none';relicEl.classList.toggle('relic-pulse',relicOwned)}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(localP.hp));document.getElementById('xpTxt').textContent=`${Math.floor(localP.xp)}/${localP.next}`;document.getElementById('lvlTxt').textContent=localP.lvl;const lp=document.getElementById('localLevelPanel');if(lp)lp.style.display=onlineMode?'block':'none';const ll=document.getElementById('localLvlTxt');if(ll)ll.textContent=localP.lvl;const lx=document.getElementById('localXpTxt');if(lx)lx.textContent=`${Math.floor(localP.xp)}/${localP.next}`;const lf=document.getElementById('localXpFill');if(lf)lf.style.width=clamp(localP.xp/localP.next*100,0,100)+'%';document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+(enemies.length+Math.max(0,targetCount-spawned));document.getElementById('hpFill').style.width=clamp(localP.hp/localP.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(localP.xp/localP.next*100,0,100)+'%';
  if(boss){document.getElementById('bossHud').style.display='block';document.getElementById('bossName').textContent=locName(boss)+' · '+T('boss');document.getElementById('bossFill').style.width=clamp(boss.hp/boss.maxhp*100,0,100)+'%'}else document.getElementById('bossHud').style.display='none';
  const selectedWeapon=onlineMode&&isOnlineGuest?player2.weapon:weapon;const eh=document.getElementById('elementHud');eh.hidden=!soloRun;if(soloRun){const el=elements[weaponElement(localP.charId,selectedWeapon)],count=activeCombos(localP).length;const label=metaLabel(el)+(count?' · '+L('Combos','Связки')+' '+count:'');if(eh.textContent!==label)eh.textContent=label;eh.style.color=el.color}updateTouchHud(localP,selectedWeapon,ability);const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.dataset.weapon=String(i);d.innerHTML=`<b>${w.key}</b> <span class="wn">${chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(w)}</span><span class="wlv">УР. ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG</span><span class="weaponCharge"><i></i></span><i class="cd"></i>`;d.onclick=()=>{if(onlineMode&&isOnlineGuest)player2.weapon=i;else weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===selectedWeapon);d.classList.toggle('evolved',!!localP.evolved?.[i]);d.querySelector('.wn').textContent=locName(heroWeaponStats(localP,i));d.querySelector('.wlv').textContent=`${L("LV","УР.")} ${localP.weaponLevels[i]} · ${Math.round(heroWeaponStats(localP,i).dmg*localP.boost.dmg*(soloRun&&hasCombo(localP,'predator')?1.15:1))} DMG`;const chargeEl=d.querySelector('.weaponCharge i');const charge=clamp(localP.weaponCharge?.[i]??1,0,1);chargeEl.style.width=(charge*100)+'%';d.classList.toggle('charging',charge<.999);d.querySelector('.cd').textContent=i===selectedWeapon&&localP.fire>0?localP.fire.toFixed(1):''});syncInventoryArt(localP)}
 
 addEventListener('keydown',e=>{
  if(e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement||e.target?.isContentEditable)return;
- if(e.code==='Escape'){if(e.repeat)return;if(state==='game'||state==='pause'){e.preventDefault();togglePause()}else if(state==='gameover'){e.preventDefault();goMenu()}return}
+ if(e.code==='Escape'){if(e.repeat)return;if(state==='game'||state==='pause'){e.preventDefault();togglePause()}else if(state==='gameover'){e.preventDefault();goMenu()}else if(state==='merchant'){e.preventDefault();leaveMerchant()}return}
  if(state!=='game')return;
  keys.add(e.code);
  if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();
