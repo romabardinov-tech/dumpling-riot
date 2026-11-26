@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.61.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.62.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -78,3 +78,6 @@ Two proximity-activated tactical stations per arena in solo modes, reset each wa
 
 ## V61 — Brutal Combat
 Presentation-only changes: 140 ms weapon recoil with directional recovery, brief muzzle glint, bounded impact marks, dash afterimages and cosmetic enemy death sprites. Existing collisions, damage, rewards and cooldowns unchanged. Effects respect reduced-motion preference and horror FX toggle; screen shake capped at 3 world pixels. Particle/text budgets (340/48), impact/ghost/death budgets (32/12/18) and viewport culling. Syntax and 3232 isolated assertions passed for caps, recoil, expiry, impact hierarchy and reduced-motion behavior. No device frame-time measurements or human game-feel evaluation yet; browser/device runtime and native exports remain unverified.
+
+## V62 — Sound of Nightmare
+Six original procedural arena scores with distinct tempos, root progressions, motifs and rhythm patterns; three escalating boss music layers and quiet intermission arrangement. Stereo-panned, distance-attenuated nearest-threat cues with mono fallback, throttled hazard warning tones and critical HP/high-fear heartbeat. New atmosphere cues respect horror FX setting; music volume zero suppresses music scheduling. No external music assets or audio downloads. Syntax and 3502 isolated assertions passed for distinct scores, bounded note events, boss layers, intermission and spatial mixing. Actual Web Audio playback, stereo separation, iOS interruption recovery, sound quality and native device performance remain unverified.
