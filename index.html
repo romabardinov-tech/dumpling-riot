@@ -585,6 +585,8 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 #menu .arenaEnemyItem{min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;background:#17131e;border:1px solid #493646;padding:2px;font:600 10px/1.15 system-ui;color:#e9d7cf;overflow-wrap:anywhere}
 #menu .arenaEnemyItem canvas{position:static;transform:none;width:100%;height:36px;object-fit:contain;filter:none;image-rendering:pixelated;background:#17131e}
 @media(max-height:520px) and (orientation:landscape){#menu .arenaEnemyItem canvas{height:25px}#menu .arenaEnemyItem{font-size:9px}}
+#menu .footerTools{flex-wrap:wrap}
+#menu #privacyBtn{min-height:32px}
 </style>
 </head>
 <body>
@@ -615,7 +617,7 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 <section class="menuSection" data-menu-panel="hero" hidden><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div></section>
 <section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Выбери арену</h3></div><div class="mapStage"><canvas id="mapStageCanvas" width="480" height="270" aria-hidden="true"></canvas><div class="mapStageCaption"><h2 id="mapStageName"></h2><div id="mapDetail" class="selectionDetail"></div><div id="arenaEnemyPreview" class="arenaEnemyPreview"></div></div></div><div id="mapChoices" class="choices"></div></section>
 <section class="menuSection" data-menu-panel="mode" hidden><div class="sectionHead"><h3 id="modeTitle">Режим игры</h3></div><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info" data-initial="true">Create or join a room.</div></div></section>
-</div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary" aria-hidden="true"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button></div><div id="soundPanel" hidden><button type="button" id="npcVoiceToggle" class="textBtn" aria-pressed="true">Voice: On</button><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div></div></footer>
+</div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary" aria-hidden="true"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button><button id="privacyBtn" type="button" class="textBtn">Privacy</button></div><div id="soundPanel" hidden><button type="button" id="npcVoiceToggle" class="textBtn" aria-pressed="true">Voice: On</button><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div></div></footer>
 </div></div>
 <div id="levelup" style="display:none"><div class="box"><header class="upgradeHead"><div><div class="pauseBadge">Уровень повышен</div><h2><span id="levelPrefix">Уровень</span> <span id="levelUpNum">2</span></h2><div class="tag">Выбери улучшение</div></div></header><div id="upgradeChoices" class="levelChoices"></div></div></div>
 <div id="pauseOverlay" style="display:none"><div class="box pauseBox"><div class="pauseBadge">ПЕЛЬМЕНЬ ВЗЯЛ ПАУЗУ</div><div class="title" style="font-size:44px">ПАУЗА</div><div class="hint">Игра остановлена. Выбери, что делать дальше.</div><button id="resumeBtn" class="btn">ПРОДОЛЖИТЬ</button><button id="pauseRestartBtn" class="btn">НАЧАТЬ ЗАНОВО</button><button id="pauseMenuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В ГЛАВНОЕ МЕНЮ</button></div></div>
@@ -634,7 +636,7 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
   <button id="pauseBtn" class="mobileBtn pauseBtn" data-action="pause" aria-label="Пауза"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="5" y="4" width="9" height="24" fill="#131018"/><rect x="18" y="4" width="9" height="24" fill="#131018"/><rect x="7" y="6" width="5" height="20" fill="#a9bbc3"/><rect x="20" y="6" width="5" height="20" fill="#a9bbc3"/><rect x="7" y="6" width="2" height="16" fill="#f4e5c5"/><rect x="20" y="6" width="2" height="16" fill="#f4e5c5"/></svg></button>
   <div id="mobileWeapons"><button class="mw" type="button" data-weapon="0" aria-label="Оружие 1" aria-pressed="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M5 20l4-4 8-11 2-1 1 2-8 13-4 2zM5 14l5 4"/></svg><span class="mwIndex">1</span><span class="mwLv">1</span><i class="mwCharge"></i></button><button class="mw" type="button" data-weapon="1" aria-label="Оружие 2" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M6 20l8-10M11 3l-3 6 3 3 4-3 2-6M14 4l-3 6"/></svg><span class="mwIndex">2</span><span class="mwLv">1</span><i class="mwCharge"></i></button><button class="mw" type="button" data-weapon="2" aria-label="Оружие 3" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M4 17l5-5 6-8 5 4-6 9-6 4zM8 12l4 4"/></svg><span class="mwIndex">3</span><span class="mwLv">1</span><i class="mwCharge"></i></button><button class="mw" type="button" data-weapon="3" aria-label="Оружие 4" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" stroke-linecap="square"><path d="M4 9h10l3-3 3 2-3 4H4zM8 14l4 4M5 16l3 4M14 13l4 3"/></svg><span class="mwIndex">4</span><span class="mwLv">1</span><i class="mwCharge"></i></button></div>
 </div>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script><script>
+<script>
 'use strict';
 const c=document.getElementById('game'),ctx=c.getContext('2d',{alpha:false});ctx.imageSmoothingEnabled=false;
 const W=480,H=270, TAU=Math.PI*2;
@@ -772,6 +774,7 @@ function musicVoice(event,when,stepTime){
 function applyMusicVolume(){if(!musicGain||!audioCtx)return;const now=audioCtx.currentTime;musicGain.gain.cancelScheduledValues(now);musicGain.gain.setTargetAtTime(Math.max(.0001,musicVolume/100*.82),now,.07)}
 function scheduleScore(){
  if(!audioCtx||musicMode==='off')return;
+ if(document.hidden){musicTimer=setTimeout(scheduleScore,500);return}
  if(audioCtx.state!=='running'){musicNext=audioCtx.currentTime+.08;musicTimer=setTimeout(scheduleScore,150);return}
  const now=audioCtx.currentTime;
  if(musicNext<now-.1)musicNext=now+.06;
@@ -1157,6 +1160,7 @@ function locName(o){const en=o.enName||o.name;if(lang==='ru')return o.name||en;i
 function locDesc(o){return L(o.enDesc||o.desc||'',o.desc||o.enDesc||'')}
 function setLanguage(next){lang=normalizeLanguage(next);writeStorage('dumpling-riot-lang',lang);document.documentElement.lang=lang;document.getElementById('languageSelect').value=lang;makeMenu();}
 function applyLanguageStatic(){
+ document.getElementById("privacyBtn").textContent=L("Privacy","Приватность");
  const q=(id,key)=>{const el=document.getElementById(id);if(el)el.textContent=T(key)};
  q('languageLabel','language');q('finalScoreLabel','score');q('finalWaveLabel','wave');document.getElementById('finalLevelLabel').textContent=L('Level','Уровень');document.getElementById('mobileRotateHint').textContent=L('Mobile: left stick moves, right stick aims. Landscape is recommended.');document.querySelector('#fatalError h2').textContent=L('GAME ERROR');document.querySelector('#fatalError p').textContent=L('Reload the game.');document.querySelector('#fatalError button').textContent=L('RELOAD');document.getElementById('menuBack').setAttribute('aria-label',L('Back','Назад'));document.getElementById('movePad').setAttribute('aria-label',L('MOVE','Движение'));document.getElementById('aimPad').setAttribute('aria-label',L('AIM','Прицел'));q('modeTitle','mode');document.getElementById('startBtn').textContent=L("START RUN","В БОЙ");q('hpLabel','hp');q('xpLabel','xp');q('lvlLabel','lvl');q('waveLabel','wave');q('scoreLabel','score');q('relicLabel','relic');const resumeBtn=document.getElementById('resumeBtn');if(resumeBtn)resumeBtn.textContent=L("RESUME","ПРОДОЛЖИТЬ");const pauseMenu=document.getElementById('pauseMenuBtn');if(pauseMenu)pauseMenu.textContent=L("MAIN MENU","В ГЛАВНОЕ МЕНЮ");const pauseRestart=document.getElementById('pauseRestartBtn');if(pauseRestart)pauseRestart.textContent=L("RESTART","НАЧАТЬ ЗАНОВО");const fireL=document.getElementById('fireBtn');if(fireL)fireL.textContent=L("FIRE","ОГОНЬ");const dashL=document.getElementById('dashBtn');if(dashL){dashL.querySelector('.actionLabel').textContent=L("DASH","РЫВОК");dashL.setAttribute('aria-label',L("Dash","Рывок"))}const menuMobile=document.getElementById('menuMobileBtn');if(menuMobile)menuMobile.textContent=L("MENU","МЕНЮ");const bombL=document.getElementById('bombBtn');if(bombL){bombL.querySelector('.actionLabel').textContent=L("BOMB","БОМБА");bombL.setAttribute('aria-label',L("Bomb","Бомба"))}
  const hs=document.querySelectorAll('#menu .hint');if(hs[0])hs[0].textContent=T('controls');if(hs[1])hs[1].textContent=T('guide');
@@ -1353,6 +1357,7 @@ function updateSoundPanel(){document.getElementById('soundToggle').textContent=L
 document.getElementById('soundToggle').addEventListener('click',()=>{const p=document.getElementById('soundPanel');p.hidden=!p.hidden;document.getElementById('soundToggle').setAttribute('aria-expanded',String(!p.hidden))});
 document.getElementById('npcVoiceToggle').addEventListener('click',()=>{npcVoiceEnabled=!npcVoiceEnabled;writeStorage('dumpling-riot-npc-voice',npcVoiceEnabled?'1':'0');if(!npcVoiceEnabled)try{window.speechSynthesis?.cancel()}catch(_){}updateSoundPanel()});
 document.getElementById('musicVolume').addEventListener('input',e=>{musicVolume=Math.max(0,Math.min(100,Number(e.target.value)||0));writeStorage('dumpling-riot-music-volume',String(musicVolume));applyMusicVolume();updateSoundPanel()});
+document.getElementById('privacyBtn').addEventListener('click',()=>{location.href='./privacy.html'});
 document.getElementById('helpToggle').addEventListener('click',()=>{const h=document.getElementById('menuHelp');h.hidden=!h.hidden;document.getElementById('helpToggle').setAttribute('aria-expanded',String(!h.hidden))});
 function makeMenu(){
  const cc=document.getElementById('charChoices');cc.innerHTML='';document.getElementById('recordLine').textContent=recordText(loadRecord());
@@ -1382,11 +1387,27 @@ function setHud(on){
  setMobileControls(on&&state==='game');
  document.documentElement.classList.toggle('inGame',!!on)
 }
-function requestMobileFullscreen(){try{if(!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}if(screen.orientation&&screen.orientation.lock){const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
+function requestMobileFullscreen(){try{if(window.Capacitor?.isNativePlatform?.())return;if(!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}if(screen.orientation&&screen.orientation.lock){const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
 function resetPlayer(p,ch,x,y){p.weaponLevels=[1,1,1,1];p.charId=ch.id;p.x=x;p.y=y;p.serverX=x;p.serverY=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.canRevive=false;p.hurtT=0;p.hurtLean=0;p.weaponCharge=[1,1,1,1];p.shivCharge=1;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[]}
 function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e){e.dataset.initial='false';e.textContent=t}}
 const makeRoomCode=()=>String(rndi(10000,99999));
-function setupPeer(hostMode=false){
+// V47: solo and local play never request a network library.
+const nativeMobile=()=>window.Capacitor?.isNativePlatform?.()===true;
+const peerScriptUrl='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+let peerLibraryPromise=null;
+function ensurePeerLibrary(){
+ if(typeof Peer!=='undefined')return Promise.resolve();
+ if(peerLibraryPromise)return peerLibraryPromise;
+ peerLibraryPromise=new Promise((resolve,reject)=>{
+  const script=document.createElement('script');script.src=peerScriptUrl;let timer;
+  const fail=()=>{clearTimeout(timer);script.remove();reject(new Error(L('Online connection unavailable.','Онлайн-соединение недоступно.')))};
+  script.onload=()=>{clearTimeout(timer);if(typeof Peer==='undefined')fail();else resolve()};
+  script.onerror=fail;timer=setTimeout(fail,10000);document.head.append(script);
+ }).catch(e=>{peerLibraryPromise=null;throw e});
+ return peerLibraryPromise;
+}
+async function setupPeer(hostMode=false){
+ await ensurePeerLibrary();
  if(typeof Peer==='undefined'){
    setOnlineStatus(L("Connection error","Онлайн: библиотека PeerJS не загрузилась."));
    return Promise.reject(new Error('PeerJS не загружен'));
@@ -2636,7 +2657,10 @@ addEventListener('keydown',e=>{
 });
 addEventListener('keyup',e=>keys.delete(e.code));
 addEventListener('blur',()=>{clearLocalInput();if(state==='game'&&!onlineMode)togglePause()});
-document.addEventListener('visibilitychange',()=>{if(document.hidden){clearLocalInput();if(state==='game'&&!onlineMode)togglePause()}});
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden){clearLocalInput();if(state==='game'&&!onlineMode)togglePause();try{window.speechSynthesis?.cancel();audioCtx?.suspend()?.catch(()=>{})}catch(_){}}
+ else{last=0;acc=0;if(audioCtx&&state!=='pause')initAudio()}
+});
 function screenToGame(clientX,clientY){const r=c.getBoundingClientRect();const scale=Math.min(r.width/W,r.height/H);const dw=W*scale,dh=H*scale;const ox=r.left+(r.width-dw)/2,oy=r.top+(r.height-dh)/2;return {x:clamp((clientX-ox)/scale,0,W),y:clamp((clientY-oy)/scale,0,H)}}
 c.addEventListener('mousemove',e=>{const p=screenToGame(e.clientX,e.clientY);mouse.x=p.x;mouse.y=p.y});c.addEventListener('mousedown',e=>{initAudio();if(e.button===0&&state==='game'&&!(onlineMode&&isOnlineGuest)){const p=screenToGame(e.clientX,e.clientY);mouse.x=p.x;mouse.y=p.y;mouse.down=true;attack()}});addEventListener('mouseup',e=>{if(e.button===0)mouse.down=false});
 document.getElementById('languageSelect').addEventListener('change',e=>setLanguage(e.target.value));
@@ -2687,9 +2711,9 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
 
 window.addEventListener('error',e=>{const msg=(e&&e.error&&e.error.message)||e.message||L('Unknown error','Неизвестная ошибка');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
 window.addEventListener('unhandledrejection',e=>{const msg=(e&&e.reason&&e.reason.message)||String(e.reason||'Promise error');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
-function frame(now){const raw=Math.min(.1,(now-last)/1000||0);last=now;acc+=raw;const step=1/60;while(acc>=step){update(step);acc-=step}shake=Math.max(0,shake-raw);if(state==='game')updateHud();if(state!=='menu')render();requestAnimationFrame(frame)}
+function frame(now){if(document.hidden){last=now;acc=0;requestAnimationFrame(frame);return}const raw=last?Math.min(.1,(now-last)/1000||0):0;last=now;acc+=raw;const step=1/60;while(acc>=step){update(step);acc-=step}shake=Math.max(0,shake-raw);if(state==='game')updateHud();if(state!=='menu')render();requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
-if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('./sw.js').then(reg=>reg.update()).catch(()=>{})}
+if(!nativeMobile()&&'serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('./sw.js').then(reg=>reg.update()).catch(()=>{})}
 </script>
 </body>
 </html>
