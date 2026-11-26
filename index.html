@@ -587,6 +587,32 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
 @media(max-height:520px) and (orientation:landscape){#menu .arenaEnemyItem canvas{height:25px}#menu .arenaEnemyItem{font-size:9px}}
 #menu .footerTools{flex-wrap:wrap}
 #menu #privacyBtn{min-height:32px}
+/* V48: ritual and meta UI */
+#menu .altarGem{font-size:24px;color:#c390f1;width:30px;text-align:center}
+#menu #altarHome{border-bottom-color:#ad7ed1}
+#menu .altarHeader{display:flex;align-items:center;justify-content:space-between;gap:6px}
+#menu .altarHeader h3{margin:0;color:#ffdbac}
+#menu #shardBalance{color:#d7a5ff;font:700 14px system-ui}
+#menu [data-menu-panel=altar] h4{margin:12px 0 5px;color:#efcba4;font:700 12px system-ui}
+#menu .altarGrid,#menu .achievementGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+#menu .altarOption,#menu .achievementItem{display:flex;flex-direction:column;gap:4px;text-align:left;min-height:58px;padding:7px;background:#251e2c;border:1px solid #634a68;color:#f3e2d4;font:600 12px system-ui;border-radius:3px}
+#menu .altarOption{cursor:pointer;touch-action:manipulation}
+#menu .altarOption[aria-pressed=true]{border-color:#d0a0fc;background:#422b4b}
+#menu .altarOption:disabled{opacity:.65;cursor:default}
+#menu .altarOption small,#menu .achievementItem small{font:500 10px/1.3 system-ui;color:#d8c5d6}
+#menu .achievementItem.unlocked{border-color:#97bf9e;color:#b4efbd}
+#ritualOverlay:not([hidden]){display:grid;place-items:center;position:absolute;inset:0;z-index:85;background:#0b0714e8;touch-action:pan-y}
+#ritualOverlay .ritualBox{width:min(480px,92%);max-height:92%;overflow:auto;background:#211827;border:1px solid #88638c;padding:12px;box-sizing:border-box;touch-action:pan-y}
+#ritualTitle{font:800 20px system-ui;color:#ffe1ac;margin:0 0 6px}
+#ritualHint{font:500 12px system-ui;color:#dbc7d9;margin:0 0 8px}
+#ritualChoices{display:grid;gap:5px}
+.ritualOption{display:flex;flex-direction:column;gap:3px;min-height:45px;text-align:left;padding:8px;border:1px solid #80596f;background:#33253b;color:#ffe4c3;font:700 13px system-ui;touch-action:manipulation}
+.ritualOption small{font:500 11px system-ui;color:#e0c9da}
+#extractBtn:not([hidden]){display:block;background:#315043;box-shadow:none;font-size:13px;min-height:42px}
+#ritualOverlay[hidden],#extractBtn[hidden]{display:none!important}
+html.inGame body:has(#ritualOverlay:not([hidden])){touch-action:pan-y}
+#finalMeta{color:#d8b1fc}
+@media(max-height:520px) and (orientation:landscape){#homePanel #altarHome{grid-column:2;min-height:36px;margin:0}.ritualOption{min-height:38px;padding:5px}#ritualOverlay .ritualBox{padding:8px}#ritualTitle{font-size:16px}}
 </style>
 </head>
 <body>
@@ -612,16 +638,19 @@ html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[sty
     <button type="button" class="homeCard" data-open-menu="map"><canvas id="homeMapCanvas" width="240" height="135" aria-hidden="true"></canvas><span class="homeCardCopy"><small id="homeMapLabel">АРЕНА</small><strong id="homeMapName"></strong><span id="homeMapFeature"></span></span><span class="homeChevron" aria-hidden="true">›</span></button>
   </div>
   <button type="button" class="homeMode" data-open-menu="mode"><span id="homeModeIcon" aria-hidden="true"></span><span><small id="homeModeLabel">РЕЖИМ</small><strong id="homeModeName"></strong></span><span class="homeChevron" aria-hidden="true">›</span></button>
+<button type="button" class="homeMode" data-open-menu="altar" id="altarHome"><span class="altarGem" aria-hidden="true">◆</span><span><small id="altarHomeLabel"></small><strong id="altarHomeValue"></strong></span><span class="homeChevron" aria-hidden="true">›</span></button>
 </section>
 <div id="menuBackBar" hidden><button type="button" id="menuBack" aria-label="Назад">‹ <span id="menuBackLabel">Назад</span></button><span id="menuCurrentTitle"></span><button type="button" id="menuDone">Готово</button></div>
 <section class="menuSection" data-menu-panel="hero" hidden><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div></section>
 <section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Выбери арену</h3></div><div class="mapStage"><canvas id="mapStageCanvas" width="480" height="270" aria-hidden="true"></canvas><div class="mapStageCaption"><h2 id="mapStageName"></h2><div id="mapDetail" class="selectionDetail"></div><div id="arenaEnemyPreview" class="arenaEnemyPreview"></div></div></div><div id="mapChoices" class="choices"></div></section>
+<section class="menuSection" data-menu-panel="altar" hidden><div class="altarHeader"><h3 id="altarHeading"></h3><b id="shardBalance"></b></div><p id="altarHint" class="selectionDetail"></p><h4 id="contractHeading"></h4><div id="contractChoices" class="altarGrid"></div><h4 id="perkHeading"></h4><div id="perkChoices" class="altarGrid"></div><h4 id="achievementHeading"></h4><div id="achievementList" class="achievementGrid"></div></section>
 <section class="menuSection" data-menu-panel="mode" hidden><div class="sectionHead"><h3 id="modeTitle">Режим игры</h3></div><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info" data-initial="true">Create or join a room.</div></div></section>
 </div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary" aria-hidden="true"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button><button id="privacyBtn" type="button" class="textBtn">Privacy</button></div><div id="soundPanel" hidden><button type="button" id="npcVoiceToggle" class="textBtn" aria-pressed="true">Voice: On</button><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div></div></footer>
 </div></div>
 <div id="levelup" style="display:none"><div class="box"><header class="upgradeHead"><div><div class="pauseBadge">Уровень повышен</div><h2><span id="levelPrefix">Уровень</span> <span id="levelUpNum">2</span></h2><div class="tag">Выбери улучшение</div></div></header><div id="upgradeChoices" class="levelChoices"></div></div></div>
 <div id="pauseOverlay" style="display:none"><div class="box pauseBox"><div class="pauseBadge">ПЕЛЬМЕНЬ ВЗЯЛ ПАУЗУ</div><div class="title" style="font-size:44px">ПАУЗА</div><div class="hint">Игра остановлена. Выбери, что делать дальше.</div><button id="resumeBtn" class="btn">ПРОДОЛЖИТЬ</button><button id="pauseRestartBtn" class="btn">НАЧАТЬ ЗАНОВО</button><button id="pauseMenuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В ГЛАВНОЕ МЕНЮ</button></div></div>
-<div id="gameover" style="display:none"><div class="box" style="max-width:520px;text-align:center"><div class="tag">RUN ENDED</div><div class="title" style="font-size:38px">ТЕБЯ СЪЕЛИ</div><div class="hint" style="font-size:10px;margin-top:14px"><span id="finalScoreLabel">SCORE</span> <b id="finalScore">0</b> · <span id="finalLevelLabel">LEVEL</span> <b id="finalLevel">1</b> · <span id="finalWaveLabel">WAVE</span> <b id="finalWave">1</b></div><div id="finalRecord" class="hint"></div><button id="retryBtn" class="btn">ЕЩЁ РАЗ</button><button id="menuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В МЕНЮ</button></div></div>
+<div id="gameover" style="display:none"><div class="box" style="max-width:520px;text-align:center"><div class="tag">RUN ENDED</div><div class="title" style="font-size:38px">ТЕБЯ СЪЕЛИ</div><div class="hint" style="font-size:10px;margin-top:14px"><span id="finalScoreLabel">SCORE</span> <b id="finalScore">0</b> · <span id="finalLevelLabel">LEVEL</span> <b id="finalLevel">1</b> · <span id="finalWaveLabel">WAVE</span> <b id="finalWave">1</b></div><div id="finalRecord" class="hint"></div><div id="finalMeta" class="hint"></div><button id="retryBtn" class="btn">ЕЩЁ РАЗ</button><button id="menuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В МЕНЮ</button></div></div>
+<div id="ritualOverlay" hidden><div class="box ritualBox"><h2 id="ritualTitle"></h2><p id="ritualHint"></p><div id="ritualChoices"></div><button type="button" class="btn" id="extractBtn" hidden></button></div></div>
 <div id="fatalError" style="display:none;position:fixed;inset:0;z-index:999;background:#08060b;color:#f6efd9;place-items:center;padding:24px;font:12px ui-monospace,monospace"><div style="max-width:720px;width:100%;border:2px solid #a82f38;background:#140c12;padding:18px;box-shadow:6px 6px 0 #000"><h2 style="margin:0 0 10px;color:#ff6874">ОШИБКА ИГРЫ</h2><p style="margin:0 0 10px">Браузер остановил игру. Перезапусти страницу.</p><code style="display:block;white-space:pre-wrap;color:#ffd76b"></code><button onclick="location.reload()" style="margin-top:16px;padding:12px 16px;background:#d8414d;color:#fff;border:0;font:900 12px ui-monospace">ПЕРЕЗАПУСТИТЬ</button></div></div>
 </div>
 <div id="mobileRotateHint">МОБИЛЬНЫЙ РЕЖИМ: играть можно вертикально, но горизонтально удобнее. Левый круг — P1 движение, правый — P1 прицел. В режиме 2P сверху слева — P2 движение.</div>
@@ -722,6 +751,42 @@ const supportedLanguages={"en":"English","ru":"Русский","fi":"Suomi","de"
 function normalizeLanguage(value){return Object.prototype.hasOwnProperty.call(supportedLanguages,value)?value:'en'}
 let lang=normalizeLanguage(readStorage('dumpling-riot-lang','en'));
 document.documentElement.lang=lang;
+// V48: solo meta progression, risk contracts, and escalating ritual choices.
+const META_KEY='dumpling-riot-meta-v1';
+const metaPerks=[{id:'vitality',en:'Iron Heart',ru:'Железное сердце',descEn:'+8 starting HP per rank',descRu:'+8 начального HP за уровень'},{id:'power',en:'Blood Pact',ru:'Кровавый договор',descEn:'+4% starting damage per rank',descRu:'+4% начального урона за уровень'},{id:'haste',en:'Shadow Step',ru:'Теневой шаг',descEn:'+3% movement speed per rank',descRu:'+3% скорости за уровень'}];
+const runContracts=[{id:'normal',en:'Standard hunt',ru:'Обычная охота',descEn:'Standard rewards',descRu:'Обычная награда',mult:1,hp:1,speed:1,hurt:1},{id:'frenzy',en:'Frenzy',ru:'Безумие',descEn:'Enemies move 20% faster · +50% shards',descRu:'Враги быстрее на 20% · +50% осколков',mult:1.5,hp:1,speed:1.2,hurt:1},{id:'iron',en:'Iron nightmare',ru:'Железный кошмар',descEn:'Enemies have 30% more HP · +50% shards',descRu:'У врагов на 30% больше HP · +50% осколков',mult:1.5,hp:1.3,speed:1,hurt:1},{id:'blood',en:'Blood moon',ru:'Кровавая луна',descEn:'Take 30% more damage · double shards',descRu:'Получаемый урон +30% · двойные осколки',mult:2,hp:1,speed:1,hurt:1.3}];
+const metaAchievements=[{id:'first',en:'First blood',ru:'Первая кровь',descEn:'Clear wave 1',descRu:'Зачисти 1 волну'},{id:'boss',en:'Night hunter',ru:'Ночной охотник',descEn:'Clear wave 5',descRu:'Зачисти 5 волн'},{id:'escape',en:'Survivor',ru:'Выживший',descEn:'Extract after wave 10 or later',descRu:'Спасись после 10-й волны'},{id:'nightmare',en:'Nightmare pact',ru:'Договор кошмара',descEn:'Clear wave 5 with a curse',descRu:'Зачисти 5 волн с проклятием'},{id:'master',en:'All six horrors',ru:'Шесть кошмаров',descEn:'Clear wave 5 on every arena',descRu:'Зачисти 5 волн на всех аренах'},{id:'legend',en:'The last shift',ru:'Последняя смена',descEn:'Clear wave 20',descRu:'Зачисти 20 волн'}];
+const waveOmens=[{id:'none',en:'',ru:'',hp:1,speed:1,count:0},{id:'horde',en:'The horde approaches · +3 enemies',ru:'Орда приближается · +3 врага',hp:1,speed:1,count:3},{id:'rage',en:'Hunger · faster enemies',ru:'Голод · быстрые враги',hp:1,speed:1.16,count:0},{id:'shell',en:'Iron flesh · tougher enemies',ru:'Железная плоть · крепкие враги',hp:1.22,speed:1,count:0}];
+const ritualChoices=[{id:'heal',en:'Sanctuary',ru:'Убежище',descEn:'Recover 50% of maximum HP',descRu:'Восстанови 50% максимального HP'},{id:'blood',en:'Forbidden blade',ru:'Запретный клинок',descEn:'+20% damage, lose 15% maximum HP',descRu:'+20% урона, потеря 15% максимального HP'},{id:'supply',en:'Lost supply',ru:'Потерянный запас',descEn:'+2 bombs, +8% movement speed',descRu:'+2 бомбы, +8% скорости'}];
+function metaInt(v,max=1000000000){return Number.isFinite(v)?Math.max(0,Math.min(max,Math.floor(v))):0}
+function normalizeMeta(raw){
+ const o=raw&&typeof raw==='object'?raw:{},r={shards:metaInt(o.shards),runs:metaInt(o.runs),escapes:metaInt(o.escapes),kills:metaInt(o.kills),best:metaInt(o.best),perks:{},maps:{},achievements:[]};
+ for(const p of metaPerks)r.perks[p.id]=metaInt(o.perks?.[p.id],5);
+ for(const m of ['kitchen','basement','foodcourt','slaughter','cemetery','forest'])r.maps[m]=metaInt(o.maps?.[m]);
+ r.achievements=metaAchievements.filter(a=>Array.isArray(o.achievements)&&o.achievements.includes(a.id)).map(a=>a.id);return r;
+}
+function readMeta(){try{return normalizeMeta(JSON.parse(readStorage(META_KEY,'{}')))}catch(_){return normalizeMeta({})}}
+function saveMeta(){writeStorage(META_KEY,JSON.stringify(meta))}
+function perkPrice(rank){return 15*(rank+1)}
+function purchasePerk(data,id){
+ if(!metaPerks.some(p=>p.id===id))return false;const rank=data.perks[id],cost=perkPrice(rank);if(rank>=5||data.shards<cost)return false;data.shards-=cost;data.perks[id]++;return true;
+}
+function contractFor(id){return runContracts.find(x=>x.id===id)||runContracts[0]}
+function waveReward(round,contract){return Math.floor((2+Math.min(round,20)+(round%5===0?10:0))*contractFor(contract).mult)}
+function unlockAchievements(data,round,contract,escaped=false){
+ const checks={first:round>=1,boss:round>=5,escape:escaped,nightmare:round>=5&&contract!=='normal',master:Object.values(data.maps).every(w=>w>=5),legend:round>=20};
+ const unlocked=[];for(const a of metaAchievements)if(checks[a.id]&&!data.achievements.includes(a.id)){data.achievements.push(a.id);unlocked.push(a.id)}return unlocked;
+}
+function clearWaveReward(data,run,round,map){
+ if(!run||run.closed||round<=run.cleared||!Object.hasOwn(data.maps,map))return 0;
+ run.cleared=round;const n=waveReward(round,run.contract);run.earned+=n;data.shards=Math.min(1000000000,data.shards+n);data.best=Math.max(data.best,round);data.maps[map]=Math.max(data.maps[map],round);unlockAchievements(data,round,run.contract);return n;
+}
+function finishMetaRun(data,run,escaped){if(!run||run.closed)return false;run.closed=true;data.runs++;data.kills+=run.kills;if(escaped){data.escapes++;const n=10*contractFor(run.contract).mult;run.earned+=n;data.shards+=n;unlockAchievements(data,run.cleared,run.contract,true)}return true}
+function chooseOmen(round,random=Math.random){return round>=3&&round%5!==0&&random()<.38?waveOmens[1+Math.min(2,Math.floor(random()*3))]:waveOmens[0]}
+function applyRitual(p,id){if(id==='heal'){p.hp=Math.min(p.maxhp,p.hp+p.maxhp*.5)}else if(id==='blood'){p.maxhp=Math.max(1,Math.floor(p.maxhp*.85));p.hp=Math.min(p.hp,p.maxhp);p.boost.dmg*=1.2}else if(id==='supply'){p.bomb=Math.min(9,p.bomb+2);p.boost.move*=1.08}else return false;return true}
+let meta=readMeta(),selectedContract=contractFor(readStorage('dumpling-riot-contract','normal')).id,soloRun=null,activeOmen=waveOmens[0];
+function metaLabel(o){return L(o.en,o.ru)}
+function metaDesc(o){return L(o.descEn,o.descRu)}
 const RECORD_KEY='dumpling-riot-best-solo-v1';
 function loadRecord(){try{const r=JSON.parse(readStorage(RECORD_KEY,'{}'));return {score:Math.max(0,Number(r.score)||0),wave:Math.max(0,Number(r.wave)||0)}}catch(_){return {score:0,wave:0}}}
 function updateRecord(previous,points,round){return {score:Math.max(previous.score,Math.max(0,Math.floor(points)||0)),wave:Math.max(previous.wave,Math.max(0,Math.floor(round)||0))}}
@@ -1336,7 +1401,33 @@ function paintMenuStage(hero,map){
 
 function menuChoiceDefaults(savedHero,savedMap){return {hero:chars.some(x=>x.id===savedHero)?savedHero:chars[0].id,map:maps.some(x=>x.id===savedMap)?savedMap:maps[0].id}}
 function saveMenuSelection(){writeStorage('dumpling-riot-hero',selectedChar);writeStorage('dumpling-riot-arena',selectedMap)}
+function renderAltar(){
+ document.getElementById('altarHomeLabel').textContent=L('CURSED ALTAR','ПРОКЛЯТЫЙ АЛТАРЬ');
+ document.getElementById('altarHomeValue').textContent='◆ '+meta.shards+' · '+metaLabel(contractFor(selectedContract));
+ document.getElementById('altarHeading').textContent=L('Cursed altar','Проклятый алтарь');
+ document.getElementById('shardBalance').textContent='◆ '+meta.shards;
+ document.getElementById('altarHint').textContent=L('Solo only. Clear waves, earn shards, buy permanent upgrades. Curses increase rewards.','Только соло. Зачищай волны, получай осколки, покупай постоянные усиления. Проклятия увеличивают награды.');
+ document.getElementById('contractHeading').textContent=L('Choose a curse','Выбери проклятие');
+ document.getElementById('perkHeading').textContent=L('Permanent upgrades','Постоянные усиления');
+ document.getElementById('achievementHeading').textContent=L('Achievements','Достижения')+' '+meta.achievements.length+'/'+metaAchievements.length;
+ const fill=(id,items,build)=>{const el=document.getElementById(id);el.replaceChildren(...items.map(build))};
+ const option=(title,desc)=>{const b=document.createElement('button');b.type='button';b.className='altarOption';const h=document.createElement('b'),p=document.createElement('small');h.textContent=title;p.textContent=desc;b.append(h,p);return b};
+ fill('contractChoices',runContracts,q=>{const b=option(metaLabel(q),metaDesc(q));b.setAttribute('aria-pressed',String(q.id===selectedContract));b.onclick=()=>{selectedContract=q.id;writeStorage('dumpling-riot-contract',q.id);renderAltar()};return b});
+ fill('perkChoices',metaPerks,p=>{const rank=meta.perks[p.id];const b=option(metaLabel(p)+' '+rank+'/5',metaDesc(p)+' · '+(rank===5?L('MAX','МАКС'):'◆ '+perkPrice(rank)));b.disabled=rank>=5||meta.shards<perkPrice(rank);b.onclick=()=>{if(purchasePerk(meta,p.id)){saveMeta();renderAltar()}};return b});
+ fill('achievementList',metaAchievements,a=>{const b=document.createElement('div');b.className='achievementItem'+(meta.achievements.includes(a.id)?' unlocked':'');const h=document.createElement('b'),p=document.createElement('small');h.textContent=(meta.achievements.includes(a.id)?'✓ ':'◇ ')+metaLabel(a);p.textContent=metaDesc(a);b.append(h,p);return b});
+}
+function closeSoloRun(escaped=false){if(finishMetaRun(meta,soloRun,escaped))saveMeta()}
+function openRitual(){
+ if(!soloRun||state!=='game')return;state='ritual';clearLocalInput();setMobileControls(false);
+ const el=document.getElementById('ritualOverlay');document.getElementById('ritualTitle').textContent=L('The altar demands a choice','Алтарь требует выбора');
+ document.getElementById('ritualHint').textContent=L('One blessing for the next stage.','Выбери одно благословение для следующего этапа.')+' · ◆ '+soloRun.earned;
+ const box=document.getElementById('ritualChoices');box.replaceChildren();
+ for(const q of ritualChoices){const b=document.createElement('button');b.type='button';b.className='ritualOption';const h=document.createElement('b'),d=document.createElement('small');h.textContent=metaLabel(q);d.textContent=metaDesc(q);b.append(h,d);b.onclick=()=>{if(state!=='ritual'||!applyRitual(player,q.id))return;el.hidden=true;state='game';setMobileControls(true);wave++;beginWave()};box.append(b)}
+ const extract=document.getElementById('extractBtn');extract.hidden=wave<10;extract.textContent=L('Extract alive · bonus shards','Спастись живым · бонусные осколки');
+ el.hidden=false;
+}
 function refreshMenuHome(hero,map,mode){
+ renderAltar();
  const en=lang==='en',f=arenaFeatures[map.id];
  const keyArt=document.getElementById('menuKeyArt');paintMenuKeyArt(keyArt.getContext('2d'),hero,map);
  const labels={homeEyebrow:L("NIGHT SHIFT","НОЧНАЯ СМЕНА"),homeHeading:L("Ready for the riot?","Готов к бунту?"),homeHeroLabel:L("HERO","ГЕРОЙ"),homeMapLabel:L("ARENA","АРЕНА"),homeModeLabel:L("MODE","РЕЖИМ"),homeHeroName:locName(hero),homeHeroStats:'HP '+hero.hp+' · '+(L("Speed ","Скорость "))+hero.speed,homeMapName:locName(map).split(' — ')[0],homeMapFeature:L(f.en,f.ru),homeModeName:mode==='online'?(L("Online co-op","Онлайн")) : mode==='local'?(L("Local co-op","2 игрока")):(L("Solo","Соло")),menuBackLabel:L("Back","Назад"),menuDone:L("Done","Готово")};
@@ -1344,11 +1435,11 @@ function refreshMenuHome(hero,map,mode){
  document.getElementById('homeModeIcon').innerHTML=uiPixelIcon(mode);
  const hc=document.getElementById('homeHeroCanvas'),mc=document.getElementById('homeMapCanvas');
  for(const [cv,source] of [[hc,'heroStageCanvas'],[mc,'mapStageCanvas']]){const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,cv.width,cv.height);g.drawImage(document.getElementById(source),0,0,cv.width,cv.height)}
- const view=document.getElementById('menu').dataset.view;document.getElementById('menuCurrentTitle').textContent=view==='hero'?(L("Choose hero","Выбери героя")):view==='map'?(L("Choose arena","Выбери арену")):view==='mode'?(L("Game mode","Режим игры")):'';
+ const view=document.getElementById('menu').dataset.view;document.getElementById('menuCurrentTitle').textContent=view==='hero'?(L("Choose hero","Выбери героя")):view==='map'?(L("Choose arena","Выбери арену")):view==='mode'?(L("Game mode","Режим игры")):view==='altar'?L('Cursed altar','Проклятый алтарь'):'';
 }
 function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(L("Online","Онлайн")):coop?(L("Co-op","2 игрока")):(L("Solo","Соло"));document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(L("Ability: ","Способность: "))+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+L(hero.enWeaponNames[i],hero.weaponNames[i])+'</span></div>').join('');const af=arenaFeatures[map.id];document.getElementById('mapDetail').textContent=(L(af.en,af.ru)+': '+L(af.hintEn,af.hint));paintMenuStage(hero,map);paintArenaEnemyPreview(map.id);refreshMenuHome(hero,map,onlineMode?'online':coop?'local':'solo')}
-function menuViewAllowed(next){return ['home','hero','map','mode'].includes(next)}
-function setMenuTab(next){if(!menuViewAllowed(next))return false;const menu=document.getElementById('menu'),previous=menu.dataset.view;menu.dataset.view=next;document.querySelectorAll('[data-menu-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.menuTab===next)));document.querySelectorAll('[data-menu-panel]').forEach(p=>p.hidden=p.dataset.menuPanel!==next);document.getElementById('menuBackBar').hidden=next==='home';document.getElementById('menuBody').scrollTop=0;const en=lang==='en';document.getElementById('menuCurrentTitle').textContent=next==='hero'?(L("Choose hero","Выбери героя")):next==='map'?(L("Choose arena","Выбери арену")):next==='mode'?(L("Game mode","Режим игры")):'';if(next==='home'&&previous!=='home')menu.querySelector('[data-open-menu="'+previous+'"]')?.focus({preventScroll:true});return true}
+function menuViewAllowed(next){return ['home','hero','map','mode','altar'].includes(next)}
+function setMenuTab(next){if(!menuViewAllowed(next))return false;const menu=document.getElementById('menu'),previous=menu.dataset.view;menu.dataset.view=next;document.querySelectorAll('[data-menu-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.menuTab===next)));document.querySelectorAll('[data-menu-panel]').forEach(p=>p.hidden=p.dataset.menuPanel!==next);document.getElementById('menuBackBar').hidden=next==='home';document.getElementById('menuBody').scrollTop=0;const en=lang==='en';document.getElementById('menuCurrentTitle').textContent=next==='hero'?(L("Choose hero","Выбери героя")):next==='map'?(L("Choose arena","Выбери арену")):next==='mode'?(L("Game mode","Режим игры")):next==='altar'?L('Cursed altar','Проклятый алтарь'):'';if(next==='home'&&previous!=='home')menu.querySelector('[data-open-menu="'+previous+'"]')?.focus({preventScroll:true});return true}
 document.querySelectorAll('[data-open-menu]').forEach(b=>b.addEventListener('click',()=>setMenuTab(b.dataset.openMenu)));
 document.getElementById('menuBack').addEventListener('click',()=>setMenuTab('home'));
 document.getElementById('menuDone').addEventListener('click',()=>setMenuTab('home'));
@@ -1357,6 +1448,7 @@ function updateSoundPanel(){document.getElementById('soundToggle').textContent=L
 document.getElementById('soundToggle').addEventListener('click',()=>{const p=document.getElementById('soundPanel');p.hidden=!p.hidden;document.getElementById('soundToggle').setAttribute('aria-expanded',String(!p.hidden))});
 document.getElementById('npcVoiceToggle').addEventListener('click',()=>{npcVoiceEnabled=!npcVoiceEnabled;writeStorage('dumpling-riot-npc-voice',npcVoiceEnabled?'1':'0');if(!npcVoiceEnabled)try{window.speechSynthesis?.cancel()}catch(_){}updateSoundPanel()});
 document.getElementById('musicVolume').addEventListener('input',e=>{musicVolume=Math.max(0,Math.min(100,Number(e.target.value)||0));writeStorage('dumpling-riot-music-volume',String(musicVolume));applyMusicVolume();updateSoundPanel()});
+document.getElementById('extractBtn').addEventListener('click',()=>{if(state==='ritual'&&soloRun&&wave>=10)endGame(true,true)});
 document.getElementById('privacyBtn').addEventListener('click',()=>{location.href='./privacy.html'});
 document.getElementById('helpToggle').addEventListener('click',()=>{const h=document.getElementById('menuHelp');h.hidden=!h.hidden;document.getElementById('helpToggle').setAttribute('aria-expanded',String(!h.hidden))});
 function makeMenu(){
@@ -1580,31 +1672,35 @@ function wireStateNet(c){
 function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus(L("Create or join a room first.","Сначала создай комнату и дождись игрока."));return false}sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false){
  if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
+ closeSoloRun();soloRun=!coop&&!onlineMode?{contract:selectedContract,cleared:0,earned:0,kills:0,closed:false}:null;document.getElementById('ritualOverlay').hidden=true;
  startHorrorMusic();clearNpc();try{window.speechSynthesis?.getVoices()}catch(_){}clearLocalInput();levelupBusy=false;upgradeQueue.length=0;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
  resetPlayer(player,ch,world.w/2-18,world.h/2);resetPlayer(player2,ch2,world.w/2+18,world.h/2);
+ if(soloRun){player.maxhp+=meta.perks.vitality*8;player.hp=player.maxhp;player.boost.dmg*=1+meta.perks.power*.04;player.boost.move*=1+meta.perks.haste*.03}
  player.weapon=0;player2.weapon=coop?1:0;
  weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;arenaEventTimer=8;arenaEventIndex=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast((coop?T('twoPlayers')+' · ':'')+T('wave')+' 1');if(location.protocol!=='file:')requestMobileFullscreen();
 }
-function goMenu(){clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
+function goMenu(){closeSoloRun();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
 function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlayers?7:4)+Math.floor(round/4))}
 function beginWave(){
  waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];hazards=[];
  // Enemy count ramps hard: later waves become crowded, not just tougher individually.
  const bossWave=wave%5===0;
+ activeOmen=soloRun?chooseOmen(wave):waveOmens[0];
  // In two-player mode the arena gets a real co-op population boost.
  targetCount=coop
    ? (bossWave?1+Math.min(11+Math.floor(wave*1.2),28):Math.min(16+Math.floor(wave*3.2),56))
    : (bossWave?1+Math.min(7+Math.floor(wave*.9),22):Math.min(10+Math.floor(wave*2.35),42));
+ targetCount+=activeOmen.count;
  document.getElementById('bossHud').style.display='none';
  if(bossWave){
-   boss=makeBoss(wave);enemies.push(boss);spawned=1;
+   boss=makeBoss(wave);if(soloRun){const q=contractFor(soloRun.contract);boss.hp*=q.hp;boss.maxhp=boss.hp;boss.speed*=q.speed}enemies.push(boss);spawned=1;
    initAudio();bossDialogue(boss,true);
  }
  const first=waveSpawnBudget(wave,coop,targetCount);
  const localPool=arenaEnemyPool(selectedMap,wave);let localIndex=0;while(spawned<first){spawnEnemy(localIndex<localPool.length?localPool[localIndex]:null);localIndex++;spawned++}
  waveTime=0;
- toast((L("WAVE ","ВОЛНА "))+wave+(bossWave?(L(" · BOSS INCOMING"," · БОСС")) : ''));
+ toast((L("WAVE ","ВОЛНА "))+wave+(bossWave?(L(" · BOSS INCOMING"," · БОСС")) : activeOmen.id!=='none'?' · '+metaLabel(activeOmen):''));if(activeOmen.id!=='none')toastTimer=3;
 }
 function makeBoss(w){
  const p=bossForMap(selectedMap,w),hp=Math.round((1750+w*265)*p.hp),pos=enemySpawnPoint(camera,alivePlayers().length?alivePlayers():[player],arena);
@@ -1626,7 +1722,7 @@ function spawnEnemy(forcedType=null,position=null){
  const pool=arenaEnemyPool(selectedMap,wave);
  const type=forcedType&&arenaEnemyRoster[selectedMap]?.includes(forcedType)?forcedType:arenaEnemyType(selectedMap,wave);
  const pos=position||enemySpawnPoint(camera,alivePlayers().length?alivePlayers():[player],arena);
- const e=makeArenaEnemy(type,clamp(pos.x,arena.l+8,arena.r-8),clamp(pos.y,arena.t+8,arena.b-8),wave);enemies.push(e);return e;
+ const e=makeArenaEnemy(type,clamp(pos.x,arena.l+8,arena.r-8),clamp(pos.y,arena.t+8,arena.b-8),wave);if(soloRun){const q=contractFor(soloRun.contract);e.hp*=q.hp*activeOmen.hp;e.maxhp=e.hp;e.speed*=q.speed*activeOmen.speed}enemies.push(e);return e;
 }
 
 function spawnParticles(x,y,n,color,force=1){for(let i=0;i<n;i++){const a=rnd(0,TAU),s=rnd(20,90)*force;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.25,.7),max:.7,size:rndi(1,3),color})}}
@@ -1653,6 +1749,7 @@ function hurtPlayer(p,dmg,x=p.x,y=p.y){
  const ch=chars.find(c=>c.id===p.charId)||chars[0];
  if(p.heroUpgrades?.includes('armor'))dmg*=.72;
  if(ch.id==='golem')dmg*=.78;
+ if(soloRun)dmg*=contractFor(soloRun.contract).hurt;
  p.hp-=dmg;p.inv=.16;p.hurtT=.24;p.hurtLean=(Math.random()<.5?-1:1)*(.16+Math.random()*.12);
  initAudio();sfx('hurt');playPainVoice(p);bloodBurst(p.x,p.y,5,.45);shake=Math.max(shake,.07);
  if(p.hp<=0)startDeath(p)
@@ -1702,7 +1799,7 @@ function buildUpgradeOptions(p){
   {id:'rate',title:'БЫСТРАЯ СТРЕЛЬБА',desc:'Скорострельность +20% только этому игроку.'},
   {id:'move',title:'ЖЕСТКИЙ РАЗГОН',desc:'Скорость движения +16% только этому игроку.'},
   {id:'hp',title:'+35 HP',desc:'Максимальное здоровье +35 и лечение этого игрока.'},
-  {id:'bomb',title:'+1 БОМБА',desc:'Добавляет заряд бомбы этому игроку.'},
+  ...(p.bomb<9?[{id:'bomb',title:'+1 БОМБА',desc:'Добавляет заряд бомбы этому игроку.'}]:[]),
   {id:'crit',title:'КРИТИЧЕСКИЙ УКУС',desc:'+8% критического урона этому игроку.'}
  ];
  for(const [id,title,desc] of hero){const flag=id.endsWith('_wide')?'wide':id.endsWith('_pierce')?'pierce':id==='gol_tank'?'armor':null;if(!flag||!p.heroUpgrades?.includes(flag))pool.push({id,title,desc})}
@@ -1719,7 +1816,7 @@ function applyUpgrade(p,o){
   case'rate':p.boost.rate*=1.2;break;
   case'move':p.boost.move*=1.16;break;
   case'hp':p.maxhp+=35;p.hp=p.maxhp;break;
-  case'bomb':p.bomb++;break;
+  case'bomb':p.bomb=Math.min(9,p.bomb+1);break;
   case'crit':p.boost.crit+=.08;break;
   case'scar_blade':p.boost.dmg*=1.35;break;case'scar_armor':p.maxhp+=45;p.hp=p.maxhp;break;case'scar_wide':p.heroUpgrades.push('wide');break;
   case'vesa_bleed':p.boost.crit+=.12;break;case'vesa_rate':p.boost.rate*=1.25;break;case'vesa_pierce':p.heroUpgrades.push('pierce');break;
@@ -1920,6 +2017,7 @@ function finishEnemyDeath(e){
 
  if(!e||e.dead)return;
  e.hp=0;e.dead=true;
+ if(soloRun&&!soloRun.closed)soloRun.kills++;
  enemyDeathVoice(e.type);
  score+=e.type==='boss'?3200:[100,170,220][enemyTier(e.type)];
  combo=Math.min(9,combo+.25);dropEnemyXP(e);
@@ -2239,14 +2337,14 @@ function update(dt){
  updateEnemies(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);updateFx(dt);
  enemies=enemies.filter(e=>!e.dead);
  if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if(waveTime>=delay||enemies.length===0){waveTime=0;spawnEnemy();spawned++}}
- if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';between=1.6;toast(L("WAVE CLEARED · COLLECT XP","ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ"))}
+ if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';between=soloRun?4:1.6;let reward=0;if(soloRun){reward=clearWaveReward(meta,soloRun,wave,selectedMap);saveMeta()}toast(L('WAVE CLEARED · COLLECT XP','ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')+(reward?' · ◆ +'+reward:''));toastTimer=2.5}
  if(!alivePlayers().length)return;
- if(state==='game'&&waveState==='clear'){between-=dt;if(between<=0){wave++;beginWave()}}
+ if(state==='game'&&waveState==='clear'){between-=dt;if(between<=0){if(soloRun&&wave%5===0)openRitual();else{wave++;beginWave()}}}
  combo=Math.max(1,combo-dt*.12);
 }
-function endGame(broadcast=true){clearNpc();startMenuMusic();
+function endGame(broadcast=true,escaped=false){closeSoloRun(escaped);document.getElementById('ritualOverlay').hidden=true;clearNpc();startMenuMusic();
  clearLocalInput();upgradeQueue.length=0;state='gameover';
- const recordEl=document.getElementById('finalRecord');
+ const recordEl=document.getElementById('finalRecord');document.querySelector('#gameover .title').textContent=escaped?L('YOU ESCAPED','ТЫ ВЫЖИЛ'):T('dead');document.getElementById('finalMeta').textContent=soloRun?'◆ +'+soloRun.earned+' · '+L('Total shards','Всего осколков')+': '+meta.shards:'';
  if(!coop&&!onlineMode){const old=loadRecord(),next=updateRecord(old,score,wave);writeStorage(RECORD_KEY,JSON.stringify(next));recordEl.textContent=recordText(next)+(next.score>old.score||next.wave>old.wave?(L(" · NEW BEST!"," · НОВЫЙ РЕКОРД!")):'')}else recordEl.textContent='';
  levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
  document.getElementById('levelup').style.display='none';
