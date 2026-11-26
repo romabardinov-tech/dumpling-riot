@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.56.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.57.0. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -17,7 +17,7 @@ Status: **source preparation**, not an approved, signed or device-tested store r
 ## Release blockers / acceptance
 - [ ] Install dependencies and commit package-lock.json; build native projects; validate final Android/iOS identifiers, signing and SDK.
 - [ ] Generate native launcher icons (existing PWA icons are not a complete native asset catalog); verify rights and third-party licenses.
-- [ ] Device QA: first launch in airplane mode, six heroes and arenas, each of 12 bosses, waves 1/3/7, shard awards, altar purchases, curse selection, ritual at wave 5, extraction at wave 10, corrupt save recovery, pause/resume, backgrounding, incoming call, touch controls, death/retry, record persistence, localization, notch and tablet layouts.
+- [ ] Device QA: first launch in airplane mode, six heroes and arenas, all 15 bosses (12 arena bosses, campaign finale, two optional bosses), waves 1/3/7, shard awards, altar purchases, curse selection, ritual at wave 5, extraction at wave 10, corrupt save recovery, pause/resume, backgrounding, incoming call, touch controls, death/retry, record persistence, localization, notch and tablet layouts.
 - [ ] Stress-test later waves and particles on lower-end Android; profile sustained frame time, memory and heat. No performance claims until measured.
 - [ ] Test real two-device co-op, offline failure, room disconnect/reconnect; replace public demo TURN/signaling with production-capable infrastructure or omit online mode from store build until verified. Verify provider terms, data flow/retention and third-party disclosures.
 - [ ] Confirm publisher's real identity and privacy contact; finalize privacy.html and public HTTPS URL, support contact, Apple privacy nutrition label and Google Data Safety. No ads/analytics planned for first version; do not claim no data collection without provider review.
@@ -27,7 +27,7 @@ Status: **source preparation**, not an approved, signed or device-tested store r
 
 ## Suggested store listing (draft)
 Dumpling Riot — Pixel Horror Survival
-Fight through six haunted arenas, choose one of six distinct heroes, upgrade your weapons, and survive waves of 24 enemy families and 12 bosses. Play solo offline or in optional co-op (online subject to release verification). 
+Fight through six haunted arenas, choose one of six distinct heroes, upgrade your weapons, and survive waves of 24 enemy families and 15 bosses. Play solo offline or in optional co-op (online subject to release verification). 
 No in-app purchases or ads in this source.
 
 ## Official references
@@ -63,3 +63,6 @@ Local history of up to 12 completed or abandoned solo runs with hero, mode, curs
 
 ## V56 — Secret Chambers
 Six illustrated optional side-room encounters (mirror, well, cage, shrine, clock, locker) appear after waves 2, 7, 12 and every five waves thereafter in solo modes. Two distinct choices or a free exit; costs and eligibility shown before choosing. Current-run health, fear, coins, bombs, damage, attack speed and unique artifact rewards; extra enemies or increased enemy speed apply only to the next wave. No room repeats before the six-room pool is exhausted. Existing altar, merchant, campaign finale and co-op schedule retained. Run recap shows accepted room choices. Inline JavaScript syntax passed; 126 isolated rule assertions passed (100 scheduling checks plus room availability, deduplication, transactions, next-wave effects, nonlethal sacrifice and exit). Browser/device runtime and native builds remain unverified.
+
+## V57 — Hidden Horrors
+Two optional solo bosses (Bellkeeper and Veiled Widow), offered in side rooms after wave 7 and 12, costing 15 run coins and appearing in the next wave with a reduced normal enemy count. Unique pixel sprites, three phases, directional or radial projectiles, separate telegraphed hazards, journal entries and one-time rewards per boss per run: 18 shards and +15% attack rate or damage. No change to co-op or normal finale. Source syntax and 132 isolated assertions passed, covering scheduling, summon cost, consumption, repeated clicks, rewards and bounded hazard patterns. Browser/device runtime, balance and native exports remain unverified.
