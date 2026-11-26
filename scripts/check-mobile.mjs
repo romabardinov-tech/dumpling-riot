@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { readFile, stat } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+const path=n=>fileURLToPath(new URL('../'+n,import.meta.url));
+const html=await readFile(path('www/index.html'),'utf8');
+assert.match(html,/const peerScriptUrl='\.\/vendor\/peerjs\.min\.js'/);
+assert.doesNotMatch(html,/<script[^>]+src=["']https?:/);
+assert.match(html,/if\(!nativeMobile\(\)&&'serviceWorker'/);
+for(const m of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))if(m[1].trim())new Function(m[1]);
+for(const n of ['privacy.html','manifest.webmanifest','vendor/peerjs.min.js','vendor/peerjs-LICENSE.txt','icon-v38-180.png','icon-v38-192.png','icon-v38-512.png'])assert.ok((await stat(path('www/'+n))).size>0,n);
+assert.equal(JSON.parse(await readFile(path('capacitor.config.json'),'utf8')).webDir,'www');
+console.log('Mobile package source and asset checks passed.');
