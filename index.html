@@ -288,6 +288,9 @@ button,input{-webkit-tap-highlight-color:transparent}#wrap{filter:none}
  #mobileControls #p2Pad{top:76px}#mobileControls #p2DashBtn,#mobileControls #p2BombBtn{top:76px;left:130px}#mobileControls #p2BombBtn{top:126px}
 }
 @media(prefers-reduced-motion:reduce){#menu *,#mobileControls *{transition:none!important}}
+html:not(.inGame) body{touch-action:pan-y}html.inGame body:has(#pauseOverlay[style*="grid"]),html.inGame body:has(#levelup[style*="grid"]),html.inGame body:has(#gameover[style*="grid"]){touch-action:pan-y}
+#menu .menuShell,#menu .menuBody{touch-action:pan-y}
+#levelup .box,#pauseOverlay .box,#gameover .box{overscroll-behavior:contain}
 </style>
 </head>
 <body>
