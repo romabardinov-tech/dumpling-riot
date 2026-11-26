@@ -619,6 +619,20 @@ html.inGame body:has(#ritualOverlay:not([hidden])){touch-action:pan-y}
 #mobileWeapons .mw.evolved,#weaponHud .weapon.evolved{border-color:#ffce83;box-shadow:inset 0 0 0 1px #b9824d}
 #lootHud{color:#d7b0ff;font-size:10px}
 #lootHud[hidden]{display:none!important}
+/* V50 archive */
+#menu #journalHome{border-bottom-color:#849bab}
+#menu #journalHome .altarGem{color:#b6cfdb}
+#journalCount{color:#b6cfdb}
+#journalFilter{background:#231e29;color:#f4e3d6;border:1px solid #796178;padding:6px;min-height:34px;font:600 12px system-ui}
+#journalFilterLabel{font:600 12px system-ui;color:#d9c6b5}
+#journalEntries h4{margin:10px 0 5px;color:#e7c49c;font:700 13px system-ui}
+.journalGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:5px}
+.journalItem{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;padding:5px;background:#1d1922;border:1px solid #45374b;min-width:0;color:#bfb0c3;font:600 11px system-ui}
+.journalItem.unlocked{border-color:#8f765e;color:#f0d7b6}
+.journalItem canvas{width:72px;height:62px;position:static;transform:none;image-rendering:pixelated;filter:none}
+.journalItem small{font:500 10px/1.3 system-ui;overflow-wrap:anywhere}
+.journalItem:not(:has(canvas)){grid-column:1/-1;text-align:left;align-items:start;padding:8px}
+@media(max-height:520px) and (orientation:landscape){#homePanel #journalHome{grid-column:2;min-height:36px;margin:0}.journalItem canvas{height:48px}}
 </style>
 </head>
 <body>
@@ -644,11 +658,12 @@ html.inGame body:has(#ritualOverlay:not([hidden])){touch-action:pan-y}
     <button type="button" class="homeCard" data-open-menu="map"><canvas id="homeMapCanvas" width="240" height="135" aria-hidden="true"></canvas><span class="homeCardCopy"><small id="homeMapLabel">АРЕНА</small><strong id="homeMapName"></strong><span id="homeMapFeature"></span></span><span class="homeChevron" aria-hidden="true">›</span></button>
   </div>
   <button type="button" class="homeMode" data-open-menu="mode"><span id="homeModeIcon" aria-hidden="true"></span><span><small id="homeModeLabel">РЕЖИМ</small><strong id="homeModeName"></strong></span><span class="homeChevron" aria-hidden="true">›</span></button>
-<button type="button" class="homeMode" data-open-menu="altar" id="altarHome"><span class="altarGem" aria-hidden="true">◆</span><span><small id="altarHomeLabel"></small><strong id="altarHomeValue"></strong></span><span class="homeChevron" aria-hidden="true">›</span></button>
+<button type="button" class="homeMode" data-open-menu="altar" id="altarHome"><span class="altarGem" aria-hidden="true">◆</span><span><small id="altarHomeLabel"></small><strong id="altarHomeValue"></strong></span><span class="homeChevron" aria-hidden="true">›</span></button><button type="button" class="homeMode" data-open-menu="journal" id="journalHome"><span class="altarGem" aria-hidden="true">▤</span><span><small id="journalHomeLabel"></small><strong id="journalHomeValue"></strong></span><span class="homeChevron" aria-hidden="true">›</span></button>
 </section>
 <div id="menuBackBar" hidden><button type="button" id="menuBack" aria-label="Назад">‹ <span id="menuBackLabel">Назад</span></button><span id="menuCurrentTitle"></span><button type="button" id="menuDone">Готово</button></div>
 <section class="menuSection" data-menu-panel="hero" hidden><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div></section>
 <section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Выбери арену</h3></div><div class="mapStage"><canvas id="mapStageCanvas" width="480" height="270" aria-hidden="true"></canvas><div class="mapStageCaption"><h2 id="mapStageName"></h2><div id="mapDetail" class="selectionDetail"></div><div id="arenaEnemyPreview" class="arenaEnemyPreview"></div></div></div><div id="mapChoices" class="choices"></div></section>
+<section class="menuSection" data-menu-panel="journal" hidden><div class="altarHeader"><h3 id="journalHeading"></h3><b id="journalCount"></b></div><p id="journalHint" class="selectionDetail"></p><label id="journalFilterLabel" for="journalFilter"></label><select id="journalFilter"></select><div id="journalEntries"></div></section>
 <section class="menuSection" data-menu-panel="altar" hidden><div class="altarHeader"><h3 id="altarHeading"></h3><b id="shardBalance"></b></div><p id="altarHint" class="selectionDetail"></p><h4 id="contractHeading"></h4><div id="contractChoices" class="altarGrid"></div><h4 id="perkHeading"></h4><div id="perkChoices" class="altarGrid"></div><h4 id="achievementHeading"></h4><div id="achievementList" class="achievementGrid"></div></section>
 <section class="menuSection" data-menu-panel="mode" hidden><div class="sectionHead"><h3 id="modeTitle">Режим игры</h3></div><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info" data-initial="true">Create or join a room.</div></div></section>
 </div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary" aria-hidden="true"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button><button id="privacyBtn" type="button" class="textBtn">Privacy</button></div><div id="soundPanel" hidden><button type="button" id="npcVoiceToggle" class="textBtn" aria-pressed="true">Voice: On</button><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div></div></footer>
@@ -979,6 +994,26 @@ const arenaEnemyNames={fork:['Fork Imp','Вилочный бес'],pepper:['Pepp
 function arenaEnemyPool(map,round){return (arenaEnemyRoster[map]||arenaEnemyRoster.kitchen).slice(0,round>=7?4:round>=3?3:2)}
 function arenaEnemyType(map,round,random=Math.random){const pool=arenaEnemyPool(map,round);if((round===3||round===7)&&random()<.42)return pool[pool.length-1];return pool[Math.min(pool.length-1,Math.floor(random()*pool.length))]}
 function makeArenaEnemy(type,x,y,round,random=Math.random){const s=arenaEnemyStats[type];if(!s)throw Error('Unknown arena enemy: '+type);const hp=s[0]*(1+round*.07)*(round>=8?1+(round-7)*.035:1);return {type,x,y,hp,maxhp:hp,speed:s[1]+round*.7+(round>=6?(round-5)*.8:0),r:s[2],hit:0,phase:random()*Math.PI*2,attack:.2+random(),lunge:0,orbit:random()<.5?-1:1,hitT:0,hitLean:0}}
+// V50: persistent field journal and optional arena encounters.
+const arenaStories={
+ kitchen:{en:'The first shift',ru:'Первая смена',textEn:'At midnight the kitchen bell rang without a cook. The pots began to breathe. The recipe book lists a seventh ingredient: fear.',textRu:'В полночь кухонный звонок прозвенел без повара. Котлы начали дышать. В книге рецептов обнаружился седьмой ингредиент: страх.',cacheEn:'Sealed recipe book',cacheRu:'Запечатанная книга рецептов',color:'#f4b681'},
+ basement:{en:'Below the floor',ru:'Под полом',textEn:'The maintenance crew followed a signal through the cables. The signal was not electrical. Something was learning their names.',textRu:'Ремонтники пошли на сигнал из кабелей. Он оказался не электрическим. Что-то училось произносить их имена.',cacheEn:'Abandoned recorder',cacheRu:'Брошенный диктофон',color:'#8bd8f3'},
+ foodcourt:{en:'Last customer',ru:'Последний посетитель',textEn:'Every receipt prints the same time: 00:00. The vending machines sell things nobody put inside. One customer never left.',textRu:'На каждом чеке одно время: 00:00. Автоматы продают то, что никто в них не загружал. Один посетитель так и не ушёл.',cacheEn:'Unclaimed receipt',cacheRu:'Забытый чек',color:'#e6a1d9'},
+ slaughter:{en:'The endless line',ru:'Бесконечная линия',textEn:'The conveyor ran long after the power was cut. Workers marked a doorway in chalk; by morning the doorway had moved.',textRu:'Конвейер работал даже после отключения питания. Рабочие отметили дверь мелом; к утру дверь оказалась в другом месте.',cacheEn:'Foreman log',cacheRu:'Журнал мастера',color:'#f18e80'},
+ cemetery:{en:'Names in stone',ru:'Имена на камне',textEn:'The oldest grave has no name. Each night a new inscription appears, always belonging to someone still alive.',textRu:'На самой старой могиле нет имени. Каждую ночь появляется новая надпись — имя того, кто ещё жив.',cacheEn:'Buried inscription',cacheRu:'Погребённая надпись',color:'#d8b9f9'},
+ forest:{en:'The root below',ru:'Корень внизу',textEn:'All six places share one root. It grew beneath the city, carrying memories from room to room. Cut one branch and another wakes.',textRu:'Все шесть мест связаны одним корнем. Он вырос под городом, перенося воспоминания из комнаты в комнату. Срежь одну ветвь — проснётся другая.',cacheEn:'Root fragment',cacheRu:'Фрагмент корня',color:'#b7dd87'}
+};
+const enemyNotes={fork:['Slow melee pursuer.','Медленный преследователь ближнего боя.'],pepper:['Close-range swarm attacker.','Атакует в ближнем бою.'],boiler:['Keeps distance and fires three shots.','Держит дистанцию и стреляет очередью из трёх снарядов.'],butcher:['Warns before a heavy area strike.','Предупреждает перед тяжёлым ударом по площади.'],crawler:['Fast, erratic movement.','Быстро движется рывками.'],cableMite:['Circles and fires electric shots.','Движется вокруг цели и стреляет электрическими снарядами.'],eye:['Retreats while firing a spread.','Отступает и стреляет веером.'],wretch:['Approaches while firing purple bolts.','Приближается и стреляет фиолетовыми снарядами.'],plate:['Tough close-range pursuer.','Крепкий преследователь ближнего боя.'],neonGhost:['Marks a delayed trap under the hero.','Ставит ловушку под героем с задержкой.'],vendingDrone:['Fires paired shots from a distance.','Стреляет парными снарядами с расстояния.'],siren:['Creates wide delayed danger zones.','Создаёт широкие опасные зоны с задержкой.'],knife:['Throws blades while pursuing.','Преследует и бросает лезвия.'],chainHound:['Sudden close-range charge.','Резкий рывок на близкой дистанции.'],slicer:['Very fast charge. Dodge sideways.','Быстрый рывок. Уклоняйся в сторону.'],maw:['Heavy, slow, wide area strike.','Медленный и тяжёлый удар по площади.'],boneWalker:['Approaches and marks a close-range blast.','Приближается и отмечает область взрыва.'],hands:['Circles the hero from the side.','Обходит героя сбоку.'],stalker:['Accelerates when close.','Ускоряется при сближении.'],feaster:['Slow approach and wide attacks.','Медленно сближается и атакует по площади.'],sporeBeetle:['Fast zigzag pursuit.','Быстро преследует зигзагами.'],rootHorror:['Marks a delayed blast at the hero.','Отмечает взрыв под героем с задержкой.'],spitter:['Slow, heavy ranged projectiles.','Медленные тяжёлые снаряды.'],parasite:['Splits into two beetles on death.','После смерти распадается на двух жуков.']};
+const JOURNAL_KEY='dumpling-riot-journal-v1';
+function journalIds(){return [...Object.keys(arenaEnemyNames).map(k=>'enemy:'+k),...bossRoster.map(b=>'boss:'+b.id),...Object.keys(eliteProfiles).map(k=>'elite:'+k),...Object.keys(arenaStories).map(k=>'story:'+k)]}
+function normalizeJournal(raw){const allowed=new Set(journalIds());return Array.isArray(raw)?[...new Set(raw.filter(k=>typeof k==='string'&&allowed.has(k)))]:[]}
+function readJournal(){try{return normalizeJournal(JSON.parse(readStorage(JOURNAL_KEY,'[]')))}catch(_){return []}}
+let journal=readJournal(),journalMap='all',secretEncounter=null;
+function discoverJournal(key){if(journal.includes(key)||!journalIds().includes(key))return false;journal.push(key);writeStorage(JOURNAL_KEY,JSON.stringify(journal));return true}
+function secretWave(w){return w===2||w===7}
+function secretLocation(sites,p,area){const candidates=sites.map(([x,y])=>({x:Math.max(area.l+50,Math.min(area.r-50,x)),y:Math.max(area.t+50,Math.min(area.b-50,y))}));const ordered=candidates.sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y));return ordered.find(s=>Math.hypot(s.x-p.x,s.y-p.y)>=95)||ordered[0]}
+function createSecret(map,w,p,area,sites){if(!secretWave(w)||!arenaStories[map]||!sites?.length)return null;const s=secretLocation(sites,p,area);return {map,w,x:s.x,y:s.y,stage:'sealed',remaining:0}}
+function secretReward(data,run,event){if(!event||event.stage!=='ambush'||event.remaining!==0||!run||run.closed)return 0;event.stage='done';const n=6+Math.min(event.w,10);data.shards=metaInt(data.shards+n);run.earned+=n;return n}
 function arenaEnemyName(type){const n=arenaEnemyNames[type];return n?L(n[0],n[1]):L(npcTypeNames[type]||'Enemy')}
 function enemyTier(type){return ['butcher','maw','feaster'].includes(type)?2:['wretch','boiler','siren','vendingDrone'].includes(type)?1:0}
 const npcTypeNames={fork:'Fork',pepper:'Pepper',knife:'Knife',plate:'Plate',crawler:'Crawler',stalker:'Stalker',eye:'Eye',siren:'Siren',wretch:'Wretch',spitter:'Spitter',parasite:'Parasite',feaster:'Feaster',hands:'Hands',butcher:'Butcher',slicer:'Slicer',boiler:'Boiler',maw:'Maw'};
@@ -1464,6 +1499,28 @@ function paintMenuStage(hero,map){
 
 function menuChoiceDefaults(savedHero,savedMap){return {hero:chars.some(x=>x.id===savedHero)?savedHero:chars[0].id,map:maps.some(x=>x.id===savedMap)?savedMap:maps[0].id}}
 function saveMenuSelection(){writeStorage('dumpling-riot-hero',selectedChar);writeStorage('dumpling-riot-arena',selectedMap)}
+function renderJournal(){
+ document.getElementById('journalHomeLabel').textContent=L('NIGHT ARCHIVES','НОЧНОЙ АРХИВ');
+ document.getElementById('journalHomeValue').textContent=journal.length+'/'+journalIds().length+' · '+L('Discoveries','Открытия');
+ document.getElementById('journalHeading').textContent=L('Night archives','Ночной архив');
+ document.getElementById('journalCount').textContent=journal.length+'/'+journalIds().length;
+ document.getElementById('journalHint').textContent=L('Defeat enemies to unlock their records. Investigate sealed caches on waves 2 and 7 in solo mode to discover the story.','Побеждай врагов, чтобы открывать записи. Исследуй тайники на 2-й и 7-й волнах в соло, чтобы раскрыть историю.');
+ document.getElementById('journalFilterLabel').textContent=L('Arena','Арена')+' ';
+ const filter=document.getElementById('journalFilter');filter.replaceChildren();
+ for(const [value,label] of [['all',L('All arenas','Все арены')],...maps.map(m=>[m.id,locName(m).split(' — ')[0]])]){const opt=document.createElement('option');opt.value=value;opt.textContent=label;filter.append(opt)}filter.value=journalMap;
+ const container=document.getElementById('journalEntries');container.replaceChildren();
+ if(document.getElementById('menu').dataset.view!=='journal')return;
+ for(const m of maps.filter(m=>journalMap==='all'||m.id===journalMap)){
+  const section=document.createElement('section'),heading=document.createElement('h4');heading.textContent=locName(m).split(' — ')[0];section.append(heading);
+  const grid=document.createElement('div');grid.className='journalGrid';
+  const add=(key,title,description,paint)=>{const unlocked=journal.includes(key),item=document.createElement('article');item.className='journalItem'+(unlocked?' unlocked':'');if(paint){const cv=document.createElement('canvas');cv.width=88;cv.height=76;cv.setAttribute('aria-hidden','true');const g=cv.getContext('2d');g.imageSmoothingEnabled=false;if(unlocked){g.translate(44,50);paint(g)}else{g.fillStyle='#382c40';g.fillRect(30,19,28,28);g.fillStyle='#b1a0b4';g.font='bold 22px monospace';g.textAlign='center';g.fillText('?',44,41)}item.append(cv)}const h=document.createElement('b'),p=document.createElement('small');h.textContent=unlocked?title:L('Unknown','Неизвестно');p.textContent=unlocked?description:L('Not discovered','Не открыто');item.append(h,p);grid.append(item)};
+  for(const t of arenaEnemyRoster[m.id]){const n=enemyNotes[t];add('enemy:'+t,arenaEnemyName(t),L(n[0],n[1]),g=>pixelEnemy(g,t,0,0,1))}
+  const e=eliteProfiles[m.id];add('elite:'+m.id,metaLabel(e),L('Elite · telegraphed special attacks.','Элита · особые атаки с предупреждением.'),g=>{g.scale(1.2,1.2);pixelEnemy(g,arenaEnemyRoster[m.id][3],0,0,1)});
+  for(const b of bossRoster.filter(b=>b.map===m.id))add('boss:'+b.id,L(b.name),L(b.line),g=>{g.scale(.85,.85);pixelBoss(g,b.kind,1,0,false)});
+  const s=arenaStories[m.id];add('story:'+m.id,metaLabel(s),L(s.textEn,s.textRu),null);section.append(grid);container.append(section);
+ }
+}
+document.getElementById('journalFilter').addEventListener('change',e=>{journalMap=e.target.value;renderJournal()});
 function renderAltar(){
  document.getElementById('altarHomeLabel').textContent=L('CURSED ALTAR','ПРОКЛЯТЫЙ АЛТАРЬ');
  document.getElementById('altarHomeValue').textContent='◆ '+meta.shards+' · '+metaLabel(contractFor(selectedContract));
@@ -1490,7 +1547,7 @@ function openRitual(){
  el.hidden=false;
 }
 function refreshMenuHome(hero,map,mode){
- renderAltar();
+ renderAltar();renderJournal();
  const en=lang==='en',f=arenaFeatures[map.id];
  const keyArt=document.getElementById('menuKeyArt');paintMenuKeyArt(keyArt.getContext('2d'),hero,map);
  const labels={homeEyebrow:L("NIGHT SHIFT","НОЧНАЯ СМЕНА"),homeHeading:L("Ready for the riot?","Готов к бунту?"),homeHeroLabel:L("HERO","ГЕРОЙ"),homeMapLabel:L("ARENA","АРЕНА"),homeModeLabel:L("MODE","РЕЖИМ"),homeHeroName:locName(hero),homeHeroStats:'HP '+hero.hp+' · '+(L("Speed ","Скорость "))+hero.speed,homeMapName:locName(map).split(' — ')[0],homeMapFeature:L(f.en,f.ru),homeModeName:mode==='online'?(L("Online co-op","Онлайн")) : mode==='local'?(L("Local co-op","2 игрока")):(L("Solo","Соло")),menuBackLabel:L("Back","Назад"),menuDone:L("Done","Готово")};
@@ -1498,11 +1555,11 @@ function refreshMenuHome(hero,map,mode){
  document.getElementById('homeModeIcon').innerHTML=uiPixelIcon(mode);
  const hc=document.getElementById('homeHeroCanvas'),mc=document.getElementById('homeMapCanvas');
  for(const [cv,source] of [[hc,'heroStageCanvas'],[mc,'mapStageCanvas']]){const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,cv.width,cv.height);g.drawImage(document.getElementById(source),0,0,cv.width,cv.height)}
- const view=document.getElementById('menu').dataset.view;document.getElementById('menuCurrentTitle').textContent=view==='hero'?(L("Choose hero","Выбери героя")):view==='map'?(L("Choose arena","Выбери арену")):view==='mode'?(L("Game mode","Режим игры")):view==='altar'?L('Cursed altar','Проклятый алтарь'):'';
+ const view=document.getElementById('menu').dataset.view;document.getElementById('menuCurrentTitle').textContent=view==='hero'?(L("Choose hero","Выбери героя")):view==='map'?(L("Choose arena","Выбери арену")):view==='mode'?(L("Game mode","Режим игры")):view==='altar'?L('Cursed altar','Проклятый алтарь'):view==='journal'?L('Night archives','Ночной архив'):'';
 }
 function updateRunSummary(){const hero=chars.find(x=>x.id===selectedChar)||chars[0],map=maps.find(x=>x.id===selectedMap)||maps[0],en=lang==='en';document.getElementById('runHero').textContent=locName(hero);document.getElementById('runMap').textContent=locName(map).split(' — ')[0];document.getElementById('runMode').textContent=onlineMode?(L("Online","Онлайн")):coop?(L("Co-op","2 игрока")):(L("Solo","Соло"));document.getElementById('heroDetail').textContent=locDesc(hero)+' · '+(L("Ability: ","Способность: "))+locName(dashProfiles[hero.id]);document.getElementById('heroArsenal').innerHTML=inventoryArt[hero.id].map((_,i)=>'<div>'+inventoryIcon(hero.id,i)+'<span>'+L(hero.enWeaponNames[i],hero.weaponNames[i])+'</span></div>').join('');const af=arenaFeatures[map.id];document.getElementById('mapDetail').textContent=(L(af.en,af.ru)+': '+L(af.hintEn,af.hint));paintMenuStage(hero,map);paintArenaEnemyPreview(map.id);refreshMenuHome(hero,map,onlineMode?'online':coop?'local':'solo')}
-function menuViewAllowed(next){return ['home','hero','map','mode','altar'].includes(next)}
-function setMenuTab(next){if(!menuViewAllowed(next))return false;const menu=document.getElementById('menu'),previous=menu.dataset.view;menu.dataset.view=next;document.querySelectorAll('[data-menu-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.menuTab===next)));document.querySelectorAll('[data-menu-panel]').forEach(p=>p.hidden=p.dataset.menuPanel!==next);document.getElementById('menuBackBar').hidden=next==='home';document.getElementById('menuBody').scrollTop=0;const en=lang==='en';document.getElementById('menuCurrentTitle').textContent=next==='hero'?(L("Choose hero","Выбери героя")):next==='map'?(L("Choose arena","Выбери арену")):next==='mode'?(L("Game mode","Режим игры")):next==='altar'?L('Cursed altar','Проклятый алтарь'):'';if(next==='home'&&previous!=='home')menu.querySelector('[data-open-menu="'+previous+'"]')?.focus({preventScroll:true});return true}
+function menuViewAllowed(next){return ['home','hero','map','mode','altar','journal'].includes(next)}
+function setMenuTab(next){if(!menuViewAllowed(next))return false;const menu=document.getElementById('menu'),previous=menu.dataset.view;menu.dataset.view=next;document.querySelectorAll('[data-menu-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.menuTab===next)));document.querySelectorAll('[data-menu-panel]').forEach(p=>p.hidden=p.dataset.menuPanel!==next);document.getElementById('menuBackBar').hidden=next==='home';document.getElementById('menuBody').scrollTop=0;const en=lang==='en';document.getElementById('menuCurrentTitle').textContent=next==='hero'?(L("Choose hero","Выбери героя")):next==='map'?(L("Choose arena","Выбери арену")):next==='mode'?(L("Game mode","Режим игры")):next==='altar'?L('Cursed altar','Проклятый алтарь'):next==='journal'?L('Night archives','Ночной архив'):'';if(next==='journal')renderJournal();if(next==='home'&&previous!=='home')menu.querySelector('[data-open-menu="'+previous+'"]')?.focus({preventScroll:true});return true}
 document.querySelectorAll('[data-open-menu]').forEach(b=>b.addEventListener('click',()=>setMenuTab(b.dataset.openMenu)));
 document.getElementById('menuBack').addEventListener('click',()=>setMenuTab('home'));
 document.getElementById('menuDone').addEventListener('click',()=>setMenuTab('home'));
@@ -1735,6 +1792,7 @@ function wireStateNet(c){
 function startOnlineHost(){if(!netConn||!netConn.open){setOnlineStatus(L("Create or join a room first.","Сначала создай комнату и дождись игрока."));return false}sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false){
  if(onlineMode&&!isOnlineHost&&!fromNetwork){return}
+ secretEncounter=null;
  closeSoloRun();soloRun=!coop&&!onlineMode?{contract:selectedContract,cleared:0,earned:0,kills:0,closed:false}:null;document.getElementById('ritualOverlay').hidden=true;
  startHorrorMusic();clearNpc();try{window.speechSynthesis?.getVoices()}catch(_){}clearLocalInput();levelupBusy=false;upgradeQueue.length=0;pendingUpgradePlayer=null;pendingUpgradeOptions=[];
  const ch=chars.find(x=>x.id===selectedChar)||chars[0],ch2=chars.find(x=>x.id===otherCharId())||chars[1];
@@ -1743,9 +1801,10 @@ function startGame(fromNetwork=false){
  player.weapon=0;player2.weapon=coop?1:0;
  weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;arenaEventTimer=8;arenaEventIndex=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';setHud(true);beginWave();toast((coop?T('twoPlayers')+' · ':'')+T('wave')+' 1');if(location.protocol!=='file:')requestMobileFullscreen();
 }
-function goMenu(){closeSoloRun();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
+function goMenu(){secretEncounter=null;closeSoloRun();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
 function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlayers?7:4)+Math.floor(round/4))}
 function beginWave(){
+ secretEncounter=soloRun?createSecret(selectedMap,wave,player,arena,arenaFeatures[selectedMap].sites):null;
  waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];hazards=[];
  // Enemy count ramps hard: later waves become crowded, not just tougher individually.
  const bossWave=wave%5===0;
@@ -1763,7 +1822,7 @@ function beginWave(){
  const first=waveSpawnBudget(wave,coop,targetCount);
  const localPool=arenaEnemyPool(selectedMap,wave);if(soloRun&&eliteWave(wave)&&spawned<first){const e=spawnEnemy(localPool[localPool.length-1]);empowerElite(e,selectedMap);spawned++;}let localIndex=0;while(spawned<first){spawnEnemy(localIndex<localPool.length?localPool[localIndex]:null);localIndex++;spawned++}
  waveTime=0;
- toast((L("WAVE ","ВОЛНА "))+wave+(bossWave?(L(" · BOSS INCOMING"," · БОСС")) : activeOmen.id!=='none'?' · '+metaLabel(activeOmen):''));if(activeOmen.id!=='none')toastTimer=3;if(soloRun&&eliteWave(wave)){toast(L('ELITE HUNT','ОХОТА НА ЭЛИТУ')+' · '+metaLabel(eliteProfiles[selectedMap]));toastTimer=3.5;}
+ toast((L("WAVE ","ВОЛНА "))+wave+(bossWave?(L(" · BOSS INCOMING"," · БОСС")) : activeOmen.id!=='none'?' · '+metaLabel(activeOmen):''));if(activeOmen.id!=='none')toastTimer=3;if(secretEncounter){toast(L('HIDDEN CACHE NEARBY','ПОБЛИЗОСТИ ТАЙНИК'));toastTimer=3;}if(soloRun&&eliteWave(wave)){toast(L('ELITE HUNT','ОХОТА НА ЭЛИТУ')+' · '+metaLabel(eliteProfiles[selectedMap]));toastTimer=3.5;}
 }
 function makeBoss(w){
  const p=bossForMap(selectedMap,w),hp=Math.round((1750+w*265)*p.hp),pos=enemySpawnPoint(camera,alivePlayers().length?alivePlayers():[player],arena);
@@ -2083,6 +2142,8 @@ function finishEnemyDeath(e){
 
  if(!e||e.dead)return;
  e.hp=0;e.dead=true;
+ if(!onlineMode){if(e.type==='boss')discoverJournal('boss:'+e.bossId);else{discoverJournal('enemy:'+e.type);if(e.elite)discoverJournal('elite:'+e.elite)}}
+ if(e.secretGuard&&secretEncounter?.stage==='ambush'&&secretEncounter.w===wave){secretEncounter.remaining=Math.max(0,secretEncounter.remaining-1);if(secretEncounter.remaining===0)completeSecret();}
  if(soloRun&&!soloRun.closed){soloRun.kills++;if(!player.dead&&player.artifacts?.includes('soul'))player.hp=Math.min(player.maxhp,player.hp+2);if(e.elite){const owned=player.artifacts.concat(drops.filter(d=>d.type==='artifact').map(d=>d.artifact));const a=chooseArtifact(owned);if(a)drops.push({x:e.x,y:e.y,type:'artifact',artifact:a.id,life:1,pulse:0});else drops.push({x:e.x,y:e.y,type:'heal',value:35,life:24,pulse:0});toast(L('ELITE DEFEATED','ЭЛИТА ПОВЕРЖЕНА'));toastTimer=2.5;}}
  enemyDeathVoice(e.type);
  score+=e.type==='boss'?3200:e.elite?800:[100,170,220][enemyTier(e.type)];
@@ -2102,6 +2163,23 @@ function finishEnemyDeath(e){
  }
 }
 
+function completeSecret(){
+ const event=secretEncounter,n=secretReward(meta,soloRun,event);if(!n)return;
+ discoverJournal('story:'+event.map);saveMeta();
+ const x=clamp(event.x,arena.l+10,arena.r-10),y=clamp(event.y,arena.t+10,arena.b-10);
+ drops.push({x,y,type:'heal',value:30,life:24,pulse:0});
+ spawnParticles(x,y,22,arenaStories[event.map].color,1.2);ring(x,y,10,arenaStories[event.map].color,.55,44);
+ toast(L('SECRET CLEARED · STORY UNLOCKED','ТАЙНИК ЗАЧИЩЕН · ИСТОРИЯ ОТКРЫТА')+' · ◆ +'+n);toastTimer=4;
+}
+function updateSecret(){
+ const event=secretEncounter;if(!event||event.stage!=='sealed'||!soloRun||state!=='game'||waveState!=='fighting'||player.dead)return;
+ if(Math.hypot(player.x-event.x,player.y-event.y)>23)return;
+ event.stage='ambush';event.remaining=2;
+ const pool=arenaEnemyPool(event.map,wave),a=Math.random()*TAU;
+ for(let i=0;i<2;i++){const angle=a+i*Math.PI;const e=spawnEnemy(pool[i%pool.length],{x:event.x+Math.cos(angle)*86,y:event.y+Math.sin(angle)*86});e.secretGuard=true;e.hp*=1.4;e.maxhp=e.hp;}
+ ring(event.x,event.y,12,arenaStories[event.map].color,.65,65);
+ toast(L('CACHE AMBUSH · DEFEAT TWO GUARDS','ЗАСАДА · ПОБЕДИ ДВУХ СТРАЖЕЙ'));toastTimer=3.5;
+}
 function scheduleHazard(x,y,radius,damage,delay=.75,source=null,kind=null){
  hazards.push({x,y,radius,damage,remaining:delay,duration:delay,source,kind});
 }
@@ -2402,7 +2480,7 @@ function update(dt){
  camera.x=clamp(camera.x,W/2,world.w-W/2);camera.y=clamp(camera.y,H/2,world.h-H/2);
  horrorTime+=dt;for(const p of coopPlayers()){p.fire=Math.max(0,p.fire-dt);p.dash=Math.max(0,p.dash-dt);p.inv=Math.max(0,p.inv-dt)}
  if(!player.dead&&(mouse.down||touchInput.attack))attack();
- updateEnemies(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);updateFx(dt);
+ if(state==='game')updateSecret();updateEnemies(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);updateFx(dt);
  enemies=enemies.filter(e=>!e.dead);
  if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if(waveTime>=delay||enemies.length===0){waveTime=0;spawnEnemy();spawned++}}
  if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';between=soloRun?4:1.6;let reward=0;if(soloRun){reward=clearWaveReward(meta,soloRun,wave,selectedMap);saveMeta()}toast(L('WAVE CLEARED · COLLECT XP','ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')+(reward?' · ◆ +'+reward:''));toastTimer=2.5}
@@ -2709,6 +2787,18 @@ function paintCombatProjectile(g,p){
  g.globalAlpha=.9;g.strokeStyle=p.color||'#d9c3a0';g.lineWidth=w;g.beginPath();g.moveTo(x-dx*(tail-3),y-dy*(tail-3));g.lineTo(x,y);g.stroke();
  g.globalAlpha=1;g.fillStyle=p.color||'#d9c3a0';g.fillRect(x-w/2,y-w/2,w,w);g.fillStyle=p.enemy?'#ffc6a4':'#f5edcf';g.fillRect(x-1,y-1,2,2);g.restore();
 }
+function paintSecret(g,event,time){
+ if(!event||event.stage==='done')return;const q=arenaStories[event.map],x=Math.round(event.x),y=Math.round(event.y),pulse=reduceMotion?0:Math.round(Math.sin(time*3)*2);
+ g.save();g.translate(x,y);g.fillStyle='#100d18';g.fillRect(-13,7,26,4);g.strokeStyle=q.color;g.lineWidth=1;g.beginPath();g.arc(0,0,24,0,TAU);g.stroke();
+ g.fillStyle='#221a25';g.fillRect(-11,-10,22,18);g.fillStyle='#80604e';g.fillRect(-10,-9,20,5);g.fillStyle='#4b3748';g.fillRect(-9,-4,18,11);g.fillStyle=q.color;g.fillRect(-3,-4,6,7);g.fillRect(-8,-8,16,1);
+ g.fillStyle=q.color;g.fillRect(-1,-20+pulse,2,6);g.fillRect(-1,-11+pulse,2,2);g.restore();
+}
+function paintSecretDirection(g,event,view){
+ if(!event||event.stage!=='sealed'||state!=='game'||waveState!=='fighting')return;
+ const x=event.x-view.x,y=event.y-view.y;if(x>=16&&x<=W-16&&y>=22&&y<=H-22)return;
+ const dx=x-W/2,dy=y-H/2,k=Math.min((W/2-22)/Math.max(1,Math.abs(dx)),(H/2-36)/Math.max(1,Math.abs(dy)));
+ g.save();g.translate(Math.round(W/2+dx*k),Math.round(H/2+dy*k));g.rotate(Math.atan2(dy,dx));g.fillStyle=arenaStories[event.map].color;g.beginPath();g.moveTo(7,0);g.lineTo(0,-5);g.lineTo(-7,0);g.lineTo(0,5);g.closePath();g.fill();g.restore();
+}
 function paintArenaLighting(g,map,view){
  const {x,y,w,h}=view;g.save();g.fillStyle='rgba(10,12,15,.08)';g.fillRect(x,y,w,h);
  for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+85<x||lx-85>x+w||ly+85<y||ly-85>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,85);rad.addColorStop(0,terrainThemes[map.id].glow);rad.addColorStop(.35,terrainThemes[map.id].glow+'65');rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.23;g.fillStyle=rad;g.fillRect(lx-85,ly-85,170,170)}g.restore()
@@ -2720,6 +2810,9 @@ function draw(){
  ctx.translate(Math.round(W/2-camera.x),Math.round(H/2-camera.y));
  // Cached world scenery; actors and attack warnings are still rendered above it.
  ctx.drawImage(getTerrain(m.id),0,0);const view={x:camera.x-W/2,y:camera.y-H/2,w:W,h:H};paintArenaLighting(ctx,m,view);paintArenaAtmosphere(ctx,m.id,view,horrorTime);
+ // Local light falloff is behind actors and warning rings, never over threat indicators.
+ if(soloRun&&state!=='death'){const light=ctx.createRadialGradient(player.x,player.y,48,player.x,player.y,205);light.addColorStop(0,'rgba(0,0,0,0)');light.addColorStop(.65,'rgba(8,5,13,.035)');light.addColorStop(1,'rgba(8,5,13,.23)');ctx.fillStyle=light;ctx.fillRect(view.x,view.y,view.w,view.h)}
+ if(secretEncounter&&waveState==='fighting')paintSecret(ctx,secretEncounter,horrorTime);
  // blood stains and corpses
  for(const b of blood){ctx.globalAlpha=b.a;ctx.fillStyle='#4f0913';ctx.fillRect(Math.round(b.x-b.r),Math.round(b.y-b.r*.45),Math.max(2,Math.round(b.r*2)),Math.max(2,Math.round(b.r*.9)));ctx.fillStyle='#9f1829';ctx.fillRect(Math.round(b.x-b.r*.55),Math.round(b.y-b.r*.25),Math.max(2,Math.round(b.r*1.1)),Math.max(2,Math.round(b.r*.5)))}ctx.globalAlpha=1;
  // enemy warnings: fixed radius, shrinking countdown ring, no reliance on color alone
@@ -2742,6 +2835,7 @@ function draw(){
  const fogA=.018;ctx.save();ctx.globalAlpha=fogA;ctx.fillStyle=m.accent;ctx.fillRect(camera.x-W/2,camera.y-H/2,W,H);ctx.restore();
  if(state==='death'){const v=clamp((deathTimer-.35)/2.2,0,1);ctx.fillStyle='rgba(18,0,5,'+(0.18+v*.56)+')';ctx.fillRect(camera.x-W/2,camera.y-H/2,W,H);drawPixelText(L('DOOMED'),camera.x, camera.y-90,11,'#ef5862','center');if(deathTimer>.75)drawPixelText(T('dead'),camera.x,camera.y+102,12,'#ffcf8d','center');if(deathTimer>1.35)drawPixelText(L("DON'T LOOK BACK"),camera.x,camera.y+83,7,'#b83d49','center')}
  ctx.restore();
+ paintSecretDirection(ctx,secretEncounter,view);
  if(state==='game'){const p=onlineMode&&isOnlineGuest?player2:player;if(!p.dead){const px=Math.round(p.x-camera.x+W/2),py=Math.round(p.y-camera.y+H/2);if(px>=12&&px<W-12&&py>=18&&py<H-16){ctx.save();ctx.globalAlpha=.9;ctx.strokeStyle=p.dash<=0?'#b6c3a2':'#a67b69';ctx.lineWidth=1;ctx.beginPath();ctx.arc(px,py+12,12,Math.PI*.16,Math.PI*.84);ctx.stroke();ctx.restore()}}}
  // Tactical direction cue: guide the player to the nearest remaining enemy.
  if(state==='game'&&waveState==='fighting'){
@@ -2801,7 +2895,7 @@ function drawRemoteArrow(){
 function render(){drawRemoteArrow();ctx.save();if(shake>0&&!reduceMotion){ctx.translate(rndi(-Math.ceil(shake*10),Math.ceil(shake*10)),rndi(-Math.ceil(shake*10),Math.ceil(shake*10)))}draw();ctx.restore();}
 
 function updateTouchHud(p,selected,ability){const dash=document.getElementById('dashBtn'),bomb=document.getElementById('bombBtn');dash.style.setProperty('--charge',String(clamp(1-p.dash/ability.cooldown,0,1)));dash.classList.toggle('cooling',p.dash>0);document.getElementById('touchDashValue').textContent=p.dash>0?p.dash.toFixed(1):'';bomb.classList.toggle('empty',p.bomb<=0);document.getElementById('touchBombValue').textContent=p.bomb;for(const b of document.querySelectorAll('#mobileWeapons .mw')){const i=Number(b.dataset.weapon);b.classList.toggle('sel',i===selected);b.setAttribute('aria-pressed',String(i===selected));b.querySelector('.mwLv').textContent=(p.evolved?.[i]?'✦':'')+(p.weaponLevels?.[i]||1);b.classList.toggle('evolved',!!p.evolved?.[i]);b.querySelector('.mwCharge').style.width=(100*clamp(p.weaponCharge?.[i]??1,0,1))+'%';b.setAttribute('aria-label',locName(heroWeaponStats(p,i)))}}
-function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;const loot=document.getElementById('lootHud');loot.hidden=!soloRun;const lootText=soloRun?'◆ '+soloRun.earned+' · '+L('Loot','Артефакты')+' '+(localP.artifacts?.length||0)+'/9':'';if(loot.textContent!==lootText)loot.textContent=lootText;const dashReady=localP.dash<=0,ability=dashProfiles[localP.charId]||dashProfiles.scar;document.getElementById('dashHudLabel').textContent=locName(ability);const dashValue=document.getElementById('dashHudValue');dashValue.textContent=dashReady?(L("READY","ГОТОВ")):localP.dash.toFixed(1)+'s';dashValue.classList.toggle('abilityReady',dashReady);document.getElementById('dashHudFill').style.width=(clamp(1-localP.dash/ability.cooldown,0,1)*100)+'%';document.getElementById('bombHudLabel').textContent=L("BOMBS","БОМБЫ");document.getElementById('bombHudValue').textContent=localP.bomb;const remoteP=onlineMode&&isOnlineGuest?player:player2;const deathV=document.getElementById('remoteDeathVignette');if(deathV)deathV.style.display=(state==='game'&&coop&&remoteP.dead&&alivePlayers().length>0)?'block':'none';const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&localP.hp/localP.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display=relicOwned?'block':'none';relicEl.classList.toggle('relic-pulse',relicOwned)}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(localP.hp));document.getElementById('xpTxt').textContent=`${Math.floor(localP.xp)}/${localP.next}`;document.getElementById('lvlTxt').textContent=localP.lvl;const lp=document.getElementById('localLevelPanel');if(lp)lp.style.display=onlineMode?'block':'none';const ll=document.getElementById('localLvlTxt');if(ll)ll.textContent=localP.lvl;const lx=document.getElementById('localXpTxt');if(lx)lx.textContent=`${Math.floor(localP.xp)}/${localP.next}`;const lf=document.getElementById('localXpFill');if(lf)lf.style.width=clamp(localP.xp/localP.next*100,0,100)+'%';document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+(enemies.length+Math.max(0,targetCount-spawned));document.getElementById('hpFill').style.width=clamp(localP.hp/localP.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(localP.xp/localP.next*100,0,100)+'%';
+function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;const loot=document.getElementById('lootHud');loot.hidden=!soloRun;const lootText=soloRun?'◆ '+soloRun.earned+' · '+L('Loot','Артефакты')+' '+(localP.artifacts?.length||0)+'/9'+(secretEncounter?.stage==='sealed'&&waveState==='fighting'?' · '+L('Cache','Тайник'):secretEncounter?.stage==='ambush'?' · '+L('Guards','Стражи')+' '+secretEncounter.remaining:''):'';if(loot.textContent!==lootText)loot.textContent=lootText;const dashReady=localP.dash<=0,ability=dashProfiles[localP.charId]||dashProfiles.scar;document.getElementById('dashHudLabel').textContent=locName(ability);const dashValue=document.getElementById('dashHudValue');dashValue.textContent=dashReady?(L("READY","ГОТОВ")):localP.dash.toFixed(1)+'s';dashValue.classList.toggle('abilityReady',dashReady);document.getElementById('dashHudFill').style.width=(clamp(1-localP.dash/ability.cooldown,0,1)*100)+'%';document.getElementById('bombHudLabel').textContent=L("BOMBS","БОМБЫ");document.getElementById('bombHudValue').textContent=localP.bomb;const remoteP=onlineMode&&isOnlineGuest?player:player2;const deathV=document.getElementById('remoteDeathVignette');if(deathV)deathV.style.display=(state==='game'&&coop&&remoteP.dead&&alivePlayers().length>0)?'block':'none';const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&localP.hp/localP.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display=relicOwned?'block':'none';relicEl.classList.toggle('relic-pulse',relicOwned)}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(localP.hp));document.getElementById('xpTxt').textContent=`${Math.floor(localP.xp)}/${localP.next}`;document.getElementById('lvlTxt').textContent=localP.lvl;const lp=document.getElementById('localLevelPanel');if(lp)lp.style.display=onlineMode?'block':'none';const ll=document.getElementById('localLvlTxt');if(ll)ll.textContent=localP.lvl;const lx=document.getElementById('localXpTxt');if(lx)lx.textContent=`${Math.floor(localP.xp)}/${localP.next}`;const lf=document.getElementById('localXpFill');if(lf)lf.style.width=clamp(localP.xp/localP.next*100,0,100)+'%';document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+(enemies.length+Math.max(0,targetCount-spawned));document.getElementById('hpFill').style.width=clamp(localP.hp/localP.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(localP.xp/localP.next*100,0,100)+'%';
  if(boss){document.getElementById('bossHud').style.display='block';document.getElementById('bossName').textContent=locName(boss)+' · '+T('boss');document.getElementById('bossFill').style.width=clamp(boss.hp/boss.maxhp*100,0,100)+'%'}else document.getElementById('bossHud').style.display='none';
  const selectedWeapon=onlineMode&&isOnlineGuest?player2.weapon:weapon;updateTouchHud(localP,selectedWeapon,ability);const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.dataset.weapon=String(i);d.innerHTML=`<b>${w.key}</b> <span class="wn">${chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(w)}</span><span class="wlv">УР. ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG</span><span class="weaponCharge"><i></i></span><i class="cd"></i>`;d.onclick=()=>{if(onlineMode&&isOnlineGuest)player2.weapon=i;else weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===selectedWeapon);d.classList.toggle('evolved',!!localP.evolved?.[i]);d.querySelector('.wn').textContent=locName(heroWeaponStats(localP,i));d.querySelector('.wlv').textContent=`${L("LV","УР.")} ${localP.weaponLevels[i]} · ${Math.round(heroWeaponStats(localP,i).dmg*localP.boost.dmg)} DMG`;const chargeEl=d.querySelector('.weaponCharge i');const charge=clamp(localP.weaponCharge?.[i]??1,0,1);chargeEl.style.width=(charge*100)+'%';d.classList.toggle('charging',charge<.999);d.querySelector('.cd').textContent=i===selectedWeapon&&localP.fire>0?localP.fire.toFixed(1):''});syncInventoryArt(localP)}
 
