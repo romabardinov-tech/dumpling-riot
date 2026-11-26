@@ -807,18 +807,25 @@ const heroWeaponTune={
  assassin:[{d:1.0,r:1.12},{d:.82,r:1.16},{d:.88,r:1.3},{d:.82,r:1.2}],
  golem:[{d:.9,r:1.18},{d:.88,r:1.18},{d:.82,r:1.22},{d:.72,r:1.3}],warden:[{d:.95,r:1.16},{d:.9,r:1.1},{d:.95,r:1.18},{d:.84,r:1.18}],revenant:[{d:1,r:1.12},{d:.9,r:1.12},{d:.9,r:1.2},{d:.84,r:1.18}]
 };
+// V63: solo tuning, deliberately separate from co-op.
+const SOLO_WEAPON_FLOORS=[.20,.25,.42,.16];
+const SOLO_FOURTH_DAMAGE={scar:1.45,vesa:1.55,nyx:2.05,pelmage:2.65,assassin:1.25,golem:1.8,warden:2.05,revenant:1.65};
+function soloWeaponDamage(id,slot){return slot===3?(SOLO_FOURTH_DAMAGE[id]||1):1}
+function balancedCharge(rate,boost,hero,slot,solo){const floor=solo?SOLO_WEAPON_FLOORS[slot]:.28;const d=Math.max(floor,rate/boost);return hero==='assassin'&&slot===2?Math.max(d,2.8):d}
+function soloWaveCount(w){return w%5===0?1+Math.min(7+Math.floor(w*.9),22):w<=4?5+w*3:Math.min(10+Math.floor(w*2.35),42)}
+function soloBossBase(w){return 950+250*w+Math.max(0,w-5)*15}
+function soloEnemyScaling(w){return {hp:w<=3?.86+(w-1)*.05:1,speed:w<=3?.92+(w-1)*.04:1}}
+function soloRelic(p){p.maxhp+=20;p.hp=Math.min(p.maxhp,p.hp+Math.ceil(p.maxhp*.4));p.boost.dmg*=1.15;p.boost.rate*=1.08;p.boost.move*=1.05;p.bomb=Math.min(9,p.bomb+1)}
 function heroWeaponStats(p,i){
  const base=weapons[i],lv=(p&&Array.isArray(p.weaponLevels)?p.weaponLevels[i]:weaponLevels[i])||1,ch=chars.find(c=>c.id===(p&&p.charId))||chars[0],mult=(heroWeaponMods[ch.id]||heroWeaponMods.scar)[i]||1,tune=(heroWeaponTune[ch.id]||heroWeaponTune.scar)[i]||{d:1,r:1};
  const rateMod=ch.id==='assassin'?1.28:ch.id==='golem'?.72:ch.id==='pelmage'?1.08:1,speedMod=ch.id==='nyx'?1.32:ch.id==='assassin'?1.45:ch.id==='golem'?.78:ch.id==='pelmage'?1.2:1;
  const evo=p?.evolved?.[i]?evolutionPaths[i]:null;
- return {...base,name:(evo?'✦ ':'')+(ch.weaponNames?.[i]||base.name),enName:(evo?'✦ ':'')+(ch.enWeaponNames?.[i]||base.enName),dmg:base.dmg*mult*tune.d*(1+(lv-1)*.22)*(evo?.damage||1),rate:base.rate*tune.r*Math.pow(.95,lv-1)/rateMod*(evo?.rate||1),speed:base.speed*speedMod*(1+(lv-1)*.045),pierce:base.pierce+Math.floor((lv-1)/4),element:weaponElement(ch.id,i),level:lv};
+ return {...base,name:(evo?'✦ ':'')+(ch.weaponNames?.[i]||base.name),enName:(evo?'✦ ':'')+(ch.enWeaponNames?.[i]||base.enName),dmg:base.dmg*mult*tune.d*(!coop&&!onlineMode?soloWeaponDamage(ch.id,i):1)*(1+(lv-1)*.22)*(evo?.damage||1),rate:base.rate*tune.r*Math.pow(.95,lv-1)/rateMod*(evo?.rate||1),speed:base.speed*speedMod*(1+(lv-1)*.045),pierce:base.pierce+Math.floor((lv-1)/4),element:weaponElement(ch.id,i),level:lv};
 }
 function weaponStats(i){return heroWeaponStats(player,i);}
 function weaponChargeDuration(p,i){
  const w=heroWeaponStats(p,i);
- let d=Math.max(.28,w.rate/p.boost.rate);
- if(p.charId==='assassin'&&i===2)d=Math.max(d,2.8);
- return d;
+ return balancedCharge(w.rate,p.boost.rate,p.charId,i,!coop&&!onlineMode);
 }
 function rechargeWeapons(p,dt){
  if(!p||p.dead)return;
@@ -890,7 +897,7 @@ const runArtifacts=[
  {id:'void',rarity:'legendary',en:'Void compass',ru:'Компас пустоты',descEn:'XP attraction radius ×2',descRu:'Радиус притяжения опыта ×2'}
 ];
 // V53: temporary run currency and optional rest-stop merchant.
-const merchantPrices={rare:30,epic:45,legendary:65};
+const merchantPrices={rare:28,epic:48,legendary:72};
 const merchantServices=[
  {id:'heal',en:'Bandages',ru:'Перевязка',descEn:'Restore 35% of maximum HP',descRu:'Восстановить 35% максимального HP',price:12},
  {id:'bomb',en:'Powder bag',ru:'Мешок пороха',descEn:'+2 bombs (maximum 9)',descRu:'+2 бомбы (максимум 9)',price:14},
@@ -2338,12 +2345,12 @@ function beginWave(){
  // In two-player mode the arena gets a real co-op population boost.
  targetCount=coop
    ? (bossWave?1+Math.min(11+Math.floor(wave*1.2),28):Math.min(16+Math.floor(wave*3.2),56))
-   : (bossWave?1+Math.min(7+Math.floor(wave*.9),22):Math.min(10+Math.floor(wave*2.35),42));
+   : soloWaveCount(wave);
  targetCount+=activeOmen.count;
  document.getElementById('bossHud').style.display='none';
  if(bossWave||hidden){
    if(hidden)targetCount=Math.max(5,Math.floor(targetCount*.55));
-   boss=makeBoss(wave,hidden);if(soloRun){const q=contractFor(soloRun.contract);boss.hp*=q.hp;boss.maxhp=boss.hp;boss.speed*=q.speed}enemies.push(boss);spawned=1;
+   boss=makeBoss(wave,hidden);if(soloRun){const q=contractFor(soloRun.contract);boss.hp*=q.hp;boss.maxhp=boss.hp;boss.speed=Math.min(145,boss.speed*q.speed)}enemies.push(boss);spawned=1;
    initAudio();bossDialogue(boss,true);
  }
  const first=waveSpawnBudget(wave,coop,targetCount);
@@ -2352,7 +2359,7 @@ function beginWave(){
  toast((L("WAVE ","ВОЛНА "))+wave+(bossWave?(L(" · BOSS INCOMING"," · БОСС")) : activeOmen.id!=='none'?' · '+metaLabel(activeOmen):''));if(activeOmen.id!=='none')toastTimer=3;if(secretEncounter){toast(L('HIDDEN CACHE NEARBY','ПОБЛИЗОСТИ ТАЙНИК'));toastTimer=3;}if(soloRun&&eliteWave(wave)){toast(L('ELITE HUNT','ОХОТА НА ЭЛИТУ')+' · '+metaLabel(eliteProfiles[selectedMap]));toastTimer=3.5;}if(hidden){toast(L('HIDDEN HORROR','СКРЫТЫЙ УЖАС')+' · '+L(hidden.name,hidden.ru));toastTimer=4;}
 }
 function makeBoss(w,hidden=null){
- const p=hidden||(soloRun?.campaign&&w===FINAL_WAVE?finalBossProfile:bossForMap(selectedMap,w)),hp=Math.round((1750+w*265)*p.hp),pos=enemySpawnPoint(camera,alivePlayers().length?alivePlayers():[player],arena);
+ const p=hidden||(soloRun?.campaign&&w===FINAL_WAVE?finalBossProfile:bossForMap(selectedMap,w)),hp=Math.round((soloRun?soloBossBase(w):1750+w*265)*p.hp),pos=enemySpawnPoint(camera,alivePlayers().length?alivePlayers():[player],arena);
  return {type:'boss',bossId:p.id,name:p.ru||additionalRussian[p.name],enName:p.name,x:pos.x,y:pos.y,hp,maxhp:hp,speed:(44+w*2.4)*p.speed,r:25+(p.kind===5?7:0),hit:0,phase:rnd(0,TAU),attack:.65,kind:p.kind,lunge:0,stage:1,hitT:0,hitLean:0,dashTimer:rnd(.8,1.6),specialTimer:rnd(1.2,2.2),nextTaunt:0};
 }
 function enemySpawnPoint(focus,players,area,random=Math.random){
@@ -2371,7 +2378,7 @@ function spawnEnemy(forcedType=null,position=null){
  const pool=arenaEnemyPool(selectedMap,wave);
  const type=forcedType&&arenaEnemyRoster[selectedMap]?.includes(forcedType)?forcedType:arenaEnemyType(selectedMap,wave);
  const pos=position||enemySpawnPoint(camera,alivePlayers().length?alivePlayers():[player],arena);
- const e=makeArenaEnemy(type,clamp(pos.x,arena.l+8,arena.r-8),clamp(pos.y,arena.t+8,arena.b-8),wave);if(soloRun){const q=contractFor(soloRun.contract);e.hp*=q.hp*activeOmen.hp;e.maxhp=e.hp;e.speed*=q.speed*activeOmen.speed}enemies.push(e);return e;
+ const e=makeArenaEnemy(type,clamp(pos.x,arena.l+8,arena.r-8),clamp(pos.y,arena.t+8,arena.b-8),wave);if(soloRun){const q=contractFor(soloRun.contract);const balance=soloEnemyScaling(wave);e.hp*=q.hp*activeOmen.hp*balance.hp;e.maxhp=e.hp;e.speed=Math.min(165,e.speed*q.speed*activeOmen.speed*balance.speed)}enemies.push(e);return e;
 }
 
 // V61: presentation only; bounded effects never change collisions or damage.
@@ -2566,7 +2573,7 @@ function attackFor(p,weaponIndex,target=null){
  const ang=Math.atan2(ty-p.y,tx-p.x);p.aim=ang;
  p.weaponCharge[weaponIndex]=0;
  p.shivCharge=p.weaponCharge[2];
- p.fire=w.rate/p.boost.rate;p.recoilT=.14;p.recoilSlot=weaponIndex;p.recoilAim=ang;
+ p.fire=soloRun?Math.min(weaponChargeDuration(p,weaponIndex),.18):w.rate/p.boost.rate;p.recoilT=.14;p.recoilSlot=weaponIndex;p.recoilAim=ang;
  const element=soloRun?w.element:null;
  const damage=w.dmg*p.boost.dmg*(Math.random()<p.boost.crit?2:1)*(soloRun&&hasCombo(p,'predator')?1.15:1);
  const wide=p.heroUpgrades?.includes('wide'),pierceBonus=p.heroUpgrades?.includes('pierce')?2:0;
@@ -2964,7 +2971,7 @@ function updateRings(dt){
 }
 function enemyXPValue(type){return type==='boss'?150:[34,42,50][enemyTier(type)]}
 function dropEnemyXP(e){
- const value=e.elite?120:enemyXPValue(e.type),count=e.type==='boss'?5:e.elite?3:1;
+ const value=e.elite?120:e.type==='boss'&&soloRun?250:enemyXPValue(e.type),count=e.type==='boss'?5:e.elite?3:1;
  for(let i=0;i<count;i++){
   const angle=i*Math.PI*2/count,dist=count>1?16:0;
   drops.push({x:clamp(e.x+Math.cos(angle)*dist,arena.l+5,arena.r-5),y:clamp(e.y+Math.sin(angle)*dist,arena.t+5,arena.b-5),type:'xp',value:value/count,life:1,pulse:i*.3});
@@ -2986,8 +2993,8 @@ function updateDrops(dt){
    if(dist<13){d.life=0;const value=Math.max(1,Math.floor(d.value||15));spawnParticles(d.x,d.y,10,'#85f0bd',.65);sfx('pickup');floatText(d.x,d.y-15,'+'+value+' XP','#a5f2c9');gainXPFor(cp,value,true)}
   }else if(d.type==='artifact'&&dist<20){const a=artifactById(d.artifact);d.life=0;const before=activeCombos(cp).map(q=>q.id);if(a&&applyArtifact(cp,a.id)){const unlocked=activeCombos(cp).find(q=>!before.includes(q.id));const rarity=lootRarities[a.rarity];spawnParticles(d.x,d.y,24,rarity.color,1.2);ring(d.x,d.y,12,rarity.color,.5,40);sfx('pickup');toast(unlocked?L('SYNERGY','СИНЕРГИЯ')+' · '+metaLabel(unlocked)+' · '+metaDesc(unlocked):metaLabel(rarity)+' · '+metaLabel(a)+' · '+metaDesc(a));toastTimer=4;}}
   else if(d.type==='relic'&&dist<18){
-   relicOwned=true;for(const p of coopPlayers()){p.maxhp+=50;p.hp=p.maxhp;p.boost.dmg*=1.28;p.boost.rate*=1.12;p.boost.move*=1.12;p.bomb=Math.min(9,p.bomb+2)}
-   d.life=0;spawnParticles(d.x,d.y,30,'#cf79ff',1.8);ring(d.x,d.y,18,'#cf79ff',.65,55);floatText(d.x,d.y-15,L('RELIC COLLECTED','РЕЛИКВИЯ ПОЛУЧЕНА'),'#e0a6ff');toast(L('RELIC COLLECTED','РЕЛИКВИЯ ПОЛУЧЕНА'))
+   relicOwned=true;for(const p of coopPlayers()){if(soloRun)soloRelic(p);else{p.maxhp+=50;p.hp=p.maxhp;p.boost.dmg*=1.28;p.boost.rate*=1.12;p.boost.move*=1.12;p.bomb=Math.min(9,p.bomb+2)}}
+   d.life=0;spawnParticles(d.x,d.y,30,'#cf79ff',1.8);ring(d.x,d.y,18,'#cf79ff',.65,55);floatText(d.x,d.y-15,L('RELIC COLLECTED','РЕЛИКВИЯ ПОЛУЧЕНА'),'#e0a6ff');toast(soloRun?L('RELIC · +20 max HP · +15% damage','РЕЛИКВИЯ · +20 макс. HP · +15% урона'):L('RELIC COLLECTED','РЕЛИКВИЯ ПОЛУЧЕНА'))
   }else if(d.type==='heal'&&dist<15&&cp.hp<cp.maxhp){const healed=Math.min(d.value||18,cp.maxhp-cp.hp);cp.hp+=healed;d.life=0;spawnParticles(d.x,d.y,10,'#a9e6aa',.7);floatText(d.x,d.y-15,'+'+Math.round(healed)+' HP','#a9e6aa');sfx('pickup')}
   else if(d.type==='bomb'&&dist<13){cp.bomb=Math.min(9,cp.bomb+1);d.life=0;spawnParticles(d.x,d.y,8,'#f0b04e',.6)}
  }
