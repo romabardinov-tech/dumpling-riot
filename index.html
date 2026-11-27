@@ -2973,6 +2973,44 @@ function paintForestAtmosphere(g,view,time){
  }
  g.restore();
 }
+// V75.19 — static environmental storytelling, cached with terrain, plus restrained boss atmosphere.
+const arenaDreadProfiles={
+ kitchen:['#34252b','#75403c','#ba7860',0],basement:['#1b292f','#36525d','#78a9b6',1],foodcourt:['#302435','#70496b','#b68ca9',2],
+ slaughter:['#33252b','#71423d','#a48477',3],cemetery:['#26312e','#48514e','#9eaca0',4],forest:['#202c24','#40513b','#8ca275',5]
+};
+function paintArenaDreadBase(g,id,left,top,width,height,area){
+ const q=arenaDreadProfiles[id];if(!q)return;const [dark,mid,hi,kind]=q,right=left+width,bottom=top+height;
+ const R=(col,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(col,p)=>{g.fillStyle=col;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ g.save();
+ // Stable, sparse locations, no collision geometry. Keep navigation fixtures unobstructed.
+ for(let row=0;row<7;row++)for(let col=0;col<12;col++){
+ const x=area.l+50+col*(area.r-area.l-100)/11+Math.round(Math.sin(row*19+col*7+kind)*18),y=area.t+40+row*(area.b-area.t-80)/6+Math.round(Math.cos(col*13+row*5+kind)*18);
+ if(x<left-40||x>right+40||y<top-40||y>bottom+40||x<area.l+12||x>area.r-12||y<area.t+12||y>area.b-12)continue;
+ if((row*3+col+kind)%4===0)continue;
+ if((row+col)%3===0){R(dark,x-18,y-4,36,8);R(mid,x-12,y-2,23,3);R(dark,x-6,y+4,13,2)}
+ if(kind===0){R(dark,x-10,y-12,20,18);R(mid,x-8,y-10,16,14);R(dark,x-4,y-7,8,9);R(hi,x-2,y-5,2,5);R(dark,x+11,y-3,12,2);R(mid,x+18,y-1,2,4)}
+ else if(kind===1){P(dark,[x-18,y-5,x-5,y-9,x+8,y-3,x+15,y+8,x+7,y+12,x-8,y+3]);R(mid,x-12,y-5,13,2);R(mid,x+1,y-2,4,9);R(hi,x+6,y+7,3,2);R(dark,x+10,y+3,14,2)}
+ else if(kind===2){R(dark,x-11,y-13,22,20);R(mid,x-9,y-11,18,14);R(dark,x-6,y-8,12,7);R(hi,x-5,y-7,3,1);R(hi,x+2,y-7,3,1);R(dark,x-4,y-4,8,2);R(mid,x+12,y+3,8,1)}
+ else if(kind===3){R(dark,x-17,y-4,34,9);for(let i=-14;i<=14;i+=7){R(mid,x+i,y-3,4,6);R(dark,x+i+1,y-2,2,3)}P(mid,[x-10,y-8,x-6,y-19,x-4,y-18,x-6,y-8]);R(hi,x-7,y-13,1,5)}
+ else if(kind===4){P(dark,[x-16,y-3,x-7,y-11,x+12,y-10,x+17,y+4,x-11,y+8]);R(mid,x-8,y-8,15,2);R(dark,x-3,y-17,6,15);R(mid,x-2,y-16,4,11);R(mid,x-6,y-13,12,3);R(hi,x-2,y-16,1,3)}
+ else {P(dark,[x-21,y+5,x-8,y-5,x-4,y-17,x+1,y-9,x+10,y-8,x+21,y+4,x+10,y+2,x+3,y+9,x-6,y+3]);R(mid,x-8,y-4,3,9);R(mid,x+3,y+1,11,2);R(hi,x-2,y-7,2,2);R(hi,x+4,y-7,2,2)}
+ }
+ g.restore()
+}
+function paintArenaDreadTension(g,id,view,time,b,less=false){
+ const q=arenaDreadProfiles[id];if(!q)return;const f=bossFuryLevel(b),[dark,mid,hi,kind]=q,{x,y,w,h}=view,clock=less?0:time;
+ g.save();g.globalAlpha=.065+f*.045;g.fillStyle=dark;g.fillRect(x,y,w,h);
+ // Ground-hugging wisps; no flashing or obscuring attack warnings.
+ for(let cy=Math.floor(y/90)*90;cy<y+h;cy+=90)for(let cx=Math.floor(x/120)*120;cx<x+w;cx+=120){
+ const a=Math.sin(cx*.017+cy*.013+kind)*.5+.5,px=cx+20+a*75+Math.sin(clock*.45+a*6)*9,py=cy+25+a*45;
+ g.globalAlpha=.07+f*.035;g.fillStyle=mid;g.fillRect(Math.round(px-18),Math.round(py),36,4);g.fillRect(Math.round(px-10),Math.round(py-2),23,2);
+ if(f&&a>.6){g.globalAlpha=.30+f*.12;g.fillStyle=hi;g.fillRect(Math.round(px),Math.round(py-8),2,1);g.fillRect(Math.round(px+5),Math.round(py-8),2,1)}
+ }
+ if(f){g.globalAlpha=.08+f*.045;g.fillStyle=mid;const edge=9+f*5;g.fillRect(x,y,w,edge);g.fillRect(x,y+h-edge,w,edge);g.fillRect(x,y,edge,h);g.fillRect(x+w-edge,y,edge,h)}
+ g.restore()
+}
+
 function paintTerrain(g,id,left,top,width,height){
  const t=terrainThemes[id]||terrainThemes.kitchen,right=left+width,bottom=top+height,natural=id==='cemetery'||id==='forest';
  const R=(color,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
@@ -3054,7 +3092,7 @@ function paintTerrain(g,id,left,top,width,height){
   else{plate(x,y+7,65,34,t.tile,t.edge,t.trim);if(id==='kitchen'){R('#171d20',x+7,y+13,51,13);for(let j=0;j<4;j++){R('#555f5d',x+10+j*12,y+15,7,8);R('#9b8270',x+10+j*12,y+15,7,1)}}else if(id==='foodcourt'){R('#2f2e34',x+8,y+12,49,21);R('#bc8b69',x+12,y+15,41,2);R('#4d7773',x+12,y+21,25,2)}else{grate(x+8,y+12,49,20,t.tile,t.trim)}}
  }
  if(id==='kitchen')paintKitchenDetail(g,left,top,width,height);else if(id==='basement')paintBasementDetail(g,left,top,width,height);else if(id==='foodcourt')paintFoodcourtDetail(g,left,top,width,height);else if(id==='slaughter')paintSlaughterDetail(g,left,top,width,height);else if(id==='cemetery')paintCemeteryDetail(g,left,top,width,height);else if(id==='forest')paintForestDetail(g,left,top,width,height);
- paintArenaFeatures(g,id,left,top,width,height);paintArenaIdentity(g,id,left,top,width,height);
+ paintArenaDreadBase(g,id,left,top,width,height,arena);paintArenaFeatures(g,id,left,top,width,height);paintArenaIdentity(g,id,left,top,width,height);
  // Sparse ground lanterns, placed to support navigation instead of repeating a grid.
  for(const [x,y] of arenaLights[id]||arenaLights.kitchen){
   R(t.edge,x-5,y-4,10,8);R(t.trim,x-4,y-3,8,6);R(t.glow,x-3,y-2,6,4);R('#eadac0',x-2,y-1,2,1)
@@ -4460,6 +4498,7 @@ function paintBossDeath(g,q,t){
  if(q.bossId>=13)paintHiddenBoss(g,bossProfile(q),q.stage||1,0,false);
  else if(q.bossId===12)paintFinalBoss(g,q.stage||1,0,false);
  else paintRosterBoss(g,q,0,false,false);
+ paintBossFury(g,q,0,true,2);
  g.restore();
  g.save();ring(12+reach*u,primary,.38*fade);
  if(mode==='bell'||mode==='void'||mode==='furnace')ring(8+reach*.78*u,accent,.26*fade);
@@ -5287,7 +5326,7 @@ function bossVolleyPattern(id,stage,angle,cycle=0){
  return out;
 }
 function bossVolleyTiming(id,stage){const p=bossVolleyFor(id),s=Math.max(1,Math.min(3,stage||1));return {windup:Math.max(.36,p[0]-(s-1)*.045),cadence:Math.max(.72,p[1]-(s-1)*.23),recovery:.23}}
-function fireBossVolley(e,shots){const color=bossProfile(e).color;for(const q of shots)projectiles.push({x:e.x,y:e.y,vx:Math.cos(q.angle)*q.speed,vy:Math.sin(q.angle)*q.speed,life:2.25,r:q.radius,damage:q.damage,pierce:99,color,enemy:true});}
+function fireBossVolley(e,shots){const color=bossProfile(e).color,speed=bossFuryBonus(e).projectile;for(const q of shots)projectiles.push({x:e.x,y:e.y,vx:Math.cos(q.angle)*q.speed*speed,vy:Math.sin(q.angle)*q.speed*speed,life:2.25,r:q.radius,damage:q.damage,pierce:99,color,enemy:true});}
 
 function startBossCombo(e,tp,area,legacy){
  const cycle=e.comboCycle||0;
@@ -5357,7 +5396,7 @@ function updateEnemies(dt){
    if(!recovering&&!hold&&!e.volley)e.attack-=dt;
    if(!comboBusy&&!hold)e.dashTimer-=dt;
    if(!hold)e.specialTimer-=dt;
-   const rage=e.stage===3?2.15:e.stage===2?1.72:1.30;
+   const fury=bossFuryBonus(e),rage=e.stage===3?2.15:e.stage===2?1.72:1.30;
    // Telegraph the charge before moving to the locked destination.
    if(e.charge){e.charge.left-=dt;if(e.charge.left<=0){e.x=e.charge.x;e.y=e.charge.y;e.charge=null;if(encounters){e.chargeRecover=bossEncounterFor(e.bossId)[1];hold=true;}ring(e.x,e.y,28,'#ff4055',.25,54);spawnParticles(e.x,e.y,16,'#ff4055',1.5);shake=Math.max(shake,.08)}}
    else if(e.dashTimer<=0&&!comboBusy&&!hold&&!e.volley&&e.specialTimer>0){
@@ -5366,7 +5405,7 @@ function updateEnemies(dt){
     e.charge={x:clamp(e.x+Math.cos(da)*length,arena.l+35,arena.r-35),y:clamp(e.y+Math.sin(da)*length,arena.t+35,arena.b-35),left:.48};
    }
    if(e.specialTimer<=0&&!comboBusy&&!hold&&!e.charge&&!e.volley&&!(e.lunge>0)){
-    e.specialTimer=(2.9+Math.random()*.9)/Math.sqrt(rage);
+    e.specialTimer=(2.9+Math.random()*.9)*fury.attack/Math.sqrt(rage);
     for(const h of startBossCombo(e,tp,arena,bossSpecialPattern))scheduleHazard(h.x,h.y,h.radius,h.damage,h.delay,e);
     e.specialTimer=Math.max(e.specialTimer,(e.comboRecover||0)+.45);
 
@@ -5375,12 +5414,12 @@ function updateEnemies(dt){
     if(!comboBusy&&!e.charge&&!e.volley&&e.specialTimer>0){
       const timing=bossVolleyTiming(e.bossId,e.stage),cycle=e.volleyCycle||0;
       e.volley={left:timing.windup,angle:Math.atan2(dy+(e.stage>=2?clamp((tp.vy||0)*.22,-30,30):0),dx+(e.stage>=2?clamp((tp.vx||0)*.22,-30,30):0)),stage:e.stage,cycle};
-      e.volleyCycle=cycle+1;e.attack=Math.max(.60,timing.cadence*.87);
+      e.volleyCycle=cycle+1;e.attack=Math.max(.60,timing.cadence*.87*fury.attack);
       ring(e.x,e.y,6,bossProfile(e).color,timing.windup,Math.min(36,e.r+5));
     }
    }
    const bm=(e.stage===3?1.56:e.stage===2?1.34:1.14)*(hold?.35:recovering?.42:1);
-   if(!e.charge&&!e.volley){if(e.kind===4&&e.lunge>0&&!recovering)e.x+=nx*230*dt,e.y+=ny*230*dt;else{e.x+=nx*e.speed*bm*dt;e.y+=ny*e.speed*bm*dt}}
+   if(!e.charge&&!e.volley){if(e.kind===4&&e.lunge>0&&!recovering)e.x+=nx*230*dt,e.y+=ny*230*dt;else{e.x+=nx*e.speed*bm*fury.speed*dt;e.y+=ny*e.speed*bm*fury.speed*dt}}
    e.x=clamp(e.x,arena.l+24,arena.r-24);e.y=clamp(e.y,arena.t+24,arena.b-24);
    if(Math.hypot(tp.x-e.x,tp.y-e.y)<42)enemyContactHit(tp,e,18+e.stage*4);
   }else if(e.type==='cableMite'){
@@ -7301,12 +7340,50 @@ function drawEvolvingEnemy(g,e,phase,round,less=false){
  paintWaveHorror(g,e.type,e.artWave??round,e.artSeed??0,phase,less)
 }
 
+// V75.19 — health-driven boss anatomy, distinct material and anchors for each identity.
+const bossFuryArt=[
+ ['jaw',-26,-18,22,25,'#87424a','#e8c3a6'],['vent',-11,0,32,29,'#965b37','#ffc480'],
+ ['coil',-17,-2,23,25,'#375b73','#b0eaff'],['pipe',-16,-1,28,27,'#42696b','#b6e6d5'],
+ ['mask',-21,-14,19,22,'#873e78','#ffb7e9'],['cabinet',-20,0,32,27,'#726041','#ffe2a0'],
+ ['blade',-16,-5,22,24,'#68535a','#ead4b9'],['maw',-12,-2,34,30,'#88494a','#edb7a0'],
+ ['veil',-27,-18,16,21,'#67507d','#dfc6ff'],['bone',-26,-15,20,22,'#756653','#eee2bc'],
+ ['spore',-11,4,25,28,'#536b45','#cbeea0'],['root',-22,-12,20,23,'#5f5038','#bfe79d'],
+ ['void',-23,-7,26,25,'#5b386d','#e8bcff'],['bell',-15,5,31,25,'#826144','#f9d299'],
+ ['widow',-25,-10,25,23,'#3d6964','#b9f1df']
+];
+function bossFuryLevel(e){if(!e||e.dead||!(e.maxhp>0))return 0;const ratio=e.hp/e.maxhp;return ratio<=.30?2:ratio<=.60?1:0}
+function bossFuryBonus(e){const f=bossFuryLevel(e);return f===2?{speed:1.12,attack:.88,projectile:1.10}:f===1?{speed:1.06,attack:.94,projectile:1.05}:{speed:1,attack:1,projectile:1}}
+function paintBossFury(g,e,phase=0,less=false,forced=null){
+ const f=forced??bossFuryLevel(e);if(!f)return false;
+ const [kind,ey,my,width,shoulder,mid,hot]=bossFuryArt[e.bossId]||bossFuryArt[0],ink='#120c17',bone='#e7d3bc',t=less?0:Math.round(Math.sin(phase*(f===2?2.8:1.7))*f),gap=3+f*3+Math.max(0,t),hw=Math.floor(width/2);
+ const R=(col,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(col,p)=>{g.fillStyle=col;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ g.save();
+ // Cracked armor or mask and a growing opening in the face/reactor.
+ for(const s of [-1,1]){P(ink,[s*4,ey-7,s*10,ey-2,s*7,ey+2,s*13,ey+7,s*10,ey+8,s*4,ey+3]);R(hot,s<0?-10:5,ey,5+f,2+Math.floor(f/2));R(bone,s<0?-8:6,ey,2,1)}
+ R(mid,-hw-2,my-2,width+4,gap+5);R(ink,-hw,my,width,gap+2);
+ const metal=['vent','coil','pipe','cabinet','blade','bell'].includes(kind),spectral=['veil','void','widow'].includes(kind);
+ if(metal){for(let i=-hw+2;i<hw-1;i+=5){R(hot,i,my+1,2,gap);R('#a9a19b',i+2,my-1,2,3)}R(hot,-hw+3,my+gap+1,width-6,2)}
+ else if(spectral){P(mid,[-hw+2,my+1,0,my+gap+1,hw-2,my+1,0,my-1]);R(hot,-3,my+1,6,gap);for(let i=-hw+2;i<hw-1;i+=5)R(bone,i,my,2,2)}
+ else{for(let i=-hw+1;i<hw-1;i+=4){R(bone,i,my,2,2+f);R(bone,i+1,my+gap,1,2)}R(mid,-hw+3,my+gap-2,width-6,1)}
+ for(const s of [-1,1]){
+ const x=s*shoulder,y=-20+(e.bossId%3)*3,reach=8+f*5;
+ if(kind==='coil'||kind==='pipe'||kind==='vent'||kind==='bell'){P(ink,[x-s*4,y+3,x+s*3,y-9,x+s*reach,y-11,x+s*(reach+3),y+1+t,x+s*4,y+7]);R(mid,x+s*(reach-4),y-8,5,8);R(hot,x+s*(reach-2),y-6,2,5)}
+ else if(kind==='spore'||kind==='root'){P(ink,[x-s*3,y+7,x+s*3,y-6,x+s*(reach+4),y-14-t,x+s*(reach-1),y-4,x+s*3,y+9]);P(mid,[x,y+5,x+s*3,y-4,x+s*(reach+1),y-11-t,x+s*5,y+5]);R(hot,x+s*(reach-2),y-9,3,3)}
+ else if(spectral){P(ink,[x-s*2,y+8,x+s*3,y-10,x+s*(reach+3),y-17+t,x+s*(reach-1),y-5,x+s*3,y+9]);P(mid,[x,y+4,x+s*3,y-7,x+s*reach,y-13+t,x+s*5,y+5]);R(hot,x+s*(reach-4),y-8+t,2,3)}
+ else{P(ink,[x-s*3,y+7,x+s*2,y-5,x+s*(reach+1),y-16-t,x+s*(reach-3),y-3,x+s*3,y+8]);P(mid,[x,y+5,x+s*3,y-4,x+s*(reach-1),y-12-t,x+s*4,y+5]);R(metal?'#b7bac0':bone,x+s*(reach-4),y-9-t,2,5)}
+ if(f===2){const yy=8+s*t;P(ink,[s*10,yy-3,s*22,yy-4,s*(shoulder+14),yy+8,s*(shoulder+7),yy+15,s*16,yy+8]);P(mid,[s*13,yy-1,s*22,yy-1,s*(shoulder+10),yy+8,s*(shoulder+6),yy+11,s*17,yy+6]);for(let i=0;i<3;i++)R(metal?'#b4b9b8':bone,s*(shoulder+6+i*2),yy+9+i,1,4)}
+ }
+ if(f===2){for(let i=0;i<3;i++){const x=-9+i*9,y=ey-9-(i%2)*5;R(ink,x-1,y-1,5,5);R(hot,x,y,3,2)}}
+ g.restore();return true
+}
+
 function drawEnemy(e){
  const motion=enemyMotionPose(e,reduceMotion||!horrorFx),phase=motion.phase,boss=e.type==='boss';
  ctx.save();ctx.translate(Math.round(e.x),Math.round(e.y));const shadow=boss?31:Math.max(9,e.r||9);paintActorContact(ctx,selectedMap,shadow,Math.round(shadow*.65));
- const feeding=state==='death'?feedingPose(e):null,chew=feeding&&!reduceMotion?feeding.open:0,corruption=boss||reduceMotion||!horrorFx?0:waveHorrorLevel(e.artWave??wave),strain=corruption*Math.sin(phase*2.1+(e.artSeed||0));
- ctx.save();ctx.translate(0,motion.bob+Math.round(chew*3));ctx.rotate(motion.lean+chew*.06+strain*.045);ctx.scale(motion.sx,motion.sy*(1+chew*.045+strain*.025));
- if(boss){if(e.bossId>=13)paintHiddenBoss(ctx,bossProfile(e),e.stage||1,phase,!!e.charge);else if(e.bossId===12)paintFinalBoss(ctx,e.stage||1,phase,!!e.charge);else paintRosterBoss(ctx,e,phase,!!e.charge)}else if(e.elite){const q=eliteProfiles[e.elite];ctx.save();ctx.scale(1.35,1.35);drawEvolvingEnemy(ctx,e,phase,wave,reduceMotion||!horrorFx);if(feeding)paintFeedingJaw(ctx,e);ctx.restore();ctx.fillStyle=q.color;ctx.fillRect(-10,-43,20,2);ctx.fillRect(-8,-47,4,4);ctx.fillRect(4,-47,4,4);ctx.fillRect(-2,-50,4,7);drawPixelText(metaLabel(q),0,-57,7,q.color,'center');}else if(e.champion){ctx.save();ctx.scale(1.24,1.24);drawEvolvingEnemy(ctx,e,phase,wave,reduceMotion||!horrorFx);if(feeding)paintFeedingJaw(ctx,e);paintChampion(ctx,e);ctx.restore()}else drawEvolvingEnemy(ctx,e,phase,wave,reduceMotion||!horrorFx);
+ const fury=boss?bossFuryLevel(e):0,furyT=reduceMotion||!horrorFx?0:fury*Math.sin(phase*2.6);const feeding=state==='death'?feedingPose(e):null,chew=feeding&&!reduceMotion?feeding.open:0,corruption=boss||reduceMotion||!horrorFx?0:waveHorrorLevel(e.artWave??wave),strain=corruption*Math.sin(phase*2.1+(e.artSeed||0));
+ ctx.save();ctx.translate(0,motion.bob+Math.round(chew*3));ctx.rotate(motion.lean+chew*.06+strain*.045+furyT*.035);ctx.scale(motion.sx*(1+furyT*.025),motion.sy*(1+chew*.045+strain*.025-furyT*.018));
+ if(boss){if(e.bossId>=13)paintHiddenBoss(ctx,bossProfile(e),e.stage||1,phase,!!e.charge);else if(e.bossId===12)paintFinalBoss(ctx,e.stage||1,phase,!!e.charge);else paintRosterBoss(ctx,e,phase,!!e.charge);paintBossFury(ctx,e,phase,reduceMotion||!horrorFx)}else if(e.elite){const q=eliteProfiles[e.elite];ctx.save();ctx.scale(1.35,1.35);drawEvolvingEnemy(ctx,e,phase,wave,reduceMotion||!horrorFx);if(feeding)paintFeedingJaw(ctx,e);ctx.restore();ctx.fillStyle=q.color;ctx.fillRect(-10,-43,20,2);ctx.fillRect(-8,-47,4,4);ctx.fillRect(4,-47,4,4);ctx.fillRect(-2,-50,4,7);drawPixelText(metaLabel(q),0,-57,7,q.color,'center');}else if(e.champion){ctx.save();ctx.scale(1.24,1.24);drawEvolvingEnemy(ctx,e,phase,wave,reduceMotion||!horrorFx);if(feeding)paintFeedingJaw(ctx,e);paintChampion(ctx,e);ctx.restore()}else drawEvolvingEnemy(ctx,e,phase,wave,reduceMotion||!horrorFx);
  if(feeding&&(boss||!e.elite&&!e.champion))paintFeedingJaw(ctx,e);
  ctx.restore();if(state==='game'&&waveState==='fighting')paintEnemyCue(ctx,e,motion.cue);
  if(boss){
@@ -7609,7 +7686,7 @@ function draw(){
  ctx.save();
  ctx.translate(Math.round(W/2-camera.x),Math.round(H/2-camera.y));
  // Cached world scenery; actors and attack warnings are still rendered above it.
- ctx.drawImage(getTerrain(m.id),0,0);const view={x:camera.x-W/2,y:camera.y-H/2,w:W,h:H};paintArenaLighting(ctx,m,view);paintArenaAtmosphere(ctx,m.id,view,horrorTime);paintArenaSignature(ctx,m.id,view,horrorTime);paintDynamicHorror(ctx,m.id,view);paintBreakables(ctx,view);
+ ctx.drawImage(getTerrain(m.id),0,0);const view={x:camera.x-W/2,y:camera.y-H/2,w:W,h:H};paintArenaLighting(ctx,m,view);paintArenaAtmosphere(ctx,m.id,view,horrorTime);paintArenaSignature(ctx,m.id,view,horrorTime);paintDynamicHorror(ctx,m.id,view);if(horrorFx)paintArenaDreadTension(ctx,m.id,view,horrorTime,boss,reduceMotion);paintBreakables(ctx,view);
  // Local light falloff is behind actors and warning rings, never over threat indicators.
  paintFloorVignette(ctx,m.id,view,soloRun&&state!=='death'?player:null,horrorFx);
  paintCombatGlows(ctx,rings,projectiles,view,horrorFx&&!reduceMotion&&state==='game'&&waveState==='fighting');
