@@ -5059,14 +5059,72 @@ function paintBossCrest(g,e){
  g.fillRect(-12,-47,24,2);
 }
 function paintHiddenBoss(g,p,stage,phase,charging){g.save();const R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(x,y,w,h)},ink='#140f1d',col=p.color;if(p.id===13){R(ink,-25,-35,50,54);R('#5b4034',-19,-30,38,43);R('#a17b4b',-15,-26,30,31);R(col,-19,4,38,6);R('#3a2730',-10,10,20,13);R(col,-4,17,8,8);R(ink,-9,-19,18,8);R(col,-6,-17,3,3);R(col,3,-17,3,3);for(const k of [-1,1]){R('#423039',k*28-5,-20,10,35);R(col,k*28-3,-20,6,5)}}else{R(ink,-26,-34,52,57);R('#30474d',-20,-29,40,45);R('#50756d',-14,-34,28,35);R(ink,-9,-25,18,19);R(col,-6,-21,4,3);R(col,2,-21,4,3);for(const k of [-1,1]){R('#44655f',k*21-6,-14,12,34);R(col,k*25-2,9,4,12);R('#2b4249',k*15-5,16,10,11)}R(col,-2,-5,4,12)}if(stage>=2){R(col,-14,-39,28,3);R(col,-23,-8,4,7);R(col,19,-8,4,7)}if(stage===3)R('#e87b87',-8,1,16,3);if(charging){g.strokeStyle=col;g.beginPath();g.arc(0,0,39,0,TAU);g.stroke()}g.restore()}
+// V70.7 — Final Nightmare: three bespoke forms of the Source of the Nightmare.
 function paintFinalBoss(g,stage=1,phase=0,charging=false){
- g.save();const R=(col,x,y,w,h)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),w,h)},pulse=reduceMotion?0:Math.round(Math.sin(phase)*3);
- R('#130d1d',-24,-36,48,58);R('#34213d',-20,-32,40,49);R('#5c3967',-16,-28,32,35);R('#21152f',-11,-26,22,29);
- for(const s of [-1,1]){R('#17101e',s*26-7,-22,14,47);R('#694573',s*26-4,-19,8,27);R('#aa79bc',s*29-2,-15,4,8);R('#382242',s*18-6,15,12,17);R('#c19ad5',s*15-3,-39,6,10)}
- R('#b9a0ca',-10,-35,20,6);R('#eac9ff',-7,-27,4,3);R('#eac9ff',3,-27,4,3);R('#f1b5ef',-5,-11,10,13);R('#fff0df',-2,-8,4,7);
- for(let i=0;i<6;i++){const a=i*Math.PI/3+(reduceMotion?0:phase*.13);const x=Math.cos(a)*36,y=Math.sin(a)*25-8;R('#35203e',x-4,y-4,8,8);R(stage===3?'#f08391':'#a67ec2',x-2,y-2,4,4)}
- if(stage>=2){R('#95669f',-16,3,32,3);R('#d2a5e9',-1,6,2,10)}if(stage>=3){R('#e27b91',-8,-15,16,2);R('#f6c4ad',-3,-15,6,2)}
- if(charging){g.strokeStyle='#f2c3e9';g.lineWidth=1;g.beginPath();g.arc(0,0,40+pulse,0,TAU);g.stroke()}g.restore()
+ const R=(c,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ const ink='#100912',t=reduceMotion||!Number.isFinite(phase)?0:phase,pulse=Math.round(Math.sin(t)*3),hot=stage===3?'#ffd6c7':stage===2?'#f2b5ed':'#cfadf5';
+ g.save();
+ // Six orbiting seals echo the original final-boss design. Draw behind the body.
+ for(let i=0;i<6;i++){
+  const a=i*Math.PI/3+t*.13,x=Math.round(Math.cos(a)*43),y=Math.round(Math.sin(a)*30-10);
+  P(ink,[x,y-6,x+6,y,x,y+6,x-6,y]);P('#694276',[x,y-4,x+4,y,x,y+4,x-4,y]);R(hot,x-1,y-1,2,2);
+ }
+ // Stage 1: sealed, floating reliquary with torn mantle and segmented arms.
+ const h=pulse;
+ P(ink,[-23,-31,-13,-44,13,-44,23,-31,28,-7,24,11,32,24,20,29,10,24+h,0,30,-10,24-h,-20,29,-32,24,-24,11,-28,-7]);
+ P('#3c294b',[-21,-30,-12,-42,12,-42,21,-30,26,-7,22,11,29,23,20,26,10,22+h,0,27,-10,22-h,-20,26,-29,23,-22,11,-26,-7]);
+ P('#715079',[-17,-29,-11,-39,-4,-37,-8,-9,-12,12,-22,22,-26,20,-19,5,-22,-6]);P('#50365d',[5,-38,12,-39,18,-29,22,-7,18,8,25,20,18,23,10,17,6,1]);
+ for(const s of [-1,1]){
+  const d=s*pulse,l=charging?-5:0;
+  P(ink,[s*21,-25,s*33,-31,s*42,-24,s*48,-10+d+l,s*48,8+d+l,s*39,17+d+l,s*30,12,s*22,0]);
+  P('#5d406b',[s*23,-24,s*33,-28,s*40,-22,s*45,-10+d+l,s*45,7+d+l,s*38,14+d+l,s*31,10,s*24,0]);
+  P('#9d77ad',[s*26,-23,s*33,-26,s*39,-20,s*42,-11+d+l,s*35,-8+d+l,s*29,-13]);
+  R('#392842',s<0?-44:34,-3+d+l,10,8);R(hot,s<0?-42:36,-1+d+l,6,3);
+  P('#a68bac',[s*34,9+d+l,s*45,7+d+l,s*48,12+d+l,s*40,18+d+l,s*34,15+d+l]);
+ }
+ // Broken halo crown, sealed face and central sigil.
+ P(ink,[-21,-39,-25,-49,-17,-46,-12,-56,-5,-48,0,-53,5,-48,12,-56,17,-46,25,-49,21,-39]);
+ P('#8a719a',[-19,-40,-22,-46,-16,-43,-12,-53,-5,-45,0,-50,5,-45,12,-53,16,-43,22,-46,19,-40]);
+ R(hot,-2,-48,4,6);R('#c1acd0',-16,-41,32,2);
+ P(ink,[-15,-35,-9,-42,9,-42,15,-35,13,-21,6,-14,-6,-14,-13,-21]);
+ P('#c3aecb',[-13,-34,-8,-40,8,-40,13,-34,11,-22,5,-16,-5,-16,-11,-22]);R('#8f709b',-11,-33,22,2);
+ R(ink,-11,-30,22,8);R(hot,-9,-28,6,3);R(hot,3,-28,6,3);R('#5e4968',-5,-20,10,3);
+ P(ink,[-13,-8,-6,-16,6,-16,13,-8,13,8,6,16,-6,16,-13,8]);P('#764c8c',[-11,-7,-5,-14,5,-14,11,-7,11,7,5,14,-5,14,-11,7]);
+ P(hot,[-6,-5,0,-11,6,-5,6,6,0,11,-6,6]);R('#f4e5fa',-2,-5,4,10);
+ for(const s of [-1,1]){R('#a288ad',s<0?-17:13,5,4,10);R('#c1a6c9',s<0?-16:14,6,2,2)}
+ if(stage>=2){
+  // Stage 2: split faceplate, exposed seam channels and jagged fragments.
+  P(ink,[-14,-38,-5,-35,-8,-29,-1,-25,-6,-17,-11,-22,-13,-29]);R(hot,-7,-30,2,7);
+  for(const s of [-1,1]){
+   P(ink,[s*22,-29,s*29,-43,s*36,-47,s*39,-40,s*32,-28,s*27,-20]);
+   P('#9974a5',[s*24,-29,s*30,-41,s*35,-44,s*36,-40,s*30,-28,s*27,-23]);R(hot,s<0?-35:31,-40,4,3);
+   P('#261b35',[s*15,2,s*22,7,s*25,20,s*17,26,s*10,18]);R(hot,s<0?-20:17,10,3,8);
+  }
+  R(hot,-9,17,18,2);R('#bd78be',-2,19,4,5);
+ }
+ if(stage===3){
+  // Stage 3: opened crown, radial bone-like wings and a fully exposed void core.
+  for(const s of [-1,1]){
+   P(ink,[s*16,-36,s*27,-53,s*36,-55,s*40,-49,s*32,-37,s*45,-39,s*50,-32,s*41,-23,s*29,-17,s*21,-24]);
+   P('#8d557f',[s*18,-35,s*28,-51,s*35,-53,s*37,-49,s*29,-35,s*44,-36,s*47,-32,s*39,-25,s*29,-20,s*23,-25]);
+   R(hot,s<0?-36:32,-51,4,4);R('#e8a0b2',s<0?-44:40,-34,4,3);
+  }
+  P(ink,[-17,-37,-10,-44,10,-44,17,-37,15,-20,7,-11,-7,-11,-15,-20]);P('#7d456e',[-15,-36,-9,-42,9,-42,15,-36,13,-21,6,-13,-6,-13,-13,-21]);
+  P('#a76894',[-9,-36,0,-39,9,-36,11,-27,0,-19,-11,-27]);R(hot,-10,-29,20,5);R('#fff1e5',-4,-28,8,2);
+  P(ink,[-22,-8,-11,-19,11,-19,22,-8,22,13,11,26,-11,26,-22,13]);
+  P('#90537f',[-20,-7,-10,-17,10,-17,20,-7,20,12,10,24,-10,24,-20,12]);
+  P('#e5a0ba',[-14,-5,-7,-12,7,-12,14,-5,14,10,7,18,-7,18,-14,10]);
+  P('#27182e',[-8,-3,0,-9,8,-3,8,8,0,14,-8,8]);R(hot,-3,-1,6,10);R('#fff5e2',-1,1,2,6);
+  R('#d6a3b2',-17,15,5,2);R('#d6a3b2',12,15,5,2);
+ }
+ if(horrorFx&&!reduceMotion){
+  const a=g.globalAlpha,d=Math.round(Math.sin(t*.9)*3);g.globalAlpha=a*.4;
+  R(hot,-28+d,-50,3,2);R(hot,27-d,-49,2,2);if(stage>=2){R(hot,-34,21+d,3,2);R(hot,31,22-d,2,3)}g.globalAlpha=a;
+ }
+ // Retain the original charge ring radius and add a clear, static overhead cue.
+ if(charging){g.strokeStyle='#f2c3e9';g.lineWidth=1;g.beginPath();g.arc(0,0,40+pulse,0,Math.PI*2);g.stroke();R('#ffd292',-14,-57,28,2);R('#ff9b55',-9,-54,18,1)}
+ g.restore();
 }
 function drawEnemy(e){
  const phase=Number.isFinite(e.phase)?e.phase:0,hit=Math.max(0,Math.min(1,(e.hitT||0)/.22)),wave=reduceMotion?0:hit*Math.sin((1-hit)*Math.PI*2.6),boss=e.type==='boss';
