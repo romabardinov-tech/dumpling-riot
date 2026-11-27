@@ -1508,6 +1508,84 @@ function secretWave(w){return w===2||w===7}
 function secretLocation(sites,p,area){const candidates=sites.map(([x,y])=>({x:Math.max(area.l+50,Math.min(area.r-50,x)),y:Math.max(area.t+50,Math.min(area.b-50,y))}));const ordered=candidates.sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y));return ordered.find(s=>Math.hypot(s.x-p.x,s.y-p.y)>=95)||ordered[0]}
 function createSecret(map,w,p,area,sites){if(!secretWave(w)||!arenaStories[map]||!sites?.length)return null;const s=secretLocation(sites,p,area);return {map,w,x:s.x,y:s.y,stage:'sealed',remaining:0}}
 function secretReward(data,run,event){if(!event||event.stage!=='ambush'||event.remaining!==0||!run||run.closed)return 0;event.stage='done';const n=6+Math.min(run.campaign?campaignRound(run,event.w):event.w,10);data.shards=metaInt(data.shards+n);run.earned+=n;return n}
+// V72.6 — Optional escape passages revealed after clearing a hidden cache.
+const secretRouteThemes={
+ kitchen:{en:'Service hatch',ru:'Служебный люк',color:'#f4b681',kind:0},
+ basement:{en:'Cable tunnel',ru:'Кабельный тоннель',color:'#8bd8f3',kind:1},
+ foodcourt:{en:'Staff passage',ru:'Служебный проход',color:'#e6a1d9',kind:2},
+ slaughter:{en:'Maintenance duct',ru:'Технический лаз',color:'#f18e80',kind:3},
+ cemetery:{en:'Crypt passage',ru:'Проход склепа',color:'#d8b9f9',kind:4},
+ forest:{en:'Hollow root',ru:'Полый корень',color:'#b7dd87',kind:5}
+};
+function routePointClear(q,area,avoid){
+ return q.x>=area.l+34&&q.x<=area.r-34&&q.y>=area.t+34&&q.y<=area.b-34&&
+ !avoid.some(v=>v&&Math.hypot(q.x-v.x,q.y-v.y)<(v.pad??30)+24);
+}
+function makeSecretRoute(event,area,avoid){
+ if(!event||event.stage!=='done'||!secretRouteThemes[event.map])return null;
+ const start=Object.keys(secretRouteThemes).indexOf(event.map),entryCandidates=[];
+ for(const radius of [72,96,120])for(let i=0;i<8;i++){
+  const a=(start+i)*Math.PI/4;
+  const q={x:Math.round(event.x+Math.cos(a)*radius),y:Math.round(event.y+Math.sin(a)*radius)};
+  if(routePointClear(q,area,avoid))entryCandidates.push(q);
+ }
+ for(const entry of entryCandidates)for(const radius of [240,300,190])for(let i=0;i<8;i++){
+  const a=(start+i)*Math.PI/4;
+  const exit={x:Math.round(entry.x+Math.cos(a)*radius),y:Math.round(entry.y+Math.sin(a)*radius)};
+  if(routePointClear(exit,area,avoid)&&Math.hypot(exit.x-event.x,exit.y-event.y)>=160)
+   return {map:event.map,entry,exit,status:'ready',hold:0,blocked:false};
+ }
+ return null;
+}
+function secretRouteStep(route,p,dt,blocked){
+ if(!route||route.status!=='ready'||!p||p.dead||p.hp<=0||!Number.isFinite(dt)||dt<=0)return false;
+ route.blocked=!!blocked;
+ if(blocked||Math.hypot(p.x-route.entry.x,p.y-route.entry.y)>18){route.hold=0;return false}
+ route.hold=Math.min(.65,route.hold+Math.min(dt,.1));
+ if(route.hold<.65-1e-8)return false;
+ route.status='used';return true;
+}
+function secretRouteStaticAvoid(event){
+ return [...(arenaFeatures[event.map]?.sites||[]).map(([x,y])=>({x,y,pad:arenaFeatures[event.map].radius+8})),
+ ...livingStations.map(p=>({...p,pad:36})),...breakableProps.map(p=>({...p,pad:(p.r||20)+5})),
+ nightmare?.zone?{...nightmare.zone,pad:FEAR_RULES.radius}:null,event?{x:event.x,y:event.y,pad:26}:null];
+}
+function secretRouteExitBlocked(route,event){
+ const q=route.exit;
+ return !routePointClear(q,arena,secretRouteStaticAvoid(event))||
+ hazards.some(h=>h.remaining>0&&!h.source?.dead&&Math.hypot(q.x-h.x,q.y-h.y)<h.radius+38)||
+ enemies.some(e=>!e.dead&&Math.hypot(q.x-e.x,q.y-e.y)<(e.r||12)+48)||
+ projectiles.some(p=>p.enemy&&Math.hypot(q.x-p.x,q.y-p.y)<65)||
+ !!(nightmare?.hunter&&!nightmare.hunter.dead&&Math.hypot(q.x-nightmare.hunter.x,q.y-nightmare.hunter.y)<85);
+}
+function updateSecretRoute(event,dt){
+ const route=event.route;if(!route||route.status!=='ready'||boss)return;
+ if(!secretRouteStep(route,player,dt,secretRouteExitBlocked(route,event)))return;
+ player.x=route.exit.x;player.y=route.exit.y;player.vx=player.vy=0;
+ if(nightmare)nightmare.fear=fearClamp(nightmare.fear-6);
+ toast(L('PASSAGE USED','ТАЙНЫЙ ПРОХОД ПРОЙДЕН'));toastTimer=2.5;
+}
+function paintSecretRoute(g,route,view){
+ if(!route||route.status!=='ready')return;
+ const t=secretRouteThemes[route.map];
+ for(const [q,entry] of [[route.entry,true],[route.exit,false]]){
+  if(!visibleWorld(q,view,44))continue;
+  g.save();g.translate(q.x,q.y);g.strokeStyle=t.color;g.fillStyle='#15121b';g.lineWidth=1.5;
+  g.fillRect(-12,-10,24,20);g.strokeRect(-12,-10,24,20);g.beginPath();g.arc(0,0,18,0,TAU);g.stroke();
+  g.fillStyle=t.color;
+  switch(t.kind){
+   case 0: for(let i=-6;i<=6;i+=6)g.fillRect(i,-7,2,14);break;
+   case 1: g.fillRect(-8,-3,16,2);g.fillRect(-2,-8,3,16);break;
+   case 2: g.fillRect(-7,-7,4,14);g.fillRect(3,-7,4,14);break;
+   case 3: for(let i=-8;i<=4;i+=6)g.fillRect(i,-5,3,10);break;
+   case 4: g.fillRect(-2,-8,4,16);g.fillRect(-7,-3,14,3);break;
+   case 5: g.beginPath();g.arc(0,0,6,0,TAU);g.stroke();g.fillRect(-1,-8,2,5);break;
+  }
+  g.font='bold 8px monospace';g.textAlign='center';g.fillText(entry?(route.blocked?L('EXIT BLOCKED','ВЫХОД ЗАНЯТ'):L(t.en,t.ru)):L('EXIT','ВЫХОД'),0,-24);
+  if(entry&&route.hold>0){g.fillRect(-12,21,24*route.hold/.65,2)}
+  g.restore();
+ }
+}
 function arenaEnemyName(type){const n=arenaEnemyNames[type];return n?L(n[0],n[1]):L(npcTypeNames[type]||'Enemy')}
 function enemyTier(type){return ['butcher','maw','feaster'].includes(type)?2:['wretch','boiler','siren','vendingDrone'].includes(type)?1:0}
 const npcTypeNames={fork:'Fork',pepper:'Pepper',knife:'Knife',plate:'Plate',crawler:'Crawler',stalker:'Stalker',eye:'Eye',siren:'Siren',wretch:'Wretch',spitter:'Spitter',parasite:'Parasite',feaster:'Feaster',hands:'Hands',butcher:'Butcher',slicer:'Slicer',boiler:'Boiler',maw:'Maw'};
@@ -3755,6 +3833,7 @@ function finishEnemyDeath(e){
 function completeSecret(){
  const event=secretEncounter,n=secretReward(meta,soloRun,event);if(!n)return;
  campaignClue(soloRun,event);discoverJournal('story:'+event.map);saveMeta();
+ if(!boss&&!coop&&!onlineMode&&waveState==='fighting')event.route=makeSecretRoute(event,arena,secretRouteStaticAvoid(event));
  const x=clamp(event.x,arena.l+10,arena.r-10),y=clamp(event.y,arena.t+10,arena.b-10);
  drops.push({x,y,type:'heal',value:30,life:24,pulse:0});
  spawnParticles(x,y,22,arenaStories[event.map].color,1.2);ring(x,y,10,arenaStories[event.map].color,.55,44);
@@ -3786,8 +3865,9 @@ function updateNightmare(dt){
  }
  if(n.hunter&&hunterStep(n.hunter,dt,player,arena)){const h=n.hunter;scheduleHazard(player.x,player.y,27,12,1.15,h);ring(h.x,h.y,10,'#cfb4e8',.5,32)}
 }
-function updateSecret(){
- const event=secretEncounter;if(!event||event.stage!=='sealed'||!soloRun||state!=='game'||waveState!=='fighting'||player.dead)return;
+function updateSecret(dt){
+ const event=secretEncounter;if(!event||!soloRun||coop||onlineMode||event.w!==wave||state!=='game'||waveState!=='fighting'||player.dead)return;
+ if(event.stage==='done'){updateSecretRoute(event,dt);return}if(event.stage!=='sealed')return;
  if(Math.hypot(player.x-event.x,player.y-event.y)>23)return;
  event.stage='ambush';event.remaining=2;
  const pool=arenaEnemyPool(event.map,wave),a=Math.random()*TAU;
@@ -4306,7 +4386,7 @@ function update(dt){
  camera.x=clamp(camera.x,W/2,world.w-W/2);camera.y=clamp(camera.y,H/2,world.h-H/2);
  horrorTime+=dt;for(const p of coopPlayers())advancePlayerTimers(p,dt)
  if(!player.dead&&(mouse.down||touchInput.attack))attack();
- if(state==='game'){updateNightmare(dt);updateSecret();updateSpatialAudio(dt)}updateEnemies(dt);if(state==='game')updateLivingStations(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);if(state==='game')updateArenaTrial(dt);updateFx(dt);
+ if(state==='game'){updateNightmare(dt);updateSecret(dt);updateSpatialAudio(dt)}updateEnemies(dt);if(state==='game')updateLivingStations(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);if(state==='game')updateArenaTrial(dt);updateFx(dt);
  enemies=enemies.filter(e=>!e.dead);
  if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if(waveTime>=delay||enemies.length===0){waveTime=0;spawnEnemy();spawned++}}
  if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';expireTrial(arenaTrial);tutorialEvent('wave');if(nightmare?.hunter){nightmare.hunter.dead=true;hazards=hazards.filter(h=>h.source!==nightmare.hunter);nightmare.hunter=null}if(nightmare){nightmare.echo=null;nightmare.fear=fearClamp(nightmare.fear-12)}between=soloRun?4:1.6;let reward=0;if(soloRun){reward=clearWaveReward(meta,soloRun,wave,selectedMap);if(reward)addCoins(soloRun,coinReward(wave));saveMeta()}toast(L('WAVE CLEARED · COLLECT XP','ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')+(reward?' · ◆ +'+reward:''));toastTimer=2.5}
@@ -6035,7 +6115,7 @@ function draw(){
  if(soloRun&&state!=='death'){const light=ctx.createRadialGradient(player.x,player.y,48,player.x,player.y,205);light.addColorStop(0,'rgba(0,0,0,0)');light.addColorStop(.65,'rgba(8,5,13,.035)');light.addColorStop(1,'rgba(8,5,13,.23)');ctx.fillStyle=light;ctx.fillRect(view.x,view.y,view.w,view.h)}
  if(nightmare)paintNightmareFloor(ctx,nightmare,nightmareThemes[m.id]);
  if(waveState==='fighting')paintLivingStations(ctx,m.id,view);
- if(secretEncounter&&waveState==='fighting')paintSecret(ctx,secretEncounter,horrorTime);
+ if(secretEncounter&&waveState==='fighting'){paintSecret(ctx,secretEncounter,horrorTime);paintSecretRoute(ctx,secretEncounter.route,view);}
  if(waveState==='fighting')paintArenaTrial(ctx,arenaTrial,view);
  // blood stains and corpses
  for(const b of blood){if(!visibleWorld(b,view,b.r+4))continue;ctx.globalAlpha=b.a;ctx.fillStyle='#4f0913';ctx.fillRect(Math.round(b.x-b.r),Math.round(b.y-b.r*.45),Math.max(2,Math.round(b.r*2)),Math.max(2,Math.round(b.r*.9)));ctx.fillStyle='#9f1829';ctx.fillRect(Math.round(b.x-b.r*.55),Math.round(b.y-b.r*.25),Math.max(2,Math.round(b.r*1.1)),Math.max(2,Math.round(b.r*.5)))}ctx.globalAlpha=1;
