@@ -1575,7 +1575,7 @@ const terrainThemes={
  kitchen:{base:'#29272a',tile:'#333031',light:'#413a38',edge:'#1b191c',trim:'#827166',glow:'#ffbd82'},
  basement:{base:'#1d2931',tile:'#29353c',light:'#3c4b50',edge:'#111e28',trim:'#657a80',glow:'#a1caff'},
  foodcourt:{base:'#292333',tile:'#352c3c',light:'#48394d',edge:'#1a1523',trim:'#80657e',glow:'#dea6d2'},
- slaughter:{base:'#302429',tile:'#3b2b2e',light:'#4b3738',edge:'#1c1319',trim:'#936b58',glow:'#ff845c'},
+ slaughter:{base:'#302629',tile:'#3b3031',light:'#4b3937',edge:'#1d171b',trim:'#8d6c59',glow:'#e87864'},
  cemetery:{base:'#202a27',tile:'#29332d',light:'#354139',edge:'#141d1a',trim:'#68786c',glow:'#b3dba0'},
  forest:{base:'#192920',tile:'#22372b',light:'#304839',edge:'#101d17',trim:'#5d775e',glow:'#b1e6b7'}
 };
@@ -1685,7 +1685,7 @@ function paintArenaFeatures(g,id,left,top,width,height){
    frame(x-24,y-15,48,30,'#594754','#a68c9b');R('#1f2934',x-18,y-9,28,15);for(let k=0;k<3;k++){R(['#c18799','#9db6a0','#d4b078'][k],x-15+k*8,y-6,5,9);R('#ead1b1',x-14+k*8,y-5,2,1)}
    R('#23262a',x+14,y-7,6,13);R('#b5e8aa',x+15,y-4,4,3);R('#b5e8aa',x-5,y+8,10,2);R('#886b83',x-21,y-12,30,1);R('#708d90',x-20,y+11,29,1);R('#39343f',x-20,y+3,8,1);txt('SUPPLY',x,y+21,'#bbd5a6');
   }else if(id==='slaughter'){
-   frame(x-27,y-13,54,26,'#595653','#929387');for(let i=-22;i<23;i+=8){R('#292e31',x+i,y-7,4,14);R('#90938b',x+i+4,y-7,2,14)}
+   frame(x-27,y-13,54,26,'#595653','#929387');for(let i=-22;i<23;i+=8){R('#292e31',x+i,y-7,4,14);R('#90938b',x+i+4,y-7,2,14);R('#795847',x+i,y+4,3,2)}R('#393033',x-29,y-6,4,12);R('#ad7658',x+25,y-6,4,12);bolt(x-24,y-10);bolt(x+20,y+8);
    for(let i=-24;i<24;i+=8){R('#c49a56',x+i,y-15,4,3);R('#c49a56',x+i,y+12,4,3)}
    P('#d0c3a4',[x-10,y-4,x+10,y-4,x+13,y,x+10,y+4,x-10,y+4,x-13,y]);R('#9b4037',x+2,y-1,5,2);txt('CUT',x,y+21,'#f0b68d');
   }else if(id==='cemetery'){
@@ -1751,7 +1751,7 @@ function paintArenaIdentity(g,id,left,top,width,height){
  g.restore();
 }
 function paintArenaSignature(g,id,view,time){
- if(id==='kitchen'){paintKitchenAtmosphere(g,view,time);return}if(id==='basement'){paintBasementAtmosphere(g,view,time);return}if(id==='foodcourt'){paintFoodcourtAtmosphere(g,view,time);return}if(!horrorFx)return;const q=arenaIdentity[id];if(!q)return;const t=reduceMotion?0:time;g.save();g.fillStyle=q.color;
+ if(id==='kitchen'){paintKitchenAtmosphere(g,view,time);return}if(id==='basement'){paintBasementAtmosphere(g,view,time);return}if(id==='foodcourt'){paintFoodcourtAtmosphere(g,view,time);return}if(id==='slaughter'){paintSlaughterAtmosphere(g,view,time);return}if(!horrorFx)return;const q=arenaIdentity[id];if(!q)return;const t=reduceMotion?0:time;g.save();g.fillStyle=q.color;
  for(const [x,y] of q.marks){if(!visibleWorld({x,y},view,60))continue;g.save();g.translate(x,y);g.globalAlpha=.25;
  for(let i=0;i<5;i++){const k=terrainHash(x,y,i+90),n=reduceMotion?i*3:((t*(id==='kitchen'?7:3)+i*9)%27),xx=Math.round(-22+i*10+Math.sin(t*.6+k*6)*3),yy=Math.round(-9-n);
  switch(id){
@@ -1904,6 +1904,56 @@ function paintFoodcourtAtmosphere(g,view,time){
  }
  g.restore();
 }
+// V68.13 — Blood Factory: disused cutting line, rusted steel and emergency lamps.
+function paintSlaughterDetail(g,left,top,width,height){
+ const right=left+width,bottom=top+height;
+ const R=(c,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ g.save();
+ // Upper wall: hanging chains and cold machine housings, outside collision bounds.
+ R('#252023',55,3,1810,7);R('#726256',55,4,1810,2);
+ for(let i=0;i<10;i++){
+  const x=78+i*178;R('#18191c',x,12,158,42);R('#453b3a',x+2,14,154,38);R('#76655a',x+3,14,152,2);
+  R('#282729',x+7,21,58,27);R('#504c48',x+9,23,54,20);
+  for(let j=0;j<5;j++){R('#242527',x+12+j*10,25,5,16);R('#8a786b',x+12+j*10,25,1,14)}
+  for(const dx of [84,121]){
+   const len=4+(i+dx)%3;
+   for(let j=0;j<len;j++){R('#201c1d',x+dx-2,12+j*5,5,6);R('#8e8073',x+dx-1,13+j*5,3,2);R('#564c48',x+dx,15+j*5,1,3)}
+   const y=12+len*5;R('#84766b',x+dx,y,2,7);R('#84766b',x+dx+2,y+5,5,2);R('#84766b',x+dx+6,y+2,2,5);
+  }
+  R('#381f25',x+140,18,11,7);R('#ba5549',x+142,20,7,3);R('#d99678',x+143,20,3,1);
+ }
+ // Corroded conveyor rollers and recessed fastenings, all flat walkable scenery.
+ for(const y of [477,547]){
+  for(let x=125;x<1800;x+=19){R('#333538',x+1,y+6,13,25);R('#67625a',x+1,y+7,13,1);R('#59453d',x+2,y+13,3,13);R('#211f21',x+11,y+6,2,24);if(terrainHash(x,y,360)>.65)R('#86604c',x+5,y+20,4,2)}
+  for(let x=134;x<1790;x+=76){R('#292426',x,y-5,4,4);R('#92715b',x,y-5,2,1)}
+ }
+ for(const x of [889,1024])for(let y=168;y<918;y+=44){R('#262426',x-3,y,9,6);R('#746451',x-2,y+1,7,1);R('#9c7960',x+1,y+2,2,2)}
+ // Oil stains, rust flakes and subdued emergency-light reflections.
+ for(const [x,y] of [[730,420],[1110,660],[380,830],[1530,280]]){
+  for(let j=0;j<4;j++)R(['#574039','#4d3635','#483233','#3f2f31'][j],x-18-j*3,y+9+j*5,36+j*6,2);
+ }
+ for(let i=0;i<76;i++){const x=80+Math.floor(terrainHash(i,17,361)*1750),y=80+Math.floor(terrainHash(i,21,362)*900);R('#32282a',x,y,5+i%4,2);R('#614239',x+1,y,2+i%3,1)}
+ g.restore();
+}
+function slaughterDust(x,y,time){
+ const t=Number.isFinite(time)?time:0,out=[];
+ for(let i=0;i<4;i++){const a=((t*.28+i/4)%1+1)%1,k=terrainHash(x,y,i+380);out.push({x:Math.round(x-17+i*10+Math.sin(a*4+k*6)*4),y:Math.round(y-4-a*25),w:2+i%2,alpha:.07+(1-a)*.17})}return out;
+}
+function paintSlaughterAtmosphere(g,view,time){
+ if(!horrorFx)return;const t=reduceMotion?0:time;g.save();
+ for(let i=0;i<arenaLights.slaughter.length;i++){
+  const [x,y]=arenaLights.slaughter[i];if(!visibleWorld({x,y},view,60))continue;
+  g.fillStyle='#c66457';g.globalAlpha=.09+.025*Math.sin(t*.65+i*1.8);
+  for(let j=0;j<4;j++)g.fillRect(x-17-j*4,y+8+j*5,34+j*8,3);
+  if(!reduceMotion)for(const q of slaughterDust(x,y,t)){g.fillStyle='#b39b80';g.globalAlpha=q.alpha;g.fillRect(q.x,q.y,q.w,1)}
+ }
+ for(const [x,y] of arenaIdentity.slaughter.marks){
+  if(reduceMotion||!visibleWorld({x,y},view,50))continue;
+  const a=((t*.4+terrainHash(x,y,390))%1+1)%1;
+  if(a>.8){g.globalAlpha=.33*Math.sin((a-.8)/.2*Math.PI);g.fillStyle='#d6a473';g.fillRect(x-19,y-8,2,1);g.fillRect(x-23,y-11,3,1);g.fillRect(x-27,y-14,1,2)}
+ }
+ g.restore();
+}
 function paintTerrain(g,id,left,top,width,height){
  const t=terrainThemes[id]||terrainThemes.kitchen,right=left+width,bottom=top+height,natural=id==='cemetery'||id==='forest';
  const R=(color,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
@@ -1984,7 +2034,7 @@ function paintTerrain(g,id,left,top,width,height){
   if(natural){const h=26+Math.floor(terrainHash(x,6,0)*16);P('#182a20',[x-15,y+42,x+4,y+42-h,x+19,y+42]);P('#314634',[x-9,y+35,x+4,y+43-h,x+14,y+35]);R('#6c5140',x+3,y+32,4,11)}
   else{plate(x,y+7,65,34,t.tile,t.edge,t.trim);if(id==='kitchen'){R('#171d20',x+7,y+13,51,13);for(let j=0;j<4;j++){R('#555f5d',x+10+j*12,y+15,7,8);R('#9b8270',x+10+j*12,y+15,7,1)}}else if(id==='foodcourt'){R('#2f2e34',x+8,y+12,49,21);R('#bc8b69',x+12,y+15,41,2);R('#4d7773',x+12,y+21,25,2)}else{grate(x+8,y+12,49,20,t.tile,t.trim)}}
  }
- if(id==='kitchen')paintKitchenDetail(g,left,top,width,height);else if(id==='basement')paintBasementDetail(g,left,top,width,height);else if(id==='foodcourt')paintFoodcourtDetail(g,left,top,width,height);
+ if(id==='kitchen')paintKitchenDetail(g,left,top,width,height);else if(id==='basement')paintBasementDetail(g,left,top,width,height);else if(id==='foodcourt')paintFoodcourtDetail(g,left,top,width,height);else if(id==='slaughter')paintSlaughterDetail(g,left,top,width,height);
  paintArenaFeatures(g,id,left,top,width,height);paintArenaIdentity(g,id,left,top,width,height);
  // Sparse ground lanterns, placed to support navigation instead of repeating a grid.
  for(const [x,y] of arenaLights[id]||arenaLights.kitchen){
@@ -4254,7 +4304,7 @@ function paintRefugeDirection(g,n,view){
 }
 function paintArenaLighting(g,map,view){
  const {x,y,w,h}=view;g.save();g.fillStyle='rgba(10,12,15,.08)';g.fillRect(x,y,w,h);
- for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+85<x||lx-85>x+w||ly+85<y||ly-85>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,85),glow=map.id==='foodcourt'&&arenaLights.foodcourt.findIndex(q=>q[0]===lx&&q[1]===ly)%2===1?'#8ccac6':terrainThemes[map.id].glow;rad.addColorStop(0,glow);rad.addColorStop(.35,glow+'65');rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=map.id==='kitchen'?.29:map.id==='basement'?.27:map.id==='foodcourt'?.26:.23;g.fillStyle=rad;g.fillRect(lx-85,ly-85,170,170)}g.restore()
+ for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+85<x||lx-85>x+w||ly+85<y||ly-85>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,85),glow=map.id==='foodcourt'&&arenaLights.foodcourt.findIndex(q=>q[0]===lx&&q[1]===ly)%2===1?'#8ccac6':terrainThemes[map.id].glow;rad.addColorStop(0,glow);rad.addColorStop(.35,glow+'65');rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=map.id==='kitchen'?.29:map.id==='basement'?.27:map.id==='foodcourt'?.26:map.id==='slaughter'?.28:.23;g.fillStyle=rad;g.fillRect(lx-85,ly-85,170,170)}g.restore()
 }
 // V67: cull presentation only; never remove off-screen simulation objects.
 function visibleWorld(q,view,pad=0){return q.x+pad>=view.x&&q.x-pad<=view.x+view.w&&q.y+pad>=view.y&&q.y-pad<=view.y+view.h}
