@@ -4222,20 +4222,7 @@ function drawHero(p=player,ch=chars.find(x=>x.id===selectedChar),isP2=false){
 }
 // V34 original native pixel sprites: outlines, distinct silhouettes, animated limbs.
 // V46: seven new silhouettes, using the same native pixel scale as existing enemies.
-function pixelArenaEnemy(g,type,phase,lunge,attack){
- const R=(col,x,y,w,h)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
- const P=(col,p)=>{g.fillStyle=col;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
- const ink='#100b15',step=Math.round(Math.sin(phase*2)*2);
- if(type==='sporeBeetle'){
-  for(const s of [-1,1])for(let i=0;i<3;i++){const y=-5+i*5;P(ink,[s*6,y,s*13,y-3,s*16,y+2+step,s*12,y+4+step,s*6,y+3]);R('#7b9160',s<0?-14:11,y+step,3,2)}
-  P(ink,[-10,-12,-5,-17,5,-17,11,-10,12,5,6,11,-6,11,-12,5]);P('#3d5039',[-8,-11,-4,-15,4,-15,9,-9,10,4,5,9,-5,9,-10,4]);R('#84934c',-7,-11,14,6);R('#c7db75',-5,-13,4,3);R('#d6ed98',3,-10,3,3);R('#d3f4a4',-5,0,3,2);R('#d3f4a4',2,0,3,2);R('#23372a',-2,-7,2,15);R('#728650',-7,5,5,2);R('#728650',2,5,5,2);
- }else if(type==='rootHorror'){
-  P(ink,[-15,12,-9,-2,-15,-10,-9,-10,-5,-3,-6,-16,-11,-23,-5,-21,-1,-15,2,-28,7,-27,5,-17,12,-22,15,-19,8,-9,13,-5,17,10,11,14,3,8,-4,14]);P('#493c36',[-12,10,-7,-2,-12,-8,-8,-7,-3,1,-4,-15,-8,-20,-5,-19,0,-12,3,-25,5,-25,3,-15,12,-19,12,-17,6,-8,11,-4,14,9,10,11,3,5,-4,11]);R('#74784d',-4,-12,9,16);R('#a2b768',-6,-15,4,4);R('#8eaf64',4,-20,5,3);R('#c9e987',-5,-8,4,3);R('#c9e987',2,-8,4,3);R(ink,-4,-2,9,4);R('#8ca15a',-8,6,3,4);R('#81724c',8,4,3,6);
- }else return false;
- if(lunge>0)R('#e6b28b',-12,13,24,1);
- if(attack>=0&&attack<.18){R('#f9d29b',-2,-32,4,2);R('#f9d29b',-1,-35,2,2)}
- return true;
-}
+
 // V69.1 — Kitchen horrors. Original pixel silhouettes; presentation only.
 function pixelKitchenEnemy(g,type,phase=0,lunge=0,attack=1){
  if(!['fork','pepper','boiler','butcher'].includes(type))return false;
@@ -4516,13 +4503,62 @@ function pixelGraveyardEnemy(g,type,phase=0,lunge=0,attack=1){
  if(ready){R('#f7ca8b',-2,-30,4,2);R('#f7ca8b',-1,-33,2,2)}
  g.restore();return true;
 }
+// V69.6 — Cursed Forest Monsters: distinct fungal and woodland silhouettes.
+function pixelForestEnemy(g,type,phase=0,lunge=0,attack=1){
+ if(type!=='sporeBeetle'&&type!=='rootHorror'&&type!=='spitter'&&type!=='parasite')return false;
+ const R=(c,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ const ink='#100b15',t=reduceMotion||!Number.isFinite(phase)?0:phase,step=Math.round(Math.sin(t*2)*2),ready=attack>=0&&attack<.18;
+ g.save();
+ if(type==='sporeBeetle'){
+  // Six articulated legs, hard split elytra and asymmetrical fungal caps.
+  for(const s of [-1,1])for(let i=0;i<3;i++){const y=-8+i*7,d=step*s*(i%2?1:-1);P(ink,[s*7,y,s*14,y-5,s*20,y+d,s*17,y+6+d,s*12,y+3+d,s*8,y+2]);P('#526147',[s*9,y,s*14,y-3,s*18,y+d,s*16,y+4+d,s*12,y+1+d]);R('#a0a274',s<0?-18:15,y+2+d,3,1)}
+  P(ink,[-11,-15,-5,-20,7,-20,13,-14,15,1,10,12,-9,12,-15,2]);P('#344838',[-9,-14,-4,-18,6,-18,11,-13,13,1,9,10,-8,10,-13,2]);
+  P('#79814d',[-8,-14,-3,-16,-1,3,-5,7,-10,3,-11,-7]);P('#596b41',[3,-16,8,-14,11,-7,10,3,5,7,1,3]);R('#b5b77b',-8,-12,4,2);R('#1e302b',-1,-15,2,20);
+  for(const [x,y,w] of [[-8,-18,9],[5,-17,6],[8,-9,5]]){R('#a7b99a',x,y,2,5);P('#587f69',[x-3,y,x-2,y-4,x+w-3,y-4,x+w-1,y]);R('#a5c5a2',x-1,y-4,Math.max(2,w-4),1)}
+  R(ink,-8,4,16,5);R('#d7ed9a',-6,5,3,2);R('#d7ed9a',3,5,3,2);P('#adac76',[-8,9,-3,9,-4,13,-7,13]);P('#adac76',[8,9,3,9,4,13,7,13]);
+  if(horrorFx&&!reduceMotion){const d=Math.round(Math.sin(t*.7)*2);R('#a8c68b',-9+d,-26,1,1);R('#6c9c79',7-d,-24,2,1)}
+ }else if(type==='rootHorror'){
+  // Staggering trunk with split antler branches and trailing roots.
+  for(const s of [-1,1]){const d=step*s;P(ink,[s*4,0,s*11,3,s*18,12+d*.5,s*12,14+d*.5,s*6,8,s*2,6]);P('#695744',[s*5,2,s*10,5,s*16,11+d*.5,s*12,12+d*.5,s*7,6]);R('#879266',s<0?-14:9,10+d*.5,4,2)}
+  P(ink,[-11,-13,-8,-23,-13,-29,-10,-31,-4,-25,-1,-16,2,-32,6,-32,7,-23,13,-29,17,-27,11,-18,13,-9,16,1,9,10,-8,11,-14,3]);
+  P('#574738',[-9,-12,-6,-23,-11,-28,-10,-29,-5,-24,0,-13,4,-30,5,-30,5,-21,13,-27,15,-26,9,-17,11,-8,14,1,8,8,-7,9,-12,2]);
+  P('#8a7951',[-7,-15,-3,-21,0,-12,-3,6,-7,7,-9,1]);R('#382e2d',3,-15,3,18);
+  for(const s of [-1,1]){const d=step*s;P(ink,[s*9,-9,s*17,-11,s*25,-5+d,s*27,4+d,s*23,7+d,s*16,1,s*10,2]);P('#6d5c42',[s*11,-7,s*17,-9,s*23,-4+d,s*25,3+d,s*23,4+d,s*16,-1,s*12,0]);R('#9ca16b',s<0?-23:20,-3+d,3,2)}
+  for(const [x,y] of [[-7,-21],[4,-26],[-9,-8],[7,2]]){R('#778b55',x,y,5,3);R('#a1b477',x,y,3,1)}
+  R(ink,-7,-9,14,5);R('#ccebb0',-5,-8,3,2);R('#ccebb0',2,-8,3,2);R('#2e2929',-4,0,8,4);R('#957b51',-3,3,6,1);
+  if(ready){R('#d7d7a0',-10,8,20,1)}
+ }else if(type==='spitter'){
+  // Tall stalk and inflatable pitcher-plant throat with luminous spore sacs.
+  for(const s of [-1,1]){const d=step*s;P(ink,[s*3,1,s*8,3,s*14,10+d,s*10,13+d*.5,s*4,11+d*.5,s*2,6]);P('#526b46',[s*4,3,s*7,5,s*12,10+d,s*9,11+d*.5,s*5,9]);R('#83985f',s<0?-10:7,9+d,3,2)}
+  P(ink,[-8,-14,-12,-6,-11,6,-5,12,6,12,11,6,12,-6,8,-14]);P('#3f5b41',[-6,-13,-10,-6,-9,5,-4,10,5,10,9,5,10,-6,6,-13]);R('#8ca66a',-3,-10,6,19);
+  for(const s of [-1,1]){const d=step*s;P(ink,[s*5,-6,s*15,-12,s*20,-8+d,s*18,0+d,s*12,3,s*7,1]);P('#577c4e',[s*7,-5,s*15,-10,s*18,-7+d,s*16,-1+d,s*12,1,s*9,0]);R('#a2c783',s<0?-17:14,-7+d,3,4)}
+  const swell=ready?2:Math.max(0,step);
+  P(ink,[-10-swell,-19,-6,-27,7,-27,12+swell,-20,12+swell,-11,5,-5,-7,-5,-12-swell,-11]);
+  P('#66854d',[-8-swell,-18,-5,-25,6,-25,10+swell,-19,10+swell,-12,4,-7,-6,-7,-10-swell,-12]);
+  R('#aac379',-6,-25,12,2);R(ink,-8,-20,16,9);R('#5a7850',-6,-18,12,6);R(ready?'#d7ffc0':'#a2d18b',-4,-17,8,4);R('#e1eeb0',-1,-17,2,2);
+  R('#bddb9a',-8,-10,2,3);R('#bddb9a',6,-10,2,3);R('#b0c67f',-2,0,4,4);
+  if(horrorFx&&!reduceMotion&&ready){R('#c9e5a4',-3,-30,2,2);R('#9ac280',4,-29,1,1)}
+ }else{
+  // Egg-bearing larva: distinct low worm body, side fins and brood capsules.
+  for(const s of [-1,1])for(let i=0;i<3;i++){const y=-7+i*6,d=step*s*(i%2?1:-1);P(ink,[s*6,y,s*14,y-3,s*21,y+2+d,s*17,y+6+d,s*11,y+4]);P('#47664b',[s*8,y,s*14,y-1,s*19,y+2+d,s*16,y+4+d,s*11,y+2]);R('#8cae71',s<0?-18:15,y+2+d,3,1)}
+  const bend=step;P(ink,[-8,-18,-2,-23,8,-20,13,-12,14,2,9,12,-5,13,-12,7,-14,-5]);P('#3b5943',[-7,-16,-2,-21,7,-18,11,-11,12,1,8,10,-4,11,-10,6,-12,-5]);
+  for(let i=0;i<4;i++){const y=-16+i*6,x=Math.round(Math.sin(t+i*.65)*bend*.5);P('#6e995e',[x-7,y,x+5,y-1,x+9,y+2,x+5,y+5,x-6,y+4]);R('#abc28a',x-5,y,6,1)}
+  for(const [x,y] of [[-8,-12],[6,-7],[-6,1]]){P(ink,[x-3,y-3,x+3,y-3,x+5,y+1,x+2,y+5,x-3,y+4,x-5,y]);P('#a2ba72',[x-2,y-2,x+2,y-2,x+3,y+1,x+1,y+3,x-2,y+2]);R('#d7e6ac',x-2,y-2,2,2)}
+  R(ink,-6,7,13,4);R('#e2eeb1',-4,8,3,1);R('#e2eeb1',2,8,3,1);R('#7a8d58',-2,11,5,2);
+  if(horrorFx&&!reduceMotion){R('#91ba7d',-17+step,-11,1,2);R('#91ba7d',16-step,-6,2,1)}
+ }
+ if(lunge>0){R('#e3a67a',-9,12,5,1);R('#e3a67a',4,12,5,1)}
+ if(ready){R('#f7ca8b',-2,-30,4,2);R('#f7ca8b',-1,-33,2,2)}
+ g.restore();return true;
+}
 function pixelEnemy(g,type,phase=0,lunge=0,attack=1){
+ if(pixelForestEnemy(g,type,phase,lunge,attack))return;
  if(pixelGraveyardEnemy(g,type,phase,lunge,attack))return;
  if(pixelIndustrialEnemy(g,type,phase,lunge,attack))return;
  if(pixelFoodcourtEnemy(g,type,phase,lunge,attack))return;
  if(pixelBasementEnemy(g,type,phase,lunge,attack))return;
  if(pixelKitchenEnemy(g,type,phase,lunge,attack))return;
- if(pixelArenaEnemy(g,type,phase,lunge,attack))return;
  const ink='#100b15',bone='#e3c8af',steel='#a9b9bf',hi='#f3e5ce';
  const step=Math.round(Math.sin(phase*1.5)*2),jaw=Math.round((Math.sin(phase)+1)*1.2);
  const R=(col,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
@@ -4532,13 +4568,7 @@ function pixelEnemy(g,type,phase=0,lunge=0,attack=1){
  const arms=(d,m,w=13)=>{for(const s of [-1,1]){const t=s*step;P(ink,[s*7,-8,s*(w+2),-5,s*(w+4),6+t,s*w,12+t,s*8,4]);P(d,[s*8,-6,s*w,-4,s*(w+2),6+t,s*w,9+t,s*9,3]);R(m,s<0?-w:w-2,-3,2,5);R(bone,s<0?-w-2:w,9+t,2,3)}};
  const shell=(d,m,l,w=12,h=16)=>{P(ink,[-w,-h+5,-w+5,-h,w-5,-h,w,-h+5,w+1,5,w-5,12,-w+5,12,-w-1,5]);P(d,[-w+2,-h+5,-w+6,-h+2,w-6,-h+2,w-2,-h+5,w-1,5,w-5,10,-w+5,10,-w+1,5]);P(m,[-w+3,-h+5,-w+7,-h+3,w-7,-h+3,w-3,-h+5,w-5,7,-w+5,7]);R(l,-w+6,-h+3,w,2);R(d,w-5,-h+7,3,h+2)};
  const teeth=(y,w=14)=>{R(ink,-w/2,y,w,5+jaw);for(let x=-w/2+1;x<w/2-1;x+=3){R(bone,x,y,2,2);R('#a48777',x+1,y+3+jaw,1,1)}};
- if(type==='parasite'){
-  const green=type==='parasite',d=green?'#273c2b':'#452934',m=green?'#638748':'#965458',l=green?'#b8ce75':'#ce897a';
-  for(const s of [-1,1])for(let i=0;i<3;i++){const y=-7+i*6,t=s*(i%2?step:-step);P(ink,[s*5,y,s*12,y-5+t,s*16,y+1+t,s*14,y+6+t,s*10,y+1,s*5,y+3]);P(d,[s*7,y,s*12,y-3+t,s*14,y+1+t,s*12,y+3+t,s*9,y+1]);R(l,s<0?-15:13,y+3+t,2,2)}
-  shell(d,m,l,9,12);for(let i=0;i<3;i++){R(m,-6,-10+i*5,12,3);R(l,-5,-10+i*5,6,1)}eyes(-2,green?'#d7ff9a':'#ff9690');teeth(4,10);
- }else if(type==='spitter'){
-  legs('#2a3d32','#64844e');shell('#2b4838','#548354','#a7cf7c',12,14);eyes(-7,'#c2ffa5');P(ink,[-7,-1,7,-1,9,5,5,9,-5,9,-9,5]);R('#87c66b',-5,4,10,3);R('#c8f5a5',-2,3,4,2);R('#79a964',-3,9,2,3+jaw);R('#79a964',3,10,1,2+jaw);
- }else{shell('#392834','#8a5361','#c88a86',10,13);eyes(-6);teeth(3)}
+ {shell('#392834','#8a5361','#c88a86',10,13);eyes(-6);teeth(3)}
  if(lunge>0){R('#e3a67a',-9,12,5,1);R('#e3a67a',4,12,5,1)}
  if(attack>=0&&attack<.18){R('#f7ca8b',-2,-29,4,2);R('#f7ca8b',-1,-32,2,2)}
 }
