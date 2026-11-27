@@ -1751,7 +1751,7 @@ function paintArenaIdentity(g,id,left,top,width,height){
  g.restore();
 }
 function paintArenaSignature(g,id,view,time){
- if(id==='kitchen'){paintKitchenAtmosphere(g,view,time);return}if(id==='basement'){paintBasementAtmosphere(g,view,time);return}if(id==='foodcourt'){paintFoodcourtAtmosphere(g,view,time);return}if(id==='slaughter'){paintSlaughterAtmosphere(g,view,time);return}if(id==='cemetery'){paintCemeteryAtmosphere(g,view,time);return}if(!horrorFx)return;const q=arenaIdentity[id];if(!q)return;const t=reduceMotion?0:time;g.save();g.fillStyle=q.color;
+ if(id==='kitchen'){paintKitchenAtmosphere(g,view,time);return}if(id==='basement'){paintBasementAtmosphere(g,view,time);return}if(id==='foodcourt'){paintFoodcourtAtmosphere(g,view,time);return}if(id==='slaughter'){paintSlaughterAtmosphere(g,view,time);return}if(id==='cemetery'){paintCemeteryAtmosphere(g,view,time);return}if(id==='forest'){paintForestAtmosphere(g,view,time);return}if(!horrorFx)return;const q=arenaIdentity[id];if(!q)return;const t=reduceMotion?0:time;g.save();g.fillStyle=q.color;
  for(const [x,y] of q.marks){if(!visibleWorld({x,y},view,60))continue;g.save();g.translate(x,y);g.globalAlpha=.25;
  for(let i=0;i<5;i++){const k=terrainHash(x,y,i+90),n=reduceMotion?i*3:((t*(id==='kitchen'?7:3)+i*9)%27),xx=Math.round(-22+i*10+Math.sin(t*.6+k*6)*3),yy=Math.round(-9-n);
  switch(id){
@@ -2006,6 +2006,79 @@ function paintCemeteryAtmosphere(g,view,time){
  }
  g.restore();
 }
+// V68.15 — Cursed Forest: twisted silhouettes, tangled roots and cold foxfire.
+const forestFoxfireSites=[[350,365],[535,720],[1400,340],[1600,645],[705,175],[1240,875]];
+function paintForestDetail(g,left,top,width,height){
+ const right=left+width,bottom=top+height;
+ const R=(c,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ g.save();
+ // Pixel silhouettes outside the walkable rectangle, with roots contained in the border.
+ for(const y of [0,1024]){
+  for(let x=78;x<1835;x+=97){
+   const k=terrainHash(x,y,441),h=35+Math.floor(k*12),s=k>.5?1:-1;
+   const yy=y+5,bend=x+s*8;
+   R('#101b19',x-12,yy+h-6,26,7);R('#1c2d25',x-4,yy+18,10,h-18);
+   R('#24372d',bend-4,yy+5,9,19);R('#3c4c37',bend-2,yy+7,2,15);
+   R('#394838',x-2,yy+22,3,h-23);R('#584c3c',x+3,yy+h-11,2,9);
+   for(let j=0;j<3;j++){const dx=j*4*s;R('#21332a',bend+dx-2,yy+10-j*3,7,4);R('#40523b',bend+dx-1,yy+10-j*3,4,1)}
+   R('#20342a',x-13,yy+13,11,4);R('#20342a',x-17,yy+8,6,8);R('#3d513b',x-16,yy+8,4,1);
+   R('#2c4131',x-9,yy+h-5,20,2);
+  }
+ }
+ // Flat roots, bark and fallen needles: scenery is traversable.
+ for(const [x,y] of [[245,440],[430,605],[605,830],[1330,210],[1510,485],[1695,850],[630,170],[1210,930]]){
+  const k=terrainHash(x,y,447),s=k>.5?1:-1;
+  for(let j=0;j<12;j++){
+   const xx=x+s*j*5,yy=y+Math.round(Math.sin(j*.36+k*3)*8);
+   R('#17251e',xx-3,yy+2,9,6);R('#4d4935',xx-3,yy,8,4);R('#706045',xx-2,yy,5,1);
+   if(j%3===0)R('#364d36',xx-1,yy+3,4,2);
+  }
+  for(let j=0;j<4;j++){const xx=x+s*(17+j*4),yy=y-5-j*3;R('#393b2c',xx,yy,6,4);R('#5d563e',xx,yy,3,1)}
+ }
+ // Dim turquoise mushrooms remain visually distinct from yellow-green hazard colonies.
+ for(const [x,y] of forestFoxfireSites){
+  R('#152a23',x-16,y+5,35,6);R('#314537',x-12,y+7,24,2);
+  for(const [dx,dy,h] of [[-10,0,5],[0,-5,9],[11,2,4]]){
+   R('#60796c',x+dx,y+dy-h,2,h+1);R('#284c45',x+dx-4,y+dy-h-3,10,4);
+   R('#527c68',x+dx-3,y+dy-h-4,8,3);R('#8aada0',x+dx-1,y+dy-h-4,3,1);
+  }
+ }
+ for(let i=0;i<100;i++){
+  const x=75+Math.floor(terrainHash(i,19,450)*1760),y=80+Math.floor(terrainHash(i,23,451)*920);
+  if(Math.hypot(x-960,y-550)<175)continue;
+  R('#3a4b35',x,y,3+i%4,1);R('#756149',x+1,y-1,2,1);
+  if(i%8===0){R('#254238',x+4,y+1,4,3);R('#4c6a4c',x+5,y,2,1)}
+ }
+ g.restore();
+}
+function forestFireflies(x,y,time){
+ const t=Number.isFinite(time)?time:0,out=[];
+ for(let i=0;i<3;i++){
+  const k=terrainHash(x,y,460+i),a=((t*.095+i/3+k)%1+1)%1;
+  out.push({x:Math.round(x-14+i*13+Math.sin(a*6.283+k*4)*8),y:Math.round(y-4-a*28),alpha:.10+.16*Math.sin(a*Math.PI)});
+ }
+ return out;
+}
+function paintForestAtmosphere(g,view,time){
+ if(!horrorFx)return;const t=reduceMotion?0:(Number.isFinite(time)?time:0);g.save();
+ for(let i=0;i<forestFoxfireSites.length;i++){
+  const [x,y]=forestFoxfireSites[i];if(!visibleWorld({x,y},view,60))continue;
+  g.fillStyle='#729e90';g.globalAlpha=.07+.018*Math.sin(t*.55+i);
+  for(let j=0;j<3;j++)g.fillRect(x-11-j*5,y+7+j*3,22+j*10,2);
+  if(!reduceMotion)for(const q of forestFireflies(x,y,t)){
+   g.fillStyle='#a7d4b2';g.globalAlpha=q.alpha;g.fillRect(q.x,q.y,2,2);
+   g.globalAlpha=q.alpha*.35;g.fillRect(q.x-1,q.y+1,4,1);
+  }
+ }
+ // Short drifting wisps, not screen-wide overlays.
+ for(const [x,y] of arenaLights.forest){
+  if(!visibleWorld({x,y},view,60))continue;
+  const a=reduceMotion?0:Math.sin(t*.22+terrainHash(x,y,470)*6.283);
+  g.fillStyle='#9bb6a5';g.globalAlpha=.065;g.fillRect(Math.round(x-22+a*9),y+12,44,2);
+  g.fillRect(Math.round(x-12+a*9),y+15,32,1);
+ }
+ g.restore();
+}
 function paintTerrain(g,id,left,top,width,height){
  const t=terrainThemes[id]||terrainThemes.kitchen,right=left+width,bottom=top+height,natural=id==='cemetery'||id==='forest';
  const R=(color,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
@@ -2086,7 +2159,7 @@ function paintTerrain(g,id,left,top,width,height){
   if(natural){const h=26+Math.floor(terrainHash(x,6,0)*16);P('#182a20',[x-15,y+42,x+4,y+42-h,x+19,y+42]);P('#314634',[x-9,y+35,x+4,y+43-h,x+14,y+35]);R('#6c5140',x+3,y+32,4,11)}
   else{plate(x,y+7,65,34,t.tile,t.edge,t.trim);if(id==='kitchen'){R('#171d20',x+7,y+13,51,13);for(let j=0;j<4;j++){R('#555f5d',x+10+j*12,y+15,7,8);R('#9b8270',x+10+j*12,y+15,7,1)}}else if(id==='foodcourt'){R('#2f2e34',x+8,y+12,49,21);R('#bc8b69',x+12,y+15,41,2);R('#4d7773',x+12,y+21,25,2)}else{grate(x+8,y+12,49,20,t.tile,t.trim)}}
  }
- if(id==='kitchen')paintKitchenDetail(g,left,top,width,height);else if(id==='basement')paintBasementDetail(g,left,top,width,height);else if(id==='foodcourt')paintFoodcourtDetail(g,left,top,width,height);else if(id==='slaughter')paintSlaughterDetail(g,left,top,width,height);else if(id==='cemetery')paintCemeteryDetail(g,left,top,width,height);
+ if(id==='kitchen')paintKitchenDetail(g,left,top,width,height);else if(id==='basement')paintBasementDetail(g,left,top,width,height);else if(id==='foodcourt')paintFoodcourtDetail(g,left,top,width,height);else if(id==='slaughter')paintSlaughterDetail(g,left,top,width,height);else if(id==='cemetery')paintCemeteryDetail(g,left,top,width,height);else if(id==='forest')paintForestDetail(g,left,top,width,height);
  paintArenaFeatures(g,id,left,top,width,height);paintArenaIdentity(g,id,left,top,width,height);
  // Sparse ground lanterns, placed to support navigation instead of repeating a grid.
  for(const [x,y] of arenaLights[id]||arenaLights.kitchen){
