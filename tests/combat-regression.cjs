@@ -19,7 +19,7 @@ updateHazards(1);check(hits===1&&hazards.length===0);
 const source={dead:false};scheduleHazard(0,0,50,20,.5,source);source.dead=true;updateHazards(.6);check(hits===1&&hazards.length===0);
 scheduleHazard(0,0,50,20,.5);p[0].x=70;updateHazards(.6);check(hits===1);
 `)(check);
-new Function('check',section('function updateProjectiles','function updateRings')+`
+new Function('check',section('function retainInPlace(','function fxTick(')+section('function updateProjectiles','function updateRings')+`
 let projectiles=[],enemies=[{x:10,y:0,r:8,hp:100},{x:10,y:0,r:8,hp:100}],rings=[];
 const arena={l:-100,r:100,t:-100,b:100};
 const onlineMode=false,breakableProps=[],propImpactLedger=new WeakMap(),hitBreakables=()=>{};const hitWithElement=(e,d)=>e.hp-=d;const targetPlayer=()=>null,hurtPlayer=()=>{},spawnParticles=()=>{},ring=()=>{};

@@ -1,6 +1,6 @@
 {
   "name": "dumpling-riot",
-  "version": "0.75.6",
+  "version": "0.75.7",
   "private": true,
   "engines": {
     "node": ">=22"
@@ -13,7 +13,7 @@
     "android:open": "cap open android",
     "ios:open": "cap open ios",
     "check:mobile": "node scripts/check-mobile.mjs",
-    "test": "node tests/combat-regression.cjs && node tests/ui-regression.cjs && node tests/secret-routes.cjs && node tests/solo-balance.cjs && node tests/stability-regression.cjs && node tests/run-modifiers.cjs && node tests/campaign-paths.cjs && node tests/hero-quests.cjs && node tests/mutants.cjs && node tests/legendary.cjs && node tests/temporary-curses.cjs && node tests/daily-challenge.cjs && node tests/abyss.cjs && node tests/integration-audit.cjs && node tests/lighting.cjs && node tests/animation.cjs && node tests/audio.cjs && node tests/render-pacing.cjs && node tests/squad-pacing.cjs && node tests/horror-director.cjs && node tests/field-records.cjs && node tests/advanced-loot.cjs && node tests/boss-encounters.cjs && node tests/hero-specialties.cjs && node tests/weapon-mastery.cjs && node tests/local-encounters.cjs && node tests/legacy-milestones.cjs && node tests/menu-clarity.cjs && node tests/combat-glows.cjs"
+    "test": "node tests/combat-regression.cjs && node tests/ui-regression.cjs && node tests/secret-routes.cjs && node tests/solo-balance.cjs && node tests/stability-regression.cjs && node tests/run-modifiers.cjs && node tests/campaign-paths.cjs && node tests/hero-quests.cjs && node tests/mutants.cjs && node tests/legendary.cjs && node tests/temporary-curses.cjs && node tests/daily-challenge.cjs && node tests/abyss.cjs && node tests/integration-audit.cjs && node tests/lighting.cjs && node tests/animation.cjs && node tests/audio.cjs && node tests/render-pacing.cjs && node tests/squad-pacing.cjs && node tests/horror-director.cjs && node tests/field-records.cjs && node tests/advanced-loot.cjs && node tests/boss-encounters.cjs && node tests/hero-specialties.cjs && node tests/weapon-mastery.cjs && node tests/local-encounters.cjs && node tests/legacy-milestones.cjs && node tests/menu-clarity.cjs && node tests/combat-glows.cjs && node tests/hot-loop.cjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.0.0",

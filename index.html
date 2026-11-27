@@ -3722,7 +3722,12 @@ const COMBAT_FX={particles:340,texts:48,marks:32,ghosts:12,death:18};
 let impactMarks=[],dashGhosts=[],deathSprites=[];
 function fxBudget(current,requested,cap){return Math.max(0,Math.min(Math.floor(requested),cap-current))}
 function pushFx(list,item,cap){if(list.length>=cap)list.splice(0,list.length-cap+1);list.push(item)}
-function fxTick(list,dt){for(const q of list)q.life-=dt;return list.filter(q=>q.life>0)}
+// V75.7 — Stable compaction of owned dense arrays, only after simulation iteration.
+function retainInPlace(list,keep){
+ let write=0;for(let read=0;read<list.length;read++){const q=list[read];if(keep(q)){if(write!==read)list[write]=q;write++}}
+ list.length=write;return list;
+}
+function fxTick(list,dt){for(const q of list)q.life-=dt;return retainInPlace(list,q=>q.life>0)}
 function recoilPose(t,slot,less=false){const q=Math.max(0,Math.min(1,t/.14));return {offset:less?0:Math.round(q*(slot===2?5:3)),angle:less?0:Math.sin((1-q)*Math.PI)*q*(slot===2?.45:.17),flash:!less&&q>.72}}
 // V74.3 — Presentation clocks, never collision, movement or input locks.
 const heroMotionProfiles={
@@ -5129,7 +5134,7 @@ function updateProjectiles(dt){
    }
   }
  }
- projectiles=projectiles.filter(p=>p.life>0&&p.x>arena.l-80&&p.x<arena.r+80&&p.y>arena.t-80&&p.y<arena.b+80)
+ retainInPlace(projectiles,p=>p.life>0&&p.x>arena.l-80&&p.x<arena.r+80&&p.y>arena.t-80&&p.y<arena.b+80)
 }
 function updateRings(dt){
  for(const r of rings){
@@ -5141,8 +5146,9 @@ function updateRings(dt){
    if(!r.hit)r.hit=new Set();
    for(const e of enemies){
     if(e.dead||r.hit.has(e))continue;
-    if(Math.hypot(r.x-e.x,r.y-e.y)<r.r+e.r){
-     const d=Math.hypot(r.x-e.x,r.y-e.y), edge=Math.max(1,r.max);
+    const d=Math.hypot(r.x-e.x,r.y-e.y);
+    if(d<r.r+e.r){
+     const edge=Math.max(1,r.max);
      const fall=r.falloff===false?1:clamp(1-(d/edge)*.55,.45,1);
      if(r.artHero){const event=ringQuestEvent(r);if(event)recordHeroQuest(event,1,e)}
      hitWithElement(e,r.damage*fall,r.owner,r.element);
@@ -5153,7 +5159,7 @@ function updateRings(dt){
    }
   }
  }
- rings=rings.filter(r=>r.life>0)
+ retainInPlace(rings,r=>r.life>0)
 }
 function enemyXPValue(type){return type==='boss'?150:[34,42,50][enemyTier(type)]}
 function dropEnemyXP(e){
@@ -5163,6 +5169,17 @@ function dropEnemyXP(e){
   drops.push({x:clamp(e.x+Math.cos(angle)*dist,arena.l+5,arena.r-5),y:clamp(e.y+Math.sin(angle)*dist,arena.t+5,arena.b-5),type:'xp',value:value/count,life:1,pulse:i*.3});
  }
 }
+// Pickup broad phase: exact original distance and tie-break inside the maximum actionable radius.
+function nearbyPickupTarget(d,players){
+ const limit=d.type==='xp'?64:d.type==='artifact'?20:d.type==='relic'?18:d.type==='heal'?15:d.type==='bomb'?13:0;
+ let cp=null,dist=Infinity;
+ for(const p of players){
+  const dx=p.x-d.x,dy=p.y-d.y;
+  if(Math.abs(dx)>=limit||Math.abs(dy)>=limit)continue;
+  const v=Math.hypot(dx,dy);if(v<dist){dist=v;cp=p}
+ }
+ return cp&&dist<limit?{cp,dist}:null;
+}
 function updateDrops(dt){
  const cps=alivePlayers();
  for(const d of drops){
@@ -5170,9 +5187,7 @@ function updateDrops(dt){
   if(d.type!=='xp'&&d.type!=='artifact')d.life-=dt;
   if(d.life<=0)continue;
   d.pulse=(d.pulse||0)+dt;
-  let cp=null,dist=Infinity;
-  for(const p of cps){const v=Math.hypot(p.x-d.x,p.y-d.y);if(v<dist){dist=v;cp=p}}
-  if(!cp)continue;
+  const nearby=nearbyPickupTarget(d,cps);if(!nearby)continue;const cp=nearby.cp;let dist=nearby.dist;
   if(d.type==='xp'){
    // A small local attraction helps collection on touch screens; no remote XP credit.
    if(dist>10&&dist<(cp.artifacts?.includes('void')?64:32)){const s=Math.min(dist-9,100*dt);d.x+=(cp.x-d.x)/dist*s;d.y+=(cp.y-d.y)/dist*s;dist=Math.hypot(cp.x-d.x,cp.y-d.y)}
@@ -5184,10 +5199,10 @@ function updateDrops(dt){
   }else if(d.type==='heal'&&dist<15&&cp.hp<cp.maxhp){const healed=Math.min(soloRun?artifactPickupHeal(cp,d.value||18)*modifierValue(soloRun,'heal')*(activeCampaignPath(soloRun).heal??1)*curseValue(soloRun,wave,'heal'):d.value||18,cp.maxhp-cp.hp);cp.hp+=healed;d.life=0;spawnParticles(d.x,d.y,10,'#a9e6aa',.7);floatText(d.x,d.y-15,'+'+Math.round(healed)+' HP','#a9e6aa');sfx('pickup')}
   else if(d.type==='bomb'&&dist<13){cp.bomb=Math.min(9,cp.bomb+1);d.life=0;spawnParticles(d.x,d.y,8,'#f0b04e',.6)}
  }
- drops=drops.filter(d=>d.life>0);
+ retainInPlace(drops,d=>d.life>0);
 }
 
-function updateFx(dt){tickHorrorDirector(dt);tickDynamicHorror(dt);tickBreakables(dt);impactMarks=fxTick(impactMarks,dt);dashGhosts=fxTick(dashGhosts,dt);deathSprites=fxTick(deathSprites,dt);for(const p of coopPlayers()){p.recoilT=Math.max(0,(p.recoilT||0)-dt);stepHeroMotion(p,dt)}for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.92;p.vy*=.92;p.life-=dt}particles=particles.filter(p=>p.life>0);for(const t of texts){t.y-=18*dt;t.life-=dt}texts=texts.filter(t=>t.life>0);if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)document.getElementById('toast').classList.remove('show')}}
+function updateFx(dt){tickHorrorDirector(dt);tickDynamicHorror(dt);tickBreakables(dt);impactMarks=fxTick(impactMarks,dt);dashGhosts=fxTick(dashGhosts,dt);deathSprites=fxTick(deathSprites,dt);for(const p of coopPlayers()){p.recoilT=Math.max(0,(p.recoilT||0)-dt);stepHeroMotion(p,dt)}for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.92;p.vy*=.92;p.life-=dt}retainInPlace(particles,p=>p.life>0);for(const t of texts){t.y-=18*dt;t.life-=dt}retainInPlace(texts,t=>t.life>0);if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)document.getElementById('toast').classList.remove('show')}}
 
 let shake=0;
 const touchInput={moveX:0,moveY:0,aimX:0,aimY:0,aimActive:false,attack:false,p2MoveX:0,p2MoveY:0};let touchAimMode=false;
@@ -5281,7 +5296,7 @@ function update(dt){
  horrorTime+=dt;for(const p of coopPlayers())advancePlayerTimers(p,dt)
  if(!player.dead&&(mouse.down||touchInput.attack))attack();
  if(state==='game'){updateNightmare(dt);updateSecret(dt);updateSpatialAudio(dt)}updateEnemies(dt);if(state==='game')updateLivingStations(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);if(state==='game'){updateArenaTrial(dt);updateFieldRecord(dt)}updateFx(dt);
- enemies=enemies.filter(e=>!e.dead);
+ retainInPlace(enemies,e=>!e.dead);
  if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if((waveTime>=delay||enemies.length===0)&&allowWaveSpawn(!!soloRun,wave,enemies.length)){waveTime=0;spawnEnemy();spawned++}}
  if(canClearCombat(state,waveState,spawned,targetCount,boss,enemies,hazards,!!soloRun)){waveState='clear';if(soloRun){const rest=safeRestAttacks(projectiles,hazards);projectiles=rest.projectiles;hazards=rest.hazards;}expireTrial(arenaTrial);tutorialEvent('wave');if(nightmare?.hunter){nightmare.hunter.dead=true;hazards=hazards.filter(h=>h.source!==nightmare.hunter);nightmare.hunter=null}if(nightmare){nightmare.echo=null;nightmare.fear=fearClamp(nightmare.fear-12)}between=soloRun?4:1.6;let reward=0;if(soloRun){reward=clearWaveReward(meta,soloRun,wave,selectedMap);if(reward){addCoins(soloRun,Math.floor(coinReward(wave)*modifierValue(soloRun,'coins'))+(activeCampaignPath(soloRun).coinsClear??0));settleHeroQuest(soloRun)}saveMeta()}toast(L('WAVE CLEARED · COLLECT XP','ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')+(reward?' · ◆ +'+reward:''));toastTimer=2.5}
  if(!alivePlayers().length)return;
