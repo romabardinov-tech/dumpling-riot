@@ -1051,6 +1051,44 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 #dimensionHud[hidden],#dimensionSkip[hidden]{display:none!important}
 #dimensionHud{position:absolute;left:50%;top:12%;transform:translateX(-50%);z-index:47;width:min(360px,60%);padding:6px 9px;background:#16101fe8;border:1px solid #bb96cd;border-left:3px solid #d1a7e1;box-shadow:0 2px 9px #000a;color:#f7e4f5;text-align:center;pointer-events:none;font:600 11px/1.35 system-ui}
 #dimensionHud b,#dimensionHud span{display:block}#dimensionHud b{color:#e4c0ed;font-size:12px}#dimensionSkip{pointer-events:auto;touch-action:manipulation;min-height:30px;padding:4px 12px;margin-top:4px;background:#382b44;border:1px solid #a88bbb;color:#fff0df;font:700 11px system-ui;cursor:pointer}
+
+/* V75.26: the cinematic owns the viewport, not the small ritual window. */
+#wrap.storyFullscreen{width:100vw!important;height:100vh!important;height:100dvh!important;max-width:none!important;max-height:none!important}
+#ritualOverlay.storyCinema:not([hidden]){display:block;position:absolute;inset:0;z-index:120;background:#08060c;overflow:hidden;touch-action:pan-y}
+#ritualOverlay.storyCinema .ritualBox{position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;padding:0;border:0;border-radius:0;box-shadow:none;overflow:hidden;background:#08060c;display:block}
+#ritualOverlay.storyCinema #ritualChoices{position:absolute;inset:0;display:block}
+#ritualOverlay.storyCinema #ritualTitle,#ritualOverlay.storyCinema #ritualHint{position:absolute;left:max(24px,env(safe-area-inset-left));right:max(24px,env(safe-area-inset-right));z-index:8;pointer-events:none;text-align:left;text-shadow:0 2px 9px #000;margin:0}
+#ritualOverlay.storyCinema #ritualTitle{top:max(20px,env(safe-area-inset-top));font:800 clamp(18px,3.2vw,38px)/1.15 system-ui;color:#f0d8bc;letter-spacing:.025em}
+#ritualOverlay.storyCinema #ritualHint{top:calc(max(20px,env(safe-area-inset-top)) + clamp(25px,4.2vw,49px));font:500 clamp(11px,1.6vw,16px)/1.4 system-ui;color:#d7c4c5;max-width:85%}
+#ritualOverlay.storyCinema .storyScreen{position:absolute;inset:0;width:100%;height:100%;min-height:0;aspect-ratio:auto;border:0;background:#08060d;overflow:hidden}
+#ritualOverlay.storyCinema .storyScreen:before{border-top:clamp(8px,5vh,42px) solid #08050a;border-bottom:clamp(8px,5vh,42px) solid #08050a}
+#ritualOverlay.storyCinema .storyScreen:after{background:linear-gradient(180deg,#08060cdb 0%,transparent 23%,transparent 53%,#08060ce6 88%,#08060c 100%);z-index:4}
+#ritualOverlay.storyCinema .storyFilm{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;background:#08060d;filter:none;cursor:default}
+#ritualOverlay.storyCinema .storyDialogue{position:absolute;z-index:9;bottom:calc(max(22px,env(safe-area-inset-bottom)) + 60px);left:50%;transform:translateX(-50%);width:min(900px,88%);min-height:100px;max-height:33%;overflow-y:auto;background:linear-gradient(90deg,#100b16ee,#151019eb);border:1px solid #745963;border-left:4px solid #d2a075;border-radius:3px;padding:clamp(10px,2vw,20px);box-shadow:0 7px 28px #0009;touch-action:pan-y}
+#ritualOverlay.storyCinema .storyDialogue b{font:800 clamp(12px,1.6vw,17px)/1.25 system-ui;color:#e8b995;margin-bottom:8px}
+#ritualOverlay.storyCinema .storyDialogue span{font:500 clamp(16px,2.1vw,25px)/1.45 system-ui;color:#fff0de;overflow-wrap:anywhere}
+#ritualOverlay.storyCinema .storyControls{position:absolute;z-index:10;bottom:max(14px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(900px,88%);display:grid;grid-template-columns:1fr 1.35fr 1fr;gap:8px}
+#ritualOverlay.storyCinema .storyControls button{min-height:48px;background:#241a29e8;border:1px solid #755664;color:#e9d7c8;font:700 clamp(12px,1.4vw,16px)/1.2 system-ui;padding:5px 8px}
+#ritualOverlay.storyCinema .storyControls button:nth-child(2){background:#8b3847;border-color:#d4927b;color:#fff0de}
+#ritualOverlay.storyCinema .storyProgress{position:absolute;right:max(24px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));z-index:10;font:700 12px system-ui;color:#bca8b6;text-shadow:0 1px 3px #000}
+#ritualOverlay.storyCinema .storyTrack{position:absolute;z-index:11;bottom:0;left:0;right:0;height:3px;background:#251725}
+#ritualOverlay.storyCinema .storyTrack i{transition:none}
+@media(orientation:portrait){
+ #ritualOverlay.storyCinema .storyFilm{object-fit:contain}
+ #ritualOverlay.storyCinema .storyDialogue{width:92%;bottom:calc(max(15px,env(safe-area-inset-bottom)) + 64px);max-height:40%;min-height:96px}
+ #ritualOverlay.storyCinema .storyControls{width:92%;gap:5px}
+ #ritualOverlay.storyCinema #ritualTitle,#ritualOverlay.storyCinema #ritualHint{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right))}
+}
+@media(max-height:520px) and (orientation:landscape){
+ #ritualOverlay.storyCinema #ritualTitle{top:max(6px,env(safe-area-inset-top));font-size:17px}
+ #ritualOverlay.storyCinema #ritualHint{top:calc(max(6px,env(safe-area-inset-top)) + 22px);font-size:10px;max-width:76%}
+ #ritualOverlay.storyCinema .storyDialogue{min-height:52px;max-height:34%;padding:5px 9px;bottom:calc(max(6px,env(safe-area-inset-bottom)) + 36px)}
+ #ritualOverlay.storyCinema .storyDialogue b{font-size:10px;margin-bottom:2px}
+ #ritualOverlay.storyCinema .storyDialogue span{font-size:12px;line-height:1.3}
+ #ritualOverlay.storyCinema .storyControls{bottom:max(4px,env(safe-area-inset-bottom));width:min(740px,88%);gap:5px}
+ #ritualOverlay.storyCinema .storyControls button{min-height:30px;font-size:11px}
+}
+
 </style>
 </head>
 <body>
@@ -1772,7 +1810,7 @@ function drawStoryPortrait(cv,id){menuArtwork(()=>{const g=cv.getContext('2d');g
 
 /* V75.24 — cutscene clock is independent of the combat clock. */
 let storyCinemaInput=null;
-function storyTextTiming(length){const reveal=length/42;return {reveal,duration:Math.max(3.6,reveal+2.7)}}
+function storyTextTiming(length){const reveal=length/42;return {reveal,duration:Math.max(4.4,reveal+3.1)}}
 function storyActorFrame(cv,id,t,who,shot,still){
  const g=cv.getContext('2d');if(!g)return;
  g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);g.imageSmoothingEnabled=false;
@@ -1800,16 +1838,69 @@ function storyAtmosphereFrame(cv,t,shot,still){
  g.globalAlpha=1;
  const light=g.createRadialGradient(w*(shot==='echo'?.72:.32),h*.48,0,w*(shot==='echo'?.72:.32),h*.48,w*.55);light.addColorStop(0,shot==='echo'?'#a5254333':'#d29b6330');light.addColorStop(1,'#00000000');g.fillStyle=light;g.fillRect(0,0,w,h);
 }
+
+/* Full-screen pixel cinema: original layered backgrounds and animated actors. */
+const cinemaPalettes={
+ kitchen:['#261a22','#503037','#7d5043','#e5a16d','#221a23'],basement:['#15222b','#263b49','#4a6773','#9bc9e7','#111c24'],
+ foodcourt:['#24192f','#44304e','#725169','#ef9dc8','#201725'],slaughter:['#2a161b','#522a31','#805054','#f18b78','#20151c'],
+ cemetery:['#1d2828','#34453f','#5b7164','#c4d6b3','#151e20'],forest:['#15241f','#304639','#536b49','#b1d08b','#101c19']
+};
+const cinemaActions={
+ scar:{weapon:0,lean:.06,glow:'#ef9b72'},vesa:{weapon:1,lean:.045,glow:'#ce6b79'},nyx:{weapon:1,lean:.04,glow:'#af93e2'},pelmage:{weapon:0,lean:.035,glow:'#9ad3ef'},assassin:{weapon:0,lean:.10,glow:'#87d0af'},golem:{weapon:0,lean:.025,glow:'#e2a767'},warden:{weapon:0,lean:.04,glow:'#ecd094'},revenant:{weapon:0,lean:.05,glow:'#c5a0e4'}
+};
+function cinemaBackdrop(cv,map){
+ const g=cv.getContext('2d');const [dark,wall,trim,light,floor]=cinemaPalettes[map]||cinemaPalettes.kitchen,w=cv.width,h=cv.height;
+ const R=(c,x,y,ww,hh)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(ww),Math.round(hh))};
+ R(dark,0,0,w,h);R(wall,0,35,w,123);R(dark,0,151,w,7);R(floor,0,158,w,h-158);
+ for(let x=0;x<w;x+=48){R(trim,x,35,2,119);R(dark,x+2,35,4,119);for(let y=50;y<155;y+=28)R(dark,x+5,y,42,1)}
+ for(let y=167;y<h;y+=13)R(wall,0,y,w,1);
+ g.strokeStyle=wall;g.lineWidth=1;for(let x=-480;x<960;x+=65){g.beginPath();g.moveTo(w/2+(x-w/2)*.22,158);g.lineTo(x,h);g.stroke()}
+ const outdoor=map==='forest'||map==='cemetery';
+ for(let j=0;j<8;j++){let x=j*71-20;
+  if(outdoor){R(dark,x,28,17,135);R(trim,x+3,44,3,103);for(let i=0;i<3;i++){R(dark,x-11+i*6,48+i*17,28,5)}if(map==='cemetery'){R(wall,x+22,118,26,39);R(trim,x+26,110,18,8);R(dark,x+28,124,13,2)}}
+  else if(map==='kitchen'){R(dark,x+12,90,54,59);R(trim,x+15,94,48,4);R(wall,x+17,103,44,37);for(let k=0;k<2;k++){R(dark,x+21+k*22,109,17,19);R(trim,x+23+k*22,111,13,2)}R(trim,x+14,143,50,3)}
+  else if(map==='basement'){R(dark,x+12,47,32,102);R(trim,x+16,51,24,94);R(wall,x+18,53,20,89);R(light,x+20,69,4,3);R(dark,x+20,77,14,2)}
+  else if(map==='foodcourt'){R(dark,x+6,68,58,81);R(trim,x+9,71,52,11);R(light,x+13,75,44,2);R(wall,x+10,85,50,38);R(dark,x+15,91,40,26);R(trim,x+10,135,50,4)}
+  else{R(dark,x+10,60,47,90);R(trim,x+13,63,41,5);R(wall,x+16,70,35,62);for(let k=0;k<4;k++)R(dark,x+20+k*7,75,3,52)}
+ }
+ for(let x=58;x<w;x+=170){R(dark,x-19,39,38,13);R(light,x-13,47,26,3);const grad=g.createRadialGradient(x,52,3,x,80,85);grad.addColorStop(0,light+'44');grad.addColorStop(1,light+'00');g.fillStyle=grad;g.fillRect(x-90,40,180,146)}
+ // A sealed doorway gives the apparition a physical point of emergence.
+ R(dark,328,60,74,100);R(trim,333,65,64,94);R('#100c17',338,70,54,90);R(light,339,73,2,84);R(wall,363,75,3,85);
+}
+function cinemaEase(t){t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)}
+function cinemaFilmFrame(cv,back,id,t,shot,still,exit=false){
+ const g=cv.getContext('2d'),w=cv.width,h=cv.height,a=cinemaActions[id]||cinemaActions.scar;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,w,h);g.imageSmoothingEnabled=false;
+ const p=still?1:cinemaEase(t/1.2),phase=still?0:t*5,focus=shot==='hero'?-1:shot==='echo'?1:0;
+ const zoom=1+(focus? .23:.07)*p,pan=-focus*38*p;
+ g.save();g.translate(w/2+pan,h/2+7*p);g.scale(zoom,zoom);g.translate(-w/2,-h/2);g.drawImage(back,0,0,w,h);
+ const x=shot==='narrator'?74+94*p:shot==='hero'?168:150,y=194;
+ const echoX=shot==='echo'?326-18*p:365,echoOpacity=shot==='echo'?.25+.75*p:shot==='narrator'?.15*p:.20;
+ function shadow(xx,yy,size){g.fillStyle='#0a080e99';g.beginPath();g.ellipse(xx,yy+3,size,5,0,0,Math.PI*2);g.fill()}
+ shadow(x,y,25);g.save();g.translate(Math.round(x),Math.round(y+(still?0:Math.sin(phase)*1.4)));g.scale(2.65,2.65);g.rotate(still?0:Math.sin(phase)*a.lean);
+ const stride=still?0:shot==='narrator'&&t<1.2?Math.sin(t*15):Math.sin(phase)*.15;
+ g.translate(0,-13);pixelHeroBody(g,id,stride,phase,0);paintHeroSignature(g,id,phase,stride);pixelHeroWeapon(g,id,a.weapon,shot==='echo'?-.18:0,0);g.restore();
+ if(echoOpacity>0){shadow(echoX,y,29);g.save();g.globalAlpha=echoOpacity;g.translate(echoX,y-38+(still?0:Math.sin(phase*.65)*2));g.scale(2.5,2.5);
+  if(id==='nyx'||id==='revenant'){g.scale(-1,1);g.filter='brightness(.55) saturate(.45)';pixelHeroBody(g,id,0,phase,Math.PI);paintHeroSignature(g,id,phase,0);g.filter='none'}
+  else{g.fillStyle='#100c19';g.beginPath();g.moveTo(-21,16);g.lineTo(-15,-11);g.lineTo(-9,-24);g.lineTo(0,-32);g.lineTo(9,-24);g.lineTo(15,-11);g.lineTo(21,16);g.lineTo(0,12);g.closePath();g.fill();g.fillStyle='#35203b';g.fillRect(-12,-19,24,21);g.fillStyle='#100813';g.fillRect(-8,-17,16,11);g.fillStyle='#55304e';g.fillRect(-15,-3,4,15);g.fillRect(11,-3,4,15)}
+  g.fillStyle='#f16a82';g.fillRect(-5,-12,3,2);g.fillRect(2,-12,3,2);g.fillStyle='#ffcfb1';g.fillRect(-4,-12,1,1);g.fillRect(3,-12,1,1);g.restore();
+ }
+ g.restore();
+ // Layered atmosphere uses no random strobe; it follows the shot clock.
+ if(!still){for(let i=0;i<32;i++){const xx=(i*73+t*(4+i%4))%w,yy=((i*37-t*(4+i%3))%h+h)%h;g.globalAlpha=.10+(i%4)*.09;g.fillStyle=shot==='echo'?'#d76c8a':a.glow;g.fillRect(Math.round(xx),Math.round(yy),i%3===0?2:1,1)}g.globalAlpha=1}
+ const vignette=g.createRadialGradient(w*(focus===1?.67:focus===-1?.35:.5),h*.42,30,w/2,h/2,w*.65);vignette.addColorStop(0,'#00000000');vignette.addColorStop(1,'#08050bd9');g.fillStyle=vignette;g.fillRect(0,0,w,h);
+ const wash=g.createRadialGradient(w*.72,h*.43,0,w*.72,h*.43,140);wash.addColorStop(0,shot==='echo'?'#bd365735':a.glow+'18');wash.addColorStop(1,'#00000000');g.fillStyle=wash;g.fillRect(0,0,w,h);
+ if(!still&&t<.38){g.fillStyle='rgba(7,5,11,'+(1-t/.38)+')';g.fillRect(0,0,w,h)}
+ if(exit){g.fillStyle='#08060c';g.fillRect(0,0,w,h)}
+}
+
 function openStoryCinema(frames,title,hint,onFinish,finishLabel){
  if(!frames.length)return false;
  const el=document.getElementById('ritualOverlay'),box=document.getElementById('ritualChoices');
  state='story';clearLocalInput();setMobileControls(false);clearNpc();
- el.classList.add('storyCinema');document.getElementById('ritualTitle').textContent=title;document.getElementById('ritualHint').textContent=hint;
+ document.getElementById('wrap').classList.add('storyFullscreen');el.classList.add('storyCinema');document.getElementById('ritualTitle').textContent=title;document.getElementById('ritualHint').textContent=hint;
  document.getElementById('extractBtn').hidden=true;box.replaceChildren();
  const scene=document.createElement('div');scene.className='storyScreen';scene.setAttribute('aria-hidden','true');
- const bg=document.createElement('canvas');bg.width=320;bg.height=180;bg.className='storyLandscape';menuArtwork(()=>bg.getContext('2d').drawImage(mapThumbnail(selectedMap),0,0,320,180));
- const hero=document.createElement('canvas'),echo=document.createElement('canvas');for(const [cv,cls] of [[hero,'hero'],[echo,'echo']]){cv.width=144;cv.height=144;cv.className='storyActor '+cls}
- const fog=document.createElement('div');fog.className='storyFog';const fx=document.createElement('canvas');fx.width=320;fx.height=140;fx.className='storyAtmosphere';scene.append(bg,hero,echo,fog,fx);
+ const film=document.createElement('canvas'),back=document.createElement('canvas');film.width=back.width=480;film.height=back.height=270;film.className='storyFilm';menuArtwork(()=>cinemaBackdrop(back,selectedMap));scene.append(film);
  const dialogue=document.createElement('div');dialogue.className='storyDialogue';const speaker=document.createElement('b'),words=document.createElement('span'),announcement=document.createElement('span');announcement.style.cssText='position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)';announcement.setAttribute('aria-live','polite');words.setAttribute('aria-hidden','true');dialogue.append(speaker,words,announcement);
  const track=document.createElement('div');track.className='storyTrack';const fill=document.createElement('i');track.append(fill);
  const progress=document.createElement('div');progress.className='storyProgress';
@@ -1818,15 +1909,15 @@ function openStoryCinema(frames,title,hint,onFinish,finishLabel){
  skip.textContent=SU(4);controls.append(pause,next,skip);box.append(scene,dialogue,track,progress,controls);el.hidden=false;
  const id=soloRun.hero,name=locName(chars.find(c=>c.id===id)||chars[0]),still=reduceMotion;let i=0,elapsed=0,lastTime=null,lastDraw=-Infinity,shown=-1,raf=0,paused=false,done=false,letters=[],timing;
  function active(){return !done&&state==='story'&&!el.hidden&&box.contains(scene)}
- function cleanup(){if(raf)cancelAnimationFrame(raf);raf=0;if(storyCinemaInput===input)storyCinemaInput=null;el.classList.remove('storyCinema')}
+ function cleanup(){if(raf)cancelAnimationFrame(raf);raf=0;if(storyCinemaInput===input)storyCinemaInput=null;el.classList.remove('storyCinema');document.getElementById('wrap').classList.remove('storyFullscreen')}
  function finish(){if(!active())return;done=true;cleanup();el.hidden=true;box.replaceChildren();clearLocalInput();onFinish()}
  function reveal(){shown=letters.length;words.textContent=letters.join('');elapsed=Math.max(elapsed,timing.reveal)}
  function advance(force=false){if(!active())return;if(!force&&shown<letters.length){reveal();return}if(i===frames.length-1){finish();return}i++;show()}
  function input(code){if(code==='Escape'){finish();return true}if(code==='Space'||code==='Enter'){advance();return true}return false}
- function renderActors(){menuArtwork(()=>{storyActorFrame(hero,id,elapsed,'hero',frames[i][0],still);storyActorFrame(echo,id,elapsed,'echo',frames[i][0],still);storyAtmosphereFrame(fx,elapsed,frames[i][0],still)})}
- function show(){const [who,txt]=frames[i];elapsed=0;lastDraw=-Infinity;shown=-1;letters=Array.from(txt);timing=storyTextTiming(letters.length);scene.dataset.speaker=who;speaker.textContent=who==='hero'?name:who==='echo'?SU(3):SU(2);words.textContent='';announcement.textContent=speaker.textContent+': '+txt;progress.textContent=(i+1)+' / '+frames.length;fill.style.width=(i/frames.length*100)+'%';next.textContent=i===frames.length-1?finishLabel:SU(5);pause.textContent=paused?SU(7):SU(6);if(still)reveal();renderActors()}
+ function renderActors(){menuArtwork(()=>cinemaFilmFrame(film,back,id,elapsed,frames[i][0],still))}
+ function show(){const [who,txt]=frames[i];elapsed=0;lastDraw=-Infinity;shown=-1;letters=Array.from(txt);timing=storyTextTiming(letters.length);scene.dataset.speaker=who;speaker.textContent=who==='hero'?name:who==='echo'?SU(3):SU(2);words.textContent='';announcement.textContent=speaker.textContent+': '+txt;progress.textContent=(i+1)+' / '+frames.length;fill.style.width=(i/frames.length*100)+'%';next.textContent=i===frames.length-1?finishLabel:SU(5);pause.textContent=paused?SU(7):SU(6);if(still)reveal();renderActors();if(who==='echo'){creatureCall('hollow');spatialTone(player.x,player.y,57,.48,.035,'sine')}}
  function tick(now){raf=0;if(!active()){cleanup();return}const dt=lastTime===null?0:Math.min(.1,Math.max(0,(now-lastTime)/1000));lastTime=now;
-  if(!paused&&!document.hidden){elapsed+=dt;const count=still?letters.length:Math.min(letters.length,Math.floor(elapsed*42));if(count>shown){shown=count;words.textContent=letters.slice(0,count).join('')}if(!still&&elapsed-lastDraw>=1/12){lastDraw=elapsed;renderActors()}fill.style.width=((i+Math.min(1,elapsed/timing.duration))/frames.length*100)+'%';if(elapsed>=timing.duration)advance(true)}
+  if(!paused&&!document.hidden){elapsed+=dt;const count=still?letters.length:Math.min(letters.length,Math.floor(elapsed*42));if(count>shown){shown=count;words.textContent=letters.slice(0,count).join('')}if(!still&&elapsed-lastDraw>=1/24){lastDraw=elapsed;renderActors()}fill.style.width=((i+Math.min(1,elapsed/timing.duration))/frames.length*100)+'%';if(elapsed>=timing.duration)advance(true)}
   if(active())raf=requestAnimationFrame(tick)
  }
  pause.onclick=()=>{if(!active())return;paused=!paused;scene.dataset.paused=String(paused);pause.textContent=paused?SU(7):SU(6)};next.onclick=()=>advance();skip.onclick=finish;storyCinemaInput=input;show();raf=requestAnimationFrame(tick);next.focus?.({preventScroll:true});return true;
@@ -1835,7 +1926,7 @@ function openStoryCinema(frames,title,hint,onFinish,finishLabel){
 function openHeroStory(){
  if(!soloRun?.campaign||state!=='game'||!campaignStoryBeat(wave))return false;
  const story=storyFor(soloRun.hero),ch=storyChapter(soloRun),talk=(storyTalk[soloRun.hero]||storyTalk.scar)[soloRun.campaign.chapter-1];
- const frames=[['narrator',L(ch[2],ch[3])],['hero',L(talk[0],talk[1])],['echo',L(talk[2],talk[3])]];
+ const frames=[['narrator',L(ch[2],ch[3])],['hero',L(talk[0],talk[1])],['echo',L(talk[2],talk[3])],['hero',L('I have to keep moving.','Нужно идти дальше.')]];
  return openStoryCinema(frames,L(...story.title)+' · '+SU(1)+' '+soloRun.campaign.chapter+' / 3',L(ch[0],ch[1])+' · '+SU(10)+' '+(soloRun.campaign.chapter*5)+' · '+SU(12)+' '+((soloRun.campaign.chapter-1)*5+2),()=>{state='game';setMobileControls(true);clearLocalInput()},SU(8));
 }
 function openStoryEpilogue(id){
