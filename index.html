@@ -789,7 +789,7 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 <section class="menuSection" data-menu-panel="journal" hidden><div class="altarHeader"><h3 id="journalHeading"></h3><b id="journalCount"></b></div><p id="journalHint" class="selectionDetail"></p><label id="journalFilterLabel" for="journalFilter"></label><select id="journalFilter"></select><div id="journalEntries"></div></section>
 <section class="menuSection" data-menu-panel="altar" hidden><div class="altarHeader"><h3 id="altarHeading"></h3><b id="shardBalance"></b></div><p id="altarHint" class="selectionDetail"></p><h4 id="contractHeading"></h4><div id="contractChoices" class="altarGrid"></div><h4 id="modifierHeading"></h4><div id="modifierChoices" class="altarGrid"></div><h4 id="perkHeading"></h4><div id="perkChoices" class="altarGrid"></div><p id="campaignWins" class="selectionDetail"></p><h4 id="endingHeading"></h4><div id="endingList" class="achievementGrid"></div><h4 id="runHistoryHeading"></h4><div id="runHistoryList" class="achievementGrid"></div><h4 id="comboHeading"></h4><div id="comboList" class="achievementGrid"></div><h4 id="achievementHeading"></h4><div id="achievementList" class="achievementGrid"></div></section>
 <section class="menuSection" data-menu-panel="mode" hidden><div class="sectionHead"><h3 id="modeTitle">Режим игры</h3></div><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info" data-initial="true">Create or join a room.</div></div></section>
-</div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary" aria-hidden="true"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div id="checkpointMenu" hidden><button type="button" id="continueRunBtn"></button><button type="button" id="discardRunBtn"></button></div><div id="checkpointNotice" role="status" hidden></div><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button><button id="privacyBtn" type="button" class="textBtn">Privacy</button></div><div id="soundPanel" hidden><button type="button" id="npcVoiceToggle" class="textBtn" aria-pressed="true">Voice: On</button><button type="button" id="horrorFxToggle" class="textBtn" aria-pressed="true">Horror effects: On</button><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div><button type="button" id="tutorialToggle" class="textBtn"></button><div id="touchSettings"><label for="touchHand" id="touchHandLabel"></label><select id="touchHand"><option value="right"></option><option value="left"></option></select><label for="touchSize" id="touchSizeLabel"></label><select id="touchSize"><option value="compact"></option><option value="standard"></option><option value="large"></option></select><label for="touchResponse" id="touchResponseLabel"></label><select id="touchResponse"><option value="precise"></option><option value="normal"></option><option value="fast"></option></select></div></div></footer>
+</div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary" aria-hidden="true"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div id="checkpointMenu" hidden><button type="button" id="continueRunBtn"></button><button type="button" id="discardRunBtn"></button></div><div id="checkpointNotice" role="status" hidden></div><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button><button id="privacyBtn" type="button" class="textBtn">Privacy</button></div><div id="soundPanel" hidden><button type="button" id="npcVoiceToggle" class="textBtn" aria-pressed="true">Voice: On</button><button type="button" id="horrorFxToggle" class="textBtn" aria-pressed="true">Horror effects: On</button><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output><label for="effectsVolume" id="effectsLabel">Громкость эффектов</label><input id="effectsVolume" type="range" min="0" max="100" step="5" value="80"><output id="effectsVolumeValue">80%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div><button type="button" id="tutorialToggle" class="textBtn"></button><div id="touchSettings"><label for="touchHand" id="touchHandLabel"></label><select id="touchHand"><option value="right"></option><option value="left"></option></select><label for="touchSize" id="touchSizeLabel"></label><select id="touchSize"><option value="compact"></option><option value="standard"></option><option value="large"></option></select><label for="touchResponse" id="touchResponseLabel"></label><select id="touchResponse"><option value="precise"></option><option value="normal"></option><option value="fast"></option></select></div></div></footer>
 </div></div>
 <div id="levelup" style="display:none"><div class="box"><header class="upgradeHead"><div><div class="pauseBadge">Уровень повышен</div><h2><span id="levelPrefix">Уровень</span> <span id="levelUpNum">2</span></h2><div class="tag">Выбери улучшение</div></div></header><div id="upgradeChoices" class="levelChoices"></div><div id="networkUpgradeWait" hidden><p id="networkWaitText"></p><button type="button" class="btn" id="networkWaitLeave"></button></div></div></div>
 <div id="pauseOverlay" style="display:none"><div class="box pauseBox"><div class="pauseBadge">ПЕЛЬМЕНЬ ВЗЯЛ ПАУЗУ</div><div class="title" style="font-size:44px">ПАУЗА</div><div class="hint">Игра остановлена. Выбери, что делать дальше.</div><button id="resumeBtn" class="btn">ПРОДОЛЖИТЬ</button><button id="saveExitBtn" class="btn" hidden>СОХРАНИТЬ ПОСЛЕ ВОЛНЫ</button><button id="pauseRestartBtn" class="btn">НАЧАТЬ ЗАНОВО</button><button id="pauseMenuBtn" class="btn" style="background:#312434;box-shadow:4px 4px 0 #120c15">В ГЛАВНОЕ МЕНЮ</button></div></div>
@@ -1685,19 +1685,51 @@ function arenaScoreStep(map,step,phase=0,quiet=false){
  return notes;
 }
 function spatialMix(x,y,listener){const dx=x-listener.x,dy=y-listener.y,d=Math.hypot(dx,dy);return {pan:Math.max(-.85,Math.min(.85,dx/190)),gain:Math.max(0,1-d/310)**1.35}}
+// V74.4 — Original procedural soundscape; audio only, no gameplay RNG.
+const soundscapes={
+ kitchen:{period:3.8,tones:[74,148,111],types:['triangle','sine','triangle'],duration:.55},
+ basement:{period:4.4,tones:[48,96,53],types:['sine','triangle','sine'],duration:.65},
+ foodcourt:{period:3.6,tones:[196,147,262],types:['sine','triangle','sine'],duration:.28},
+ slaughter:{period:3.2,tones:[58,116,87],types:['triangle','triangle','sine'],duration:.36},
+ cemetery:{period:5.2,tones:[132,139,66],types:['sine','sine','triangle'],duration:.85},
+ forest:{period:4.8,tones:[85,170,127],types:['sine','triangle','sine'],duration:.72}
+};
+function audioPercent(v,fallback=80){const n=Number(v);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):fallback}
+function tensionLevel(hp,fear,boss){return Math.max(boss?2:0,fear>=85||hp<.25?2:fear>=55||hp<.5?1:0)}
+function soundscapeEvent(map,index,tension){
+ const q=soundscapes[map]||soundscapes.kitchen,i=Math.floor(Math.max(0,index))%q.tones.length;
+ return {hz:q.tones[i],type:q.types[i],duration:q.duration,period:q.period/(1+.15*tension),volume:.024+.005*tension};
+}
+function cueInterval(kind){return kind==='hit'?.075:kind==='shoot'?.065:kind==='hurt'?.16:kind==='pickup'?.085:.09}
+function admitAudio(gate,kind,now,interval){
+ if(!Number.isFinite(now)||now<(gate[kind]??-Infinity)+interval)return false;
+ gate[kind]=now;return true;
+}
+function scoreMix(volume,duck,quiet){return audioPercent(volume,65)/100*.82*(duck?.58:quiet?.78:1)}
+let effectsVolume=audioPercent(readStorage('dumpling-riot-effects-volume','80')),effectsGain=null,ambientTimer=0,ambientIndex=0,spatialVoices=0,duckUntil=0,lastMusicTarget=-1;
+const soundGate=Object.create(null);
+function applyEffectsVolume(){
+ if(!effectsGain||!audioCtx)return;
+ const t=audioCtx.currentTime;effectsGain.gain.cancelScheduledValues(t);effectsGain.gain.setTargetAtTime(effectsVolume/100,t,.04);
+}
+function audioReady(){return !!(audioCtx&&effectsGain&&audioCtx.state==='running'&&!document.hidden&&effectsVolume>0)}
+function duckMusic(seconds=.34){
+ if(!audioCtx)return;duckUntil=Math.max(duckUntil,audioCtx.currentTime+seconds);applyMusicVolume();
+}
 let spatialTimer=0,warningAt=-Infinity,heartbeatTimer=0;
 function spatialTone(x,y,hz,duration=.16,volume=.055,type='sine'){
- if(!horrorFx||!audioCtx||!masterGain||audioCtx.state!=='running'||document.hidden||state!=='game')return false;
+ if(!horrorFx||!audioReady()||state!=='game'||spatialVoices>=5)return false;
  const listener=onlineMode&&isOnlineGuest?player2:player;if(!listener||listener.dead)return false;const mix=spatialMix(x,y,listener);if(mix.gain<.025)return false;
- const ac=audioCtx,at=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(hz,at);o.frequency.exponentialRampToValueAtTime(Math.max(25,hz*.66),at+duration);g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(Math.max(.00012,volume*mix.gain),at+.018);g.gain.exponentialRampToValueAtTime(.0001,at+duration);o.connect(g);
- if(typeof ac.createStereoPanner==='function'){const pan=ac.createStereoPanner();pan.pan.value=mix.pan;g.connect(pan);pan.connect(masterGain);o.onended=()=>{try{o.disconnect();g.disconnect();pan.disconnect()}catch(_){}}}else{g.connect(masterGain);o.onended=()=>{try{o.disconnect();g.disconnect()}catch(_){}}}
+ const ac=audioCtx,at=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();spatialVoices++;o.type=type;o.frequency.setValueAtTime(hz,at);o.frequency.exponentialRampToValueAtTime(Math.max(25,hz*.66),at+duration);g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(Math.max(.00012,volume*mix.gain),at+.018);g.gain.exponentialRampToValueAtTime(.0001,at+duration);o.connect(g);
+ if(typeof ac.createStereoPanner==='function'){const pan=ac.createStereoPanner();pan.pan.value=mix.pan;g.connect(pan);pan.connect(effectsGain);o.onended=()=>{spatialVoices=Math.max(0,spatialVoices-1);try{o.disconnect();g.disconnect();pan.disconnect()}catch(_){}}}else{g.connect(effectsGain);o.onended=()=>{spatialVoices=Math.max(0,spatialVoices-1);try{o.disconnect();g.disconnect()}catch(_){}}}
  o.start(at);o.stop(at+duration+.015);return true;
 }
 function updateSpatialAudio(dt){
  if(state!=='game'||waveState!=='fighting'||!horrorFx)return;
  const p=onlineMode&&isOnlineGuest?player2:player;if(p.dead)return;
  spatialTimer-=dt;if(spatialTimer<=0){spatialTimer=1.8;const threat=nearestEnemy(p);if(threat&&!threat.dead){const t=arenaScores[selectedMap]||arenaScores.kitchen;spatialTone(threat.x,threat.y,threat.type==='boss'?43:t.tone,.19,.045,'triangle')}}
- const danger=p.hp/p.maxhp<.35||(nightmare?.fear||0)>=85;heartbeatTimer-=dt;if(danger&&heartbeatTimer<=0){heartbeatTimer=.8;spatialTone(p.x,p.y,58,.12,.045,'sine')}else if(!danger)heartbeatTimer=0;
+ const tension=tensionLevel(p.hp/Math.max(1,p.maxhp),nightmare?.fear||0,!!boss);heartbeatTimer-=dt;if(tension>0&&heartbeatTimer<=0){heartbeatTimer=tension===2?.62:1.15;spatialTone(p.x,p.y,58,.12,.04,'sine')}else if(!tension)heartbeatTimer=0;
+ ambientTimer-=dt;if(ambientTimer<=0){const q=soundscapeEvent(selectedMap,ambientIndex++,tension);ambientTimer=q.period;const fixtures=arenaLights[selectedMap]||arenaLights.kitchen;let source=fixtures[0],best=Infinity;for(const f of fixtures){const d=(f[0]-p.x)**2+(f[1]-p.y)**2;if(d<best){best=d;source=f}}if(source)spatialTone(source[0],source[1],q.hz,q.duration,q.volume,q.type)}
 }
 let musicVolume=Number(readStorage('dumpling-riot-music-volume','65'));if(!Number.isFinite(musicVolume))musicVolume=65;musicVolume=Math.max(0,Math.min(100,musicVolume));
 const scoreRoots=[38,38,34,36,38,38,31,33,38,41,34,36,38,34,31,33];
@@ -1731,14 +1763,14 @@ function musicVoice(event,when,stepTime){
  env.gain.exponentialRampToValueAtTime(.0001,when+dur+release);
  if(['hat','snare','metal'].includes(event.voice)){
   const src=ac.createBufferSource(),filter=ac.createBiquadFilter();src.buffer=musicNoise;
-  filter.type=event.voice==='snare'?'bandpass':'highpass';filter.frequency.value=event.voice==='snare'?1450:event.voice==='metal'?2600:6500;filter.Q.value=event.voice==='metal'?5:.8;src.connect(filter);filter.connect(env);src.start(when,0);src.stop(when+Math.min(.24,dur+release));return;
+  filter.type=event.voice==='snare'?'bandpass':'highpass';filter.frequency.value=event.voice==='snare'?1450:event.voice==='metal'?2600:6500;filter.Q.value=event.voice==='metal'?5:.8;src.connect(filter);filter.connect(env);src.onended=()=>{try{src.disconnect();filter.disconnect();env.disconnect()}catch(_){}};src.start(when,0);src.stop(when+Math.min(.24,dur+release));return;
  }
  const osc=ac.createOscillator(),filter=ac.createBiquadFilter();osc.type=event.voice==='bass'?'triangle':event.voice==='pad'?'sawtooth':'sine';filter.type='lowpass';filter.frequency.value=event.voice==='pad'?680:event.voice==='bass'?620:3600;
  if(event.voice==='kick'){osc.frequency.setValueAtTime(130,when);osc.frequency.exponentialRampToValueAtTime(41,when+.115)}else osc.frequency.setValueAtTime(midiHz(event.n),when);
- osc.connect(filter);filter.connect(env);osc.start(when);osc.stop(when+dur+release+.015);
- if(event.voice==='bell'){const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=midiHz(event.n)*2.01;g.gain.value=.25;o.connect(g);g.connect(env);o.start(when);o.stop(when+dur+release+.015)}
+ osc.connect(filter);filter.connect(env);osc.onended=()=>{try{osc.disconnect();filter.disconnect();env.disconnect()}catch(_){}};osc.start(when);osc.stop(when+dur+release+.015);
+ if(event.voice==='bell'){const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=midiHz(event.n)*2.01;g.gain.value=.25;o.connect(g);g.connect(env);o.onended=()=>{try{o.disconnect();g.disconnect()}catch(_){}};o.start(when);o.stop(when+dur+release+.015)}
 }
-function applyMusicVolume(){if(!musicGain||!audioCtx)return;const now=audioCtx.currentTime;musicGain.gain.cancelScheduledValues(now);musicGain.gain.setTargetAtTime(musicVolume/100*.82,now,.07)}
+function applyMusicVolume(){if(!musicGain||!audioCtx)return;const now=audioCtx.currentTime,target=scoreMix(musicVolume,now<duckUntil,musicMode==='game'&&(state!=='game'||waveState!=='fighting'));if(target===lastMusicTarget)return;lastMusicTarget=target;musicGain.gain.cancelScheduledValues(now);musicGain.gain.setTargetAtTime(target,now,.07)}
 function scheduleScore(){
  if(!audioCtx||musicMode==='off')return;
  if(document.hidden){musicTimer=setTimeout(scheduleScore,500);return}
@@ -1746,7 +1778,8 @@ function scheduleScore(){
  const now=audioCtx.currentTime;
  if(musicNext<now-.1)musicNext=now+.06;
  const intense=musicMode==='game'&&typeof boss!=='undefined'&&!!boss;
- const theme=arenaScores[selectedMap]||arenaScores.kitchen,phase=intense?(boss.stage||1):0,quiet=musicMode==='game'&&(state!=='game'||waveState!=='fighting');
+ const theme=arenaScores[selectedMap]||arenaScores.kitchen,quiet=musicMode==='game'&&(state!=='game'||waveState!=='fighting'),p=onlineMode&&isOnlineGuest?player2:player,phase=intense?(boss.stage||1):musicMode==='game'&&!quiet&&horrorFx?tensionLevel(p.hp/Math.max(1,p.maxhp),nightmare?.fear||0,false):0;
+ applyMusicVolume();
  const stepTime=60/(musicMode==='menu'?76:theme.bpm)/4;
  while(musicNext<now+.14){if(musicVolume>0){const events=musicMode==='menu'?scoreStep('menu',musicStep):arenaScoreStep(selectedMap,musicStep,phase,quiet);for(const event of events)musicVoice(event,musicNext,stepTime)}musicNext+=stepTime;musicStep++}
  musicTimer=setTimeout(scheduleScore,45);
@@ -1766,20 +1799,20 @@ function initAudio(){
   if(!audioCtx){
    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
    audioCtx=new AC();masterGain=audioCtx.createGain();masterGain.gain.value=.72;const limiter=audioCtx.createDynamicsCompressor();limiter.threshold.value=-15;limiter.ratio.value=5;masterGain.connect(limiter);limiter.connect(audioCtx.destination);
-   musicGain=audioCtx.createGain();musicGain.gain.value=.0001;musicGain.connect(masterGain);
+   musicGain=audioCtx.createGain();musicGain.gain.value=.0001;musicGain.connect(masterGain);effectsGain=audioCtx.createGain();effectsGain.gain.value=effectsVolume/100;effectsGain.connect(masterGain);lastMusicTarget=-1;
    musicNoise=audioCtx.createBuffer(1,Math.ceil(audioCtx.sampleRate*.3),audioCtx.sampleRate);const data=musicNoise.getChannelData(0);let seed=1927;for(let i=0;i<data.length;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;data[i]=(seed/4294967296)*2-1}
    applyMusicVolume();
   }
   if(audioCtx.state==='suspended'||audioCtx.state==='interrupted'){const p=audioCtx.resume();if(p&&p.catch)p.catch(()=>{})}
   return audioCtx;
- }catch(e){audioCtx=null;masterGain=null;musicGain=null;return null}
+ }catch(e){audioCtx=null;masterGain=null;musicGain=null;effectsGain=null;spatialVoices=0;return null}
 }
 
 function sfx(kind){
- if(!audioCtx||!masterGain) return;
- const now=audioCtx.currentTime;
+ if(!audioReady())return;
+ const now=audioCtx.currentTime;if(!admitAudio(soundGate,kind,now,cueInterval(kind)))return;if(kind==='hurt'||kind==='boss'||kind==='bomb')duckMusic();
  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
- o.connect(g); g.connect(masterGain);
+ o.connect(g); g.connect(effectsGain);o.onended=()=>{try{o.disconnect();g.disconnect()}catch(_){}};
  const cfg={
   shoot:[kind==='heavy'?145:235,.045,'triangle'],
   hit:[78,.045,'triangle'],
@@ -1796,13 +1829,13 @@ function sfx(kind){
  g.gain.exponentialRampToValueAtTime(.0001,now+cfg[1]);o.start(now);o.stop(now+cfg[1]+.02);
 }
 function bossVoice(kind){
- if(!audioCtx||!masterGain)return;
+ if(!audioReady()||!horrorFx)return;duckMusic(.65);
  const now=audioCtx.currentTime;
  const p=[
   [55,.85,'sawtooth'],[42,1.0,'square'],[78,.7,'sawtooth'],
   [120,.9,'sine'],[92,.8,'square'],[48,1.15,'sawtooth']
  ][kind]||[60,.8,'sawtooth'];
- const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=p[2];o.connect(g);g.connect(masterGain);
+ const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=p[2];o.connect(g);g.connect(effectsGain);o.onended=()=>{try{o.disconnect();g.disconnect()}catch(_){}};
  o.frequency.setValueAtTime(p[0],now);o.frequency.exponentialRampToValueAtTime(Math.max(24,p[0]*.42),now+p[1]);
  g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.085,now+.035);g.gain.exponentialRampToValueAtTime(.0001,now+p[1]);
  o.start(now);o.stop(now+p[1]+.03);
@@ -1928,7 +1961,7 @@ function speakNpc(line,isBoss){
  if(!npcVoiceEnabled||!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance!=='function')return;
  try{const synth=window.speechSynthesis,voices=synth.getVoices(),voice=voices.find(v=>v.lang.toLowerCase()===npcLocales[lang].toLowerCase())||voices.find(v=>v.lang.toLowerCase().split('-')[0]===lang);
  if(!voice||synth.speaking||synth.pending)return;
- const u=new SpeechSynthesisUtterance(line);u.lang=npcLocales[lang];u.voice=voice;u.pitch=isBoss?.65:1.05;u.rate=isBoss?.84:.95;u.volume=.75;synth.speak(u)}catch(_){}
+ const u=new SpeechSynthesisUtterance(line);u.lang=npcLocales[lang];u.voice=voice;u.pitch=isBoss?.65:1.05;u.rate=isBoss?.84:.95;u.volume=.75*effectsVolume/100;if(effectsVolume>0){duckMusic(.85);synth.speak(u)}}catch(_){}
 }
 function clearNpc(){npcEvent=null;npcLineTimer=0;npcLastLine='';npcNext=7;npcSequence=0;npcSeen=0;npcBossSeen='';document.getElementById('npcSubtitle').hidden=true;try{window.speechSynthesis?.cancel()}catch(_){}}
 function displayNpc(event){
@@ -1970,7 +2003,7 @@ function bossSpecialPattern(e,tp){
  return out;
 }
 function enemyDeathVoice(type){
- if(!audioCtx||!masterGain||Math.random()>.20)return;
+ if(!audioReady()||!horrorFx)return;
  const now=audioCtx.currentTime;
  const p={
   fork:[180,.20,'triangle'],pepper:[240,.18,'sine'],knife:[130,.25,'sawtooth'],plate:[300,.16,'triangle'],
@@ -1979,7 +2012,7 @@ function enemyDeathVoice(type){
   feaster:[65,.38,'sawtooth'],hands:[210,.25,'triangle'],butcher:[58,.35,'sawtooth'],
   slicer:[270,.18,'square'],boiler:[50,.42,'sawtooth'],maw:[42,.46,'sawtooth']
  }[type]||[120,.22,'triangle'];
- const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=p[2];o.connect(g);g.connect(masterGain);
+ const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=p[2];o.connect(g);g.connect(effectsGain);o.onended=()=>{try{o.disconnect();g.disconnect()}catch(_){}};
  o.frequency.setValueAtTime(p[0],now);o.frequency.exponentialRampToValueAtTime(Math.max(30,p[0]*.5),now+p[1]);
  g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.045,now+.012);g.gain.exponentialRampToValueAtTime(.0001,now+p[1]);
  o.start(now);o.stop(now+p[1]+.02);
@@ -3006,10 +3039,11 @@ document.querySelectorAll('[data-open-menu]').forEach(b=>b.addEventListener('cli
 document.getElementById('menuBack').addEventListener('click',()=>setMenuTab('home'));
 document.getElementById('menuDone').addEventListener('click',()=>setMenuTab('home'));
 document.querySelectorAll('[data-menu-tab]').forEach(b=>b.addEventListener('click',()=>setMenuTab(b.dataset.menuTab)));
-function updateSoundPanel(){const hf=document.getElementById('horrorFxToggle');hf.textContent=L('Horror effects','Эффекты хоррора')+': '+L(horrorFx?'On':'Off',horrorFx?'Вкл':'Выкл');hf.setAttribute('aria-pressed',String(horrorFx));document.getElementById('soundToggle').textContent=L("Music","Музыка");document.getElementById('musicLabel').textContent=L("Music volume","Громкость музыки");document.getElementById('musicVolume').value=musicVolume;document.getElementById('musicVolumeValue').textContent=musicVolume+'%';const v=document.getElementById('npcVoiceToggle');v.textContent=L('Voice')+': '+L(npcVoiceEnabled?'On':'Off');v.setAttribute('aria-pressed',String(npcVoiceEnabled))}
+function updateSoundPanel(){const hf=document.getElementById('horrorFxToggle');hf.textContent=L('Horror effects','Эффекты хоррора')+': '+L(horrorFx?'On':'Off',horrorFx?'Вкл':'Выкл');hf.setAttribute('aria-pressed',String(horrorFx));document.getElementById('soundToggle').textContent=L('Sound','Звук');document.getElementById('musicLabel').textContent=L("Music volume","Громкость музыки");document.getElementById('musicVolume').value=musicVolume;document.getElementById('musicVolumeValue').textContent=musicVolume+'%';document.getElementById('effectsLabel').textContent=L('Effects volume','Громкость эффектов');document.getElementById('effectsVolume').value=effectsVolume;document.getElementById('effectsVolumeValue').textContent=effectsVolume+'%';const v=document.getElementById('npcVoiceToggle');v.textContent=L('Voice')+': '+L(npcVoiceEnabled?'On':'Off');v.setAttribute('aria-pressed',String(npcVoiceEnabled))}
 document.getElementById('horrorFxToggle').addEventListener('click',()=>{horrorFx=!horrorFx;writeStorage('dumpling-riot-horror-fx',horrorFx?'1':'0');updateSoundPanel()});
 document.getElementById('soundToggle').addEventListener('click',()=>{const p=document.getElementById('soundPanel');p.hidden=!p.hidden;document.getElementById('soundToggle').setAttribute('aria-expanded',String(!p.hidden))});
 document.getElementById('npcVoiceToggle').addEventListener('click',()=>{npcVoiceEnabled=!npcVoiceEnabled;writeStorage('dumpling-riot-npc-voice',npcVoiceEnabled?'1':'0');if(!npcVoiceEnabled)try{window.speechSynthesis?.cancel()}catch(_){}updateSoundPanel()});
+document.getElementById('effectsVolume').addEventListener('input',e=>{effectsVolume=audioPercent(e.target.value);writeStorage('dumpling-riot-effects-volume',String(effectsVolume));applyEffectsVolume();if(!effectsVolume)try{window.speechSynthesis?.cancel()}catch(_){}updateSoundPanel()});
 document.getElementById('musicVolume').addEventListener('input',e=>{musicVolume=Math.max(0,Math.min(100,Number(e.target.value)||0));writeStorage('dumpling-riot-music-volume',String(musicVolume));applyMusicVolume();updateSoundPanel()});
 document.getElementById('extractBtn').addEventListener('click',()=>{if(state==='ritual'&&canExtractRun(soloRun)&&wave>=10)endGame(true,true)});
 document.getElementById('privacyBtn').addEventListener('click',()=>{location.href='./privacy.html'});
@@ -3329,7 +3363,7 @@ function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlaye
 function beginWave(){
  if(suspendAtBoundary())return;
  questTargets=new WeakSet();
- spatialTimer=0;heartbeatTimer=0;warningAt=-Infinity;clearCombatPresentation();livingStations=makeLivingStations(selectedMap,soloRun,arena);
+ spatialTimer=0;heartbeatTimer=0;ambientTimer=0;ambientIndex=0;warningAt=-Infinity;clearCombatPresentation();livingStations=makeLivingStations(selectedMap,soloRun,arena);
  secretEncounter=soloRun?createSecret(selectedMap,campaignRound(soloRun,wave),player,arena,arenaFeatures[selectedMap].sites):null;if(secretEncounter)secretEncounter.w=wave;
  if(nightmare){resetNightmareWave(nightmare,chooseShelter(arenaLights[selectedMap],player,arena));nightmare.charge=Math.max(3,(modifierFor(soloRun?.modifier).refuge??FEAR_RULES.charge)-(activeCampaignPath(soloRun).refugeLoss??0)-abyssEffects(soloRun,wave).light)}
  resetBreakables(selectedMap,arena,[player,coop?player2:null,secretEncounter,nightmare?.zone,...livingStations,...arenaFeatures[selectedMap].sites.map(([x,y])=>({x,y}))],onlineMode);
@@ -3891,7 +3925,7 @@ function paintCombatPresentation(g,view,layer){
 function spawnParticles(x,y,n,color,force=1){n=fxBudget(particles.length,reduceMotion||!horrorFx?Math.ceil(n*.45):n,COMBAT_FX.particles);for(let i=0;i<n;i++){const a=rnd(0,TAU),s=rnd(20,90)*force;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.25,.7),max:.7,size:rndi(1,3),color})}}
 function bloodBurst(x,y,n=12,force=1){n=fxBudget(particles.length,reduceMotion||!horrorFx?Math.ceil(n*.3):n,COMBAT_FX.particles);for(let i=0;i<n;i++){const a=rnd(0,TAU),s=rnd(22,105)*force;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.35,1.05),max:1.05,size:rndi(1,3),color:pick(['#8e1624','#b51f31','#d73545','#5a0d18'])})}blood.push({x:x+rnd(-2,2),y:y+rnd(-2,2),r:rnd(4,11),a:rnd(.45,.9)});if(blood.length>70)blood.shift()}
 function playPainVoice(p){
- if(!audioCtx||!masterGain)return;
+ if(!audioReady()||!horrorFx||!admitAudio(soundGate,'pain',audioCtx.currentTime,.5))return;
  const now=audioCtx.currentTime;
  const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();
  o.type='sawtooth';
@@ -3900,7 +3934,7 @@ function playPainVoice(p){
  o.frequency.exponentialRampToValueAtTime(base*.72,now+.22);
  o.frequency.exponentialRampToValueAtTime(base*.55,now+.42);
  f.type='lowpass';f.frequency.value=1250;
- o.connect(f);f.connect(g);g.connect(masterGain);
+ o.connect(f);f.connect(g);g.connect(effectsGain);o.onended=()=>{try{o.disconnect();f.disconnect();g.disconnect()}catch(_){}};
  g.gain.setValueAtTime(.0001,now);
  g.gain.exponentialRampToValueAtTime(.045,now+.025);
  g.gain.setValueAtTime(.04,now+.12);
@@ -4253,9 +4287,9 @@ function completeSecret(){
  toast(L('SECRET CLEARED · STORY UNLOCKED','ТАЙНИК ЗАЧИЩЕН · ИСТОРИЯ ОТКРЫТА')+' · ◆ +'+n);toastTimer=4;
 }
 function nightmareAudio(theme,fear){
- if(!horrorFx||!audioCtx||!masterGain||audioCtx.state!=='running'||musicVolume<=0)return;
+ if(!horrorFx||!audioReady())return;
  const now=audioCtx.currentTime;
- for(const [i,hz] of theme.tones.entries()){const o=audioCtx.createOscillator(),g=audioCtx.createGain(),at=now+i*.17;const volume=.045*(musicVolume/100)*(fear>=55?1:.6);o.type='sine';o.frequency.setValueAtTime(hz,at);o.frequency.exponentialRampToValueAtTime(hz*.8,at+.38);g.gain.setValueAtTime(.0001,at);g.gain.linearRampToValueAtTime(volume,at+.08);g.gain.exponentialRampToValueAtTime(.0001,at+.45);o.connect(g);g.connect(masterGain);o.start(at);o.stop(at+.47)}
+ for(const [i,hz] of theme.tones.entries()){const o=audioCtx.createOscillator(),g=audioCtx.createGain(),at=now+i*.17;const volume=.045*(fear>=55?1:.6);o.type='sine';o.frequency.setValueAtTime(hz,at);o.frequency.exponentialRampToValueAtTime(hz*.8,at+.38);g.gain.setValueAtTime(.0001,at);g.gain.linearRampToValueAtTime(volume,at+.08);g.gain.exponentialRampToValueAtTime(.0001,at+.45);o.connect(g);g.connect(effectsGain);o.onended=()=>{try{o.disconnect();g.disconnect()}catch(_){}};o.start(at);o.stop(at+.47)}
 }
 function updateNightmare(dt){
  const n=nightmare;if(!soloRun||!n||state!=='game'||player.dead)return;
