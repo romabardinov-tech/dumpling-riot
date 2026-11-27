@@ -787,7 +787,7 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 <section class="menuSection" data-menu-panel="hero" hidden><div class="sectionHead"><h3 id="heroHeading">Выбери героя</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div></section>
 <section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Выбери арену</h3></div><div class="mapStage"><canvas id="mapStageCanvas" width="480" height="270" aria-hidden="true"></canvas><div class="mapStageCaption"><h2 id="mapStageName"></h2><div id="mapDetail" class="selectionDetail"></div><div id="arenaEnemyPreview" class="arenaEnemyPreview"></div></div></div><div id="mapChoices" class="choices"></div></section>
 <section class="menuSection" data-menu-panel="journal" hidden><div class="altarHeader"><h3 id="journalHeading"></h3><b id="journalCount"></b></div><p id="journalHint" class="selectionDetail"></p><label id="journalFilterLabel" for="journalFilter"></label><select id="journalFilter"></select><div id="journalEntries"></div></section>
-<section class="menuSection" data-menu-panel="altar" hidden><div class="altarHeader"><h3 id="altarHeading"></h3><b id="shardBalance"></b></div><p id="altarHint" class="selectionDetail"></p><h4 id="contractHeading"></h4><div id="contractChoices" class="altarGrid"></div><h4 id="modifierHeading"></h4><div id="modifierChoices" class="altarGrid"></div><h4 id="perkHeading"></h4><div id="perkChoices" class="altarGrid"></div><p id="campaignWins" class="selectionDetail"></p><h4 id="endingHeading"></h4><div id="endingList" class="achievementGrid"></div><h4 id="runHistoryHeading"></h4><div id="runHistoryList" class="achievementGrid"></div><h4 id="comboHeading"></h4><div id="comboList" class="achievementGrid"></div><h4 id="achievementHeading"></h4><div id="achievementList" class="achievementGrid"></div></section>
+<section class="menuSection" data-menu-panel="altar" hidden><div class="altarHeader"><h3 id="altarHeading"></h3><b id="shardBalance"></b></div><p id="altarHint" class="selectionDetail"></p><h4 id="contractHeading"></h4><div id="contractChoices" class="altarGrid"></div><h4 id="modifierHeading"></h4><div id="modifierChoices" class="altarGrid"></div><h4 id="perkHeading"></h4><div id="perkChoices" class="altarGrid"></div><p id="campaignWins" class="selectionDetail"></p><h4 id="endingHeading"></h4><div id="endingList" class="achievementGrid"></div><h4 id="runHistoryHeading"></h4><div id="runHistoryList" class="achievementGrid"></div><h4 id="comboHeading"></h4><div id="comboList" class="achievementGrid"></div><h4 id="achievementHeading"></h4><div id="achievementList" class="achievementGrid"></div><h4 id="legacyHeading"></h4><p id="legacyNotice" class="selectionDetail" role="status"></p><div id="legacyGoals" class="altarGrid"></div><h4 id="heroRecordsHeading"></h4><div id="heroRecords" class="achievementGrid"></div></section>
 <section class="menuSection" data-menu-panel="mode" hidden><div class="sectionHead"><h3 id="modeTitle">Режим игры</h3></div><div id="modeChoices" class="modeChoices"></div><div id="modeP2Info" class="modeP2Info"></div><div id="onlinePanel" style="display:none;margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="createRoomBtn" class="smallBtn" type="button">СОЗДАТЬ КОМНАТУ</button><input id="roomCodeInput" inputmode="text" autocomplete="off" placeholder="КОД КОМНАТЫ" style="flex:1;min-width:120px;text-transform:uppercase"></div><button id="joinRoomBtn" class="smallBtn" type="button" style="margin-top:6px">ПОДКЛЮЧИТЬСЯ</button><div id="onlineStatus" class="modeP2Info" data-initial="true">Create or join a room.</div></div></section>
 </div><footer class="menuFooter"><div id="recordLine" aria-live="polite"></div><div class="runSummary" aria-hidden="true"><b id="runHero"></b><span> / </span><b id="runMap"></b><span> / </span><b id="runMode"></b></div><button id="startBtn" type="button" class="btn">В БОЙ</button><div id="checkpointMenu" hidden><button type="button" id="continueRunBtn"></button><button type="button" id="discardRunBtn"></button></div><div id="checkpointNotice" role="status" hidden></div><div class="footerTools"><button id="helpToggle" type="button" class="textBtn" aria-expanded="false">Управление</button><button id="soundToggle" type="button" class="textBtn" aria-expanded="false">Музыка</button><button id="privacyBtn" type="button" class="textBtn">Privacy</button></div><div id="soundPanel" hidden><button type="button" id="npcVoiceToggle" class="textBtn" aria-pressed="true">Voice: On</button><button type="button" id="horrorFxToggle" class="textBtn" aria-pressed="true">Horror effects: On</button><label for="musicVolume" id="musicLabel">Громкость музыки</label><input id="musicVolume" type="range" min="0" max="100" step="5" value="65"><output id="musicVolumeValue">65%</output><label for="effectsVolume" id="effectsLabel">Громкость эффектов</label><input id="effectsVolume" type="range" min="0" max="100" step="5" value="80"><output id="effectsVolumeValue">80%</output></div><div id="menuHelp" hidden><div class="hint"></div><div class="hint"></div><button type="button" id="tutorialToggle" class="textBtn"></button><div id="touchSettings"><label for="touchHand" id="touchHandLabel"></label><select id="touchHand"><option value="right"></option><option value="left"></option></select><label for="touchSize" id="touchSizeLabel"></label><select id="touchSize"><option value="compact"></option><option value="standard"></option><option value="large"></option></select><label for="touchResponse" id="touchResponseLabel"></label><select id="touchResponse"><option value="precise"></option><option value="normal"></option><option value="fast"></option></select></div></div></footer>
 </div></div>
@@ -1594,15 +1594,58 @@ function normalizeRunHistory(raw){
   return {mode:campaign?'campaign':'survival',hero:q.hero,route,outcome:q.outcome,ending:campaign&&q.outcome==='won'&&endingById(q.ending)?q.ending:null,contract:contractFor(q.contract).id,modifier:modifierFor(q.modifier).id,paths:campaign&&validCampaignPaths(q.paths,Math.max(0,route.length-1))?q.paths.slice():[],waves:metaInt(q.waves,campaign?15:1000000000),kills:metaInt(q.kills),shards:metaInt(q.shards),score:metaInt(q.score),level:metaInt(q.level),artifacts:metaInt(q.artifacts,runArtifacts.length),evolutions:metaInt(q.evolutions,4),questDone:q.questDone===true,curseClears:metaInt(q.curseClears,metaInt(q.waves)),daily:validDailyDate(q.daily)?q.daily:null,abyss:abyssRank(q.abyss)?.rank??null};
  }).filter(q=>q.route.length&& (q.outcome!=='won'||q.mode==='campaign'&&q.waves===FINAL_WAVE&&q.route.length===3));
 }
+// V75.4 — Lifetime hero records and optional one-time milestone rewards.
+const legacyMilestones=[
+ {id:'sixHorrors',en:'Six horrors',ru:'Шесть кошмаров',descEn:'Clear wave 10 on all six arenas',descRu:'Зачистить 10 волн на всех шести аренах',goal:6,reward:35,kind:'maps10'},
+ {id:'fourHeroes',en:'Four paths',ru:'Четыре пути',descEn:'Clear wave 10 with four different heroes',descRu:'Зачистить 10 волн четырьмя разными героями',goal:4,reward:30,kind:'heroes10'},
+ {id:'allHeroes',en:'Night company',ru:'Ночная команда',descEn:'Clear wave 5 with all eight heroes',descRu:'Зачистить 5 волн всеми восемью героями',goal:8,reward:45,kind:'heroes5'},
+ {id:'archives',en:'Field archivist',ru:'Полевой архивариус',descEn:'Collect all twelve field records',descRu:'Собрать все двенадцать полевых записей',goal:12,reward:25,kind:'records'},
+ {id:'hidden',en:'Beyond the door',ru:'За закрытой дверью',descEn:'Discover both hidden bosses in the journal',descRu:'Открыть обоих скрытых боссов в архиве',goal:2,reward:30,kind:'hidden'},
+ {id:'endings',en:'Three destinies',ru:'Три судьбы',descEn:'Discover all three campaign endings',descRu:'Открыть все три концовки кампании',goal:3,reward:45,kind:'endings'},
+ {id:'abyss',en:'Depth of night',ru:'Глубина ночи',descEn:'Complete all three Abyss ranks',descRu:'Пройти все три ранга Бездны',goal:3,reward:60,kind:'abyss'},
+ {id:'escape',en:'Return from darkness',ru:'Возвращение из тьмы',descEn:'Extract successfully ten times',descRu:'Успешно эвакуироваться десять раз',goal:10,reward:25,kind:'escapes'}
+];
+function normalizeHeroBest(raw,history){
+ const best=Object.fromEntries(chars.map(q=>[q.id,metaInt(raw?.[q.id])]));
+ for(const q of history||[])if(Object.hasOwn(best,q.hero))best[q.hero]=Math.max(best[q.hero],metaInt(q.waves));
+ return best;
+}
+function updateHeroBest(data,hero,round){
+ if(!chars.some(q=>q.id===hero))return;
+ if(!data.heroBest)data.heroBest=normalizeHeroBest(null,data.history);
+ data.heroBest[hero]=Math.max(metaInt(data.heroBest[hero]),metaInt(round));
+}
+function normalizeMilestoneClaims(raw){return legacyMilestones.filter(q=>Array.isArray(raw)&&raw.includes(q.id)).map(q=>q.id)}
+function milestoneProgress(data,entries,q){
+ let n=0;const seen=new Set(Array.isArray(entries)?entries:[]);
+ switch(q.kind){
+ case 'maps10':n=CAMPAIGN_MAPS.filter(k=>(data.maps?.[k]||0)>=10).length;break;
+ case 'heroes10':case 'heroes5':n=chars.filter(h=>(data.heroBest?.[h.id]||0)>=(q.kind==='heroes10'?10:5)).length;break;
+ case 'records':n=fieldRecordIds().filter(k=>seen.has(k)).length;break;
+ case 'hidden':n=['boss:13','boss:14'].filter(k=>seen.has(k)).length;break;
+ case 'endings':n=campaignEndings.filter(k=>(data.endings?.[k.id]||0)>0).length;break;
+ case 'abyss':n=metaInt(data.abyssCleared,3);break;
+ case 'escapes':n=metaInt(data.escapes);break;
+ }
+ return Math.min(q.goal,n);
+}
+function claimLegacyMilestone(data,entries,id){
+ const q=legacyMilestones.find(v=>v.id===id);
+ if(!q||data.milestoneClaims?.includes(id)||milestoneProgress(data,entries,q)<q.goal)return 0;
+ const reward=Math.min(q.reward,1000000000-metaInt(data.shards));
+ if(reward!==q.reward)return 0;
+ data.shards=metaInt(data.shards+reward);data.milestoneClaims=[...(data.milestoneClaims||[]),id];return reward;
+}
 function rememberRun(data,run,escaped,outcome){
  const entry={mode:run.campaign?'campaign':'survival',hero:run.hero,route:run.campaign?.visited||[run.startMap],outcome:run.campaign?.won?'won':escaped?'escaped':outcome==='dead'?'dead':'abandoned',ending:run.campaign?.ending,contract:run.contract,modifier:modifierFor(run.modifier).id,paths:run.campaign?.paths||[],waves:run.cleared,kills:run.kills,shards:run.earned,score:run.score,level:run.level,artifacts:run.artifactCount,evolutions:run.evolutionCount,questDone:run.quest?.claimed===true,curseClears:run.curseClears||0,daily:run.daily||null,abyss:run.abyss??null};
+ updateHeroBest(data,run.hero,run.cleared);
  data.history=normalizeRunHistory([entry,...(data.history||[])]);
 }
 function normalizeMeta(raw){
  const o=raw&&typeof raw==='object'?raw:{},r={shards:metaInt(o.shards),runs:metaInt(o.runs),escapes:metaInt(o.escapes),kills:metaInt(o.kills),best:metaInt(o.best),campaignWins:metaInt(o.campaignWins),endings:normalizeEndings(o.endings),history:normalizeRunHistory(o.history),dailyClaim:validDailyDate(o.dailyClaim)?o.dailyClaim:null,abyssCleared:normalizeAbyss(o.abyssCleared),perks:{},maps:{},achievements:[]};
  for(const p of metaPerks)r.perks[p.id]=metaInt(o.perks?.[p.id],5);
  for(const m of ['kitchen','basement','foodcourt','slaughter','cemetery','forest'])r.maps[m]=metaInt(o.maps?.[m]);
- r.achievements=metaAchievements.filter(a=>Array.isArray(o.achievements)&&o.achievements.includes(a.id)).map(a=>a.id);return r;
+ r.achievements=metaAchievements.filter(a=>Array.isArray(o.achievements)&&o.achievements.includes(a.id)).map(a=>a.id);r.heroBest=normalizeHeroBest(o.heroBest,r.history);r.milestoneClaims=normalizeMilestoneClaims(o.milestoneClaims);return r;
 }
 function readMeta(){try{return normalizeMeta(JSON.parse(readStorage(META_KEY,'{}')))}catch(_){return normalizeMeta({})}}
 function saveMeta(){writeStorage(META_KEY,JSON.stringify(meta))}
@@ -3097,6 +3140,18 @@ function renderAltar(){
  fill('contractChoices',runContracts,q=>{const b=option(metaLabel(q),metaDesc(q));b.setAttribute('aria-pressed',String(q.id===selectedContract));b.onclick=()=>{selectedContract=q.id;writeStorage('dumpling-riot-contract',q.id);renderAltar()};return b});
  fill('modifierChoices',[runModifiers[0],{id:'random',en:'Random rule',ru:'Случайное правило',descEn:'One of six rules, revealed at the start',descRu:'Одно из шести правил, открывается в начале'},...runModifiers.slice(1)],q=>{const b=option(metaLabel(q),metaDesc(q));b.setAttribute('aria-pressed',String(q.id===selectedModifier));b.onclick=()=>{selectedModifier=q.id;writeStorage('dumpling-riot-modifier',q.id);renderAltar()};return b});
  fill('perkChoices',metaPerks,p=>{const rank=meta.perks[p.id];const b=option(metaLabel(p)+' '+rank+'/5',metaDesc(p)+' · '+(rank===5?L('MAX','МАКС'):'◆ '+perkPrice(rank)));b.disabled=rank>=5||meta.shards<perkPrice(rank);b.onclick=()=>{if(purchasePerk(meta,p.id)){saveMeta();renderAltar()}};return b});
+ const ready=legacyMilestones.filter(q=>!meta.milestoneClaims.includes(q.id)&&milestoneProgress(meta,journal,q)>=q.goal).length;
+ document.getElementById('legacyHeading').textContent=L('Legacy milestones','Наследие')+' · '+meta.milestoneClaims.length+'/'+legacyMilestones.length+(ready?' · '+L('Ready: ','Готово: ')+ready:'');
+ document.getElementById('heroRecordsHeading').textContent=L('Lifetime hero records','Рекорды героев за всё время');
+ fill('heroRecords',chars,h=>{const el=document.createElement('div'),b=document.createElement('b'),s=document.createElement('small');el.className='achievementItem';b.textContent=locName(h);s.textContent=L('Best cleared wave: ','Лучшая пройденная волна: ')+(meta.heroBest[h.id]||0);el.append(b,s);return el});
+ fill('legacyGoals',legacyMilestones,q=>{
+  const claimed=meta.milestoneClaims.includes(q.id),progress=milestoneProgress(meta,journal,q);
+  const b=option((claimed?'✓ ':'')+metaLabel(q)+' · '+progress+'/'+q.goal,metaDesc(q)+' · ◆ '+q.reward+' · '+(claimed?L('Claimed','Получено'):progress>=q.goal?L('Claim reward','Забрать награду'):L('In progress','В процессе')));
+  b.disabled=claimed||progress<q.goal||meta.shards>1000000000-q.reward;
+  b.onclick=()=>{const notice=document.getElementById('legacyNotice'),next=normalizeMeta(meta),reward=claimLegacyMilestone(next,journal,q.id);if(!reward)return;
+   try{const raw=JSON.stringify(next);localStorage.setItem(META_KEY,raw);if(localStorage.getItem(META_KEY)!==raw)throw Error('save');meta=next;renderAltar();notice.textContent=L('Reward claimed: ','Награда получена: ')+'◆ +'+reward}catch(_){notice.textContent=L('Could not save reward. Please retry.','Не удалось сохранить награду. Попробуй ещё раз.')}
+  };return b;
+ });
  fill('achievementList',metaAchievements,a=>{const b=document.createElement('div');b.className='achievementItem'+(meta.achievements.includes(a.id)?' unlocked':'');const h=document.createElement('b'),p=document.createElement('small');h.textContent=(meta.achievements.includes(a.id)?'✓ ':'◇ ')+metaLabel(a);p.textContent=metaDesc(a);b.append(h,p);return b});
 }
 function closeSoloRun(escaped=false,outcome='abandoned'){
