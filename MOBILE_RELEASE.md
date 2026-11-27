@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.11. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.12. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -132,3 +132,6 @@ First individual arena art pass, KITCHEN only. Original north-wall ovens outside
 
 ## V68.11 — Electrical Nightmare: BASEMENT
 Second individual arena art pass, BASEMENT only. Wall-mounted distribution cabinets outside the playable boundary, paired recessed cable channels and clamps, damp concrete and irregular puddles with cool reflections, expanded electrical relay detailing. Bounded condensation drips, localized small cable sparks and gentle reflection changes; no full-screen flashes. Reduced motion freezes the ambience and disables sparks; horror FX off disables new dynamic effects. Static additions share existing cached terrain and thumbnail path. Hazard, station and enemy logic, arena bounds and other maps unchanged. Inline syntax and 2439 isolated geometry, viewport and drawing-command assertions passed. Actual rendered screenshots, smartphone FPS and full playthrough remain unverified.
+
+## V68.12 — Dead Neon: FOODCOURT
+Third individual arena art pass, FOODCOURT only. Original shuttered storefronts and broken advertising screens outside the playable boundary, worn mosaic, scattered receipt scraps and display fragments, expanded supply machine detailing. Alternating pink and teal lighting, low-opacity reflections, slowly drifting paper and gently modulated neon signs; reduced motion freezes lighting and removes moving paper, horror FX off disables added ambience. Static details are shared by cached terrain and map thumbnails. Existing hazard/station coordinates, enemy pools, arena bounds and other maps unchanged. Inline script syntax and 1957 isolated geometry, viewport and drawing-command assertions passed. Actual browser screenshots, smartphone FPS and full playthrough remain unverified.
