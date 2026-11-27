@@ -939,13 +939,13 @@ function soloRelic(p){p.maxhp+=20;p.hp=Math.min(p.maxhp,p.hp+Math.ceil(p.maxhp*.
 function heroWeaponStats(p,i){
  const base=weapons[i],lv=(p&&Array.isArray(p.weaponLevels)?p.weaponLevels[i]:weaponLevels[i])||1,ch=chars.find(c=>c.id===(p&&p.charId))||chars[0],mult=(heroWeaponMods[ch.id]||heroWeaponMods.scar)[i]||1,tune=(heroWeaponTune[ch.id]||heroWeaponTune.scar)[i]||{d:1,r:1};
  const rateMod=ch.id==='assassin'?1.28:ch.id==='golem'?.72:ch.id==='pelmage'?1.08:1,speedMod=ch.id==='nyx'?1.32:ch.id==='assassin'?1.45:ch.id==='golem'?.78:ch.id==='pelmage'?1.2:1;
- const evo=p?.evolved?.[i]?evolutionPaths[i]:null,legend=p?.legendarySlot===i;
- return {...base,name:(legend?'✧✦ ':evo?'✦ ':'')+(ch.weaponNames?.[i]||base.name),enName:(legend?'✧✦ ':evo?'✦ ':'')+(ch.enWeaponNames?.[i]||base.enName),dmg:base.dmg*mult*tune.d*(!coop&&!onlineMode?soloWeaponDamage(ch.id,i):1)*(1+(lv-1)*.22)*(evo?.damage||1),rate:base.rate*tune.r*Math.pow(.95,lv-1)/rateMod*(evo?.rate||1),speed:base.speed*speedMod*(1+(lv-1)*.045),pierce:base.pierce+Math.floor((lv-1)/4),element:weaponElement(ch.id,i),level:lv};
+ const evo=p?.evolved?.[i]?evolutionPaths[i]:null,legend=p?.legendarySlot===i,mastery=masteryFor(p,i,!coop&&!onlineMode);
+ return {...base,name:(legend?'✧✦ ':evo?'✦ ':'')+(ch.weaponNames?.[i]||base.name),enName:(legend?'✧✦ ':evo?'✦ ':'')+(ch.enWeaponNames?.[i]||base.enName),dmg:base.dmg*mult*tune.d*(!coop&&!onlineMode?soloWeaponDamage(ch.id,i):1)*(1+(lv-1)*.22)*(evo?.damage||1)*mastery.damage,rate:base.rate*tune.r*Math.pow(.95,lv-1)/rateMod*(evo?.rate||1),speed:base.speed*speedMod*(1+(lv-1)*.045),pierce:base.pierce+Math.floor((lv-1)/4),element:weaponElement(ch.id,i),level:lv};
 }
 function weaponStats(i){return heroWeaponStats(player,i);}
 function weaponChargeDuration(p,i){
  const w=heroWeaponStats(p,i);
- return balancedCharge(w.rate,p.boost.rate,p.charId,i,!coop&&!onlineMode);
+ return balancedCharge(w.rate,p.boost.rate,p.charId,i,!coop&&!onlineMode)*masteryFor(p,i,!coop&&!onlineMode).charge;
 }
 function rechargeWeapons(p,dt){
  if(!p||p.dead)return;
@@ -1287,6 +1287,25 @@ const legendaryPaths=[
  {en:'Ash nova',ru:'Пепельная звезда',items:['ashSeal','crown'],color:'#ff9c76',descEn:'Pulse hits up to 3 nearby enemies for 25% damage (max 28 each)',descRu:'Импульс поражает до 3 соседних врагов: 25% урона (до 28 каждому)'}
 ];
 const LEGENDARY_COOLDOWN=1.5;
+// V75.2 — One permanent weapon mastery choice per solo run.
+const weaponMasteries={
+ force:{en:'Heavy impact',ru:'Тяжёлый удар',descEn:'+25% weapon damage; charge time +15%',descRu:'+25% урона оружия; время заряда +15%',damage:1.25,charge:1.15,area:1,pierce:0},
+ reach:{en:'Wide reach',ru:'Широкий охват',descEn:'Area radius +18%; projectiles pierce one extra target; weapon damage −8%',descRu:'Радиус атаки +18%; пробивание ещё одной цели; урон оружия −8%',damage:.92,charge:1,area:1.18,pierce:1}
+};
+const neutralMastery={damage:1,charge:1,area:1,pierce:0};
+function masteryFor(p,i,enabled){
+ const q=p?.mastery;
+ return enabled&&q?.slot===i&&p.evolved?.[i]===true&&p.weaponLevels?.[i]>=6&&(q.path==='force'||q.path==='reach')?weaponMasteries[q.path]:neutralMastery;
+}
+function masteryEligible(p,i){return Number.isInteger(i)&&i>=0&&i<4&&p?.mastery==null&&p?.evolved?.[i]===true&&p.weaponLevels?.[i]>=6}
+function chooseMastery(p,i,path){if(!masteryEligible(p,i)||!(path==='force'||path==='reach'))return false;p.mastery={slot:i,path};return true}
+function masteryOptions(p,selected,enabled){
+ if(!enabled)return [];
+ const slots=[0,1,2,3].filter(i=>masteryEligible(p,i));if(!slots.length)return [];
+ const i=slots.includes(selected)?selected:slots[0];
+ return ['force','reach'].map(path=>({id:'mastery_'+i+'_'+path}));
+}
+function masteryRadius(base,mastery){return mastery.area===1?base:Math.round(base*mastery.area)}
 function legendaryEligible(p,i){return Number.isInteger(i)&&i>=0&&i<4&&p?.evolved?.[i]===true&&p.weaponLevels?.[i]>=7&&legendaryPaths[i].items.every(id=>p.artifacts?.includes(id))}
 function legendarySlotValid(p){return p?.legendarySlot==null||legendaryEligible(p,p.legendarySlot)}
 function canAscend(p,i){return p?.legendarySlot==null&&legendaryEligible(p,i)}
@@ -3172,7 +3191,7 @@ document.getElementById('helpToggle').addEventListener('click',()=>{const h=docu
 // V65: one local, explicitly suspended run. Snapshot is taken before next-wave
 // effects/spawns, and consumed before resume; already banked meta rewards are not replayed.
 const CHECKPOINT_KEY='dumpling-riot-suspended-v1';
-const checkpointPlayerFields=['x','y','aim','hp','maxhp','xp','next','lvl','speed','fire','dash','bomb','inv','boost','heroUpgrades','artifacts','evolved','legendarySlot','weaponLevels','weaponCharge','shivCharge'];
+const checkpointPlayerFields=['x','y','aim','hp','maxhp','xp','next','lvl','speed','fire','dash','bomb','inv','boost','heroUpgrades','artifacts','evolved','legendarySlot','mastery','weaponLevels','weaponCharge','shivCharge'];
 const checkpointRunFields=['hero','startMap','campaign','contract','cleared','earned','kills','closed','coins','coinsEarned','coinsSpent','purchases','lastShop','pact','lastEncounter','seenRooms','roomChoices','nextRoomEffect','hiddenSummoned','hiddenDefeated','nextHidden','stationUses','modifier','quest','curse','curseClears','daily','abyss'];
 function cpPick(o,keys){return Object.fromEntries(keys.map(k=>[k,o[k]]))}
 function validCheckpoint(q){
@@ -3193,6 +3212,7 @@ function validCheckpoint(q){
  if(!p.boost||!['dmg','rate','move'].every(k=>num(p.boost[k],.001))||!num(p.boost.crit,0,1)||!unique(p.artifacts,runArtifacts.map(x=>x.id))||!Array.isArray(p.heroUpgrades)||!p.heroUpgrades.every(x=>['wide','pierce','armor'].includes(x))||p.heroUpgrades.length>32)return false;
  if(!Array.isArray(p.evolved)||p.evolved.length!==4||!p.evolved.every(x=>typeof x==='boolean')||!Array.isArray(p.weaponLevels)||p.weaponLevels.length!==4||!p.weaponLevels.every(x=>integer(x,1,8))||!Array.isArray(p.weaponCharge)||p.weaponCharge.length!==4||!p.weaponCharge.every(x=>num(x,0,1)))return false;
  if(p.legendarySlot!=null&&!legendarySlotValid(p))return false;
+ if(p.mastery!=null){const m=p.mastery;if(!m||typeof m!=='object'||Array.isArray(m)||!Object.keys(m).every(k=>['slot','path'].includes(k))||!integer(m.slot,0,3)||!['force','reach'].includes(m.path)||!p.evolved[m.slot]||p.weaponLevels[m.slot]<6)return false;}
  if(!Array.isArray(q.drops)||q.drops.length>5000||!q.drops.every(d=>d&&['xp','artifact','relic','heal','bomb'].includes(d.type)&&num(d.x,arena.l,arena.r)&&num(d.y,arena.t,arena.b)&&num(d.life,.000001,100)&&num(d.pulse??0)&& (d.type==='artifact'?runArtifacts.some(a=>a.id===d.artifact):num(d.value??0))))return false;
  return true;
 }
@@ -3252,7 +3272,7 @@ function setHud(on){
  document.documentElement.classList.toggle('inGame',!!on)
 }
 function requestMobileFullscreen(){try{if(window.Capacitor?.isNativePlatform?.())return;if(!(window.matchMedia&&window.matchMedia('(pointer: coarse) and (orientation: landscape)').matches))return;const el=document.documentElement;if(el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}}catch(_){}}
-function resetPlayer(p,ch,x,y){p.weaponLevels=[1,1,1,1];p.charId=ch.id;p.x=x;p.y=y;p.serverX=x;p.serverY=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.canRevive=false;p.hurtT=0;p.hurtLean=0;p.recoilT=0;p.recoilSlot=0;p.recoilAim=0;p.animPhase=0;p.animMotion=0;p.weaponCharge=[1,1,1,1];p.shivCharge=1;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[];p.artifacts=[];p.evolved=[false,false,false,false];p.legendarySlot=null;p.legendaryReadyAt=0}
+function resetPlayer(p,ch,x,y){p.weaponLevels=[1,1,1,1];p.charId=ch.id;p.x=x;p.y=y;p.serverX=x;p.serverY=y;p.vx=0;p.vy=0;p.hp=p.maxhp=ch.hp;p.xp=0;p.next=100;p.lvl=1;p.speed=ch.speed;p.dash=0;p.bomb=3;p.inv=0;p.fire=0;p.shots=0;p.dead=false;p.canRevive=false;p.hurtT=0;p.hurtLean=0;p.recoilT=0;p.recoilSlot=0;p.recoilAim=0;p.animPhase=0;p.animMotion=0;p.weaponCharge=[1,1,1,1];p.shivCharge=1;p.boost={dmg:1,rate:1,move:1,crit:0};p.heroUpgrades=[];p.artifacts=[];p.evolved=[false,false,false,false];p.legendarySlot=null;p.mastery=null;p.legendaryReadyAt=0}
 function setOnlineStatus(t){const e=document.getElementById('onlineStatus');if(e){e.dataset.initial='false';e.textContent=t}}
 const makeRoomCode=()=>String(rndi(10000,99999));
 // V47: solo and local play never request a network library.
@@ -3474,7 +3494,7 @@ function startGame(fromNetwork=false,checkpoint=null,date=null,rank=null){
  resetPlayer(player,ch,world.w/2-18,world.h/2);resetPlayer(player2,ch2,world.w/2+18,world.h/2);
  if(soloRun){nightmare=newNightmare();if(!dailyRun){player.maxhp+=meta.perks.vitality*8;player.hp=player.maxhp;player.boost.dmg*=1+meta.perks.power*.04;player.boost.move*=1+meta.perks.haste*.03;}if(!checkpoint&&soloRun.modifier!=='classic')applyStartingModifier(player,soloRun.modifier)}
  player.weapon=0;player2.weapon=coop?1:0;
- weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;arenaEventTimer=8;arenaEventIndex=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';tutorial=makeTutorial(tutorialEnabled,!!soloRun);tutorialSignature='';if(checkpoint){soloRun=checkpoint.run;if(soloRun.quest===undefined)soloRun.quest=newHeroQuest(soloRun.hero);soloRun.curse=soloRun.curse??null;soloRun.curseClears=soloRun.curseClears??0;selectedMap=checkpoint.map;selectedChar=soloRun.hero;Object.assign(player,cpPick(checkpoint.player,checkpointPlayerFields));player.legendarySlot=player.legendarySlot??null;player.legendaryReadyAt=0;player.charId=selectedChar;player.weapon=weapon=checkpoint.weapon;player.dead=false;player.vx=player.vy=0;player.serverX=player.x;player.serverY=player.y;wave=checkpoint.wave;score=checkpoint.score;combo=checkpoint.combo;nightmare=newNightmare();nightmare.fear=checkpoint.fear;relicOwned=checkpoint.relic;drops=checkpoint.drops;camera.x=clamp(player.x,W/2,world.w-W/2);camera.y=clamp(player.y,H/2,world.h-H/2)}setHud(true);beginWave();if(!checkpoint){const q=modifierFor(soloRun?.modifier);toast(q.id==='classic'?(coop?T('twoPlayers')+' · ':'')+T('wave')+' 1':metaLabel(q)+' · '+metaDesc(q));if(q.id!=='classic')toastTimer=5;}else{toast(L('RUN RESUMED','ЗАБЕГ ВОССТАНОВЛЕН')+' · '+T('wave')+' '+wave);toastTimer=3;}if(location.protocol!=='file:')requestMobileFullscreen();
+ weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;arenaEventTimer=8;arenaEventIndex=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';tutorial=makeTutorial(tutorialEnabled,!!soloRun);tutorialSignature='';if(checkpoint){soloRun=checkpoint.run;if(soloRun.quest===undefined)soloRun.quest=newHeroQuest(soloRun.hero);soloRun.curse=soloRun.curse??null;soloRun.curseClears=soloRun.curseClears??0;selectedMap=checkpoint.map;selectedChar=soloRun.hero;Object.assign(player,cpPick(checkpoint.player,checkpointPlayerFields));player.legendarySlot=player.legendarySlot??null;player.mastery=player.mastery??null;player.legendaryReadyAt=0;player.charId=selectedChar;player.weapon=weapon=checkpoint.weapon;player.dead=false;player.vx=player.vy=0;player.serverX=player.x;player.serverY=player.y;wave=checkpoint.wave;score=checkpoint.score;combo=checkpoint.combo;nightmare=newNightmare();nightmare.fear=checkpoint.fear;relicOwned=checkpoint.relic;drops=checkpoint.drops;camera.x=clamp(player.x,W/2,world.w-W/2);camera.y=clamp(player.y,H/2,world.h-H/2)}setHud(true);beginWave();if(!checkpoint){const q=modifierFor(soloRun?.modifier);toast(q.id==='classic'?(coop?T('twoPlayers')+' · ':'')+T('wave')+' 1':metaLabel(q)+' · '+metaDesc(q));if(q.id!=='classic')toastTimer=5;}else{toast(L('RUN RESUMED','ЗАБЕГ ВОССТАНОВЛЕН')+' · '+T('wave')+' '+wave);toastTimer=3;}if(location.protocol!=='file:')requestMobileFullscreen();
 }
 function goMenu(){if(onlineMode&&(netConn||peer)&&!netClosing){disconnectOnline(L('Left the room','Выход из комнаты'));return}saveAtBoundary=false;tutorial=null;renderTutorial();clearCombatPresentation();livingStations=[];encounter=null;if(soloRun?.campaign)selectedMap=soloRun.campaign.start;secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun();if(soloRun?.daily||soloRun?.abyss)restoreSpecialMenu();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
 function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlayers?7:4)+Math.floor(round/4))}
@@ -4176,10 +4196,11 @@ function buildUpgradeOptions(p){
    const lv=(p.weaponLevels||weaponLevels)[i]||1;
    if(lv<8)pool.push({id:'weapon_'+i,title:(ch.weaponNames?.[i]||weapons[i].name)+' · УР. '+(lv+1),desc:'Урон +22% · скорострельность +5% · скорость +4.5%.',weapon:i});
  }
- for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}const ascensions=soloRun?[0,1,2,3].filter(i=>canAscend(p,i)):[];if(ascensions.length){const i=ascensions.includes(weapon)?weapon:ascensions[0];return [{id:'ascend_'+i},...pool.slice(0,2)]}const eligible=soloRun?[0,1,2,3].filter(i=>canEvolve(p,i)):[];if(eligible.length){const i=eligible.includes(weapon)?weapon:eligible[Math.floor(Math.random()*eligible.length)];return [{id:'evolve_'+i},...pool.slice(0,2)]}return pool.slice(0,3);
+ for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}const ascensions=soloRun?[0,1,2,3].filter(i=>canAscend(p,i)):[];if(ascensions.length){const i=ascensions.includes(weapon)?weapon:ascensions[0];return [{id:'ascend_'+i},...pool.slice(0,2)]}const special=masteryOptions(p,weapon,!!soloRun);if(special.length)return [...special,...pool.slice(0,1)];const eligible=soloRun?[0,1,2,3].filter(i=>canEvolve(p,i)):[];if(eligible.length){const i=eligible.includes(weapon)?weapon:eligible[Math.floor(Math.random()*eligible.length)];return [{id:'evolve_'+i},...pool.slice(0,2)]}return pool.slice(0,3);
 }
 function applyUpgrade(p,o){
  if(!p||!o)return;
+ const mastery=/^mastery_([0-3])_(force|reach)$/.exec(o.id);if(mastery){if(soloRun){const i=Number(mastery[1]);if(chooseMastery(p,i,mastery[2])){p.weapon=i;if(p===player)weapon=i}}return}
  const ascension=/^ascend_([0-3])$/.exec(o.id);if(ascension){if(soloRun){const i=Number(ascension[1]);if(ascendWeapon(p,i)){p.weapon=i;if(p===player)weapon=i;}}return}
  const evolution=/^evolve_([0-3])$/.exec(o.id);if(evolution){if(soloRun){const i=Number(evolution[1]);if(evolveWeapon(p,i)){p.weapon=i;if(p===player)weapon=i;}}return}
  switch(o.id){
@@ -4219,6 +4240,7 @@ function finishLevelUp(p,opt){
 }
 function upgradePresentation(p,o){
  const id=o.id,en=lang==='en',ch=chars.find(x=>x.id===p.charId)||chars[0],w=/^weapon_([0-3])$/.exec(id),ev=/^evolve_([0-3])$/.exec(id);
+ const mastery=/^mastery_([0-3])_(force|reach)$/.exec(id);if(mastery){const i=Number(mastery[1]),q=weaponMasteries[mastery[2]];return {icon:inventoryIcon(ch.id,i),title:metaLabel(q)+' · '+locName(heroWeaponStats(p,i)),effect:L('MASTERY','МАСТЕРСТВО'),detail:metaDesc(q)+' · '+L('One weapon per run','Одно оружие за забег')}}
  const asc=/^ascend_([0-3])$/.exec(id);if(asc){const i=Number(asc[1]),q=legendaryPaths[i];return {icon:inventoryIcon(ch.id,i),title:metaLabel(q)+' · '+locName(heroWeaponStats(p,i)),effect:L('LEGEND','ЛЕГЕНДА'),detail:metaDesc(q)+' · '+L('1.5s cooldown · one per run','Перезарядка 1,5 сек. · одна за забег')}}
  if(ev){const i=Number(ev[1]),q=evolutionPaths[i];return {icon:inventoryIcon(ch.id,i),title:metaLabel(q)+' · '+locName(heroWeaponStats(p,i)),effect:L('EVOLVE','ЭВОЛЮЦИЯ'),detail:metaDesc(q)}}
  if(w){const i=Number(w[1]),lv=p.weaponLevels?.[i]||1,old=heroWeaponStats(p,i).dmg*p.boost.dmg*(soloRun&&hasCombo(p,'predator')?1.15:1),newD=old*(1+lv*.22)/(1+(lv-1)*.22);return {icon:inventoryIcon(ch.id,i),title:locName(heroWeaponStats(p,i)),effect:(L("Level ","Уровень "))+lv+' → '+(lv+1),detail:(L("Damage ","Урон "))+Math.round(old)+' → '+Math.round(newD)}}
@@ -4232,7 +4254,7 @@ function renderUpgradeChoice(d,p,o,i){
  const a=upgradePresentation(p,o);
  d.innerHTML='<span class="upgradeIcon">'+a.icon+'</span><span class="upgradeCopy"><h4></h4><p></p></span><strong class="upgradeEffect"></strong><span class="upgradeArrow">›</span>';
  d.querySelector('h4').textContent=a.title;d.querySelector('p').textContent=a.detail;d.querySelector('.upgradeEffect').textContent=a.effect;
- d.setAttribute('aria-label',a.title+' '+a.effect+' '+a.detail);d.classList.toggle('evolutionChoice',o.id.startsWith('evolve_')||o.id.startsWith('ascend_'));d.classList.toggle('legendaryChoice',o.id.startsWith('ascend_'));
+ d.setAttribute('aria-label',a.title+' '+a.effect+' '+a.detail);d.classList.toggle('evolutionChoice',o.id.startsWith('evolve_')||o.id.startsWith('ascend_')||o.id.startsWith('mastery_'));d.classList.toggle('legendaryChoice',o.id.startsWith('ascend_'));
 }
 
 function openLevelUpFor(p,remoteOptions=null){
@@ -4278,13 +4300,13 @@ function attackFor(p,weaponIndex,target=null){
  p.fire=soloRun?Math.min(weaponChargeDuration(p,weaponIndex),.18):w.rate/p.boost.rate;p.recoilT=.14;p.recoilSlot=weaponIndex;p.recoilAim=ang;
  const element=soloRun?w.element:null,ascensionToken=legendaryToken(p,weaponIndex,!!soloRun),golemQuestCast=soloRun&&p===player&&p.charId==='golem'?{targets:new Set(),done:false}:null;
  const damage=w.dmg*p.boost.dmg*(Math.random()<p.boost.crit?2:1)*(soloRun&&hasCombo(p,'predator')?1.15:1)*heroSpecialtyCast(p,!!soloRun&&!coop&&!onlineMode&&p===player);
- const wide=p.heroUpgrades?.includes('wide'),pierceBonus=p.heroUpgrades?.includes('pierce')?2:0;
+ const wide=p.heroUpgrades?.includes('wide'),mastery=masteryFor(p,weaponIndex,!!soloRun&&!coop&&!onlineMode),pierceBonus=(p.heroUpgrades?.includes('pierce')?2:0)+mastery.pierce;
  const proj=(aa,dmg=damage,extra={})=>projectiles.push({
   x:p.x+Math.cos(aa)*11,y:p.y+Math.sin(aa)*11,vx:Math.cos(aa)*(extra.speed||w.speed),vy:Math.sin(aa)*(extra.speed||w.speed),
   life:extra.life||1.2,r:extra.r||2.2,damage:dmg,pierce:(extra.pierce??w.pierce)+pierceBonus,color:extra.color||w.color,kind:extra.kind||w.kind,owner:p===player?'p1':'p2',
-  bleed:extra.bleed||0,poison:extra.poison||0,explosive:!!extra.explosive,explosionRadius:extra.explosionRadius||0,element,legendaryToken:ascensionToken,artHero:p.charId,artSlot:weaponIndex,artEvolved:!!p.evolved?.[weaponIndex],venomArt:p.charId==='vesa',shadowArt:p.charId==='nyx',mageArt:p.charId==='pelmage'?weaponIndex:null,shivArt:p.charId==='assassin',golemArt:p.charId==='golem',wardenArt:p.charId==='warden',voidArt:p.charId==='revenant'
+  bleed:extra.bleed||0,poison:extra.poison||0,explosive:!!extra.explosive,explosionRadius:masteryRadius(extra.explosionRadius||0,mastery),element,legendaryToken:ascensionToken,artHero:p.charId,artSlot:weaponIndex,artEvolved:!!p.evolved?.[weaponIndex],venomArt:p.charId==='vesa',shadowArt:p.charId==='nyx',mageArt:p.charId==='pelmage'?weaponIndex:null,shivArt:p.charId==='assassin',golemArt:p.charId==='golem',wardenArt:p.charId==='warden',voidArt:p.charId==='revenant'
  });
- const ringHit=(x,y,max,color,life,dmg=damage)=>rings.push({x,y,r:4,max:wide?Math.round(max*1.35):max,color,life,maxlife:life,damage:dmg,hit:new Set(),owner:p===player?'p1':'p2',element,legendaryToken:ascensionToken,golemQuestCast,artHero:p.charId,artSlot:weaponIndex,artEvolved:!!p.evolved?.[weaponIndex],artAim:ang});
+ const ringHit=(x,y,max,color,life,dmg=damage)=>rings.push({x,y,r:4,max:masteryRadius(wide?Math.round(max*1.35):max,mastery),color,life,maxlife:life,damage:dmg,hit:new Set(),owner:p===player?'p1':'p2',element,legendaryToken:ascensionToken,golemQuestCast,artHero:p.charId,artSlot:weaponIndex,artEvolved:!!p.evolved?.[weaponIndex],artAim:ang});
  const fx=(color,n=7)=>spawnParticles(p.x+Math.cos(ang)*10,p.y+Math.sin(ang)*10,n,color,.8);
  if(p.evolved?.[weaponIndex]){const col='#ffd38b';switch(weaponIndex){case 0:ringHit(p.x,p.y,42,col,.22,damage*.27);break;case 1:proj(ang,damage*.42,{pierce:w.pierce+3,color:col});break;case 2:{const length=Math.min(105,Math.hypot(tx-p.x,ty-p.y));ringHit(p.x+Math.cos(ang)*length,p.y+Math.sin(ang)*length,34,col,.3,damage*.36);break}case 3:for(const side of [-1,1])proj(ang+side*.22,damage*.3,{pierce:w.pierce+1,color:col});break}fx(col,4)}
 
@@ -7001,7 +7023,7 @@ function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;const
   const status=mode==='phase'?L('Phase shift','Смена фазы'):mode==='charge'?L('Charge','Рывок'):mode==='attack'?L('Attack','Атака'):mode==='exposed'?L('Counter window','Контратака')+' +'+Math.round((bossEncounterFor(boss.bossId)[2]-1)*100)+'%':L('Hunting','Охота');
   label.textContent=L('Phase','Фаза')+' '+(boss.stage||1)+'/3 · '+status;
  }else document.getElementById('bossHud').style.display='none';
- const selectedWeapon=onlineMode&&isOnlineGuest?player2.weapon:weapon;const eh=document.getElementById('elementHud');eh.hidden=!soloRun;if(soloRun){const el=elements[weaponElement(localP.charId,selectedWeapon)],count=activeCombos(localP).length;const label=metaLabel(el)+(count?' · '+L('Combos','Связки')+' '+count:'')+(localP.legendarySlot===selectedWeapon?' · ✧ '+metaLabel(legendaryPaths[selectedWeapon]):'');if(eh.textContent!==label)eh.textContent=label;eh.style.color=el.color}updateTouchHud(localP,selectedWeapon,ability);const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.dataset.weapon=String(i);d.innerHTML=`<b>${w.key}</b> <span class="wn">${chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(w)}</span><span class="wlv">УР. ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG</span><span class="weaponCharge"><i></i></span><i class="cd"></i>`;d.onclick=()=>{if(onlineMode&&isOnlineGuest)player2.weapon=i;else weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===selectedWeapon);d.classList.toggle('evolved',!!localP.evolved?.[i]);d.classList.toggle('legendary',localP.legendarySlot===i);d.querySelector('.wn').textContent=locName(heroWeaponStats(localP,i));d.querySelector('.wlv').textContent=`${L("LV","УР.")} ${localP.weaponLevels[i]} · ${Math.round(heroWeaponStats(localP,i).dmg*localP.boost.dmg*(soloRun&&hasCombo(localP,'predator')?1.15:1))} DMG`;const chargeEl=d.querySelector('.weaponCharge i');const charge=clamp(localP.weaponCharge?.[i]??1,0,1);chargeEl.style.width=(charge*100)+'%';d.classList.toggle('charging',charge<.999);d.querySelector('.cd').textContent=i===selectedWeapon&&localP.fire>0?localP.fire.toFixed(1):''});syncInventoryArt(localP)}
+ const selectedWeapon=onlineMode&&isOnlineGuest?player2.weapon:weapon;const eh=document.getElementById('elementHud');eh.hidden=!soloRun;if(soloRun){const el=elements[weaponElement(localP.charId,selectedWeapon)],count=activeCombos(localP).length;const label=metaLabel(el)+(count?' · '+L('Combos','Связки')+' '+count:'')+(localP.legendarySlot===selectedWeapon?' · ✧ '+metaLabel(legendaryPaths[selectedWeapon]):'')+(masteryFor(localP,selectedWeapon,true)!==neutralMastery?' · ◇ '+metaLabel(masteryFor(localP,selectedWeapon,true)):'');if(eh.textContent!==label)eh.textContent=label;eh.style.color=el.color}updateTouchHud(localP,selectedWeapon,ability);const wh=document.getElementById('weaponHud');if(!wh.childNodes.length){weapons.forEach((w,i)=>{const d=document.createElement('div');d.className='weapon';d.dataset.weapon=String(i);d.innerHTML=`<b>${w.key}</b> <span class="wn">${chars.find(c=>c.id===player.charId)?.weaponNames?.[i]||locName(w)}</span><span class="wlv">УР. ${weaponLevels[i]} · ${Math.round(heroWeaponStats(player,i).dmg)} DMG</span><span class="weaponCharge"><i></i></span><i class="cd"></i>`;d.onclick=()=>{if(onlineMode&&isOnlineGuest)player2.weapon=i;else weapon=i};wh.appendChild(d)})}Array.from(wh.children).forEach((d,i)=>{d.classList.toggle('sel',i===selectedWeapon);d.classList.toggle('evolved',!!localP.evolved?.[i]);d.classList.toggle('legendary',localP.legendarySlot===i);d.querySelector('.wn').textContent=locName(heroWeaponStats(localP,i));d.querySelector('.wlv').textContent=`${L("LV","УР.")} ${localP.weaponLevels[i]} · ${Math.round(heroWeaponStats(localP,i).dmg*localP.boost.dmg*(soloRun&&hasCombo(localP,'predator')?1.15:1))} DMG`;const chargeEl=d.querySelector('.weaponCharge i');const charge=clamp(localP.weaponCharge?.[i]??1,0,1);chargeEl.style.width=(charge*100)+'%';d.classList.toggle('charging',charge<.999);d.querySelector('.cd').textContent=i===selectedWeapon&&localP.fire>0?localP.fire.toFixed(1):''});syncInventoryArt(localP)}
 
 addEventListener('keydown',e=>{
  if(e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement||e.target?.isContentEditable)return;
