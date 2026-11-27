@@ -3038,20 +3038,82 @@ function paintEnemyDeath(g,q,t){
 // Preserve existing random calls and particle caps while suppressing unsuitable blood stains.
 function materialBloodBurst(e,n,force){
  const mat=enemyImpactMaterial(e);
- if(mat==='organic'||e.type==='boss'){bloodBurst(e.x,e.y,n,force);return}
+ if(mat==='organic'){bloodBurst(e.x,e.y,n,force);return}
  const first=particles.length,oldLength=blood.length,oldest=blood[0];
  bloodBurst(e.x,e.y,n,force);
  const palette=impactPalette[mat];for(let i=first;i<particles.length;i++)particles[i].color=palette[(i-first)%2];
  blood.pop();if(blood.length<oldLength&&oldest!==undefined)blood.unshift(oldest);
 }
-function addDeathSprite(e){if(!horrorFx||reduceMotion)return;const life=e.type==='boss'?.42:deathArtFor(e.type)[1];pushFx(deathSprites,{x:e.x,y:e.y,type:e.type,bossId:e.bossId,kind:e.kind,stage:e.stage,phase:e.phase,life,max:life},COMBAT_FX.death)}
+// V71.3 — Individual boss defeat sequences, bounded visual-only choreography.
+// [mode, duration, fragment count, travel, angle seed, primary, accent]
+const bossDeathArt=[
+ ['collapse',.72,9,48,.12,'#d6b09d','#925660'],
+ ['furnace',.94,10,53,.31,'#ffc37a','#bc6349'],
+ ['circuit',.82,10,49,.54,'#b9edff','#5187ad'],
+ ['pipe',.86,9,51,.77,'#a3d7c5','#688b87'],
+ ['neon',.80,9,51,1.02,'#f6a5e1','#8bd8dc'],
+ ['cabinet',.88,10,55,1.24,'#f2cd88','#917181'],
+ ['blade',.85,10,55,1.47,'#e1d9bc','#86999d'],
+ ['crusher',.98,11,56,1.69,'#ed9a75','#8d6e68'],
+ ['veil',.90,9,51,1.92,'#e4c8ff','#9379ad'],
+ ['ossuary',.84,11,55,2.15,'#e1d8b3','#a79882'],
+ ['spores',.93,11,53,2.37,'#d9ed9a','#7f9c63'],
+ ['roots',.92,10,54,2.60,'#d1b786','#829764'],
+ ['void',1.18,12,60,2.83,'#f0c6ff','#d98bab'],
+ ['bell',.96,10,55,3.05,'#f4d28d','#947752'],
+ ['widow',.88,9,52,3.28,'#b9e9d5','#658d87']
+];
+function bossDeathFor(id){return bossDeathArt[id]||bossDeathArt[12]}
+function bossDeathPose(id,t){
+ const [mode]=bossDeathFor(id),u=Math.max(0,Math.min(1,t)),p=Math.min(1,u*1.65),f=1-u;
+ if(mode==='veil'||mode==='widow')return [0,-22*p,1+.18*p,1+.10*p,0,f*f];
+ if(mode==='neon'||mode==='circuit')return [Math.round(Math.sin(p*12)*3*(1-p)),-5*p,1+.12*p,Math.max(.2,1-p*.8),p*.14,f*f];
+ if(mode==='void')return [0,-10*p,Math.max(.22,1-p*.76),Math.max(.22,1-p*.76),p*.35,f*f];
+ if(mode==='blade')return [5*p,5*p,Math.max(.24,1-p*.64),Math.max(.18,1-p*.82),p*1.7,f];
+ if(mode==='bell')return [Math.sin(p*Math.PI)*7,6*p,1+.08*p,Math.max(.16,1-p*.84),p*.65,f];
+ if(mode==='furnace'||mode==='spores')return [0,-5*p,1+.20*p,Math.max(.18,1-p*.82),p*.08,f];
+ if(mode==='pipe')return [0,9*p,1+.18*p,Math.max(.18,1-p*.82),-p*.32,f];
+ if(mode==='cabinet'||mode==='crusher')return [0,8*p,1+.14*p,Math.max(.14,1-p*.86),p*.20,f];
+ if(mode==='ossuary'||mode==='roots')return [3*p,8*p,1+.1*p,Math.max(.14,1-p*.86),p*.82,f];
+ return [0,10*p,1+.1*p,Math.max(.14,1-p*.86),p*.7,f];
+}
+function paintBossDeath(g,q,t){
+ const [mode,life,count,reach,seed,primary,accent]=bossDeathFor(q.bossId),u=Math.max(0,Math.min(1,t)),fade=1-u;
+ if(fade<=0)return;
+ const pose=bossDeathPose(q.bossId,u),base=g.globalAlpha;
+ const R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+ const L=(c,x,y,dx,dy)=>{g.strokeStyle=c;g.lineWidth=1;g.beginPath();g.moveTo(Math.round(x),Math.round(y));g.lineTo(Math.round(x+dx),Math.round(y+dy));g.stroke()};
+ const ring=(r,c,alpha)=>{g.globalAlpha=base*alpha;g.strokeStyle=c;g.lineWidth=1;g.beginPath();g.arc(0,-7,r,0,Math.PI*2);g.stroke()};
+ // Full sprite collapses first, then fragments remain visible independently.
+ g.save();g.translate(pose[0],pose[1]);g.rotate(pose[4]);g.scale(pose[2],pose[3]);g.globalAlpha=base*.86*pose[5];
+ if(q.bossId>=13)paintHiddenBoss(g,bossProfile(q),q.stage||1,0,false);
+ else if(q.bossId===12)paintFinalBoss(g,q.stage||1,0,false);
+ else paintRosterBoss(g,q,0,false,false);
+ g.restore();
+ g.save();ring(12+reach*u,primary,.38*fade);
+ if(mode==='bell'||mode==='void'||mode==='furnace')ring(8+reach*.78*u,accent,.26*fade);
+ g.globalAlpha=base*.85*fade;
+ for(let i=0;i<count;i++){
+  const a=seed+i*Math.PI*2/count,dx=Math.cos(a),dy=Math.sin(a),r=9+reach*u,c=i%2?accent:primary;
+  let x=dx*r,y=dy*r*.58+7*u*u-8;
+  if(mode==='veil'||mode==='widow'||mode==='neon'){y-=u*21;R(c,x-4,y,7,1);R(primary,x+1,y-3,1,5);if(mode==='widow')L(accent,x,y,dx*4,dy*4)}
+  else if(mode==='circuit'){L(c,x,y,dx*5-dy*3,dy*5+dx*3);L(primary,x+dx*5-dy*3,y+dy*5+dx*3,dx*3+dy*3,dy*3-dx*3)}
+  else if(mode==='furnace'||mode==='spores'||mode==='pipe'){y-=u*(mode==='furnace'?23:mode==='spores'?15:5);R(c,x,y,mode==='pipe'?2:3,mode==='furnace'?5:3);R(accent,x+3,y+3,2,2)}
+  else if(mode==='void'){const k=Math.max(.1,1-u);R(c,x-3*k,y,Math.max(1,6*k),2);R(primary,x,y-3*k,2,Math.max(1,6*k))}
+  else{g.save();g.translate(Math.round(x),Math.round(y));g.rotate(a+u*(mode==='blade'?6:2));R(c,-3,-2,mode==='roots'?8:mode==='ossuary'?6:5,mode==='crusher'?4:3);R(primary,-2,-3,3,1);g.restore()}
+ }
+ // Source: six collapsing seal marks, followed by a final expanding ring.
+ if(mode==='void'){g.globalAlpha=base*.7*fade;for(let i=0;i<6;i++){const a=i*Math.PI/3+seed,r=38*(1-u);const x=Math.cos(a)*r,y=Math.sin(a)*r-8;R(primary,x-2,y-2,4,4);R(accent,x-1,y-1,2,2)}}
+ g.restore();
+}
+function addDeathSprite(e){if(!horrorFx||reduceMotion)return;const life=e.type==='boss'?bossDeathFor(e.bossId)[1]:deathArtFor(e.type)[1];pushFx(deathSprites,{x:e.x,y:e.y,type:e.type,bossId:e.bossId,kind:e.kind,stage:e.stage,phase:e.phase,life,max:life},COMBAT_FX.death)}
 function addDashGhosts(p,ox,oy){if(!horrorFx||reduceMotion)return;for(let i=0;i<3;i++){const t=i/3,life=.12+i*.035;pushFx(dashGhosts,{x:ox+(p.x-ox)*t,y:oy+(p.y-oy)*t,id:p.charId,aim:p.aim,dashAngle:Math.atan2(p.y-oy,p.x-ox),life,max:life},COMBAT_FX.ghosts)}}
 function paintCombatPresentation(g,view,layer){
  if(!horrorFx||reduceMotion)return;
  const visible=q=>q.x>=view.x-55&&q.x<=view.x+view.w+55&&q.y>=view.y-55&&q.y<=view.y+view.h+55;
  if(layer==='under'){
   for(const q of dashGhosts){if(!visible(q))continue;g.save();g.translate(Math.round(q.x),Math.round(q.y));if(q.id==='scar')paintScarDashEcho(g,q);else if(q.id==='vesa')paintVesaDashEcho(g,q);else if(q.id==='nyx')paintNyxDashEcho(g,q);else if(q.id==='pelmage')paintMageDashEcho(g,q);else if(q.id==='assassin')paintShivDashEcho(g,q);else if(q.id==='golem')paintGolemDashEcho(g,q);else if(q.id==='warden')paintWardenDashEcho(g,q);else if(q.id==='revenant')paintVoidDashEcho(g,q);g.globalAlpha=(q.id==='nyx'?.14:q.id==='assassin'?.12:.22)*q.life/q.max;pixelHeroBody(g,q.id,0,0,q.aim);g.restore()}
-  for(const q of deathSprites){if(!visible(q))continue;const t=1-q.life/q.max;g.save();g.translate(Math.round(q.x),Math.round(q.y));if(q.type!=='boss'){paintEnemyDeath(g,q,t);g.restore();continue}g.globalAlpha=.65*(1-t);g.rotate(t*.7);g.scale(1+.12*t,Math.max(.16,1-t*.85));if(q.type==='boss'){if(q.bossId>=13)paintHiddenBoss(g,bossProfile(q),q.stage||1,0,false);else if(q.bossId===12)paintFinalBoss(g,q.stage||1,0,false);else paintRosterBoss(g,q,0,false,false)}else pixelEnemy(g,q.type,q.phase||0,0,1);g.restore()}
+  for(const q of deathSprites){if(!visible(q))continue;const t=1-q.life/q.max;g.save();g.translate(Math.round(q.x),Math.round(q.y));if(q.type==='boss')paintBossDeath(g,q,t);else paintEnemyDeath(g,q,t);g.restore()}
  }else for(const q of impactMarks){if(!visible(q))continue;const t=1-q.life/q.max,r=q.radius*(.5+t*.75);g.save();g.translate(Math.round(q.x),Math.round(q.y));g.globalAlpha=.8*(1-t);paintMaterialImpact(g,q,t,r);g.strokeStyle=q.scar?'#ffab60':q.vesa?'#b7df83':q.nyx?'#b5b1fa':q.mage?'#a5e5ff':q.shiv?'#dcebe4':q.golem?'#ffc27c':q.warden?'#ffdc8e':q.voidArt?'#d4a7ed':q.color;g.lineWidth=1.5;if(q.scar){g.fillStyle='#ffdc99';for(const k of [-1,1])g.fillRect(Math.round(k*r*.7),Math.round(-r*.6),2,3)}else if(q.vesa){g.fillStyle='#ceefa0';for(const k of [-1,0,1])g.fillRect(Math.round(k*r*.65),Math.round((1-Math.abs(k))*r*.6),2,3)}else if(q.nyx){g.fillStyle='#b5b1fa';for(const k of [-1,1]){g.fillRect(Math.round(k*r*.6),-2,3,1);g.fillRect(Math.round(k*r*.6),1,1,3)}}else if(q.mage){for(const k of [-1,1])paintMageRune(g,Math.round(k*r*.6),-3,k===1?1:0,'#a5e5ff')}else if(q.shiv){g.fillStyle='#dcebe4';for(const k of [-1,1]){g.fillRect(Math.round(k*r*.65)-2,-3,5,1);g.fillRect(Math.round(k*r*.65),2,4,1)}}else if(q.golem){for(const k of [-1,1]){g.fillStyle='#ab8b72';g.fillRect(Math.round(k*r*.6),-4,3,3);g.fillStyle='#ffc27c';g.fillRect(Math.round(k*r*.7),-5,2,2)}}else if(q.warden){for(const k of [-1,1])paintWardenStar(g,Math.round(k*r*.65),-3,'#ffdc8e')}else if(q.voidArt){for(const k of [-1,1])paintVoidFracture(g,Math.round(k*r*.65),-2)}if(!q.material){for(let i=0;i<4;i++){const a=Math.PI*.25+i*Math.PI/2;g.beginPath();g.moveTo(Math.cos(a)*r*.45,Math.sin(a)*r*.45);g.lineTo(Math.cos(a)*r,Math.sin(a)*r);g.stroke()}}else if(q.heavy){g.strokeStyle=q.color;g.lineWidth=1;g.beginPath();g.moveTo(-r*.5,0);g.lineTo(r*.5,0);g.stroke()}g.restore()}
 }
 function spawnParticles(x,y,n,color,force=1){n=fxBudget(particles.length,reduceMotion||!horrorFx?Math.ceil(n*.45):n,COMBAT_FX.particles);for(let i=0;i<n;i++){const a=rnd(0,TAU),s=rnd(20,90)*force;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.25,.7),max:.7,size:rndi(1,3),color})}}
@@ -3385,8 +3447,9 @@ function finishEnemyDeath(e){
  if(e.type==='boss'){
    if(e.bossId===12&&soloRun?.campaign)soloRun.campaign.finalKilled=true;
    initAudio();sfx('boss');
-   ring(e.x,e.y,60,'#ff4c52',.8,80);ring(e.x,e.y,92,'#b56cff',1.1,116);
-   spawnParticles(e.x,e.y,50,'#ff4c52',2);spawnParticles(e.x,e.y,28,'#c67aff',1.8);
+   const art=bossDeathFor(e.bossId),primary=art[5],accent=art[6];
+   ring(e.x,e.y,60,primary,.8,80);ring(e.x,e.y,92,accent,1.1,116);
+   spawnParticles(e.x,e.y,50,primary,2);spawnParticles(e.x,e.y,28,accent,1.8);
    if(e.bossId>=13){const reward=hiddenReward(meta,soloRun,player,e.bossId);if(reward)saveMeta();}else drops.push({x:e.x,y:e.y-4,type:'relic',life:24,pulse:0});
    boss=null;toast(e.bossId>=13?L('HIDDEN HORROR DEFEATED · +18 shards','СКРЫТЫЙ УЖАС ПОВЕРЖЕН · +18 осколков'):L('BOSS DEFEATED','БОСС ПОВЕРЖЕН'));
    // On boss waves the minions must also be cleared before the next wave starts.
