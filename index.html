@@ -4639,7 +4639,88 @@ function pixelKitchenBoss(g,id,stage=1,phase=0,charging=false){
  if(charging){R('#ffd292',-14,-50,28,2);R('#ff9b55',-9,-47,18,1)}
  g.restore();return true;
 }
+// V70.2 — Basement boss evolution: unique electrical and plumbing nightmares.
+function pixelBasementBoss(g,id,stage=1,phase=0,charging=false){
+ if(id!==2&&id!==3)return false;
+ const R=(c,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ const ink='#100912',t=reduceMotion||!Number.isFinite(phase)?0:phase,sway=Math.round(Math.sin(t)*2),hot=id===2?(stage===3?'#e8fcff':stage===2?'#9aeaff':'#5db9e2'):(stage===3?'#d9ffe5':stage===2?'#a7e8d5':'#67b6b7');
+ g.save();
+ if(id===2){
+  // Circuit Warden: angular switchgear armor, transformer coils and articulated arms.
+  for(const s of [-1,1]){
+   const d=s*sway;
+   P(ink,[s*8,9,s*20,9,s*27,25+d*.5,s*11,28+d*.5,s*7,20]);
+   P('#45535d',[s*9,11,s*18,11,s*24,24+d*.5,s*12,25+d*.5,s*9,19]);
+   R('#8497a0',s<0?-22:12,23+d*.5,10,3);
+   P(ink,[s*22,-26,s*35,-31,s*43,-24,s*46,-2+d,s*40,15+d,s*28,13,s*23,2]);
+   P('#43576a',[s*24,-24,s*34,-28,s*40,-22,s*43,-2+d,s*38,12+d,s*29,11,s*25,1]);
+   for(let j=0;j<3;j++){const y=-19+j*7+d;R('#886c54',s<0?-40:30,y,10,4);R('#d4a978',s<0?-39:31,y,8,1)}
+   R('#203542',s<0?-40:32,5+d,8,6);R(hot,s<0?-39:33,6+d,6,2);
+  }
+  P(ink,[-26,-26,-17,-38,16,-38,26,-26,27,11,18,24,-18,24,-27,11]);
+  P('#354654',[-24,-25,-16,-35,15,-35,24,-25,25,10,17,22,-17,22,-25,10]);
+  P('#708593',[-20,-25,-13,-32,13,-32,20,-25,18,14,11,19,-11,19,-18,14]);
+  R('#182733',-17,-22,34,29);R('#41566a',-15,-20,30,25);
+  for(const s of [-1,1]){const x=s<0?-22:19;R('#b2b7ae',x,-24,3,3);R('#b2b7ae',x,14,3,3);R('#31434f',x,-11,3,17)}
+  R(ink,-15,-19,30,8);R(hot,-12,-17,8,3);R(hot,4,-17,8,3);
+  R('#152938',-9,-6,18,16);R('#4d889e',-7,-4,14,12);R(hot,-4,-1,8,6);
+  for(let j=0;j<4;j++){const y=-5+j*4;R('#84b6c4',-14,y,4,1);R('#84b6c4',10,y,4,1)}
+  for(const s of [-1,1]){
+   P(ink,[s*9,-36,s*11,-48,s*20,-49,s*22,-36]);P('#748b96',[s*11,-37,s*13,-46,s*18,-47,s*19,-37]);
+   R(hot,s<0?-18:13,-45,5,3);
+  }
+  if(stage>=2){
+   // Two fractured plates expose the transformer banks.
+   for(const s of [-1,1]){const x=s<0?-23:12;R('#202633',x,-4,11,16);for(let i=0;i<4;i++){R('#b99061',x+1,-3+i*4,9,2);R(hot,x+3,-3+i*4,5,1)}}
+   P('#17242e',[-12,-32,-6,-29,-9,-24,-3,-21,-6,-17,-10,-20,-13,-25]);R(hot,-8,-24,2,4);
+  }
+  if(stage===3){
+   // Armor panels split outward; fully exposed electrical reactor.
+   for(const s of [-1,1]){P(ink,[s*20,-23,s*31,-34,s*40,-32,s*32,-19,s*27,-8]);P('#607786',[s*22,-23,s*31,-31,s*37,-30,s*30,-19,s*27,-11]);R(hot,s<0?-33:27,-29,6,2)}
+   P(ink,[-14,-7,-7,-13,7,-13,14,-7,14,9,7,15,-7,15,-14,9]);P('#408eb0',[-12,-6,-6,-11,6,-11,12,-6,12,8,6,13,-6,13,-12,8]);R(hot,-8,-4,16,12);R('#ffffff',-3,-2,6,8);
+  }
+  if(horrorFx&&!reduceMotion){const q=Math.round(Math.sin(t*1.4)*3);R(hot,-26+q,-42,4,1);R(hot,23-q,-40,3,2);if(stage>=2){R(hot,-34,-15+q,2,3);R(hot,33,-10-q,2,2)}}
+ }else{
+  // Pipe Horror: broken plumbing manifold, asymmetrical pipe tentacles and pressure eye.
+  for(const s of [-1,1]){
+   const d=s*sway;
+   P(ink,[s*9,9,s*21,11,s*31,20+d,s*28,27+d*.5,s*15,25,s*8,18]);
+   P('#526a65',[s*11,11,s*20,13,s*28,20+d,s*26,24+d*.5,s*16,23,s*10,17]);
+   R('#9cae99',s<0?-26:18,20+d,8,2);
+   P(ink,[s*21,-17,s*32,-20,s*42,-12+d,s*49,-1+d,s*45,10+d,s*34,14,s*25,6]);
+   P('#45615f',[s*23,-15,s*31,-17,s*40,-10+d,s*46,-1+d,s*43,8+d,s*34,11,s*27,5]);
+   P('#829f93',[s*25,-14,s*31,-15,s*37,-9+d,s*40,-5+d,s*34,-7+d,s*28,-10]);
+   R('#9d9f8b',s<0?-43:35,-2+d,8,4);R('#303f43',s<0?-46:38,4+d,8,4);
+  }
+  P(ink,[-25,-27,-18,-34,17,-34,25,-25,27,8,16,23,-16,23,-27,8]);
+  P('#3e5555',[-23,-26,-17,-32,16,-32,23,-24,25,7,15,21,-15,21,-25,7]);
+  R('#72918a',-17,-30,34,4);R('#293b3e',-16,-23,32,37);
+  for(const s of [-1,1]){const x=s<0?-23:17;R('#9ca69a',x,-22,6,3);R('#5f7875',x,-19,4,30);R('#9ca69a',x,11,6,3)}
+  P(ink,[-12,-22,-5,-29,6,-29,15,-22,15,-9,7,-2,-6,-2,-14,-9]);P('#779e98',[-10,-21,-4,-27,5,-27,13,-21,13,-10,6,-4,-5,-4,-12,-10]);R('#294a4e',-8,-19,16,11);R(hot,-5,-17,10,7);R(ink,-2,-16,4,6);R('#e0f5e4',-2,-16,2,2);
+  R(ink,-12,3,24,11);R('#426862',-10,5,20,7);for(let i=0;i<4;i++)R('#adc6ab',-9+i*5,5,2,4);
+  // Different upper pipe heights and elbow fittings.
+  P(ink,[-24,-29,-24,-46,-10,-50,0,-46,0,-35,-11,-35,-11,-39,-15,-39,-15,-29]);P('#75938c',[-22,-30,-22,-44,-10,-48,-2,-44,-2,-37,-9,-37,-9,-41,-17,-41,-17,-30]);R('#a4b8a3',-23,-43,5,5);
+  P(ink,[8,-31,8,-44,22,-44,22,-38,16,-38,16,-31]);P('#59746f',[10,-32,10,-42,20,-42,20,-40,14,-40,14,-32]);R('#a4b8a3',9,-42,12,2);
+  if(stage>=2){
+   // Outer pipes fracture, exposing leaking joints and fungal pressure growth.
+   for(const s of [-1,1]){const x=s<0?-31:25;R('#243b3a',x,-8,7,13);R(hot,x+2,-7,3,9);R('#95b9a0',x+1,5,5,2)}
+   P(ink,[7,-25,11,-20,8,-15,13,-11,8,-7,5,-13,8,-20]);R(hot,8,-15,2,5);
+  }
+  if(stage===3){
+   // Split manifold reveals a swollen organic valve underneath.
+   P(ink,[-15,-5,-7,-12,8,-12,16,-5,18,8,9,18,-9,18,-18,8]);P('#527f71',[-13,-4,-6,-10,7,-10,14,-4,16,7,8,16,-8,16,-16,7]);
+   P(hot,[-8,0,-4,-5,5,-5,10,1,8,10,-6,10]);R('#2e5051',-2,-2,4,11);R('#e3ffdf',-7,0,3,4);
+   for(const s of [-1,1]){P('#7ba38b',[s*19,-27,s*26,-39,s*30,-38,s*26,-25,s*22,-19]);R(hot,s<0?-27:24,-36,3,3)}
+  }
+  if(horrorFx&&!reduceMotion){const q=Math.round(Math.sin(t*.8)*3);R('#82b3a3',-14+q,-54,3,2);R('#69908e',-9-q,-51,2,2);if(stage>=2){R(hot,30,7+q,2,3);R(hot,-31,6-q,2,2)}}
+ }
+ // Preserve the existing charge marker across all forms and motion settings.
+ if(charging){R('#ffd292',-14,-50,28,2);R('#ff9b55',-9,-47,18,1)}
+ g.restore();return true;
+}
 function paintRosterBoss(g,e,phase=0,charging=false,crest=true){
+ if(pixelBasementBoss(g,e.bossId,e.stage||1,phase,charging))return;
  if(pixelKitchenBoss(g,e.bossId,e.stage||1,phase,charging))return;
  pixelBoss(g,e.kind??0,e.stage||1,phase,charging);if(crest)paintBossCrest(g,e);
 }
