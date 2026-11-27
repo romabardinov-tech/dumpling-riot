@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.8. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.9. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -123,3 +123,6 @@ Sixth individual visual pass, GOLEM only. Original riveted cast-iron casing, cop
 
 ## V68.8 — Sacred Light: WARDEN
 Seventh individual visual pass, WARDEN only. Original aged brass armor, ivory tabard, lantern crest and four distinct weapon finishes (lantern, spear, seal, torch). Low-opacity stepped directional light, dimmed and gently modulated under 35% HP, static with reduced motion. Separate short attack echoes, star-shaped dash trails and impact glints, decorative light projectile trails. Optional wardenArt snapshot field; network protocol v68 and combat balance unchanged. Animated accents respect reduced motion/horror FX; light is purely cosmetic and does not change enemy visibility, fear or damage. Inline syntax and 7721 isolated drawing-command/geometry assertions passed. Actual rendered review, mobile FPS and real network visual synchronization remain pending.
+
+## V68.9 — Void Reaper: REVENANT
+Eighth individual visual pass, REVENANT only. Original fractured bone-metal armor, torn mantle, hollow mask and luminous core. Unique claws, crystals, rift and ash weapon finishes and attack echoes; drifting void ash, fractured dash trails, impacts and projectile tails. Positive health restored by the existing dash ability emits up to six inward-moving soul particles within the existing global particle cap, disabled by reduced motion/horror FX. Optional voidArt snapshot field, protocol v68 and combat balance unchanged. All eight heroes now have individual visual passes. Inline syntax and 2033 isolated drawing-command, geometry and particle-budget assertions passed. Actual rendered review, mobile FPS and network presentation remain unverified.
