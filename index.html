@@ -3708,6 +3708,58 @@ function summonMinions(count){
  const allowed=Math.max(0,Math.min(count,(coop?24:16)-active));
  for(let i=0;i<allowed;i++)spawnEnemy();
 }
+// V72.1 — Enemy Intelligence: deterministic steering layered on the original attacks.
+// [movement style, comfortable distance, lateral strength, cadence, stride floor]
+const enemyTactics={
+ fork:['flank',75,.58,1.1,.88],pepper:['feint',48,.68,1.55,.64],boiler:['artillery',220,.28,.55,.85],butcher:['heavy',105,.16,.52,.70],
+ crawler:['zigzag',85,.72,1.8,.88],cableMite:['orbit',115,.54,.8,.86],eye:['kite',185,.43,.65,.87],wretch:['weave',100,.47,1.05,.84],
+ plate:['guard',62,.26,.7,.72],neonGhost:['drift',100,.69,.8,.86],vendingDrone:['kite',155,.38,.57,.85],siren:['retreat',172,.36,.72,.82],
+ knife:['skirmish',112,.47,1.05,.83],chainHound:['charge',125,.43,1.15,.76],slicer:['charge',240,.22,.88,.70],maw:['heavy',160,.12,.48,.66],
+ boneWalker:['guard',85,.22,.62,.73],hands:['orbit',68,.61,1.18,.89],stalker:['charge',190,.56,.94,.73],feaster:['heavy',150,.18,.65,.72],
+ sporeBeetle:['zigzag',75,.55,1.7,.87],rootHorror:['guard',135,.20,.55,.75],spitter:['artillery',210,.34,.51,.85],parasite:['orbit',88,.57,1.42,.84]
+};
+function enemyTacticVector(e,tp,oldX,oldY,dt,round,wasLunging){
+ const art=enemyTactics[e.type],vx=e.x-oldX,vy=e.y-oldY,len=Math.hypot(vx,vy);
+ if(!art||e.type==='boss'||!Number.isFinite(len)||dt<=0)return [vx,vy];
+ const [mode,comfort,sideWeight,cadence,floor]=art,dx=tp.x-oldX,dy=tp.y-oldY,d=Math.hypot(dx,dy);
+ if(d<.001)return [vx,vy];
+ const nx=dx/d,ny=dy/d,side=e.orbit===-1?-1:1,phase=Number.isFinite(e.phase)?e.phase:0,cycle=Math.sin(phase*cadence*.55);
+ // Lock charge direction when it starts; recover briefly instead of homing during the dash.
+ if(mode==='charge'){
+  if(e.lunge>0){
+   if(!wasLunging||!Number.isFinite(e.chargeAimX)||!Number.isFinite(e.chargeAimY)){e.chargeAimX=nx;e.chargeAimY=ny}
+   return [e.chargeAimX*len,e.chargeAimY*len];
+  }
+  if(wasLunging)e.tacticRecovery=.32;
+  if(e.tacticRecovery>0){e.tacticRecovery=Math.max(0,e.tacticRecovery-dt);return [vx*.72,vy*.72]}
+ }
+ if(len<.00001||d<Math.max(26,(e.r||9)+12))return [vx,vy];
+ // Keep the opening wave gentle; later waves gradually expose the full movement profile.
+ const strength=round<=1?.32:round===2?.68:1;
+ let radial=1,lateral=0,pace=1;
+ switch(mode){
+ case 'flank':lateral=side*sideWeight*(d<comfort*2?.95:.5);break;
+ case 'feint':lateral=side*sideWeight*cycle;pace=cycle<-.45?floor:1;break;
+ case 'guard':lateral=side*sideWeight*(d>comfort?.5:.2);pace=d<comfort&&cycle<-.35?floor:1;break;
+ case 'heavy':lateral=side*sideWeight;pace=d<comfort&&e.attack>0&&e.attack<.55?floor:1;break;
+ case 'zigzag':lateral=sideWeight*cycle;break;
+ case 'weave':lateral=sideWeight*cycle;pace=cycle<-.7?.9:1;break;
+ case 'drift':lateral=sideWeight*Math.sin(phase*cadence*.42);break;
+ case 'orbit':radial=d>comfort*1.45?1:d<comfort*.65?1:.63;lateral=side*sideWeight;break;
+ case 'kite':radial=d>comfort+22?1:d<comfort-22?-1:0;lateral=side*sideWeight;break;
+ case 'retreat':radial=d>comfort+28?1:d<comfort-18?-1:0;lateral=side*sideWeight*cycle;break;
+ case 'artillery':radial=d>comfort+28?1:d<comfort-28?-.65:0;lateral=side*sideWeight;pace=e.attack>0&&e.attack<.38?floor:1;break;
+ case 'skirmish':radial=d<comfort*.62?-.35:1;lateral=side*sideWeight*cycle;break;
+ case 'charge':lateral=side*sideWeight*(d>comfort?.5:1);pace=cycle<-.65?floor:1;break;
+ }
+ // Blend the intended heading with the prior behavior; never increase its step length.
+ const tx=nx*radial-ny*lateral,ty=ny*radial+nx*lateral,tn=Math.hypot(tx,ty);
+ if(tn<.00001)return [vx,vy];
+ const blend=.72*strength,mx=vx/len*(1-blend)+tx/tn*blend,my=vy/len*(1-blend)+ty/tn*blend,m=Math.hypot(mx,my);
+ // Preserve a smooth stop if opposite headings cancel; no normalized speed spike.
+ const speed=len*(1-(1-pace)*strength);
+ return [mx*speed/Math.max(1,m),my*speed/Math.max(1,m)];
+}
 function updateEnemies(dt){
  for(const e of enemies){
   if(e.dead)continue;
@@ -3718,7 +3770,7 @@ function updateEnemies(dt){
   const frost=soloRun?frostFactor(e):1,prevX=e.x,prevY=e.y;
   e.phase+=dt*4;e.hit=Math.max(0,e.hit-dt);e.hitT=Math.max(0,(e.hitT||0)-dt);
   const tp=targetPlayer(e);if(!tp)continue;
-  if(e.lunge>0)e.lunge-=dt;
+  const wasLunging=e.lunge>0;if(e.lunge>0)e.lunge-=dt;
   const dx=tp.x-e.x,dy=tp.y-e.y,d=Math.hypot(dx,dy)||1,nx=dx/d,ny=dy/d;
   if(e.elite){e.eliteTimer-=dt;if(e.eliteTimer<=0&&d<220){e.eliteTimer=3.4;for(const h of elitePattern(e,tp))scheduleHazard(clamp(h.x,arena.l+8,arena.r-8),clamp(h.y,arena.t+8,arena.b-8),h.r,14,h.delay,e);}}
   if(e.type==='boss'){
@@ -3812,6 +3864,7 @@ function updateEnemies(dt){
   }else{
    const wobble=Math.sin(e.phase)*.14;e.x+=nx*e.speed*dt+Math.cos(e.phase)*wobble;e.y+=ny*e.speed*dt+Math.sin(e.phase)*wobble;e.attack-=dt;if(e.attack<=0){e.attack=rnd(.7,1.5);if(e.type==='knife'){const a=Math.atan2(dy,dx);projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*125,vy:Math.sin(a)*125,life:1.6,r:2.5,damage:8,pierce:99,color:'#cbd2e0',enemy:true})}}if(d<18)hurtPlayer(tp,dt*9,e.x,e.y);
   }
+  if(e.type!=='boss'){const [sx,sy]=enemyTacticVector(e,tp,prevX,prevY,dt,wave,wasLunging);e.x=prevX+sx;e.y=prevY+sy}
   if(frost<1){e.x=prevX+(e.x-prevX)*frost;e.y=prevY+(e.y-prevY)*frost}
   e.x=clamp(e.x,arena.l+4,arena.r-4);e.y=clamp(e.y,arena.t+4,arena.b-4);
  }

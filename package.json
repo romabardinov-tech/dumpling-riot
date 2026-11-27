@@ -1,6 +1,6 @@
 {
   "name": "dumpling-riot",
-  "version": "0.71.6",
+  "version": "0.72.1",
   "private": true,
   "engines": {
     "node": ">=22"
