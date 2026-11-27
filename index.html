@@ -2848,7 +2848,7 @@ function applyNetState(s){
  relicOwned=!!s.relicOwned;wave=s.wave||1;score=s.score||0;combo=s.combo||1;waveState=s.waveState||'fighting';targetCount=s.targetCount??enemies.length;spawned=s.spawned??targetCount;
 }
 function netState(){
- return {p1:{x:player.x,y:player.y,boost:player.boost,speed:player.speed,heroUpgrades:player.heroUpgrades,charId:player.charId,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:weapon,lvl:player.lvl,bomb:player.bomb,dash:player.dash,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,boost:player2.boost,speed:player2.speed,heroUpgrades:player2.heroUpgrades,charId:player2.charId,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,dash:player2.dash,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,dead:e.dead,stage:e.stage,kind:e.kind,bossId:e.bossId,charge:e.charge,lunge:e.lunge,attack:e.attack})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy,kind:p.kind,venomArt:p.venomArt,shadowArt:p.shadowArt,mageArt:p.mageArt,shivArt:p.shivArt,golemArt:p.golemArt,wardenArt:p.wardenArt,voidArt:p.voidArt})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,value:d.value,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type,name:boss.name,enName:boss.enName,stage:boss.stage,kind:boss.kind,bossId:boss.bossId}:null,hazards:hazards.map(({x,y,radius,remaining,duration,kind})=>({x,y,radius,remaining,duration,kind})),wave,score,combo,waveState,targetCount,spawned,npcEvent,relicOwned}
+ return {p1:{x:player.x,y:player.y,boost:player.boost,speed:player.speed,heroUpgrades:player.heroUpgrades,charId:player.charId,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:weapon,lvl:player.lvl,bomb:player.bomb,dash:player.dash,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,boost:player2.boost,speed:player2.speed,heroUpgrades:player2.heroUpgrades,charId:player2.charId,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,dash:player2.dash,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,dead:e.dead,stage:e.stage,kind:e.kind,bossId:e.bossId,charge:e.charge,lunge:e.lunge,attack:e.attack})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy,kind:p.kind,artHero:p.artHero,artSlot:p.artSlot,artEvolved:p.artEvolved,element:p.element,venomArt:p.venomArt,shadowArt:p.shadowArt,mageArt:p.mageArt,shivArt:p.shivArt,golemArt:p.golemArt,wardenArt:p.wardenArt,voidArt:p.voidArt})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,value:d.value,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type,name:boss.name,enName:boss.enName,stage:boss.stage,kind:boss.kind,bossId:boss.bossId}:null,hazards:hazards.map(({x,y,radius,remaining,duration,kind})=>({x,y,radius,remaining,duration,kind})),wave,score,combo,waveState,targetCount,spawned,npcEvent,relicOwned}
 }
 function sendNet(m){
  const c=m?.t==='state'&&netStateConn?.open?netStateConn:netConn;
@@ -3293,9 +3293,9 @@ function attackFor(p,weaponIndex,target=null){
  const proj=(aa,dmg=damage,extra={})=>projectiles.push({
   x:p.x+Math.cos(aa)*11,y:p.y+Math.sin(aa)*11,vx:Math.cos(aa)*(extra.speed||w.speed),vy:Math.sin(aa)*(extra.speed||w.speed),
   life:extra.life||1.2,r:extra.r||2.2,damage:dmg,pierce:(extra.pierce??w.pierce)+pierceBonus,color:extra.color||w.color,kind:extra.kind||w.kind,owner:p===player?'p1':'p2',
-  bleed:extra.bleed||0,poison:extra.poison||0,explosive:!!extra.explosive,explosionRadius:extra.explosionRadius||0,element,venomArt:p.charId==='vesa',shadowArt:p.charId==='nyx',mageArt:p.charId==='pelmage'?weaponIndex:null,shivArt:p.charId==='assassin',golemArt:p.charId==='golem',wardenArt:p.charId==='warden',voidArt:p.charId==='revenant'
+  bleed:extra.bleed||0,poison:extra.poison||0,explosive:!!extra.explosive,explosionRadius:extra.explosionRadius||0,element,artHero:p.charId,artSlot:weaponIndex,artEvolved:!!p.evolved?.[weaponIndex],venomArt:p.charId==='vesa',shadowArt:p.charId==='nyx',mageArt:p.charId==='pelmage'?weaponIndex:null,shivArt:p.charId==='assassin',golemArt:p.charId==='golem',wardenArt:p.charId==='warden',voidArt:p.charId==='revenant'
  });
- const ringHit=(x,y,max,color,life,dmg=damage)=>rings.push({x,y,r:4,max:wide?Math.round(max*1.35):max,color,life,maxlife:life,damage:dmg,hit:new Set(),owner:p===player?'p1':'p2',element});
+ const ringHit=(x,y,max,color,life,dmg=damage)=>rings.push({x,y,r:4,max:wide?Math.round(max*1.35):max,color,life,maxlife:life,damage:dmg,hit:new Set(),owner:p===player?'p1':'p2',element,artHero:p.charId,artSlot:weaponIndex,artEvolved:!!p.evolved?.[weaponIndex],artAim:ang});
  const fx=(color,n=7)=>spawnParticles(p.x+Math.cos(ang)*10,p.y+Math.sin(ang)*10,n,color,.8);
  if(p.evolved?.[weaponIndex]){const col='#ffd38b';switch(weaponIndex){case 0:ringHit(p.x,p.y,42,col,.22,damage*.27);break;case 1:proj(ang,damage*.42,{pierce:w.pierce+3,color:col});break;case 2:{const length=Math.min(105,Math.hypot(tx-p.x,ty-p.y));ringHit(p.x+Math.cos(ang)*length,p.y+Math.sin(ang)*length,34,col,.3,damage*.36);break}case 3:for(const side of [-1,1])proj(ang+side*.22,damage*.3,{pierce:w.pierce+1,color:col});break}fx(col,4)}
 
@@ -5404,13 +5404,82 @@ function paintCombatDrop(g,d,time=0){
  }
  g.restore();
 }
-function paintCombatProjectile(g,p){
- const x=Math.round(p.x),y=Math.round(p.y),vx=Number(p.vx)||0,vy=Number(p.vy)||0,len=Math.hypot(vx,vy)||1,dx=vx/len,dy=vy/len;
- const w=Math.max(2,Math.min(5,Math.round(p.r||2))),tail=p.enemy?7:11;
- g.save();if(p.venomArt&&!p.enemy&&horrorFx&&!reduceMotion){g.globalAlpha=.48;g.fillStyle='#97ba68';for(let i=1;i<=3;i++)g.fillRect(Math.round(x-dx*(5+i*3)-dy*(i%2?2:-2)),Math.round(y-dy*(5+i*3)+dx*(i%2?2:-2)),2,2)}else if(p.shadowArt&&!p.enemy&&horrorFx&&!reduceMotion){g.globalAlpha=.45;g.fillStyle='#7964be';for(let i=1;i<=3;i++){g.fillRect(Math.round(x-dx*(5+i*3)),Math.round(y-dy*(5+i*3)),i===1?3:2,1)}}else if(Number.isInteger(p.mageArt)&&p.mageArt>=0&&p.mageArt<4&&!p.enemy&&horrorFx&&!reduceMotion){g.globalAlpha=.5;paintMageRune(g,Math.round(x-dx*13),Math.round(y-dy*13),p.mageArt%3,mageSpellColor(p.mageArt))}else if(p.shivArt&&!p.enemy&&horrorFx&&!reduceMotion){g.globalAlpha=.55;g.fillStyle='#dcebe4';for(const side of [-1,1])g.fillRect(Math.round(x-dx*12-dy*side*2),Math.round(y-dy*12+dx*side*2),2,1)}else if(p.golemArt&&!p.enemy&&horrorFx&&!reduceMotion){g.globalAlpha=.4;g.fillStyle='#c9b8a6';for(let i=1;i<=3;i++)g.fillRect(Math.round(x-dx*(5+i*3)),Math.round(y-dy*(5+i*3)),2+i,2)}else if(p.wardenArt&&!p.enemy&&horrorFx&&!reduceMotion){g.globalAlpha=.48;paintWardenStar(g,Math.round(x-dx*13),Math.round(y-dy*13),'#ffdc8e')}else if(p.voidArt&&!p.enemy&&horrorFx&&!reduceMotion){g.globalAlpha=.42;paintVoidFracture(g,Math.round(x-dx*11),Math.round(y-dy*11))}g.globalAlpha=.23;g.strokeStyle=p.color||'#d9c3a0';g.lineWidth=w+2;g.beginPath();g.moveTo(x-dx*tail,y-dy*tail);g.lineTo(x,y);g.stroke();
- g.globalAlpha=.9;g.strokeStyle=p.color||'#d9c3a0';g.lineWidth=w;g.beginPath();g.moveTo(x-dx*(tail-3),y-dy*(tail-3));g.lineTo(x,y);g.stroke();
- g.globalAlpha=1;g.fillStyle=p.color||'#d9c3a0';g.fillRect(x-w/2,y-w/2,w,w);g.fillStyle=p.enemy?'#ffc6a4':(elements[p.element]?.color||'#f5edcf');g.fillRect(x-1,y-1,2,2);g.restore();
+// V71.4 — Weapon Evolution: visual profiles for every hero weapon.
+const weaponFxArt={
+ scar:['cleave','ember','quake','shard'],
+ vesa:['thorn','fang','spike','needle'],
+ nyx:['wisp','shadow','rift','orb'],
+ pelmage:['ice','flame','meteor','rune'],
+ assassin:['dart','venom','slash','needle'],
+ golem:['quake','stone','crush','eruption'],
+ warden:['bolt','star','halo','comet'],
+ revenant:['rift','soul','sigil','specter']
+};
+function weaponFxMode(p){
+ if(p.enemy)return 'hostile';
+ const slot=Number.isInteger(p.artSlot)?p.artSlot:-1;
+ return weaponFxArt[p.artHero]?.[slot]||(p.venomArt?'thorn':p.shadowArt?'wisp':Number.isInteger(p.mageArt)?weaponFxArt.pelmage[p.mageArt]:p.shivArt?'dart':p.golemArt?'stone':p.wardenArt?'bolt':p.voidArt?'soul':p.kind==='fork'?'dart':'bolt');
 }
+const weaponFxColors={fire:'#ffbb77',poison:'#bce68e',frost:'#c4ecff',shock:'#ffe798',curse:'#e0b7ff',physical:'#efe4c9'};
+function paintWeaponProjectile(g,p){
+ const mode=weaponFxMode(p),x=Math.round(p.x),y=Math.round(p.y),vx=Number.isFinite(p.vx)?p.vx:0,vy=Number.isFinite(p.vy)?p.vy:0,a=Math.atan2(vy,vx),w=Math.max(2,Math.min(5,Math.round(p.r||2))),col=p.color||'#d9c3a0',light=p.enemy?'#ffe0bd':(weaponFxColors[p.element]||'#f5edcf');
+ const R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+ const P=(c,pts)=>{g.fillStyle=c;g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill()};
+ const L=(c,x,y,dx,dy)=>{g.strokeStyle=c;g.lineWidth=1;g.beginPath();g.moveTo(x,y);g.lineTo(x+dx,y+dy);g.stroke()};
+ g.save();g.translate(x,y);g.rotate(a);
+ const base=g.globalAlpha,fx=horrorFx&&!reduceMotion;
+ // Hostile cores stay centered and outlined; decorative tails never represent hitboxes.
+ if(p.enemy){
+  if(fx){g.globalAlpha=base*.28;R(col,-10,-1,8,2)}
+  g.globalAlpha=base;P('#25151e',[-w-1,0,0,-w-1,w+1,0,0,w+1]);P(col,[-w,0,0,-w,w,0,0,w]);R(light,-1,-1,2,2);g.restore();return;
+ }
+ if(fx){
+  g.globalAlpha=base*.30;
+  if(['dart','needle','thorn','fang','spike','shard','venom'].includes(mode)){R(col,-16,-1,12,2);R(light,-13,-2,5,1)}
+  else if(['orb','wisp','shadow','soul','specter','rift','sigil','rune'].includes(mode)){for(let i=0;i<3;i++)R(i%2?light:col,-6-i*4,i%2?2:-2,3,2)}
+  else if(['ice','star','bolt','comet'].includes(mode)){L(light,-15,-2,7,4);L(col,-8,2,4,-3)}
+  else{R(col,-14,-2,10,4);R(light,-10,3,3,1);R(col,-15,-4,2,2)}
+  g.globalAlpha=base*.68;
+  if(p.element==='shock'){L(light,-10,-3,4,4);L(light,-6,1,3,-3)}
+  else if(p.element==='frost'){R(light,-9,-3,2,2);R(light,-13,2,2,1)}
+  else if(p.element==='poison'){R(light,-7,3,2,2);R(light,-12,-2,2,2)}
+  else if(p.element==='fire'){R(light,-8,2,3,1);R(light,-11,-3,2,2)}
+  else if(p.element==='curse'){R(light,-8,-3,1,5);R(light,-10,-1,5,1)}
+ }
+ g.globalAlpha=base;
+ if(['dart','needle','thorn','fang','spike','shard','venom'].includes(mode)){
+  const wide=mode==='spike'||mode==='fang';P('#1c1520',[-w-3,-w,2,-w,w+3,0,2,w,-w-3,w]);P(col,[-w-2,-w+1,1,-w+1,w+2,0,1,w-1,-w-2,w-1]);R(light,0,-1,wide?3:2,2);
+  if(mode==='thorn'||mode==='fang'||mode==='venom')R(light,-w,-w,2,2);
+ }else if(['orb','wisp','shadow','soul','specter','rift','sigil','rune'].includes(mode)){
+  P('#21162e',[-w-1,0,-1,-w-1,w+1,0,-1,w+1]);P(col,[-w,0,-1,-w,w,0,-1,w]);R(light,-1,-1,2,2);if(mode==='orb'||mode==='soul'||mode==='specter')R(light,-w,0,1,2);
+ }else if(['ice','star','bolt','comet'].includes(mode)){
+  P(col,[-w-2,-1,-1,-w,1,-2,w+2,0,1,2,-1,w]);R(light,-1,-1,2,2);if(mode==='star'||mode==='ice'){R(light,-1,-w,2,2);R(light,-1,w-1,2,2)}
+ }else{
+  P('#241b23',[-w-1,-w+1,1,-w-1,w+1,-1,w,w,-w,w]);P(col,[-w,-w+2,1,-w,w,0,w-1,w-1,-w+1,w-1]);R(light,-1,-1,2,2);if(mode==='meteor'||mode==='ember'||mode==='flame')R(light,-w-1,-1,2,2);
+ }
+ // Evolved projectiles retain a tiny gold edge and avoid additional particles.
+ if(p.artEvolved&&fx){g.globalAlpha=base*.75;R('#ffd38b',-2,-w-1,4,1);R('#ffd38b',-2,w,4,1)}
+ g.restore();
+}
+function paintWeaponRing(g,r,fade){
+ if(!horrorFx||reduceMotion||!r.artHero||!Number.isFinite(r.r)||r.r<=0)return;
+ const mode=weaponFxMode(r),radius=r.r,base=g.globalAlpha,c=weaponFxColors[r.element]||r.color||'#efe4c9',n=r.artEvolved?8:6;
+ g.save();g.translate(Math.round(r.x),Math.round(r.y));g.globalAlpha=base*Math.max(0,Math.min(1,fade))*.65;
+ const phase=Number.isFinite(r.artAim)?r.artAim:0;
+ for(let i=0;i<n;i++){
+  const a=phase+i*Math.PI*2/n,x=Math.cos(a)*radius,y=Math.sin(a)*radius;
+  g.save();g.translate(Math.round(x),Math.round(y));g.rotate(a);
+  g.fillStyle=c;
+  if(['cleave','slash','rift'].includes(mode)){g.fillRect(-3,-4,2,8);g.fillRect(-1,-2,4,2)}
+  else if(['quake','crush','eruption'].includes(mode)){g.fillRect(-3,-2,6,4);g.fillRect(3,-1,2,2)}
+  else if(['halo','sigil','rune'].includes(mode)){g.fillRect(-1,-4,2,8);g.fillRect(-4,-1,8,2)}
+  else{g.fillRect(-2,-2,4,4);g.fillRect(3,-1,2,2)}
+  if(r.artEvolved){g.fillStyle='#ffd38b';g.fillRect(-1,-1,2,2)}
+  g.restore();
+ }
+ g.restore();
+}
+function paintCombatProjectile(g,p){paintWeaponProjectile(g,p)}
 function paintSecret(g,event,time){
  if(!event||event.stage==='done')return;const q=arenaStories[event.map],x=Math.round(event.x),y=Math.round(event.y),pulse=reduceMotion?0:Math.round(Math.sin(time*3)*2);
  g.save();g.translate(x,y);g.fillStyle='#100d18';g.fillRect(-13,7,26,4);g.strokeStyle=q.color;g.lineWidth=1;g.beginPath();g.arc(0,0,24,0,TAU);g.stroke();
@@ -5476,7 +5545,7 @@ function draw(){
  // enemies + combat
  if(nightmare)paintNightmareActors(ctx,nightmare);
  for(const d of drops)if(visibleWorld(d,view,24))paintCombatDrop(ctx,d,horrorTime);
- for(const r of rings){if(!visibleWorld(r,view,r.r+8))continue;ctx.strokeStyle=r.color;const fade=clamp(r.life/r.maxlife,0,1);ctx.globalAlpha=fade*.23;ctx.lineWidth=6;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,TAU);ctx.stroke();ctx.globalAlpha=fade;ctx.lineWidth=1.5;ctx.stroke();ctx.globalAlpha=1}
+ for(const r of rings){if(!visibleWorld(r,view,r.r+8))continue;ctx.strokeStyle=r.color;const fade=clamp(r.life/r.maxlife,0,1);ctx.globalAlpha=fade*.23;ctx.lineWidth=6;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,TAU);ctx.stroke();ctx.globalAlpha=fade;ctx.lineWidth=1.5;ctx.stroke();ctx.globalAlpha=1;paintWeaponRing(ctx,r,fade)}
  for(const p of projectiles)if(visibleWorld(p,view,20))paintCombatProjectile(ctx,p);
  paintCombatPresentation(ctx,view,'under');
  const actors=enemies.filter(e=>!e.dead&&visibleWorld(e,view,e.type==='boss'?90:e.elite?70:45));if(visibleWorld(player,view,60))actors.push(player);if(coop&&visibleWorld(player2,view,60))actors.push(player2);actors.sort((a,b)=>a.y-b.y);for(const a of actors){if(a===player||a===player2)drawHero(a,chars.find(x=>x.id===a.charId)||chars[0],a===player2);else drawEnemy(a)}paintCombatPresentation(ctx,view,'over');
