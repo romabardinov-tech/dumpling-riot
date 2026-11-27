@@ -1123,6 +1123,16 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 .wardrobeCard button{margin-top:auto;min-height:40px;padding:5px;border:1px solid var(--rank-accent);border-radius:3px;background:#342635;color:#f4e3c8;font:700 12px/1.25 system-ui;cursor:pointer;touch-action:manipulation}
 .wardrobeCard button:disabled{opacity:.62;cursor:default}.wardrobeCard[data-equipped="true"] button{opacity:1;color:var(--rank-accent)}
 @media(max-width:680px){#wardrobeCards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* V75.30 — premium wardrobe cards and large animated previews. */
+#wardrobeCards{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.wardrobeCard canvas{aspect-ratio:176/150}
+.wardrobeCard[data-rank="4"]{--rank-accent:#ff9e82;background:linear-gradient(145deg,#392232,#24192d);border-color:#b97170}
+.wardrobeCard[data-rank="4"] canvas{outline:1px solid #9b605a;outline-offset:-1px}
+.wardrobeCard[data-rank="4"] b{color:#ffddbd}
+.wardrobeCard[data-rank="4"] button{background:linear-gradient(135deg,#8c3948,#442135)}
+@media(min-width:1150px){#wardrobeCards{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:680px){#wardrobeCards{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}}
 </style>
 </head>
 <body>
@@ -1912,7 +1922,7 @@ function cinemaFilmFrame(cv,back,id,t,shot,still,exit=false){
  function shadow(xx,yy,size){g.fillStyle='#0a080e99';g.beginPath();g.ellipse(xx,yy+3,size,5,0,0,Math.PI*2);g.fill()}
  shadow(x,y,25);g.save();g.translate(Math.round(x),Math.round(y+(still?0:Math.sin(phase)*1.4)));g.scale(2.65,2.65);g.rotate(still?0:Math.sin(phase)*a.lean);
  const stride=still?0:shot==='narrator'&&t<1.2?Math.sin(t*15):Math.sin(phase)*.15;
- g.translate(0,-13);pixelHeroBody(g,id,stride,phase,0);paintHeroSignature(g,id,phase,stride);pixelHeroWeapon(g,id,a.weapon,shot==='echo'?-.18:0,0);g.restore();
+ g.translate(0,-13);paintWardrobeAura(g,id,wardrobeRank(id),phase,true);pixelHeroBody(g,id,stride,phase,0);paintHeroSignature(g,id,phase,stride);pixelHeroWeapon(g,id,a.weapon,shot==='echo'?-.18:0,0);g.restore();
  if(echoOpacity>0){shadow(echoX,y,29);g.save();g.globalAlpha=echoOpacity;g.translate(echoX,y-38+(still?0:Math.sin(phase*.65)*2));g.scale(2.5,2.5);
   if(id==='nyx'||id==='revenant'){g.scale(-1,1);g.filter='brightness(.55) saturate(.45)';pixelHeroBody(g,id,0,phase,Math.PI);paintHeroSignature(g,id,phase,0);g.filter='none'}
   else{g.fillStyle='#100c19';g.beginPath();g.moveTo(-21,16);g.lineTo(-15,-11);g.lineTo(-9,-24);g.lineTo(0,-32);g.lineTo(9,-24);g.lineTo(15,-11);g.lineTo(21,16);g.lineTo(0,12);g.closePath();g.fill();g.fillStyle='#35203b';g.fillRect(-12,-19,24,21);g.fillStyle='#100813';g.fillRect(-8,-17,16,11);g.fillStyle='#55304e';g.fillRect(-15,-3,4,15);g.fillRect(11,-3,4,15)}
@@ -2340,25 +2350,26 @@ function rememberRun(data,run,escaped,outcome){
 const visualHeroIds=['scar','vesa','nyx','pelmage','assassin','golem','warden','revenant'];
 const visualTiers=[
  {en:'Original',ru:'Оригинал',cost:0},
- {en:'Forged',ru:'Закалённый',cost:25},
- {en:'Masterwork',ru:'Мастерский',cost:60},
- {en:'Legendary',ru:'Легендарный',cost:120}
+ {en:'Forged',ru:'Закалённый',cost:100},
+ {en:'Masterwork',ru:'Мастерский',cost:300},
+ {en:'Legendary',ru:'Легендарный',cost:800},
+ {en:'Mythic',ru:'Мифический',cost:1800}
 ];
 const visualWardrobe={
- scar:{names:[['Ember plate','Пламенный доспех'],['Furnace lord','Владыка печи'],['Infernal knight','Рыцарь пламени']],colors:['#472a33','#a45b45','#f5bc81','#ffe5bd']},
- vesa:{names:[['Crimson tracker','Алый следопыт'],['Venom ranger','Ядовитый охотник'],['Bloodmoon huntress','Охотница кровавой луны']],colors:['#45293f','#94617b','#bce582','#f1d2bf']},
- nyx:{names:[['Shadow weave','Теневая ткань'],['Astral armor','Астральные доспехи'],['Eclipse phantom','Призрак затмения']],colors:['#302346','#7867ad','#c1afff','#f0ddff']},
- pelmage:{names:[['Runic coat','Руническая мантия'],['Crystal sage','Кристальный мудрец'],['Arcane sovereign','Владыка магии']],colors:['#293951','#667fb7','#a4e3ff','#e9e3bc']},
- assassin:{names:[['Silent steel','Безмолвная сталь'],['Phantom blade','Призрачный клинок'],['Emerald reaper','Изумрудный жнец']],colors:['#203c37','#52796e','#9debc0','#e4efdd']},
- golem:{names:[['Copper shell','Медный корпус'],['Titan forge','Кузня титана'],['Solar colossus','Солнечный колосс']],colors:['#4d3931','#94775d','#ffb666','#fff1bd']},
- warden:{names:[['Gilded lantern','Золотой фонарь'],['Sanctuary guard','Страж святилища'],['Dawn sentinel','Страж рассвета']],colors:['#4e4335','#9c895c','#ffda8b','#fff3d0']},
- revenant:{names:[['Bone mantle','Костяная мантия'],['Void herald','Вестник пустоты'],['Eternal revenant','Вечный возвращённый']],colors:['#3e294b','#795787','#d0a4ee','#f2d9ff']}
+ scar:{names:[['Ember plate','Пламенный доспех'],['Furnace lord','Владыка печи'],['Infernal knight','Рыцарь пламени'],["Avatar of the Inferno","Аватар преисподней"]],colors:['#472a33','#a45b45','#f5bc81','#ffe5bd']},
+ vesa:{names:[['Crimson tracker','Алый следопыт'],['Venom ranger','Ядовитый охотник'],['Bloodmoon huntress','Охотница кровавой луны'],["Queen of the Blood Moon","Королева кровавой луны"]],colors:['#45293f','#94617b','#bce582','#f1d2bf']},
+ nyx:{names:[['Shadow weave','Теневая ткань'],['Astral armor','Астральные доспехи'],['Eclipse phantom','Призрак затмения'],["Sovereign of the Eclipse","Владыка затмения"]],colors:['#302346','#7867ad','#c1afff','#f0ddff']},
+ pelmage:{names:[['Runic coat','Руническая мантия'],['Crystal sage','Кристальный мудрец'],['Arcane sovereign','Владыка магии'],["Archmage of the Seventh Seal","Архимаг седьмой печати"]],colors:['#293951','#667fb7','#a4e3ff','#e9e3bc']},
+ assassin:{names:[['Silent steel','Безмолвная сталь'],['Phantom blade','Призрачный клинок'],['Emerald reaper','Изумрудный жнец'],["The Emerald Phantom","Изумрудный призрак"]],colors:['#203c37','#52796e','#9debc0','#e4efdd']},
+ golem:{names:[['Copper shell','Медный корпус'],['Titan forge','Кузня титана'],['Solar colossus','Солнечный колосс'],["Sunforged Titan","Солнечный титан"]],colors:['#4d3931','#94775d','#ffb666','#fff1bd']},
+ warden:{names:[['Gilded lantern','Золотой фонарь'],['Sanctuary guard','Страж святилища'],['Dawn sentinel','Страж рассвета'],["Guardian of the First Dawn","Страж первого рассвета"]],colors:['#4e4335','#9c895c','#ffda8b','#fff3d0']},
+ revenant:{names:[['Bone mantle','Костяная мантия'],['Void herald','Вестник пустоты'],['Eternal revenant','Вечный возвращённый'],["Lord of the Outer Void","Владыка внешней пустоты"]],colors:['#3e294b','#795787','#d0a4ee','#f2d9ff']}
 };
 let visualPreview=null;
-function normalizeWardrobe(raw){const out={};for(const id of visualHeroIds){const owned=metaInt(raw?.[id]?.owned,3),equipped=metaInt(raw?.[id]?.equipped,owned);out[id]={owned,equipped}}return out}
+function normalizeWardrobe(raw){const out={};for(const id of visualHeroIds){const owned=metaInt(raw?.[id]?.owned,visualTiers.length-1),equipped=metaInt(raw?.[id]?.equipped,owned);out[id]={owned,equipped}}return out}
 function wardrobeRank(id){return visualPreview?.id===id?visualPreview.rank:meta.wardrobe?.[id]?.equipped||0}
 function wardrobeAction(data,id,rank){
- if(!visualHeroIds.includes(id)||!Number.isInteger(rank)||rank<0||rank>3)return false;
+ if(!visualHeroIds.includes(id)||!Number.isInteger(rank)||rank<0||rank>=visualTiers.length)return false;
  const slot=data.wardrobe?.[id];if(!slot)return false;
  if(rank<=slot.owned){slot.equipped=rank;return true}
  if(rank!==slot.owned+1||data.shards<visualTiers[rank].cost)return false;
@@ -3846,17 +3857,32 @@ function paintArenaEnemyPreview(id){
  for(const type of arenaEnemyRoster[id]||arenaEnemyRoster.kitchen){const item=document.createElement('span');item.className='arenaEnemyItem';const cv=document.createElement('canvas');cv.width=64;cv.height=48;cv.setAttribute('aria-hidden','true');const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.translate(32,33);pixelEnemy(g,type,0,0,1);const name=document.createElement('span');name.textContent=arenaEnemyName(type);item.append(cv,name);el.append(item)}
 }
 
+
+let wardrobeFrameAt=-Infinity;
+function paintWardrobePreview(cv,id,rank,phase){
+ const spec=visualWardrobe[id],prior=visualPreview;try{
+ visualPreview={id,rank};const g=cv.getContext('2d'),w=cv.width,h=cv.height;g.setTransform(1,0,0,1,0,0);g.imageSmoothingEnabled=false;
+ g.fillStyle='#110d18';g.fillRect(0,0,w,h);const grad=g.createRadialGradient(w*.46,h*.50,3,w*.46,h*.50,w*.65);grad.addColorStop(0,spec.colors[1]);grad.addColorStop(.6,spec.colors[0]);grad.addColorStop(1,'#110d18');g.fillStyle=grad;g.fillRect(5,5,w-10,h-10);
+ g.strokeStyle=rank>=3?spec.colors[2]:spec.colors[1];g.strokeRect(6,6,w-12,h-12);
+ g.save();g.translate(75,105);g.scale(1.92,1.92);paintWardrobeAura(g,id,rank,phase,true);pixelHeroBody(g,id,0,phase,0);paintHeroSignature(g,id,phase,0);pixelHeroWeapon(g,id,0,-.12,0);g.restore();
+ }finally{visualPreview=prior}
+}
+function tickWardrobePreviews(now){
+ if(reduceMotion||state!=='menu'||document.getElementById('menu').dataset.view!=='hero'||now-wardrobeFrameAt<1000/12)return;
+ wardrobeFrameAt=now;const box=document.getElementById('wardrobeCards');for(const cv of box.querySelectorAll('canvas[data-wardrobe-rank]')){const rank=Number(cv.dataset.wardrobeRank);if(rank>=2){const rect=cv.getBoundingClientRect();if(rect.bottom>=0&&rect.top<=window.innerHeight)menuArtwork(()=>paintWardrobePreview(cv,selectedChar,rank,now/1000*3.5))}}
+}
+
 function renderWardrobe(hero){
  const id=hero.id,slot=meta.wardrobe[id],spec=visualWardrobe[id];if(!slot||!spec)return;
  document.getElementById('wardrobeHeading').textContent=L('Character forge','Кузница обликов');
  document.getElementById('wardrobeBalance').textContent='◆ '+meta.shards;
  document.getElementById('wardrobeHint').textContent=L('Permanent cosmetic sets · buy in order · equip any unlocked look for free.','Постоянные облики · открывай по порядку · бесплатно меняй купленные комплекты. Характеристики не меняются.');
  const box=document.getElementById('wardrobeCards');box.replaceChildren();
- for(let rank=0;rank<=3;rank++){
-  const q=visualTiers[rank],card=document.createElement('div'),cv=document.createElement('canvas'),h=document.createElement('b'),label=document.createElement('small'),button=document.createElement('button');card.className='wardrobeCard';card.dataset.rank=String(rank);card.dataset.equipped=String(slot.equipped===rank);cv.width=120;cv.height=112;cv.setAttribute('aria-hidden','true');h.textContent=rank?L(...spec.names[rank-1]):metaLabel(q);label.textContent=metaLabel(q);
-  menuArtwork(()=>{const prior=visualPreview;try{visualPreview={id,rank};const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.fillStyle='#18121f';g.fillRect(0,0,120,112);g.fillStyle=spec.colors[0];g.fillRect(8,8,104,96);g.save();g.translate(52,76);g.scale(1.9,1.9);pixelHeroBody(g,id,0,0,0);paintHeroSignature(g,id,0,0);pixelHeroWeapon(g,id,0,0,0);g.restore()}finally{visualPreview=prior}});
+ for(let rank=0;rank<visualTiers.length;rank++){
+  const q=visualTiers[rank],card=document.createElement('div'),cv=document.createElement('canvas'),h=document.createElement('b'),label=document.createElement('small'),button=document.createElement('button');card.className='wardrobeCard';card.dataset.rank=String(rank);card.dataset.equipped=String(slot.equipped===rank);cv.width=176;cv.height=150;cv.dataset.wardrobeRank=String(rank);cv.setAttribute('aria-hidden','true');h.textContent=rank?L(...spec.names[rank-1]):metaLabel(q);label.textContent=metaLabel(q);
+  menuArtwork(()=>paintWardrobePreview(cv,id,rank,0));
   button.type='button';button.disabled=slot.equipped===rank||rank>slot.owned+1||rank>slot.owned&&meta.shards<q.cost;
-  button.textContent=slot.equipped===rank?L('Equipped','Надет'):rank<=slot.owned?L('Equip','Надеть'):rank>slot.owned+1?L('Locked','Закрыт'):'◆ '+q.cost+' · '+L('Unlock','Открыть');
+  button.textContent=slot.equipped===rank?L('Equipped','Надет'):rank<=slot.owned?L('Equip','Надеть'):rank>slot.owned+1?'◆ '+q.cost+' · '+L('Locked','Закрыт'):'◆ '+q.cost+' · '+L('Unlock','Открыть');
   button.onclick=()=>{const next=normalizeMeta(meta);if(!heroPlayable(hero,meta,journal,coop||onlineMode)||!wardrobeAction(next,id,rank))return;
    try{const raw=JSON.stringify(next);localStorage.setItem(META_KEY,raw);if(localStorage.getItem(META_KEY)!==raw)throw Error('save');meta=next;makeMenu();document.getElementById('wardrobeNotice').textContent=L('Appearance equipped.','Новый облик надет.')}catch(_){document.getElementById('wardrobeNotice').textContent=L('Could not save. Try again.','Не удалось сохранить. Попробуй ещё раз.')}
   };card.append(cv,h,label,button);box.append(card);
@@ -4096,7 +4122,7 @@ function paintLiveMenu(now,force=false){
  const w=cv.width,h=cv.height,t=reduceMotion?0:now/1000,accent=arenaFeatures[map.id]?.color||'#e0a07c';g.setTransform(1,0,0,1,0,0);g.imageSmoothingEnabled=false;g.drawImage(menuFilmBack,0,0,w,h);
  const px=340,py=130,pulse=reduceMotion?0:Math.sin(t*1.7);const halo=g.createRadialGradient(px,py,6,px,py,110);halo.addColorStop(0,accent+'99');halo.addColorStop(.45,'#91334c55');halo.addColorStop(1,'#00000000');g.fillStyle=halo;g.fillRect(px-110,py-110,220,220);
  g.save();g.translate(px,py);for(let i=0;i<4;i++){g.strokeStyle=i===0?accent:'#b05b78';g.globalAlpha=.65-i*.12;g.lineWidth=2;g.beginPath();g.ellipse(0,0,46-i*8+pulse*2,70-i*12,0,0,TAU);g.stroke()}g.restore();
- const hx=295,hy=206;g.fillStyle='#08070eaa';g.beginPath();g.ellipse(hx,hy+4,35,8,0,0,TAU);g.fill();g.save();g.translate(hx,hy+(reduceMotion?0:Math.round(Math.sin(t*4)*1.5)));g.scale(3.4,3.4);g.translate(0,-13);pixelHeroBody(g,hero.id,0,t*4,0);paintHeroSignature(g,hero.id,t*4,0);pixelHeroWeapon(g,hero.id,0,-.3,0);g.restore();
+ const hx=295,hy=206;g.fillStyle='#08070eaa';g.beginPath();g.ellipse(hx,hy+4,35,8,0,0,TAU);g.fill();g.save();g.translate(hx,hy+(reduceMotion?0:Math.round(Math.sin(t*4)*1.5)));g.scale(3.4,3.4);g.translate(0,-13);paintWardrobeAura(g,hero.id,wardrobeRank(hero.id),t*4,true);pixelHeroBody(g,hero.id,0,t*4,0);paintHeroSignature(g,hero.id,t*4,0);pixelHeroWeapon(g,hero.id,0,-.3,0);g.restore();
  for(let i=0;i<28;i++){const x=(i*83+t*(3+i%4))%w,y=((i*41-t*(3+i%3))%h+h)%h;g.fillStyle=accent;g.globalAlpha=.13+i%4*.10;g.fillRect(Math.round(x),Math.round(y),i%4===0?2:1,1)}g.globalAlpha=1;
  const shade=g.createLinearGradient(0,0,w,0);shade.addColorStop(0,'#0a0816ee');shade.addColorStop(.40,'#0a081678');shade.addColorStop(.72,'#00000000');g.fillStyle=shade;g.fillRect(0,0,w,h);
 }
@@ -6575,6 +6601,89 @@ function paintHeroSilhouetteGear(g,id,phase,step){
 
 
 /* Cosmetic silhouettes are authored on the same pixel grid as the base model. */
+
+/* V75.30 — eight distinct ascended silhouettes, not a shared recolor.
+   Authored in native pixel coordinates, purely decorative. */
+function paintWardrobeAscension(g,id,rank,phase){
+ if(rank<2||!visualWardrobe[id])return;
+ const [dark,mid,hot,hi]=visualWardrobe[id].colors,ink='#100b16',myth=rank>=4,t=reduceMotion?0:Math.round(Math.sin(phase*1.3)*2),size=rank===2?0:rank===3?3:6;
+ const R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+ const P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ const L=(c,p,w=1)=>{g.strokeStyle=c;g.lineWidth=w;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.stroke()};
+ g.save();
+ for(const k of [-1,1]){
+  switch(id){
+   case 'scar': // winged plates of furnace armor
+    P(ink,[k*11,-10,k*15,-24,k*(23+size),-31-size,k*(26+size),-18,k*(22+size),-3,k*14,4]);P(mid,[k*14,-10,k*17,-22,k*(22+size),-27-size,k*(23+size),-18,k*(19+size),-5,k*15,0]);P(dark,[k*16,-10,k*(21+size),-18,k*(20+size),-7]);L(hot,[k*17,-22,k*(22+size),-27-size,k*(21+size),-17],2);if(myth)P(hot,[k*22,-29,k*28,-42+t,k*30,-32,k*27,-22]);break;
+   case 'vesa': // crimson cloak, crescent blade pauldrons
+    P(ink,[k*9,-14,k*16,-22,k*(24+size),-15,k*(21+size),2,k*(28+size),18+t*k,k*14,23+t*k,k*9,9]);P(dark,[k*11,-13,k*16,-19,k*(21+size),-14,k*(18+size),2,k*(24+size),15+t*k,k*14,20+t*k,k*11,8]);L(mid,[k*16,-18,k*(21+size),-13,k*(17+size),3,k*(24+size),15+t*k],2);P(hi,[k*16,-21,k*(23+size),-16,k*16,-13,k*18,-17]);if(myth){R(hot,k*24-1,11+t*k,2,6);R(hi,k*27-1,17+t*k,2,2)}break;
+   case 'nyx': // split crystalline astral wings
+    P(ink,[k*8,-9,k*15,-24,k*(25+size),-39,k*(24+size),-14,k*(29+size),0,k*18,13,k*11,5]);P(mid,[k*12,-9,k*17,-23,k*(23+size),-34,k*(21+size),-12,k*(25+size),0,k*18,9]);P(dark,[k*15,-9,k*(22+size),-24,k*(20+size),-3,k*18,5]);L(hot,[k*16,-23,k*(23+size),-34,k*(21+size),-14],2);if(myth)P(hi,[k*(26+size),-12+t,k*(30+size),-7+t,k*(26+size),-2+t,k*(24+size),-7+t]);break;
+   case 'pelmage': // hovering crystal constellation, embroidered robes
+    P(ink,[k*9,-7,k*18,-10,k*(21+size),10,k*16,23+t*k,k*9,14]);P(mid,[k*12,-6,k*16,-7,k*(18+size),10,k*15,19+t*k,k*11,12]);L(hi,[k*16,-5,k*(18+size),9,k*15,18+t*k],2);for(let i=0;i<rank-1;i++){const x=k*(20+i*5+size/2),y=-21-i*5+t*k;P(ink,[x,y-7,x+4,y,x,y+7,x-4,y]);P(hot,[x,y-5,x+2,y,x,y+5,x-2,y]);R(hi,x-1,y-3,1,2)}break;
+   case 'assassin': // blades and narrow segmented mantle
+    P(ink,[k*9,-13,k*16,-18,k*(26+size),-25,k*(20+size),-6,k*14,2]);P(mid,[k*12,-12,k*17,-16,k*(23+size),-21,k*(18+size),-6,k*14,-1]);L(hi,[k*17,-16,k*(23+size),-21,k*(18+size),-6],2);P(dark,[k*10,-1,k*16,2,k*(23+size),14+t*k,k*15,19+t*k,k*10,8]);L(hot,[k*16,3,k*(22+size),13+t*k]);if(myth)P(hot,[k*21,-9,k*33,-14+t*k,k*27,-5,k*21,-4]);break;
+   case 'golem': // pistons, giant layered shoulder housings
+    P(ink,[k*10,-20,k*16,-26,k*(27+size),-24,k*(28+size),-6,k*(23+size),5,k*13,3]);P(mid,[k*13,-19,k*17,-23,k*(24+size),-21,k*(25+size),-6,k*(21+size),2,k*15,0]);for(let i=0;i<3;i++){R(dark,k*(20+size)-3,-19+i*6,6,4);R(hot,k*(20+size)-2,-18+i*6,4,2)}R(hi,k*(23+size)-2,-21,4,2);if(myth){R(ink,k*(20+size)-4,-35,8,12);R(mid,k*(20+size)-3,-34,6,9);R(hot,k*(20+size)-2,-33,4,2)}break;
+   case 'warden': // cathedral buttress and gilded standard
+    P(ink,[k*9,-13,k*15,-26,k*(22+size),-31,k*(26+size),-20,k*(24+size),10,k*15,20+t*k,k*10,9]);P(mid,[k*12,-12,k*17,-24,k*(22+size),-27,k*(23+size),-19,k*(21+size),8,k*15,16+t*k,k*13,8]);P(dark,[k*17,-18,k*(21+size),-15,k*(19+size),7,k*16,12]);L(hi,[k*17,-24,k*(22+size),-27,k*(23+size),-19],2);R(hot,k*(20+size)-1,-9,2,9);if(myth){P(hi,[k*24,-30,k*28,-39,k*32,-30,k*28,-22]);R(hot,k*28-1,-33,2,6)}break;
+   case 'revenant': // torn void tendrils, bone spikes
+    P(ink,[k*9,-13,k*15,-27,k*(25+size),-35,k*(23+size),-19,k*(29+size),-9,k*(23+size),4,k*(28+size),20+t*k,k*14,14+t*k,k*10,5]);P(dark,[k*12,-12,k*17,-24,k*(23+size),-30,k*(20+size),-18,k*(25+size),-8,k*(20+size),4,k*(24+size),16+t*k,k*15,10+t*k]);L(mid,[k*17,-24,k*(23+size),-30,k*(20+size),-17],2);L(hot,[k*16,0,k*(21+size),5,k*(24+size),16+t*k]);if(myth){R(hi,k*(27+size)-1,-9+t*k,2,3);R(hot,k*(29+size)-1,12-t*k,2,3)}break;
+  }
+ }
+ // Legendary and mythic crowns differ by archetype and are behind the head.
+ if(rank>=3){
+  if(id==='pelmage'||id==='nyx'||id==='revenant'){P(ink,[-9,-34,0,-44-(myth?3:0),9,-34,0,-26]);P(mid,[-6,-34,0,-40-(myth?3:0),6,-34,0,-29]);R(hot,-1,-37-(myth?2:0),2,6)}
+  else if(id==='golem'||id==='scar'){P(ink,[-13,-23,-12,-36,-5,-30,0,-38,5,-30,12,-36,13,-23]);P(mid,[-10,-25,-10,-32,-5,-28,0,-34,5,-28,10,-32,10,-25]);R(hot,-2,-32,4,3)}
+  else {P(ink,[-12,-25,-10,-34,-4,-30,0,-37,4,-30,10,-34,12,-25]);P(mid,[-9,-26,-8,-31,-3,-28,0,-34,3,-28,8,-31,9,-26]);R(hi,-1,-33,2,4)}
+ }
+ g.restore();
+}
+function paintWardrobeRelic(g,id,rank,phase){
+ if(rank<2||!visualWardrobe[id])return;const [dark,mid,hot,hi]=visualWardrobe[id].colors,ink='#100b16',R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)},P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ g.save();
+ for(const k of [-1,1]){const x=k<0?-9:3;P(ink,[x,-3,x+6,-3,x+5,4,x+1,5]);P(mid,[x+1,-2,x+5,-2,x+4,3,x+2,4]);R(hi,x+1,-2,3,1);if(rank>=3)R(hot,x+2,1,2,1)}
+ if(rank===4){
+  // The mythic core has a different shape for every archetype.
+  P(ink,[-6,-8,0,-11,6,-8,5,1,0,5,-5,1]);P(mid,[-5,-7,0,-9,5,-7,4,0,0,3,-4,0]);
+  if(id==='scar'||id==='golem'){R(hot,-3,-6,6,7);R(ink,-2,-6,1,7);R(ink,1,-6,1,7);R(hi,-1,-5,2,2)}
+  else if(id==='warden'){R(hot,-1,-7,2,9);R(hot,-4,-4,8,2);R(hi,-1,-4,2,2)}
+  else if(id==='vesa'||id==='assassin'){P(hot,[-4,-6,0,-8,4,-6,0,2]);R(hi,-1,-6,2,3)}
+  else{P(hot,[0,-8,4,-4,0,2,-4,-4]);P(hi,[0,-7,2,-4,0,-1,-2,-4])}
+ }
+ g.restore();
+}
+// Localized particle choreography: no collision, no gameplay ring, limited fill operations.
+function paintWardrobeAura(g,id,rank,phase,preview=false){
+ if(rank<2||!visualWardrobe[id]||(!preview&&!horrorFx))return;
+ const [dark,mid,hot,hi]=visualWardrobe[id].colors,t=reduceMotion?0:phase,n=rank===2?4:rank===3?7:11,mode=visualHeroIds.indexOf(id);
+ g.save();g.globalAlpha=preview?.82:.50;
+ for(let i=0;i<n;i++){
+  const angle=i*Math.PI*2/n+t*(mode%2?-.43:.55),r=17+rank*2,xx=Math.round(Math.cos(angle)*r),yy=Math.round(-12+Math.sin(angle)*(.8*r)),z=Math.round(Math.sin(t+i)*2);
+  g.fillStyle=i%3===0?hi:hot;
+  if(id==='scar'||id==='golem'){g.fillRect(xx,yy+z,2,3);if(rank>=3)g.fillRect(xx+1,yy+z-2,1,2)}
+  else if(id==='pelmage'||id==='nyx'||id==='revenant'){g.fillRect(xx-1,yy+z,3,1);g.fillRect(xx,yy+z-1,1,3)}
+  else if(id==='warden'){g.fillRect(xx,yy+z-2,1,4);g.fillRect(xx-1,yy+z,3,1)}
+  else {g.fillRect(xx,yy+z,2,1);if(rank>=3)g.fillRect(xx-2,yy+z+1,2,1)}
+ }
+ g.restore();
+}
+function paintWardrobeAttack(g,id,rank,aim,recoil,slot){
+ if(!rank||!horrorFx||reduceMotion||!Number.isFinite(recoil)||recoil<=0)return;
+ const [dark,mid,hot,hi]=visualWardrobe[id].colors,life=Math.max(0,Math.min(1,recoil/.22)),elapsed=1-life,reach=18+rank*5+elapsed*7;
+ g.save();g.rotate(Number.isFinite(aim)?aim:0);g.globalAlpha=.35+.48*life;g.fillStyle=hot;g.strokeStyle=hot;g.lineWidth=rank>=3?2:1;
+ const n=rank===1?3:rank===2?5:rank===3?7:10;
+ for(let i=0;i<n;i++){let u=(i-(n-1)/2)/Math.max(1,n-1),x=reach+i%3*4,y=u*(12+rank*3)*(1+elapsed*.25);g.fillStyle=i%3===0?hi:hot;
+  if(id==='scar'||id==='golem'){g.fillRect(Math.round(x),Math.round(y),3,2);g.fillRect(Math.round(x-3),Math.round(y+1),2,1)}
+  else if(id==='vesa'||id==='assassin'){g.fillRect(Math.round(x),Math.round(y),4+rank,1)}
+  else if(id==='pelmage'||id==='warden'){g.fillRect(Math.round(x),Math.round(y)-2,1,5);g.fillRect(Math.round(x)-2,Math.round(y),5,1)}
+  else{g.beginPath();g.moveTo(x,y-3);g.lineTo(x+3,y);g.lineTo(x,y+3);g.lineTo(x-3,y);g.closePath();g.fill()}
+ }
+ if(rank>=3){g.globalAlpha=.3+.3*life;g.beginPath();g.moveTo(16,-8);g.lineTo(reach+5,-14);g.lineTo(reach+11,0);g.lineTo(reach+5,14);g.lineTo(16,8);g.stroke()}
+ if(rank===4){g.strokeStyle=hi;g.globalAlpha=.32*life;g.beginPath();g.moveTo(21,-16);g.lineTo(reach+12,-9);g.lineTo(reach+18,0);g.lineTo(reach+12,9);g.lineTo(21,16);g.stroke()}
+ g.restore();
+}
+
 function paintWardrobeBack(g,id,rank,phase,step){
  if(!rank)return;const spec=visualWardrobe[id];if(!spec)return;
  const [dark,mid,glow,hi]=spec.colors,ink='#100b16',t=reduceMotion?0:Math.round(Math.sin(phase)*2+step*.4);
@@ -6609,7 +6718,7 @@ function paintWardrobeFront(g,id,rank,phase){
 }
 
 function pixelHeroBody(g,id,step=0,phase=0,aim=0,limp=null){
- const cosmeticRank=wardrobeRank(id);paintWardrobeBack(g,id,cosmeticRank,phase,step);paintHeroSilhouetteGear(g,id,phase,step);
+ const cosmeticRank=wardrobeRank(id);paintWardrobeBack(g,id,Math.min(3,cosmeticRank),phase,step);paintWardrobeAscension(g,id,cosmeticRank,phase);paintHeroSilhouetteGear(g,id,phase,step);
  const a=heroArt[id]||heroArt.scar;
  const ink='#100c17',cream='#e9c9a6',tan='#b88976',shade='#78535a';
  const R=(color,x,y,w,h)=>{g.fillStyle=color;g.fillRect(x,y,w,h)};
@@ -6759,7 +6868,7 @@ function pixelHeroBody(g,id,step=0,phase=0,aim=0,limp=null){
    R('#4b433a',-9,10,7,3);R('#4b433a',3,10,7,3);
  }
  // Aim-facing eye highlight and subtle surface rim on all costumes.
- if(id!=='golem'&&id!=='pelmage')R(a.lit,dir*8+(dir<0?0:-1),-8,1,2);paintWardrobeFront(g,id,cosmeticRank,phase);
+ if(id!=='golem'&&id!=='pelmage')R(a.lit,dir*8+(dir<0?0:-1),-8,1,2);paintWardrobeFront(g,id,Math.min(3,cosmeticRank),phase);paintWardrobeRelic(g,id,cosmeticRank,phase);
 }
 // V68.1: hand-authored native pixel silhouettes, one for each of 32 weapons.
 // Geometry is cosmetic; weapon damage, collision and timing remain unchanged.
@@ -7160,8 +7269,9 @@ function drawHero(p=player,ch=chars.find(x=>x.id===selectedChar),isP2=false){
  if(p.dead){const fall=state==='death'?Math.min(1,deathTimer/.62):1;ctx.translate(0,5*fall);ctx.rotate(Math.PI*.48*fall);ctx.globalAlpha=.94-.26*fall;pixelHeroBody(ctx,ch.id,0,phase,p.aim);ctx.restore();return}
  const bob=gait.bob;
  ctx.translate(0,-bob);ctx.rotate((p.hurtLean||0)*hurtWave+gait.lean);ctx.scale(1+.05*hurtWave,1-.08*hurtWave);
- paintHeroAccent(ctx,ch.id,phase,motion,(p.recoilT||0)>0);if(ch.id==='scar')paintScarAura(ctx,phase,motion>.15,p.hp/p.maxhp<.35,(p.recoilT||0)>0);else if(ch.id==='vesa')paintVesaAura(ctx,phase,motion>.15,(p.recoilT||0)>0);else if(ch.id==='nyx')paintNyxAura(ctx,phase,motion>.15,(p.recoilT||0)>0);else if(ch.id==='pelmage'){const slot=p===player?weapon:(p.weapon??0);paintMageAura(ctx,phase,slot,slot===3&&(p.weaponCharge?.[3]??0)>=1)}else if(ch.id==='assassin')paintShivMotion(ctx,phase,motion>.25,Math.atan2(p.vy||0,p.vx||0));else if(ch.id==='golem')paintGolemSteam(ctx,phase,(p.recoilT||0)>0);else if(ch.id==='warden')paintWardenLight(ctx,p.aim,p.hp/p.maxhp<.35,phase);else if(ch.id==='revenant')paintVoidAura(ctx,phase,(p.recoilT||0)>0);pixelHeroBody(ctx,ch.id,walk,phase,p.aim,gait.limp);paintHeroSignature(ctx,ch.id,phase,walk);if(ch.id==='golem')paintGolemHeat(ctx,phase,(p.recoilT||0)>0);
+ paintWardrobeAura(ctx,ch.id,wardrobeRank(ch.id),phase);paintHeroAccent(ctx,ch.id,phase,motion,(p.recoilT||0)>0);if(ch.id==='scar')paintScarAura(ctx,phase,motion>.15,p.hp/p.maxhp<.35,(p.recoilT||0)>0);else if(ch.id==='vesa')paintVesaAura(ctx,phase,motion>.15,(p.recoilT||0)>0);else if(ch.id==='nyx')paintNyxAura(ctx,phase,motion>.15,(p.recoilT||0)>0);else if(ch.id==='pelmage'){const slot=p===player?weapon:(p.weapon??0);paintMageAura(ctx,phase,slot,slot===3&&(p.weaponCharge?.[3]??0)>=1)}else if(ch.id==='assassin')paintShivMotion(ctx,phase,motion>.25,Math.atan2(p.vy||0,p.vx||0));else if(ch.id==='golem')paintGolemSteam(ctx,phase,(p.recoilT||0)>0);else if(ch.id==='warden')paintWardenLight(ctx,p.aim,p.hp/p.maxhp<.35,phase);else if(ch.id==='revenant')paintVoidAura(ctx,phase,(p.recoilT||0)>0);pixelHeroBody(ctx,ch.id,walk,phase,p.aim,gait.limp);paintHeroSignature(ctx,ch.id,phase,walk);if(ch.id==='golem')paintGolemHeat(ctx,phase,(p.recoilT||0)>0);
  const wi=p===player?weapon:(p.weapon??0),active=(p.recoilT||0)>0&&p.recoilSlot===wi,pose=heroRecoilPose(ch.id,active?p.recoilT:0,wi,reduceMotion||!horrorFx);pixelHeroWeapon(ctx,ch.id,wi,active&&!reduceMotion&&horrorFx?p.recoilAim:(p.aim||0),p.fire||0,pose);if(ch.id==='scar'&&active)paintScarAttack(ctx,wi,p.recoilAim,p.recoilT);else if(ch.id==='vesa'&&active)paintVesaAttack(ctx,wi,p.recoilAim,p.recoilT);else if(ch.id==='nyx'&&active)paintNyxAttack(ctx,wi,p.recoilAim,p.recoilT);else if(ch.id==='pelmage'&&active)paintMageAttack(ctx,wi,p.recoilAim,p.recoilT);else if(ch.id==='assassin'&&active)paintShivAttack(ctx,wi,p.recoilAim,p.recoilT);else if(ch.id==='golem'&&active)paintGolemAttack(ctx,wi,p.recoilAim,p.recoilT);else if(ch.id==='warden'&&active)paintWardenAttack(ctx,wi,p.recoilAim,p.recoilT);else if(ch.id==='revenant'&&active)paintVoidAttack(ctx,wi,p.recoilAim,p.recoilT);
+ if(active)paintWardrobeAttack(ctx,ch.id,wardrobeRank(ch.id),p.recoilAim,p.recoilT,wi);
  if(p.inv>0&&p.dash>0){ctx.globalAlpha=.65;ctx.strokeStyle=(heroArt[ch.id]||heroArt.scar).glow;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-14,5);ctx.lineTo(-14,11);ctx.lineTo(-8,11);ctx.moveTo(14,5);ctx.lineTo(14,11);ctx.lineTo(8,11);ctx.stroke();ctx.globalAlpha=1}
  if(isP2)drawPixelText('P2',0,-39,7,'#6fe1a2','center');
  ctx.restore();
@@ -8818,7 +8928,7 @@ function renderFrameDeadline(now,deadline,force=false){
  return deadline+period*Math.max(1,Math.floor((now+.75-deadline)/period)+1);
 }
 let hudElapsed=1,previousFrameState='',previousFrameWave=0,nextDailyRefresh=0,renderDeadline=NaN;
-function frame(now){checkNetWatchdog(Date.now());if(document.hidden){last=now;acc=0;hudElapsed=1;renderDeadline=NaN;requestAnimationFrame(frame);return}const raw=last?Math.max(0,Math.min(.1,(now-last)/1000||0)):0;last=now;if(state==='menu'&&now>=nextDailyRefresh){nextDailyRefresh=now+30000;refreshDailyDate()}const step=1/60;const active=state==='game'||state==='death'||(onlineMode&&isOnlineHost&&state==='pause');if(active){acc+=raw;while(acc>=step){update(step);acc-=step;if(state!=='game'&&state!=='death'&&!(onlineMode&&isOnlineHost&&state==='pause')){acc=0;break}}}else{acc=0;updateNpc(0)}shake=Math.max(0,shake-raw);hudElapsed+=raw;const changed=state!==previousFrameState||wave!==previousFrameWave;if(state==='game'&&(changed||hudElapsed>=1/20)){updateHud();hudElapsed=0}renderTutorial();if(state==='menu'){if(changed)drawRemoteArrow();menuArtwork(()=>paintLiveMenu(now));renderDeadline=NaN;}else if(state==='game'||state==='death'||changed){const due=renderFrameDeadline(now,renderDeadline,changed);if(due!==null){renderDeadline=due;render()}}previousFrameState=state;previousFrameWave=wave;requestAnimationFrame(frame)}
+function frame(now){checkNetWatchdog(Date.now());if(document.hidden){last=now;acc=0;hudElapsed=1;renderDeadline=NaN;requestAnimationFrame(frame);return}const raw=last?Math.max(0,Math.min(.1,(now-last)/1000||0)):0;last=now;if(state==='menu'&&now>=nextDailyRefresh){nextDailyRefresh=now+30000;refreshDailyDate()}const step=1/60;const active=state==='game'||state==='death'||(onlineMode&&isOnlineHost&&state==='pause');if(active){acc+=raw;while(acc>=step){update(step);acc-=step;if(state!=='game'&&state!=='death'&&!(onlineMode&&isOnlineHost&&state==='pause')){acc=0;break}}}else{acc=0;updateNpc(0)}shake=Math.max(0,shake-raw);hudElapsed+=raw;const changed=state!==previousFrameState||wave!==previousFrameWave;if(state==='game'&&(changed||hudElapsed>=1/20)){updateHud();hudElapsed=0}renderTutorial();if(state==='menu'){if(changed)drawRemoteArrow();menuArtwork(()=>paintLiveMenu(now));tickWardrobePreviews(now);renderDeadline=NaN;}else if(state==='game'||state==='death'||changed){const due=renderFrameDeadline(now,renderDeadline,changed);if(due!==null){renderDeadline=due;render()}}previousFrameState=state;previousFrameWave=wave;requestAnimationFrame(frame)}
 // All terrain, lighting, art and menu dependencies are initialized at this point.
 setLanguage(lang);
 setMenuTab('home');
