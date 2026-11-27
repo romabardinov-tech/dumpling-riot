@@ -2425,20 +2425,10 @@ function bossSpecialPattern(e,tp){
  }
  return out;
 }
-function enemyDeathVoice(type){
- if(!audioReady()||!horrorFx)return;
- const now=audioCtx.currentTime;
- const p={
-  fork:[180,.20,'triangle'],pepper:[240,.18,'sine'],knife:[130,.25,'sawtooth'],plate:[300,.16,'triangle'],
-  crawler:[95,.28,'sawtooth'],stalker:[260,.22,'sine'],eye:[150,.30,'sine'],siren:[360,.34,'sine'],
-  wretch:[85,.32,'sawtooth'],spitter:[190,.22,'triangle'],parasite:[110,.28,'sawtooth'],
-  feaster:[65,.38,'sawtooth'],hands:[210,.25,'triangle'],butcher:[58,.35,'sawtooth'],
-  slicer:[270,.18,'square'],boiler:[50,.42,'sawtooth'],maw:[42,.46,'sawtooth']
- }[type]||[120,.22,'triangle'];
- const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=p[2];o.connect(g);g.connect(effectsGain);o.onended=()=>{try{o.disconnect();g.disconnect()}catch(_){}};
- o.frequency.setValueAtTime(p[0],now);o.frequency.exponentialRampToValueAtTime(Math.max(30,p[0]*.5),now+p[1]);
- g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.045,now+.012);g.gain.exponentialRampToValueAtTime(.0001,now+p[1]);
- o.start(now);o.stop(now+p[1]+.02);
+function enemyDeathVoice(type,bossId=null){
+ if(!audioReady()||!horrorFx||!admitAudio(soundGate,'enemy-death',audioCtx.currentTime,.09))return;
+ const q=bossId!=null?[52+bossId*6,25+bossId*2,.72+(bossId%4)*.12,['sawtooth','triangle','square'][bossId%3],700+bossId*52]:creatureCalls[type]||creatureCalls.hollow,now=audioCtx.currentTime,d=Math.max(.22,q[2]*.78);
+ const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();o.type=q[3];o.frequency.setValueAtTime(q[0],now);o.frequency.exponentialRampToValueAtTime(q[0]*1.45,now+d*.23);o.frequency.exponentialRampToValueAtTime(Math.max(21,q[1]*.72),now+d);f.type='lowpass';f.frequency.value=q[4];g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.052,now+.018);g.gain.exponentialRampToValueAtTime(.0001,now+d);o.connect(f);f.connect(g);g.connect(effectsGain);o.onended=()=>{try{o.disconnect();f.disconnect();g.disconnect()}catch(_){}};o.start(now);o.stop(now+d+.02)
 }
 
 const keys=new Set();const mouse={x:240,y:135,down:false};
@@ -4853,7 +4843,7 @@ function finishEnemyDeath(e){
  if(!onlineMode&&state==='game'){if(e.type==='boss')discoverJournal('boss:'+e.bossId);else{discoverJournal('enemy:'+e.type);if(e.elite)discoverJournal('elite:'+e.elite);if(e.mutation)discoverJournal('mutant:'+e.mutation)}}
  if(state==='game'&&e.secretGuard&&secretEncounter?.stage==='ambush'&&secretEncounter.w===wave){secretEncounter.remaining=Math.max(0,secretEncounter.remaining-1);if(secretEncounter.remaining===0)completeSecret();}
  if(soloRun&&!soloRun.closed){soloRun.kills++;if(e.type==='boss')addCoins(soloRun,12+(modifierFor(soloRun.modifier).bossCoins??0));else if(e.elite)addCoins(soloRun,6);else if(e.mutation){addCoins(soloRun,MUTANT_COINS);const blast=mutantDeathHazard(e);if(blast&&state==='game')scheduleHazard(blast.x,blast.y,blast.radius,blast.damage,blast.delay,null,'mutantDeath');floatText(e.x,e.y-25,'+'+MUTANT_COINS+' ◈',mutantProfiles[e.mutation].color)}if(!player.dead&&player.artifacts?.includes('soul'))player.hp=Math.min(player.maxhp,player.hp+2+(hasCombo(player,'reaper')?1:0));if(e.elite){const owned=player.artifacts.concat(drops.filter(d=>d.type==='artifact').map(d=>d.artifact));const a=chooseArtifact(owned,Math.random,player.artifacts);if(a)drops.push({x:e.x,y:e.y,type:'artifact',artifact:a.id,life:1,pulse:0});else drops.push({x:e.x,y:e.y,type:'heal',value:35,life:24,pulse:0});toast(L('ELITE DEFEATED','ЭЛИТА ПОВЕРЖЕНА'));toastTimer=2.5;}}
- enemyDeathVoice(e.type);
+ enemyDeathVoice(e.type,e.type==='boss'?e.bossId:null);
  score+=e.type==='boss'?3200:e.elite?800:[100,170,220][enemyTier(e.type)];
  combo=Math.min(9,combo+.25);dropEnemyXP(e);
  if(e.type==='parasite'){for(let i=0;i<2;i++){const ang=rnd(0,TAU);spawnEnemy('sporeBeetle',{x:e.x+Math.cos(ang)*12,y:e.y+Math.sin(ang)*12})}}
