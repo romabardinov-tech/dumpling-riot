@@ -18,5 +18,5 @@ for(let id=0;id<15;id++){
 }
 check(bossCounterMultiplier({type:'fork',chargeRecover:1},true)===1);
 `)(check);
-check(c.includes('d*counter*artifactWeaponMultiplier'));check(c.includes("owner==='p1'"));check(c.includes('e.chargeRecover=bossEncounterFor(e.bossId)[1];hold=true;'));check(c.includes('if(e.attack<=0&&!recovering&&!hold)'));check(c.includes('id="bossState"'));check(c.includes('if(Math.hypot(tp.x-e.x,tp.y-e.y)<42)hurtPlayer'));
+check(c.includes('d*counter*artifactWeaponMultiplier'));check(c.includes("owner==='p1'"));check(c.includes('e.chargeRecover=bossEncounterFor(e.bossId)[1];hold=true;'));check(c.includes('if(e.attack<=0&&!recovering&&!hold)'));check(c.includes('id="bossState"'));check(c.includes('if(Math.hypot(tp.x-e.x,tp.y-e.y)<42)enemyContactHit'));
 console.log('Boss encounters: '+count+' assertions passed; phase thresholds, bounded recovery, counter eligibility and attack gates.');
