@@ -4929,7 +4929,84 @@ function pixelGraveyardBoss(g,id,stage=1,phase=0,charging=false){
  if(charging){R('#ffd292',-14,-50,28,2);R('#ff9b55',-9,-47,18,1)}
  g.restore();return true;
 }
+// V70.6 — Forest Nightmares: distinct fungal monarch and ancient root predator.
+function pixelForestBoss(g,id,stage=1,phase=0,charging=false){
+ if(id!==10&&id!==11)return false;
+ const R=(c,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ const ink='#100912',t=reduceMotion||!Number.isFinite(phase)?0:phase,sway=Math.round(Math.sin(t)*2),hot=id===10?(stage===3?'#e6ffc0':stage===2?'#b9e58b':'#8eb56b'):(stage===3?'#dcffc1':stage===2?'#b1d990':'#80b471');
+ g.save();
+ if(id===10){
+  // Low, broad fungal queen with six jointed legs and a layered mushroom canopy.
+  for(const s of [-1,1])for(let i=0;i<3;i++){
+   const y=-4+i*8,d=s*sway*(i%2?-1:1);
+   P(ink,[s*15,y,s*29,y-9,s*44,y-4+d,s*50,y+5+d,s*44,y+9+d,s*33,y+2+d,s*22,y+5]);
+   P('#475b42',[s*18,y,s*29,y-6,s*42,y-2+d,s*47,y+5+d,s*43,y+6+d,s*33,y+d,s*23,y+3]);
+   R('#9ca576',s<0?-45:40,y+2+d,5,2);
+  }
+  P(ink,[-28,-22,-17,-34,17,-34,28,-22,31,9,22,24,-22,24,-31,9]);
+  P('#4a6048',[-26,-21,-16,-32,16,-32,26,-21,29,8,21,22,-21,22,-29,8]);
+  P('#819263',[-19,-21,-13,-29,12,-29,19,-21,18,13,12,19,-12,19,-18,13]);
+  for(let i=0;i<5;i++){const y=-13+i*7;R('#344d3e',-18,y,36,2);R('#a5ad77',-15,y+2,12,1)}
+  // Inflating cap changes during charge; dark underside and layered gills.
+  const rise=charging?3:sway;
+  P(ink,[-43,-29-rise,-34,-43-rise,-18,-49-rise,8,-49-rise,30,-43-rise,43,-29-rise,34,-19-rise,-33,-19-rise]);
+  P('#727854',[-40,-29-rise,-32,-41-rise,-17,-47-rise,8,-47-rise,28,-41-rise,40,-29-rise,32,-21-rise,-32,-21-rise]);
+  P('#a0a578',[-34,-32-rise,-28,-40-rise,-16,-45-rise,6,-45-rise,22,-39-rise,27,-32-rise]);
+  P('#3c4b3f',[-34,-28-rise,34,-28-rise,30,-21-rise,-30,-21-rise]);
+  for(let i=0;i<8;i++)R('#b4b993',-28+i*8,-26-rise,3,4);
+  for(const [x,y,w] of [[-27,-35,7],[-10,-43,5],[7,-40,8],[25,-34,6]]){R('#c6cda1',x,y-rise,w,3);R('#899772',x+1,y+3-rise,w-2,1)}
+  R(ink,-17,-13,34,9);R(hot,-14,-11,10,4);R(hot,4,-11,10,4);R('#2b3a30',-10,3,20,9);R('#74985a',-8,5,16,5);
+  for(const s of [-1,1]){R('#b6c6a0',s<0?-23:19,2,4,7);R('#617f50',s<0?-25:20,12,5,5)}
+  if(stage>=2){
+   // Broken cap and glowing exposed brood pods.
+   P(ink,[-8,-48-rise,-1,-39-rise,-7,-33-rise,1,-27-rise,-4,-20-rise,-11,-29-rise,-7,-39-rise]);R(hot,-5,-36-rise,3,6);
+   for(const s of [-1,1]){const x=s<0?-29:20;P(ink,[x,-3,x+8,-8,x+12,-2,x+11,12,x+4,16,x-2,8]);P('#86a65e',[x+1,-2,x+7,-6,x+10,-1,x+9,11,x+4,13,x,7]);R(hot,x+3,-1,4,7)}
+  }
+  if(stage===3){
+   // A second crown of small caps and an open luminous spore chamber.
+   for(const s of [-1,1]){P(ink,[s*19,-30,s*23,-45,s*33,-53,s*44,-49,s*49,-39,s*36,-35,s*29,-30]);P('#7d9a65',[s*21,-31,s*25,-44,s*33,-51,s*42,-47,s*46,-40,s*35,-37,s*29,-32]);R(hot,s<0?-40:33,-46,5,3)}
+   P(ink,[-19,-6,-11,-16,11,-16,19,-6,19,10,9,21,-9,21,-19,10]);P('#577d48',[-17,-5,-10,-14,10,-14,17,-5,17,9,8,19,-8,19,-17,9]);P(hot,[-10,-3,-5,-8,5,-8,10,-3,10,9,4,14,-4,14,-10,9]);R('#f2ffda',-3,-1,6,10);
+  }
+  if(horrorFx&&!reduceMotion){const d=Math.round(Math.sin(t*.8)*3),a=g.globalAlpha;g.globalAlpha=a*.55;R(hot,-39+d,-40,3,2);R(hot,37-d,-35,2,2);if(stage>=2){R(hot,-34,3+d,2,3);R(hot,32,7-d,3,2)}g.globalAlpha=a}
+ }else{
+  // Root Stalker: high branching crown, long asymmetric root claws and bark mask.
+  for(const s of [-1,1]){
+   const d=s*sway;P(ink,[s*6,7,s*17,10,s*23,20+d*.5,s*30,26+d*.5,s*16,29,s*7,22,s*4,16]);P('#63533e',[s*8,9,s*15,12,s*21,20+d*.5,s*27,25+d*.5,s*16,27,s*9,21,s*6,16]);R('#8b9564',s<0?-23:15,24+d*.5,8,2);
+  }
+  P(ink,[-20,-26,-10,-38,13,-38,22,-26,19,-6,27,12,16,25,-16,25,-25,12,-18,-6]);P('#574837',[-18,-25,-9,-36,12,-36,20,-25,17,-6,24,11,15,23,-15,23,-23,11,-16,-6]);
+  P('#8e7950',[-14,-25,-8,-34,-1,-24,-5,-2,-12,18,-17,12,-12,-4]);P('#3d332d',[5,-32,13,-25,10,-9,15,10,10,19,3,14,5,-6]);
+  for(const s of [-1,1]){
+   const d=s*sway,l=charging?-5:0;
+   P(ink,[s*16,-24,s*29,-27,s*38,-18+d+l,s*49,-5+d+l,s*47,10+d+l,s*39,17+d+l,s*35,8+d+l,s*28,4,s*19,-5]);
+   P('#69553f',[s*18,-22,s*28,-24,s*36,-16+d+l,s*46,-5+d+l,s*44,9+d+l,s*39,14+d+l,s*37,6+d+l,s*29,2,s*21,-5]);
+   P('#9b8055',[s*29,-20,s*36,-14+d+l,s*42,-4+d+l,s*42,6+d+l,s*39,5+d+l,s*34,-5+d+l]);
+   P('#a5a67a',[s*39,7+d+l,s*47,10+d+l,s*44,16+d+l,s*39,14+d+l]);R('#778e58',s<0?-32:28,-19,4,4);
+  }
+  P(ink,[-14,-31,-25,-43,-26,-52,-20,-55,-18,-45,-10,-39,-8,-50,-1,-56,4,-53,0,-45,6,-36,13,-43,17,-54,22,-55,24,-48,19,-37,28,-43,33,-39,23,-27]);
+  P('#786647',[-12,-32,-23,-44,-24,-51,-20,-52,-16,-43,-9,-36,-6,-49,-1,-53,1,-52,-2,-45,5,-34,15,-43,19,-52,21,-52,22,-48,16,-35,28,-40,30,-39,22,-29]);
+  for(const [x,y] of [[-20,-47],[-12,-28],[13,-40],[20,-48],[-16,7],[12,16]]){R('#758b55',x,y,6,4);R('#a7b67a',x,y,3,1)}
+  P(ink,[-13,-30,-8,-36,9,-36,15,-30,14,-17,5,-10,-6,-10,-14,-17]);P('#a29369',[-11,-29,-7,-34,8,-34,13,-29,12,-18,4,-12,-5,-12,-12,-18]);
+  R(ink,-10,-26,20,7);R(hot,-8,-24,6,3);R(hot,2,-24,6,3);R('#55463c',-4,-17,8,3);
+  P('#6d8153',[-9,-6,0,-10,9,-6,7,8,-7,8]);R(hot,-3,-3,6,7);
+  if(stage>=2){
+   // Fractured bark, bright sap channels and growing thorn branches.
+   P(ink,[-16,-25,-8,-20,-12,-11,-5,-5,-10,6,-14,-1,-18,-12]);R(hot,-12,-10,2,7);
+   for(const s of [-1,1]){P(ink,[s*26,-15,s*33,-31,s*40,-34,s*39,-22,s*32,-10]);P('#8e7950',[s*28,-16,s*34,-28,s*38,-31,s*37,-23,s*32,-13]);R(hot,s<0?-36:33,-26,3,4)}
+  }
+  if(stage===3){
+   // Split trunk exposes a luminous heart and a jagged root crown.
+   P(ink,[-16,-10,-7,-18,7,-18,16,-10,18,9,7,22,-7,22,-18,9]);P('#57724a',[-14,-9,-6,-16,6,-16,14,-9,16,8,6,20,-6,20,-16,8]);P(hot,[-9,-5,0,-12,9,-5,10,8,0,16,-10,8]);R('#f3ffd9',-3,-2,6,12);
+   for(const s of [-1,1]){P(ink,[s*13,-30,s*30,-44,s*39,-54,s*45,-53,s*39,-40,s*27,-28]);P('#a29369',[s*15,-30,s*31,-43,s*40,-51,s*42,-51,s*37,-41,s*27,-30]);R(hot,s<0?-40:36,-48,4,3)}
+   R(hot,-8,-24,16,3);
+  }
+  if(horrorFx&&!reduceMotion){const a=g.globalAlpha,d=Math.round(Math.sin(t*.9)*3);g.globalAlpha=a*.45;R(hot,-24+d,-39,3,2);R(hot,26-d,-35,2,2);if(stage>=2){R(hot,-31,4+d,2,3);R(hot,31,9-d,3,2)}g.globalAlpha=a}
+ }
+ if(charging){R('#ffd292',-14,-50,28,2);R('#ff9b55',-9,-47,18,1)}
+ g.restore();return true;
+}
 function paintRosterBoss(g,e,phase=0,charging=false,crest=true){
+ if(pixelForestBoss(g,e.bossId,e.stage||1,phase,charging))return;
  if(pixelGraveyardBoss(g,e.bossId,e.stage||1,phase,charging))return;
  if(pixelIndustrialBoss(g,e.bossId,e.stage||1,phase,charging))return;
  if(pixelFoodcourtBoss(g,e.bossId,e.stage||1,phase,charging))return;
