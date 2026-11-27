@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.1. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.2. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -102,3 +102,6 @@ Online protocol v68 requires both peers on the same version. Host-authoritative 
 
 ## V68.1 — Distinctive Pixel Art
 Original Canvas pixel geometry for all 32 equipped weapon silhouettes, individual costume detailing and cosmetic ambient accents for eight heroes. Four cached flat landmarks per arena and six map-specific ambient particle motifs; previews include landmarks, portraits include costume details. Hitboxes, damage, movement, navigation and protocol v68 unchanged. Extra animated accents respect reduced-motion/horror FX preferences. 49 drawing-command assertions verify distinct weapon, costume and arena geometry and bounded call counts; 192 hero/map/weapon render-call smoke cases passed under mock DOM/Canvas. Not an actual rendered screenshot review, device FPS measurement or human playtest.
+
+## V68.2 — Emberforged: SCAR
+First individual visual pass, SCAR only. Original forged shoulder armor, molten chest seams and belt, distinct heated overlays for cleaver, boomerang, axe and trident; each uses a different short recoil echo. Four ambient embers (seven under 35% HP), directional dash echoes and warm hit sparks. Persistent costume/weapon details remain with motion effects disabled; animated accents respect reduced motion and horror FX. No changes to damage, collision, weapon cooldowns, controls, other hero designs, map graphics or network protocol. Inline script syntax and 3865 isolated drawing-command/geometry assertions passed. Actual rendered image review and mobile playtest remain pending; new local combat effects are not individually synchronized over the network.
