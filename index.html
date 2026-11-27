@@ -3914,16 +3914,25 @@ const heroMotionProfiles={
  revenant:{cadence:9,stride:.65,bob:1.45,lean:.065,kick:1.12,settle:.09}
 };
 function motionProfile(id){return heroMotionProfiles[id]||heroMotionProfiles.scar}
+// V75.15: critical injury is presentation only; movement physics stay untouched.
+function heroIsLimping(p){return !!p&&!p.dead&&Number.isFinite(p.hp)&&p.maxhp>0&&p.hp/p.maxhp<.20}
+function heroLimpPose(p,phase,motion,less=false){
+ if(!heroIsLimping(p))return null;
+ const m=less?0:Math.max(0,Math.min(1,motion)),a=Math.sin(phase),plant=Math.max(0,a),drag=Math.max(0,-a);
+ return {left:Math.round(2.3*plant*m),right:Math.round(-.7*drag*m+1),bob:Math.round((plant*3-drag*.65)*m),lean:.075+(less?0:(.10+Math.cos(phase)*.085)*m),drag:drag*m};
+}
 function stepHeroMotion(p,dt){
  if(!p||!Number.isFinite(dt)||dt<=0)return;
  const q=motionProfile(p.charId),target=p.dead?0:Math.min(1,Math.hypot(p.vx||0,p.vy||0)/Math.max(30,(p.speed||80)*.75));
  const old=Number.isFinite(p.animMotion)?p.animMotion:0,blend=1-Math.exp(-dt/(target>old?.045:q.settle));
  p.animMotion=old+(target-old)*blend;if(p.animMotion<.005)p.animMotion=0;
- p.animPhase=((p.animPhase||0)+dt*q.cadence*p.animMotion)%(Math.PI*2);
+ p.animPhase=((p.animPhase||0)+dt*q.cadence*p.animMotion*(heroIsLimping(p)?.76:1))%(Math.PI*2);
 }
 function heroMotionPose(p,less=false,time=0){
  const q=motionProfile(p.charId),motion=Math.max(0,Math.min(1,p.animMotion||0)),phase=p.animPhase||0;
- if(less)return {motion,phase:0,walk:0,bob:0,lean:0};
+ const limp=heroLimpPose(p,phase,motion,less);
+ if(less)return {motion,phase:0,walk:0,bob:0,lean:limp?.lean||0,limp};
+ if(limp)return {motion,phase,walk:Math.sin(phase)*motion*q.stride*.65,bob:limp.bob,lean:limp.lean,limp};
  const walk=Math.sin(phase)*motion*q.stride;
  return {motion,phase,walk,bob:Math.round(Math.abs(Math.sin(phase))*motion*q.bob+(1-motion)*Math.sin(time*2)*.45),lean:motion*q.lean*Math.cos(phase)};
 }
@@ -3944,8 +3953,9 @@ function enemyAnimationCue(e,d){
 function enemyMotionPose(e,less=false){
  const phase=Number.isFinite(e.phase)?e.phase:0,hit=Math.max(0,Math.min(1,(e.hitT||0)/.22)),cue=e.animCue||0;
  if(less)return {phase:0,bob:0,lean:0,sx:1,sy:1,cue};
- const wave=hit*Math.sin((1-hit)*Math.PI*2.6),boss=e.type==='boss',heavy=boss||['boiler','butcher','maw','rootHorror','feaster'].includes(e.type),spectral=['eye','neonGhost','wretch'].includes(e.type),anticipation=cue===1?.06:0;
- return {phase,bob:Math.round(Math.sin(phase*(heavy?.7:spectral?1.2:1))*(heavy?1:spectral?2:1)),lean:(e.hitLean||0)*wave*.7,sx:1+.05*wave+anticipation,sy:1-.08*wave-anticipation,cue};
+ const wave=hit*Math.sin((1-hit)*Math.PI*2.6),boss=e.type==='boss',heavy=boss||['boiler','butcher','maw','rootHorror','feaster'].includes(e.type),spectral=['eye','neonGhost','wretch','stalker'].includes(e.type),anticipation=cue===1?.06:0;
+ const crawl=['crawler','cableMite','hands','sporeBeetle','parasite','pepper'].includes(e.type),twitch=['fork','knife','slicer','boneWalker','chainHound'].includes(e.type),sway=boss?0:heavy?.045*Math.sin(phase*.62):spectral?.085*Math.sin(phase*.67):crawl?.045*Math.sin(phase*2):twitch?.075*Math.sin(phase*1.8):.05*Math.sin(phase);
+ return {phase,bob:Math.round(Math.sin(phase*(heavy?.7:spectral?1.2:crawl?1.8:1))*(heavy?1:spectral?2:1)),lean:(e.hitLean||0)*wave*.7+sway,sx:1+.05*wave+anticipation,sy:1-.08*wave-anticipation+(spectral?.045*Math.sin(phase*.85):0),cue};
 }
 function paintEnemyCue(g,e,cue){
  if(!cue)return;
@@ -5573,17 +5583,19 @@ function endGame(broadcast=true,escaped=false){saveAtBoundary=false;tutorial=nul
 
 function drawPixelText(text,x,y,size=8,color='#f6efd9',align='left'){ctx.fillStyle=color;ctx.font=`bold ${size}px ui-monospace,monospace`;ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(text,x,y)}
 // Pixel character models: native Canvas art, one world pixel per sprite pixel.
-function pixelHeroBody(g,id,step=0,phase=0,aim=0){
+function pixelHeroBody(g,id,step=0,phase=0,aim=0,limp=null){
  const a=heroArt[id]||heroArt.scar;
  const ink='#100c17',cream='#e9c9a6',tan='#b88976',shade='#78535a';
  const R=(color,x,y,w,h)=>{g.fillStyle=color;g.fillRect(x,y,w,h)};
  const P=(color,xy)=>{g.fillStyle=color;g.beginPath();g.moveTo(xy[0],xy[1]);for(let i=2;i<xy.length;i+=2)g.lineTo(xy[i],xy[i+1]);g.closePath();g.fill()};
  const stride=Math.round(step*2),dir=Math.cos(aim)<0?-1:1;
  // Shadow and separate articulated boots.
- R(ink,-10,5,9,10+stride);R(ink,1,5,9,10-stride);
- R(a.dark,-8,6,5,7+stride);R(a.dark,3,6,5,7-stride);
+ const left=limp?limp.left:stride,right=limp?limp.right:-stride;
+ R(ink,-10,5,9,10+left);R(ink,1,5,9,10+right);
+ R(a.dark,-8,6,5,7+left);R(a.dark,3,6,5,7+right);
  R(a.mid,-8,8,3,3);R(a.mid,3,8,3,3);
- R('#302b35',-10,12+stride,8,2);R('#302b35',2,12-stride,8,2);
+ R('#302b35',-10,12+left,8,2);R('#302b35',2,12+right,8,2);
+ if(limp){R('#5b343d',5,8,3,3);R('#b66a64',5,8,2,1);if(limp.drag>.3)R('#68525a',6,14+right,5,1)}
  if(id==='scar'){
    P(ink,[-14,-8,-7,-14,8,-14,15,-7,13,7,8,11,-8,11,-14,5]);
    P(a.mid,[-12,-7,-6,-11,7,-11,12,-6,10,7,6,9,-8,9,-12,3]);
@@ -6122,7 +6134,7 @@ function drawHero(p=player,ch=chars.find(x=>x.id===selectedChar),isP2=false){
  if(p.dead){const fall=state==='death'?Math.min(1,deathTimer/.62):1;ctx.translate(0,5*fall);ctx.rotate(Math.PI*.48*fall);ctx.globalAlpha=.94-.26*fall;pixelHeroBody(ctx,ch.id,0,phase,p.aim);ctx.restore();return}
  const bob=gait.bob;
  ctx.translate(0,-bob);ctx.rotate((p.hurtLean||0)*hurtWave+gait.lean);ctx.scale(1+.05*hurtWave,1-.08*hurtWave);
- paintHeroAccent(ctx,ch.id,phase,motion,(p.recoilT||0)>0);if(ch.id==='scar')paintScarAura(ctx,phase,motion>.15,p.hp/p.maxhp<.35,(p.recoilT||0)>0);else if(ch.id==='vesa')paintVesaAura(ctx,phase,motion>.15,(p.recoilT||0)>0);else if(ch.id==='nyx')paintNyxAura(ctx,phase,motion>.15,(p.recoilT||0)>0);else if(ch.id==='pelmage'){const slot=p===player?weapon:(p.weapon??0);paintMageAura(ctx,phase,slot,slot===3&&(p.weaponCharge?.[3]??0)>=1)}else if(ch.id==='assassin')paintShivMotion(ctx,phase,motion>.25,Math.atan2(p.vy||0,p.vx||0));else if(ch.id==='golem')paintGolemSteam(ctx,phase,(p.recoilT||0)>0);else if(ch.id==='warden')paintWardenLight(ctx,p.aim,p.hp/p.maxhp<.35,phase);else if(ch.id==='revenant')paintVoidAura(ctx,phase,(p.recoilT||0)>0);pixelHeroBody(ctx,ch.id,walk,phase,p.aim);paintHeroSignature(ctx,ch.id,phase,walk);if(ch.id==='golem')paintGolemHeat(ctx,phase,(p.recoilT||0)>0);
+ paintHeroAccent(ctx,ch.id,phase,motion,(p.recoilT||0)>0);if(ch.id==='scar')paintScarAura(ctx,phase,motion>.15,p.hp/p.maxhp<.35,(p.recoilT||0)>0);else if(ch.id==='vesa')paintVesaAura(ctx,phase,motion>.15,(p.recoilT||0)>0);else if(ch.id==='nyx')paintNyxAura(ctx,phase,motion>.15,(p.recoilT||0)>0);else if(ch.id==='pelmage'){const slot=p===player?weapon:(p.weapon??0);paintMageAura(ctx,phase,slot,slot===3&&(p.weaponCharge?.[3]??0)>=1)}else if(ch.id==='assassin')paintShivMotion(ctx,phase,motion>.25,Math.atan2(p.vy||0,p.vx||0));else if(ch.id==='golem')paintGolemSteam(ctx,phase,(p.recoilT||0)>0);else if(ch.id==='warden')paintWardenLight(ctx,p.aim,p.hp/p.maxhp<.35,phase);else if(ch.id==='revenant')paintVoidAura(ctx,phase,(p.recoilT||0)>0);pixelHeroBody(ctx,ch.id,walk,phase,p.aim,gait.limp);paintHeroSignature(ctx,ch.id,phase,walk);if(ch.id==='golem')paintGolemHeat(ctx,phase,(p.recoilT||0)>0);
  const wi=p===player?weapon:(p.weapon??0),active=(p.recoilT||0)>0&&p.recoilSlot===wi,pose=heroRecoilPose(ch.id,active?p.recoilT:0,wi,reduceMotion||!horrorFx);pixelHeroWeapon(ctx,ch.id,wi,active&&!reduceMotion&&horrorFx?p.recoilAim:(p.aim||0),p.fire||0,pose);if(ch.id==='scar'&&active)paintScarAttack(ctx,wi,p.recoilAim,p.recoilT);else if(ch.id==='vesa'&&active)paintVesaAttack(ctx,wi,p.recoilAim,p.recoilT);else if(ch.id==='nyx'&&active)paintNyxAttack(ctx,wi,p.recoilAim,p.recoilT);else if(ch.id==='pelmage'&&active)paintMageAttack(ctx,wi,p.recoilAim,p.recoilT);else if(ch.id==='assassin'&&active)paintShivAttack(ctx,wi,p.recoilAim,p.recoilT);else if(ch.id==='golem'&&active)paintGolemAttack(ctx,wi,p.recoilAim,p.recoilT);else if(ch.id==='warden'&&active)paintWardenAttack(ctx,wi,p.recoilAim,p.recoilT);else if(ch.id==='revenant'&&active)paintVoidAttack(ctx,wi,p.recoilAim,p.recoilT);
  if(p.inv>0&&p.dash>0){ctx.globalAlpha=.65;ctx.strokeStyle=(heroArt[ch.id]||heroArt.scar).glow;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-14,5);ctx.lineTo(-14,11);ctx.lineTo(-8,11);ctx.moveTo(14,5);ctx.lineTo(14,11);ctx.lineTo(8,11);ctx.stroke();ctx.globalAlpha=1}
  if(isP2)drawPixelText('P2',0,-39,7,'#6fe1a2','center');
@@ -6460,13 +6472,59 @@ function pixelForestEnemy(g,type,phase=0,lunge=0,attack=1){
  if(ready){R('#f7ca8b',-2,-30,4,2);R('#f7ca8b',-1,-33,2,2)}
  g.restore();return true;
 }
+// V75.15 — hand-authored nightmare anatomy, drawn on the native sprite grid.
+const nightmareAnatomy={
+ fork:[-6,'#d2b5a0','#71414c'],pepper:[-3,'#f0c08a','#79363c'],boiler:[-3,'#f2ae77','#6a3835'],butcher:[-18,'#d9c2aa','#69323e'],
+ crawler:[4,'#d1b49b','#633e52'],cableMite:[-12,'#a0dce3','#354353'],eye:[-8,'#d9afad','#834450'],wretch:[-22,'#c5b2d4','#49304f'],
+ plate:[-5,'#e0d3c1','#85505e'],neonGhost:[-12,'#dcbbe2','#55355c'],vendingDrone:[-8,'#d6c0b1','#58404e'],siren:[-13,'#b7c5d7','#3b3a53'],
+ knife:[-10,'#c9c8bb','#68434a'],chainHound:[-6,'#dac7ad','#644049'],slicer:[-10,'#d8c3b5','#704149'],maw:[-5,'#d9c7ad','#713b41'],
+ boneWalker:[-23,'#dbd0b6','#554953'],hands:[0,'#d2b7b4','#714855'],stalker:[-18,'#dfc7bd','#49334f'],feaster:[-6,'#e0c4a9','#673741'],
+ sporeBeetle:[5,'#c8d7a3','#46583f'],rootHorror:[-8,'#b8c494','#4a4139'],spitter:[-16,'#c3dba7','#40513e'],parasite:[8,'#c9d5a0','#42533d']
+};
+function paintNightmareAnatomy(g,type,phase=0,lunge=0,attack=1,less=false){
+ const spec=nightmareAnatomy[type];if(!spec)return false;
+ const [y,bone,flesh]=spec,ink='#100b15',t=less?0:Math.round(Math.sin(phase*1.7)*2),jaw=less?1:Math.max(0,t+1),hot=attack<.18?'#ffe0ad':'#d7a7a7';
+ const R=(col,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(col,pts)=>{g.fillStyle=col;g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill()};
+ const mouth=(x,yy,w,h)=>{R(ink,x,yy,w,h);R(flesh,x+1,yy+2,w-2,h-3);for(let i=1;i<w-1;i+=3){R(bone,x+i,yy,2,2+(i%2));R(bone,x+i,yy+h-2,1,2)}};
+ const socket=(x,yy,w=5)=>{R(ink,x-1,yy-1,w+2,5);R(hot,x,yy,w,1);R('#f4e2ce',x+Math.floor(w/2),yy,1,1)};
+ const claw=(s,x,yy,len)=>{P(ink,[x,yy,x+s*4,yy-1,x+s*len,yy+8+t*s,x+s*(len-3),yy+11+t*s,x+s*1,yy+5]);P(flesh,[x+s*2,yy,x+s*4,yy+1,x+s*(len-2),yy+7+t*s,x+s*(len-4),yy+8+t*s]);for(let i=0;i<3;i++)R(bone,x+s*(len-4+i),yy+8+t*s+i,1,3)};
+ g.save();
+ switch(type){
+ case 'fork':P(ink,[-8,-10,0,-13,8,-9,5,8,-2,13,-7,6]);socket(-5,-7,2);socket(2,-8,3);mouth(-4,-1,8,8);for(let i=0;i<3;i++)R(flesh,-3+i*3,-22+i*3,1,6);break;
+ case 'pepper':P(ink,[-7,-7,1,-12,8,-6,7,7,-1,12,-8,5]);socket(-5,-6,2);socket(2,-7,2);mouth(-5,-1,10,9+jaw);claw(-1,-9,0,9);claw(1,9,2,8);break;
+ case 'boiler':P(ink,[-10,-9,10,-9,11,4,6,9,-6,9,-11,4]);R('#9d4d35',-8,-7,16,12);for(let i=0;i<5;i++){R(ink,-7+i*3,-6,2,10);R('#eea46c',-7+i*3,-5,1,4+jaw)}R(bone,-9,6,18,1);break;
+ case 'butcher':P(ink,[-8,-24,7,-24,10,-17,6,-8,-4,-9,-9,-16]);R('#a58f83',-7,-23,5,7);R(flesh,3,-23,4,9);socket(-5,-19,2);R(hot,4,-18,1,2);mouth(-4,-15,8,7+jaw);for(let i=0;i<3;i++)R('#d0aa96',-5+i*3,2+i%2,2,1);break;
+ case 'crawler':for(const s of [-1,1]){claw(s,s*7,3,12);socket(s<0?-6:3,2,2)}mouth(-4,7,8,5+jaw);R(flesh,-1,-15,2,16);break;
+ case 'cableMite':for(const s of [-1,1]){P(ink,[s*4,-20,s*12,-29,s*17,-24,s*14,-22,s*8,-23]);R(bone,s<0?-15:12,-25,3,1)}R(ink,-5,-14,10,10);R('#a5e6eb',-2,-13,4,6);R('#e0fcf4',-1,-12,1,4);for(let i=0;i<3;i++)R(flesh,-6+i*4,1,2,5);break;
+ case 'eye':for(const s of [-1,1]){P(flesh,[s*4,-12,s*9,-15,s*13,-8,s*9,-10,s*5,-7]);P(flesh,[s*3,2,s*8,7,s*12,1,s*8,3]);}R(ink,-3+t,-12,5,16);R('#f6e3c8',-2+t,-10,1,2);claw(-1,-14,0,9);claw(1,14,-3,8);break;
+ case 'wretch':P(ink,[-6,-29,5,-29,8,-22,5,-11,0,-8,-6,-15]);socket(-4,-23,2);socket(2,-24,1);mouth(-3,-19,6,10+jaw);claw(-1,-15,-2,10);for(let i=0;i<4;i++)R(bone,-4,0+i*2,8-i,1);break;
+ case 'plate':P(ink,[-10,-10,-5,-5,-9,4,-5,8,0,6,6,11,11,1,7,-5,12,-11,9,-12,1,-8,-4,-13]);socket(-7,-6,2);socket(4,-7,2);mouth(-7,0,14,7+jaw);break;
+ case 'neonGhost':P(ink,[-8,-20,7,-20,10,-9,5,2,1,8,-6,1,-10,-9]);socket(-5,-13,2);socket(3,-12,2);mouth(-3,-7,6,11+jaw);P(flesh,[-12,2,-18,15+t,-10,9,-8,4]);P(flesh,[10,1,18,14-t,12,8,7,5]);break;
+ case 'vendingDrone':P(ink,[-11,-17,5,-17,5,4,-11,4]);for(let i=0;i<3;i++){socket(-9+i*4,-12-i%2,2);R(flesh,-9+i*4,-7,2,8)}mouth(-10,-3,14,8+jaw);R(bone,9,-14,2,6);break;
+ case 'siren':R(ink,-7,-18,14,15);for(let i=0;i<4;i++){R(bone,-5,-16+i*3,10-i,1);R(flesh,-3,-15+i*3,5,1)}for(const s of [-1,1]){P(ink,[s*13,-23,s*24,-23,s*27,-14,s*18,-10]);R(hot,s<0?-22:18,-17,4,2)}break;
+ case 'knife':P(ink,[-4,-25,3,-22,2,-10,5,-4,-4,-2,-5,-13]);socket(-2,-11,3);R(flesh,-3,-7,6,3);claw(-1,-10,-4,8);claw(1,10,-3,8);break;
+ case 'chainHound':P(ink,[12,-10,25,-8,28,3,21,10+jaw,13,5]);socket(17,-8,4);mouth(13,0,13,8+jaw);for(let i=0;i<4;i++)R(bone,-14+i*5,-14,2,3);break;
+ case 'slicer':P(ink,[-7,-21,6,-18,8,-5,2,0,-7,-6]);socket(-4,-13,2);R(hot,3,-12,2,1);mouth(-5,-8,10,6+jaw);R(flesh,-3,3,5,5);break;
+ case 'maw':mouth(-14,-7,28,15+jaw);socket(-8,-14,3);socket(5,-15,2);for(let i=0;i<4;i++)R(bone,-12+i*7,-20,3,3);break;
+ case 'boneWalker':P(ink,[-7,-26,7,-25,8,-15,1,-9,-6,-15]);socket(-5,-23,2);socket(3,-24,1);mouth(-4,-19,8,9+jaw);for(let i=0;i<4;i++)R(bone,-6+i%2,-8+i*4,12-i,1);break;
+ case 'hands':for(const s of [-1,1]){const x=s<0?-18:10;mouth(x,-3,8,7+jaw);for(let i=0;i<3;i++)R(bone,x+i*3,-15-(i%2)*3+t*s,2,5)}break;
+ case 'stalker':P(ink,[-6,-27,6,-26,8,-17,4,-6,-2,-4,-7,-15]);socket(-4,-20,2);socket(2,-21,1);mouth(-3,-15,6,10+jaw);claw(-1,-17,-1,9);claw(1,17,-2,8);break;
+ case 'feaster':mouth(-14,-9,28,15+jaw);P(ink,[-9,-23,8,-22,10,-12,-10,-12]);socket(-7,-19,3);socket(4,-20,2);claw(-1,-19,2,9);claw(1,19,2,9);break;
+ case 'sporeBeetle':R(ink,-7,3,14,7);for(let i=0;i<4;i++)socket(-6+i*3,4+i%2,1);mouth(-5,8,10,5);for(let i=0;i<3;i++)R(bone,-8+i*6,-14+i*3,2,2);break;
+ case 'rootHorror':P(ink,[-7,-12,7,-14,10,-4,3,9,-5,7,-9,0]);socket(-5,-8,2);socket(3,-10,2);mouth(-3,-3,7,8+jaw);claw(-1,-18,-5,10);claw(1,18,-4,9);break;
+ case 'spitter':P(ink,[-9,-23,9,-23,11,-14,6,-5,-6,-5,-11,-14]);mouth(-7,-20,14,12+jaw);R('#bed38e',-1,-16,3,6);R(flesh,-3,-3,7,8);break;
+ case 'parasite':for(let i=0;i<3;i++){const x=-6+i*5,yy=-15+i*6;R(ink,x-2,yy-2,6,6);R(bone,x,yy,2,2);R(flesh,x-1,yy+3,4,2)}mouth(-5,5,11,7+jaw);claw(-1,-11,2,8);claw(1,11,-1,8);break;
+ }g.restore();return true;
+}
+
 function pixelEnemy(g,type,phase=0,lunge=0,attack=1){
- if(pixelForestEnemy(g,type,phase,lunge,attack))return;
- if(pixelGraveyardEnemy(g,type,phase,lunge,attack))return;
- if(pixelIndustrialEnemy(g,type,phase,lunge,attack))return;
- if(pixelFoodcourtEnemy(g,type,phase,lunge,attack))return;
- if(pixelBasementEnemy(g,type,phase,lunge,attack))return;
- if(pixelKitchenEnemy(g,type,phase,lunge,attack))return;
+ if(pixelForestEnemy(g,type,phase,lunge,attack)){paintNightmareAnatomy(g,type,phase,lunge,attack,reduceMotion);return;}
+ if(pixelGraveyardEnemy(g,type,phase,lunge,attack)){paintNightmareAnatomy(g,type,phase,lunge,attack,reduceMotion);return;}
+ if(pixelIndustrialEnemy(g,type,phase,lunge,attack)){paintNightmareAnatomy(g,type,phase,lunge,attack,reduceMotion);return;}
+ if(pixelFoodcourtEnemy(g,type,phase,lunge,attack)){paintNightmareAnatomy(g,type,phase,lunge,attack,reduceMotion);return;}
+ if(pixelBasementEnemy(g,type,phase,lunge,attack)){paintNightmareAnatomy(g,type,phase,lunge,attack,reduceMotion);return;}
+ if(pixelKitchenEnemy(g,type,phase,lunge,attack)){paintNightmareAnatomy(g,type,phase,lunge,attack,reduceMotion);return;}
  const ink='#100b15',bone='#e3c8af',steel='#a9b9bf',hi='#f3e5ce';
  const step=Math.round(Math.sin(phase*1.5)*2),jaw=Math.round((Math.sin(phase)+1)*1.2);
  const R=(col,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
