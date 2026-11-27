@@ -2848,7 +2848,7 @@ function applyNetState(s){
  relicOwned=!!s.relicOwned;wave=s.wave||1;score=s.score||0;combo=s.combo||1;waveState=s.waveState||'fighting';targetCount=s.targetCount??enemies.length;spawned=s.spawned??targetCount;
 }
 function netState(){
- return {p1:{x:player.x,y:player.y,boost:player.boost,speed:player.speed,heroUpgrades:player.heroUpgrades,charId:player.charId,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:weapon,lvl:player.lvl,bomb:player.bomb,dash:player.dash,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,boost:player2.boost,speed:player2.speed,heroUpgrades:player2.heroUpgrades,charId:player2.charId,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,dash:player2.dash,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,dead:e.dead,stage:e.stage,kind:e.kind,bossId:e.bossId,charge:e.charge,lunge:e.lunge,attack:e.attack})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy,kind:p.kind,artHero:p.artHero,artSlot:p.artSlot,artEvolved:p.artEvolved,element:p.element,venomArt:p.venomArt,shadowArt:p.shadowArt,mageArt:p.mageArt,shivArt:p.shivArt,golemArt:p.golemArt,wardenArt:p.wardenArt,voidArt:p.voidArt})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,value:d.value,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type,name:boss.name,enName:boss.enName,stage:boss.stage,kind:boss.kind,bossId:boss.bossId}:null,hazards:hazards.map(({x,y,radius,remaining,duration,kind})=>({x,y,radius,remaining,duration,kind})),wave,score,combo,waveState,targetCount,spawned,npcEvent,relicOwned}
+ return {p1:{x:player.x,y:player.y,boost:player.boost,speed:player.speed,heroUpgrades:player.heroUpgrades,charId:player.charId,hp:player.hp,maxhp:player.maxhp,xp:player.xp,next:player.next,dead:player.dead,aim:player.aim,weapon:weapon,lvl:player.lvl,bomb:player.bomb,dash:player.dash,shivCharge:player.shivCharge,weaponCharge:player.weaponCharge,weaponLevels:player.weaponLevels},p2:{x:player2.x,y:player2.y,boost:player2.boost,speed:player2.speed,heroUpgrades:player2.heroUpgrades,charId:player2.charId,hp:player2.hp,maxhp:player2.maxhp,xp:player2.xp,next:player2.next,dead:player2.dead,aim:player2.aim,weapon:player2.weapon,lvl:player2.lvl,bomb:player2.bomb,dash:player2.dash,shivCharge:player2.shivCharge,weaponCharge:player2.weaponCharge,weaponLevels:player2.weaponLevels},enemies:enemies.map(e=>({x:e.x,y:e.y,r:e.r,hp:e.hp,maxhp:e.maxhp,type:e.type,phase:e.phase,dead:e.dead,stage:e.stage,kind:e.kind,bossId:e.bossId,charge:e.charge,lunge:e.lunge,attack:e.attack,comboWindup:e.comboWindup,comboRecover:e.comboRecover})),projectiles:projectiles.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:p.r,life:p.life,color:p.color,enemy:p.enemy,kind:p.kind,artHero:p.artHero,artSlot:p.artSlot,artEvolved:p.artEvolved,element:p.element,venomArt:p.venomArt,shadowArt:p.shadowArt,mageArt:p.mageArt,shivArt:p.shivArt,golemArt:p.golemArt,wardenArt:p.wardenArt,voidArt:p.voidArt})),drops:drops.map(d=>({x:d.x,y:d.y,type:d.type,value:d.value,life:d.life,pulse:d.pulse})),boss:boss?{x:boss.x,y:boss.y,hp:boss.hp,maxhp:boss.maxhp,type:boss.type,name:boss.name,enName:boss.enName,stage:boss.stage,kind:boss.kind,bossId:boss.bossId}:null,hazards:hazards.map(({x,y,radius,remaining,duration,kind})=>({x,y,radius,remaining,duration,kind})),wave,score,combo,waveState,targetCount,spawned,npcEvent,relicOwned}
 }
 function sendNet(m){
  const c=m?.t==='state'&&netStateConn?.open?netStateConn:netConn;
@@ -3841,6 +3841,70 @@ function squadSteering(e,tp,oldX,oldY,sx,sy,round,plan,area){
  const pull=Math.min(1,d/20),mx=sx*(1-blend)+dx/d*len*blend*pull,my=sy*(1-blend)+dy/d*len*blend*pull;
  const cap=Math.max(1,Math.hypot(mx,my)/len);return [mx/cap,my/cap];
 }
+// V72.3 — Boss Intelligence: individual alternate combinations and recovery windows.
+const bossComboArt=[
+ ['Cleaver sweep',.78,25,1.12,38],
+ ['Pressure release',1.05,31,1.28,42],
+ ['Crossed circuit',.85,23,1.12,48],
+ ['Pipe rupture',.92,27,1.24,47],
+ ['Neon zigzag',.72,23,1.10,45],
+ ['Return to sender',1.02,28,1.25,48],
+ ['Blade corridor',.80,23,1.15,46],
+ ['Conveyor cascade',1.10,27,1.25,46],
+ ['Grave procession',.90,26,1.25,50],
+ ['Bone fracture',.96,27,1.20,48],
+ ['Spore spiral',.98,28,1.28,48],
+ ['Root fork',.76,24,1.18,47],
+ ['Broken seals',1.20,26,1.30,54],
+ ['Resonant toll',1.04,25,1.24,48],
+ ['Veil stitches',.94,24,1.25,48]
+];
+function bossComboFor(id){return bossComboArt[id]||bossComboArt[0]}
+function bossComboPattern(e,tp,area){
+ const id=e.bossId,stage=Math.max(1,Math.min(3,e.stage||1)),art=bossComboFor(id),r=art[2],delay=art[3],step=art[4];
+ const a=Math.atan2(tp.y-e.y,tp.x-e.x),nx=Math.cos(a),ny=Math.sin(a),x=tp.x,y=tp.y,out=[];
+ const damage=id===12?18+stage*4:id>=13?14+stage*4:18+stage*5;
+ // Local attack coordinates: forward along the boss-target line, across perpendicular.
+ // Never add identical or near-stacked marks near an arena edge.
+ function mark(f,s,i,rad=r,scale=.86,origin=tp){
+  if(out.length>=5)return;
+  const xx=Math.max(area.l+20,Math.min(area.r-20,origin.x+nx*f-ny*s)),yy=Math.max(area.t+20,Math.min(area.b-20,origin.y+ny*f+nx*s));
+  if(out.some(q=>Math.hypot(q.x-xx,q.y-yy)<Math.max(22,Math.min(rad,q.radius)*.8)))return;
+  out.push({x:xx,y:yy,radius:rad,damage:Math.round(damage*scale),delay:delay+i*.23});
+ }
+ switch(id){
+ case 0:for(let i=-1;i<=1;i++)mark(-step*.35,i*step,i+1);if(stage>=2)mark(step,0,3);if(stage===3)mark(step*2,0,4);break;
+ case 1:mark(0,0,0,48,.82,e);mark(0,0,1);mark(step,step,2);if(stage>=2)mark(-step,-step,3);if(stage===3)mark(step,-step,4);break;
+ case 2:mark(-step,0,0);mark(0,step,1);mark(step,0,2);if(stage>=2)mark(0,-step,3);if(stage===3)mark(0,0,4);break;
+ case 3:mark(-step,step,0);mark(0,-step,1);mark(step,step,2);if(stage>=2)mark(step*1.8,-step*.5,3);if(stage===3)mark(0,0,4);break;
+ case 4:for(let i=0;i<stage+2;i++)mark((i-1)*step*.70,(i%2?1:-1)*step*.62,i);break;
+ case 5:mark(0,0,0,36);mark(step,0,1);mark(-step,0,2);if(stage>=2)mark(0,step,3);if(stage===3)mark(0,-step,4);break;
+ case 6:mark(-step,-step*.6,0);mark(0,-step*.6,1);mark(step,-step*.6,2);if(stage>=2)mark(step,step*.8,3);if(stage===3)mark(0,step*.8,4);break;
+ case 7:for(let i=0;i<stage+2;i++)mark((i-1)*step,0,i);break;
+ case 8:mark(0,-step,0);mark(step,-step*.4,1);mark(step,step*.7,2);if(stage>=2)mark(0,step,3);if(stage===3)mark(-step,step*.5,4);break;
+ case 9:mark(0,0,0,42,.85,e);mark(-step,step,1);mark(-step,-step,2);if(stage>=2)mark(step,0,3);if(stage===3)mark(0,0,4);break;
+ case 10:for(let i=0;i<stage+2;i++){const b=i*2.4;mark(Math.cos(b)*(step*.65+i*8),Math.sin(b)*(step*.65+i*8),i)}break;
+ case 11:mark(-step,0,0);mark(0,0,1);mark(step,step*.7,2);if(stage>=2)mark(step,-step*.7,3);if(stage===3)mark(step*1.8,0,4);break;
+ case 12:for(let i=0;i<stage+2;i++){const b=(i+.5)*Math.PI*.4;mark(Math.cos(b)*step,Math.sin(b)*step,i)}break;
+ case 13:mark(step,0,0,r,.82,e);mark(step*2,0,1,r,.82,e);mark(step*3,0,2,r,.82,e);if(stage>=2)mark(0,step,3);if(stage===3)mark(0,-step,4);break;
+ case 14:mark(-step,-step,0);mark(step,step,1);mark(-step,step,2);if(stage>=2)mark(step,-step,3);if(stage===3)mark(0,0,4);break;
+ default:mark(0,0,0);break;
+ }
+ return out;
+}
+function bossComboTick(e,dt){
+ e.comboWindup=Math.max(0,(e.comboWindup||0)-dt);
+ e.comboRecover=Math.max(0,(e.comboRecover||0)-dt);
+ return e.comboWindup<=0&&e.comboRecover>0;
+}
+function startBossCombo(e,tp,area,legacy){
+ const cycle=e.comboCycle||0;
+ const marks=cycle%2===0?legacy(e,tp):bossComboPattern(e,tp,area);
+ e.comboCycle=cycle+1;
+ const last=marks.reduce((m,q)=>Math.max(m,q.delay),0);
+ if(last>0){e.comboWindup=last;e.comboRecover=last+bossComboFor(e.bossId)[1]}
+ return marks;
+}
 function updateEnemies(dt){
  const squadPlans=buildEnemySquadPlans(enemies,alivePlayers(),wave,arena);
  for(const e of enemies){
@@ -3859,23 +3923,25 @@ function updateEnemies(dt){
    const ratio=e.hp/e.maxhp;
    const stage=ratio<.25?3:(ratio<.55?2:1);
    if(stage>e.stage){e.stage=stage;emitNpc('Now you will see.',e.bossId);toast((L("BOSS PHASE ","ФАЗА БОССА "))+stage);ring(e.x,e.y,4,'#ff8c4c',.65,65);e.specialTimer=Math.max(.7,e.specialTimer)}
-   e.attack-=dt;
-   e.dashTimer-=dt;
+   const recovering=bossComboTick(e,dt),comboBusy=(e.comboRecover||0)>0;
+   if(!recovering)e.attack-=dt;
+   if(!comboBusy)e.dashTimer-=dt;
    e.specialTimer-=dt;
    const rage=e.stage===3?1.72:e.stage===2?1.42:1.18;
    // Telegraph the charge before moving to the locked destination.
    if(e.charge){e.charge.left-=dt;if(e.charge.left<=0){e.x=e.charge.x;e.y=e.charge.y;e.charge=null;ring(e.x,e.y,28,'#ff4055',.25,54);spawnParticles(e.x,e.y,16,'#ff4055',1.5);shake=Math.max(shake,.08)}}
-   else if(e.dashTimer<=0){
+   else if(e.dashTimer<=0&&!comboBusy&&e.specialTimer>0){
     e.dashTimer=(1.5+Math.random()*1.25)/rage+.48;
     const da=Math.atan2(dy,dx),length=e.stage===3?150:e.stage===2?125:105;
     e.charge={x:clamp(e.x+Math.cos(da)*length,arena.l+35,arena.r-35),y:clamp(e.y+Math.sin(da)*length,arena.t+35,arena.b-35),left:.48};
    }
-   if(e.specialTimer<=0){
+   if(e.specialTimer<=0&&!comboBusy&&!e.charge&&!(e.lunge>0)){
     e.specialTimer=(3.7+Math.random()*1.1)/Math.sqrt(rage);
-    for(const h of bossSpecialPattern(e,tp))scheduleHazard(h.x,h.y,h.radius,h.damage,h.delay,e);
+    for(const h of startBossCombo(e,tp,arena,bossSpecialPattern))scheduleHazard(h.x,h.y,h.radius,h.damage,h.delay,e);
+    e.specialTimer=Math.max(e.specialTimer,(e.comboRecover||0)+.65);
 
    }
-   if(e.attack<=0){
+   if(e.attack<=0&&!recovering){
     e.attack=(.48+Math.random()*.36)/Math.sqrt(rage);
     if(e.bossId>=13){e.attack=(1.1+Math.random()*.3)/Math.sqrt(rage);const a=Math.atan2(dy,dx),count=e.bossId===13?3+e.stage:5+e.stage;for(let i=0;i<count;i++){const b=e.bossId===13?a+(i-(count-1)/2)*.22:a+i*TAU/count;projectiles.push({x:e.x,y:e.y,vx:Math.cos(b)*115,vy:Math.sin(b)*115,life:2,r:3,damage:12+e.stage*3,pierce:99,color:bossProfile(e).color,enemy:true})}}
     else if(e.bossId===12){e.attack=(.95+Math.random()*.25)/Math.sqrt(rage);const count=4+e.stage*2,offset=Math.atan2(dy,dx)+Math.PI/count;for(let i=0;i<count;i++){const a=offset+i*TAU/count;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*(90+e.stage*15),vy:Math.sin(a)*(90+e.stage*15),life:2,r:3,damage:14+e.stage*4,pierce:99,color:'#dfb4ff',enemy:true})}}
@@ -3895,8 +3961,8 @@ function updateEnemies(dt){
       ring(e.x,e.y,52,'#ef5862',.3,66);for(let i=0;i<8+e.stage*2;i++){const a=i*TAU/(8+e.stage*2)+e.phase*.2;projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*78,vy:Math.sin(a)*78,life:2.3,r:4,damage:18+e.stage*4,pierce:99,color:'#ef5862',enemy:true})}
     }
    }
-   const bm=e.stage===3?1.48:e.stage===2?1.28:1.12;
-   if(!e.charge){if(e.kind===4&&e.lunge>0)e.x+=nx*230*dt,e.y+=ny*230*dt;else{e.x+=nx*e.speed*bm*dt;e.y+=ny*e.speed*bm*dt}}
+   const bm=(e.stage===3?1.48:e.stage===2?1.28:1.12)*(recovering?.42:1);
+   if(!e.charge){if(e.kind===4&&e.lunge>0&&!recovering)e.x+=nx*230*dt,e.y+=ny*230*dt;else{e.x+=nx*e.speed*bm*dt;e.y+=ny*e.speed*bm*dt}}
    e.x=clamp(e.x,arena.l+24,arena.r-24);e.y=clamp(e.y,arena.t+24,arena.b-24);
    if(Math.hypot(tp.x-e.x,tp.y-e.y)<42)hurtPlayer(tp,dt*(18+e.stage*4),e.x,e.y);
   }else if(e.type==='cableMite'){
@@ -5696,6 +5762,7 @@ function drawEnemy(e){
  ctx.save();ctx.translate(Math.round(e.x),Math.round(e.y));const shadow=boss?31:Math.max(9,e.r||9);ctx.fillStyle='#100c15';ctx.fillRect(-shadow,Math.round(shadow*.65),shadow*2,4);
  ctx.translate(0,Math.round(Math.sin(phase)*(boss?1.5:1)));ctx.rotate((e.hitLean||0)*wave*.7);ctx.scale(1+.05*wave,1-.08*wave);
  if(boss){if(e.bossId>=13)paintHiddenBoss(ctx,bossProfile(e),e.stage||1,phase,!!e.charge);else if(e.bossId===12)paintFinalBoss(ctx,e.stage||1,phase,!!e.charge);else paintRosterBoss(ctx,e,phase,!!e.charge)}else if(e.elite){const q=eliteProfiles[e.elite];ctx.save();ctx.scale(1.35,1.35);pixelEnemy(ctx,e.type,phase,e.lunge||0,e.attack??1);ctx.restore();ctx.fillStyle=q.color;ctx.fillRect(-10,-43,20,2);ctx.fillRect(-8,-47,4,4);ctx.fillRect(4,-47,4,4);ctx.fillRect(-2,-50,4,7);drawPixelText(metaLabel(q),0,-57,7,q.color,'center');}else pixelEnemy(ctx,e.type,phase,e.lunge||0,e.attack??1);
+ if(boss&&(e.comboWindup||0)<=0&&(e.comboRecover||0)>0){const w=24*Math.min(1,e.comboRecover/bossComboFor(e.bossId)[1]);ctx.fillStyle='#17251f';ctx.fillRect(-13,-61,26,4);ctx.fillStyle='#b3e1b1';ctx.fillRect(-12,-60,w,2)}
  if(!boss&&(e.hit>0||e.elite)&&e.maxhp>0){const w=e.elite?35:Math.max(12,Math.min(24,Math.round((e.r||9)*1.5))),y=e.elite?-40:-34;ctx.fillStyle='#1c111a';ctx.fillRect(-w/2,y,w,3);ctx.fillStyle=e.elite?eliteProfiles[e.elite].color:'#e56b67';ctx.fillRect(-w/2,y,w*Math.max(0,Math.min(1,e.hp/e.maxhp)),2)}
  if(soloRun){const active=[e.burnStatus?'fire':null,e.venomStatus?'poison':null,e.frozen>0?'frost':null,e.cursed>0?'curse':null,e.shockCooldown>0?'shock':null].filter(Boolean);active.forEach((k,i)=>{ctx.fillStyle=elements[k].color;ctx.fillRect(-active.length*2+i*4,10,3,3)})}
  ctx.restore();
