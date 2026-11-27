@@ -4035,10 +4035,10 @@ function makeMenu(){
  if(!heroPlayable(chars.find(c=>c.id===selectedChar),meta,journal,coop||onlineMode))selectedChar=chars[0].id;
  const cc=document.getElementById('charChoices');cc.innerHTML='';document.getElementById('recordLine').textContent=recordText(loadRecord());
  for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;menuArtwork(()=>{pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);paintHeroSignature(pg,ch.id,0,0);pixelHeroWeapon(pg,ch.id,0,0,0)});d.prepend(portrait);if(!heroPlayable(ch,meta,journal,coop||onlineMode)){d.classList.add('heroLocked');d.disabled=true;const note=document.createElement('small');note.textContent=ch.unlock&&(coop||onlineMode)?L('Solo only','Только соло'):heroLockText(ch);d.append(note)}d.onclick=()=>{if(!heroPlayable(ch,meta,journal,coop||onlineMode))return;selectedChar=ch.id;if(campaignMode&&!coop&&!onlineMode)selectedMap=storyFor(ch.id).maps[0];saveMenuSelection();makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
- const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:L('Endless survival','Бесконечное выживание'),desc:T('modeOneDesc')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes.filter(q=>q.id!=='online'||ONLINE_COOP_ENABLED)){const d=document.createElement('button');d.type='button';d.className='modeChoice'+((md.id==='solo'&&!campaignMode&&!coop&&!onlineMode)||(md.id==='campaign'&&campaignMode&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.setAttribute('aria-pressed',String(d.classList.contains('sel')));d.innerHTML=uiPixelIcon(md.id==='campaign'?'solo':md.id)+`<div class="modeCopy"><b>${md.title}</b><p>${md.desc}</p></div>`;d.onclick=()=>{if(md.id!=='online'&&onlineMode&&(netConn||peer))disconnectOnline(L('Left the room','Выход из комнаты'));campaignMode=md.id==='campaign';onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';if(campaignMode){selectedMap=storyFor(selectedChar).maps[0];saveMenuSelection()}document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu();modeBox.querySelector('.sel')?.focus({preventScroll:true})};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||L('No room')):'')}
+ const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:L('Endless survival','Бесконечное выживание'),desc:T('modeOneDesc')+' · '+L('Portals after waves 25, 50, 75 and 100','Порталы после волн 25, 50, 75 и 100')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes.filter(q=>q.id!=='online'||ONLINE_COOP_ENABLED)){const d=document.createElement('button');d.type='button';d.className='modeChoice'+((md.id==='solo'&&!campaignMode&&!coop&&!onlineMode)||(md.id==='campaign'&&campaignMode&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.setAttribute('aria-pressed',String(d.classList.contains('sel')));d.innerHTML=uiPixelIcon(md.id==='campaign'?'solo':md.id)+`<div class="modeCopy"><b>${md.title}</b><p>${md.desc}</p></div>`;d.onclick=()=>{if(md.id!=='online'&&onlineMode&&(netConn||peer))disconnectOnline(L('Left the room','Выход из комнаты'));campaignMode=md.id==='campaign';onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';if(campaignMode){selectedMap=storyFor(selectedChar).maps[0];saveMenuSelection()}document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu();modeBox.querySelector('.sel')?.focus({preventScroll:true})};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||L('No room')):'')}
  const mc=document.getElementById('mapChoices');mc.innerHTML='';
  for(const m of maps){const d=document.createElement('button');d.type='button';d.className='choice'+(m.id===selectedMap?' sel':'');d.style.setProperty('--accent',m.accent);d.style.setProperty('--card',m.tile);d.setAttribute('aria-pressed',String(m.id===selectedMap));d.innerHTML=`<b>${locName(m).split(' — ')[0]}</b>`;const thumbnail=document.createElement('canvas');thumbnail.width=160;thumbnail.height=90;thumbnail.className='mapPortrait';thumbnail.setAttribute('aria-hidden','true');menuArtwork(()=>thumbnail.getContext('2d').drawImage(mapThumbnail(m.id),0,0));d.prepend(thumbnail);d.onclick=()=>{selectedMap=m.id;saveMenuSelection();makeMenu();mc.querySelector('.sel')?.focus({preventScroll:true})};mc.appendChild(d)}
- refreshCampaignModeCard();const guide=document.getElementById('storyGuide');guide.hidden=!campaignMode||coop||onlineMode;guide.textContent=SU(14)+'\n'+SU(15);applyLanguageStatic();renderCheckpointMenu();
+ refreshCampaignModeCard();const guide=document.getElementById('storyGuide');guide.hidden=!campaignMode||coop||onlineMode;guide.textContent=SU(14)+'\n'+SU(15)+'\n'+L('Optional story rooms open after waves 3, 8 and 13.','Сюжетные тайные комнаты открываются после волн 3, 8 и 13.');applyLanguageStatic();renderCheckpointMenu();
 }
 const restoredMenuChoice=menuChoiceDefaults(readStorage('dumpling-riot-hero',''),readStorage('dumpling-riot-arena',''));selectedChar=restoredMenuChoice.hero;selectedMap=restoredMenuChoice.map;
 // Menu initialization runs after all renderer constants are initialized, below.
@@ -4272,7 +4272,7 @@ function wireStateNet(c){
 function startOnlineHost(){if(!ONLINE_COOP_ENABLED)return false;if(!netConn?.open){setOnlineStatus(L('Create or join a room first.','Сначала создай комнату и дождись игрока.'));return false}netRun++;netSeq=0;netUpgrade=0;remoteSeenAt=remoteInputAt=Date.now();sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false,checkpoint=null,date=null,rank=null){
  if(!ONLINE_COOP_ENABLED&&(onlineMode||fromNetwork))return;
- touchAimMode=false;hudElapsed=1;if(savedCheckpoint&&!coop&&!onlineMode&&!checkpoint)return;saveAtBoundary=false;encounter=null;
+ touchAimMode=false;hudElapsed=1;if(savedCheckpoint&&!coop&&!onlineMode&&!checkpoint)return;resetDimensions();saveAtBoundary=false;encounter=null;
  if(onlineMode&&!fromNetwork&&(!isOnlineHost||!startOnlineHost()))return;
  const dailyRun=!coop&&!onlineMode?dailyPreset(checkpoint?.run.daily??date??(state!=='menu'?soloRun?.daily:null)):null;
  const abyssRun=!coop&&!onlineMode&&!dailyRun?abyssRank(checkpoint?.run.abyss??rank??(state!=='menu'?soloRun?.abyss:null)):null;
@@ -4301,6 +4301,16 @@ const dimensionTiers={
 const hiddenChambers={
  kitchen:['Forgotten pantry','Забытая кладовая'],basement:['Sealed maintenance vault','Запечатанный технический отсек'],foodcourt:['Closed service room','Закрытая служебная комната'],slaughter:['Abandoned inspection cell','Заброшенная контрольная камера'],cemetery:['Nameless crypt','Безымянный склеп'],forest:['Buried hollow','Погребённая нора']
 };
+const campaignRoomArt={
+ scar:{color:'#efa67f',floor:'#352324',wall:'#78443b',types:['fork','boiler','butcher'],mark:0},
+ vesa:{color:'#e06c78',floor:'#29251e',wall:'#534938',types:['sporeBeetle','stalker','rootHorror'],mark:3},
+ nyx:{color:'#b5a2ed',floor:'#201c32',wall:'#51446e',types:['neonGhost','eye','siren'],mark:2},
+ pelmage:{color:'#91cfe4',floor:'#1e2638',wall:'#3a5879',types:['cableMite','spitter','vendingDrone'],mark:1},
+ assassin:{color:'#99c6b3',floor:'#1c2827',wall:'#3e5b51',types:['knife','chainHound','slicer'],mark:1},
+ golem:{color:'#f1b26a',floor:'#35231b',wall:'#744d32',types:['boiler','maw','butcher'],mark:0},
+ warden:{color:'#e1cb8c',floor:'#292a20',wall:'#5c593d',types:['boneWalker','hands','feaster'],mark:2},
+ revenant:{color:'#c28edd',floor:'#2d1b33',wall:'#583962',types:['parasite','wretch','maw'],mark:3}
+};
 const campaignRooms={
  scar:['Kitchen of echoes','Кухня отголосков'],vesa:['The lost hunting lodge','Забытая охотничья сторожка'],nyx:['The room without reflections','Комната без отражений'],pelmage:['The forbidden laboratory','Запретная лаборатория'],assassin:['The erased guild archive','Стёртый архив гильдии'],golem:['The maker’s furnace','Печь создателя'],warden:['The extinguished sanctuary','Погасшее святилище'],revenant:['The nameless mausoleum','Безымянный мавзолей']
 };
@@ -4310,17 +4320,17 @@ function dimensionSpec(run,w,map){
  if(run.campaign){
   if(![3,8,13].includes(w))return null;
   const chapter=run.campaign.chapter,base=dimensionTiers[[25,50,75][chapter-1]],name=campaignRooms[run.hero]||campaignRooms.scar;
-  return {...base,en:name[0]+' · '+chapter,ru:name[1]+' · '+chapter,count:4+chapter*2,reward:8+chapter*4,campaign:true,hero:run.hero,chapter,kind:'memory'};
+  return {...base,...(campaignRoomArt[run.hero]||campaignRoomArt.scar),en:name[0]+' · '+chapter,ru:name[1]+' · '+chapter,names:[['Lost Memory','Потерянная память'],['Twisted Echo','Искажённый отголосок'],['Memory Keeper','Хранитель воспоминаний']],count:4+chapter*2,reward:8+chapter*4,campaign:true,hero:run.hero,chapter,kind:'memory'};
  }
  if(dimensionTiers[w])return {...dimensionTiers[w],kind:'portal'};
  if([10,20,40,60,80,90].includes(w)){
   const name=hiddenChambers[map],base=dimensionTiers[w<25?25:w<50?50:w<75?75:100];
-  return {...base,en:name[0],ru:name[1],types:arenaEnemyRoster[map].slice(0,3),count:5+Math.floor(w/20),reward:8+Math.floor(w/5),kind:'chamber'};
+  return {...base,en:name[0],ru:name[1],types:arenaEnemyRoster[map].slice(0,3),names:[['Hidden Crawler','Тайный ползун'],['Room Shade','Тень комнаты'],['Secret Keeper','Хранитель тайника']],count:5+Math.floor(w/20),reward:8+Math.floor(w/5),kind:'chamber'};
  }
  return null;
 }
 function dimensionHud(title,detail,skip=false){
- const h=document.getElementById('dimensionHud');h.hidden=!title;h.querySelector('b').textContent=title||'';h.querySelector('span').textContent=detail||'';const b=h.querySelector('button');b.hidden=!skip;b.textContent=L('Skip','Пропустить');
+ const h=document.getElementById('dimensionHud');const signature=[title,detail,skip,lang].join('|');if(h.dataset.signature===signature)return;h.dataset.signature=signature;h.hidden=!title;h.querySelector('b').textContent=title||'';h.querySelector('span').textContent=detail||'';const b=h.querySelector('button');b.hidden=!skip;b.textContent=L('Skip','Пропустить');
 }
 function resetDimensions(){dimension=null;dimensionGate=null;dimensionOffered=0;Object.assign(arena,mainArenaBounds);dimensionHud('','')}
 function dimensionGatePosition(p,bounds){
@@ -4401,6 +4411,12 @@ function paintDimensionFloor(g,d,view){
  }
  g.lineWidth=5;g.strokeStyle=q.wall;g.strokeRect(arena.l,arena.t,arena.r-arena.l,arena.b-arena.t);g.lineWidth=1;g.strokeStyle=q.color;g.strokeRect(arena.l+8,arena.t+8,arena.r-arena.l-16,arena.b-arena.t-16);
  for(let i=0;i<12;i++){const x=arena.l+90+i*90,y=arena.t+34;g.fillStyle=q.wall;g.fillRect(x-7,y-15,14,28);g.fillStyle=q.color;g.fillRect(x-2,y-13,4,7);g.fillRect(x-2,arena.b-24,4,7)}
+ g.save();g.translate(960,550);g.strokeStyle=q.color;g.globalAlpha=.3;g.lineWidth=2;
+ if(q.mark===0){for(let i=0;i<3;i++)g.strokeRect(-60-i*38,-48-i*28,120+i*76,96+i*56)}
+ else if(q.mark===1){for(let i=-2;i<=2;i++){g.beginPath();g.moveTo(-550,i*66);g.lineTo(-100,i*66);g.lineTo(-55,0);g.lineTo(55,0);g.lineTo(100,i*66);g.lineTo(550,i*66);g.stroke()}}
+ else if(q.mark===2){for(let i=0;i<4;i++){const r=55+i*35;g.beginPath();g.moveTo(0,-r);g.lineTo(r*1.6,0);g.lineTo(0,r);g.lineTo(-r*1.6,0);g.closePath();g.stroke()}}
+ else{for(let i=0;i<4;i++){g.beginPath();g.ellipse(0,0,55+i*40,40+i*27,0,0,TAU);g.stroke()}}
+ g.restore();
 }
 function paintDimensionGate(g,q,color,label){
  if(!q)return;g.save();g.translate(Math.round(q.x),Math.round(q.y));const p=reduceMotion?0:Math.sin(horrorTime*3)*3;
@@ -5470,7 +5486,7 @@ function finishEnemyDeath(e){
  enemyDeathVoice(e.type,e.type==='boss'?e.bossId:null);
  score+=e.type==='boss'?3200:e.elite?800:[100,170,220][enemyTier(e.type)];
  combo=Math.min(9,combo+.25);dropEnemyXP(e);
- if(e.type==='parasite'){for(let i=0;i<2;i++){const ang=rnd(0,TAU);spawnEnemy('sporeBeetle',{x:e.x+Math.cos(ang)*12,y:e.y+Math.sin(ang)*12})}}
+ if(e.type==='parasite'&&!e.dimensionMob){for(let i=0;i<2;i++){const ang=rnd(0,TAU);spawnEnemy('sporeBeetle',{x:e.x+Math.cos(ang)*12,y:e.y+Math.sin(ang)*12})}}
  materialBloodBurst(e,e.type==='boss'?34:(e.type==='butcher'||e.type==='wretch'?22:15),e.type==='boss'?1.6:1.0);
  if(e.type==='boss'){
    if(e.bossId===12&&soloRun?.campaign)soloRun.campaign.finalKilled=true;
