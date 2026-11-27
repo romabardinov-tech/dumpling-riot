@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.6. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.7. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -117,3 +117,6 @@ Fourth individual visual pass, PELMAGE only. Original embroidered indigo robes, 
 
 ## V68.6 — Silent Blade: SHIV
 Fifth individual visual pass, ASSASSIN/SHIV only. Original segmented steel armor, asymmetrical pauldrons, hidden knife sheaths and distinctive finishes for kunai, paired knives, twinblade and five-blade fan. Directional speed streaks only while moving, separate short attack echoes, sharpened silver dash trails and impact cuts. Third-weapon shadow dash uses the existing bounded ghost presentation without changing position or invulnerability. Optional shivArt field in snapshots, protocol v68 unchanged. Animated accents respect reduced motion/horror FX. Inline syntax and 7717 isolated geometry/drawing-command assertions passed; real rendering, mobile FPS and network visual synchronization remain unverified.
+
+## V68.7 — Iron Furnace: GOLEM
+Sixth individual visual pass, GOLEM only. Original riveted cast-iron casing, copper feed pipes, furnace grate and reinforced boots. Distinct boiler, nozzle, hammer and vent-stack weapon finishes and separate attack echoes. Bounded chimney steam and gentle furnace heat, dust and sparks on dash, metal fragments at impacts, decorative steam projectile trails. Optional golemArt snapshot field; protocol v68 and gameplay balance unchanged. Animated accents respect reduced motion/horror FX; the former unconditionally animated chimney steam was replaced. Inline syntax and 2907 isolated drawing-command/geometry assertions passed. Actual rendered image review, mobile FPS and network visual synchronization remain pending.
