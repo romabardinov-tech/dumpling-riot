@@ -8,7 +8,7 @@ for(const m of c.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))if(m[1].t
 new Function(fs.readFileSync('sw.js','utf8'));
 const check=ok=>{assert(ok);count++};
 new Function('check',section('function scheduleHazard','function summonMinions')+`
-let hazards=[],p=[{x:0,y:0,hp:100},{x:100,y:0,hp:100}],hits=0,shake=0;
+let horrorTime=0,warningAt=0;const spatialTone=()=>false,arenaFeatures={},enemies=[],drops=[];let hazards=[],p=[{x:0,y:0,hp:100},{x:100,y:0,hp:100}],hits=0,shake=0;
 const alivePlayers=()=>p;
 const hurtPlayer=(p,d)=>{p.hp-=d;hits++};
 const ring=()=>{},spawnParticles=()=>{};
@@ -22,7 +22,7 @@ scheduleHazard(0,0,50,20,.5);p[0].x=70;updateHazards(.6);check(hits===1);
 new Function('check',section('function updateProjectiles','function updateRings')+`
 let projectiles=[],enemies=[{x:10,y:0,r:8,hp:100},{x:10,y:0,r:8,hp:100}],rings=[];
 const arena={l:-100,r:100,t:-100,b:100};
-const damageEnemy=(e,d)=>e.hp-=d;const targetPlayer=()=>null,hurtPlayer=()=>{},spawnParticles=()=>{},ring=()=>{};
+const onlineMode=false,breakableProps=[],propImpactLedger=new WeakMap(),hitBreakables=()=>{};const hitWithElement=(e,d)=>e.hp-=d;const targetPlayer=()=>null,hurtPlayer=()=>{},spawnParticles=()=>{},ring=()=>{};
 function shot(pierce){return {x:10,y:0,vx:0,vy:0,life:2,r:2,pierce,damage:10,owner:'p1'}}
 projectiles=[shot(0)];updateProjectiles(.1);check(enemies[0].hp===90&&enemies[1].hp===100&&projectiles.length===0);
 projectiles=[shot(2)];updateProjectiles(.1);check(enemies[0].hp===80&&enemies[1].hp===90&&projectiles.length===1);
@@ -30,7 +30,7 @@ updateProjectiles(.1);check(enemies[0].hp===80&&enemies[1].hp===90);
 `)(check);
 new Function('check',section('const dashProfiles=','const maps=[')+section('function dashFor(p)','function dash(){')+`
 const chars=Object.keys(dashProfiles).map(id=>({id,color:'#fff'})),clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),lerp=(a,b,t)=>a+(b-a)*t,locName=x=>x.name;
-const arena={l:0,r:200,t:0,b:200},initAudio=()=>{},sfx=()=>{},spawnParticles=()=>{},floatText=()=>{};
+const soloRun=null,tutorialEvent=()=>{},addDashGhosts=()=>{};const arena={l:0,r:200,t:0,b:200},initAudio=()=>{},sfx=()=>{},spawnParticles=()=>{},floatText=()=>{};
 let rings=[],projectiles=[],enemies=[],player,state='game';
 const ring=(x,y,r,color,life,max,owner)=>rings.push({x,y,r,max,owner});
 const damageEnemy=(e,d)=>e.hp-=d;

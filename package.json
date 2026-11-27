@@ -1,6 +1,6 @@
 {
   "name": "dumpling-riot",
-  "version": "0.72.7",
+  "version": "0.72.8",
   "private": true,
   "engines": {
     "node": ">=22"
@@ -12,7 +12,8 @@
     "native:sync": "npm run build:mobile && cap sync",
     "android:open": "cap open android",
     "ios:open": "cap open ios",
-    "check:mobile": "node scripts/check-mobile.mjs"
+    "check:mobile": "node scripts/check-mobile.mjs",
+    "test": "node tests/combat-regression.cjs && node tests/ui-regression.cjs && node tests/secret-routes.cjs && node tests/solo-balance.cjs && node tests/stability-regression.cjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.0.0",
