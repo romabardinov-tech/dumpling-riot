@@ -1751,7 +1751,7 @@ function paintArenaIdentity(g,id,left,top,width,height){
  g.restore();
 }
 function paintArenaSignature(g,id,view,time){
- if(id==='kitchen'){paintKitchenAtmosphere(g,view,time);return}if(id==='basement'){paintBasementAtmosphere(g,view,time);return}if(id==='foodcourt'){paintFoodcourtAtmosphere(g,view,time);return}if(id==='slaughter'){paintSlaughterAtmosphere(g,view,time);return}if(!horrorFx)return;const q=arenaIdentity[id];if(!q)return;const t=reduceMotion?0:time;g.save();g.fillStyle=q.color;
+ if(id==='kitchen'){paintKitchenAtmosphere(g,view,time);return}if(id==='basement'){paintBasementAtmosphere(g,view,time);return}if(id==='foodcourt'){paintFoodcourtAtmosphere(g,view,time);return}if(id==='slaughter'){paintSlaughterAtmosphere(g,view,time);return}if(id==='cemetery'){paintCemeteryAtmosphere(g,view,time);return}if(!horrorFx)return;const q=arenaIdentity[id];if(!q)return;const t=reduceMotion?0:time;g.save();g.fillStyle=q.color;
  for(const [x,y] of q.marks){if(!visibleWorld({x,y},view,60))continue;g.save();g.translate(x,y);g.globalAlpha=.25;
  for(let i=0;i<5;i++){const k=terrainHash(x,y,i+90),n=reduceMotion?i*3:((t*(id==='kitchen'?7:3)+i*9)%27),xx=Math.round(-22+i*10+Math.sin(t*.6+k*6)*3),yy=Math.round(-9-n);
  switch(id){
@@ -1954,6 +1954,58 @@ function paintSlaughterAtmosphere(g,view,time){
  }
  g.restore();
 }
+// V68.14 — Forgotten Cemetery: weathered memorials, ironwork and ground mist.
+function paintCemeteryDetail(g,left,top,width,height){
+ const right=left+width,bottom=top+height;
+ const R=(c,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ g.save();
+ // Silhouetted iron fence and stone pillars: north of the playable boundary.
+ R('#222c2c',52,45,1816,8);R('#52605a',52,45,1816,2);
+ for(let x=65;x<1850;x+=23){
+  if(terrainHash(x,8,411)<.12)continue;
+  R('#11191c',x,12,4,34);R('#455451',x+1,14,1,28);R('#68746b',x+1,8,2,5);R('#3a4642',x-1,12,6,3);
+ }
+ for(let x=78;x<1830;x+=178){
+  R('#151e20',x,5,18,49);R('#46544e',x+2,9,14,43);R('#798277',x+3,9,12,2);R('#323c39',x-3,5,24,5);R('#59665b',x-2,5,22,1);R('#304938',x+2,42,7,7);
+ }
+ // Flat, weathered grave slabs; no obstacle or hazard is added.
+ for(const [x,y] of [[250,230],[410,230],[570,230],[1370,230],[1530,230],[1690,230],[250,855],[410,855],[570,855],[1370,855],[1530,855],[1690,855]]){
+  const k=terrainHash(x,y,415),w=30+Math.floor(k*14),h=20+Math.floor(k*9);
+  R('#192521',x-3,y+3,w+7,h+4);R('#39473f',x,y,w,h);R('#536259',x+2,y+2,w-4,h-4);R('#758177',x+3,y+2,w-6,1);
+  R('#313e38',x+5,y+6,w-10,h-12);R('#8a9280',x+8,y+8,8,1);R('#778478',x+8,y+11,12,1);R('#2f4835',x+2,y+h-5,9,3);
+  if(k>.45){R('#202c28',x+w-11,y+3,1,7);R('#202c28',x+w-15,y+9,5,1)}
+ }
+ // Cracked memorial paving and restrained moss; center remains readable in combat.
+ for(let i=0;i<28;i++){
+  const a=i*Math.PI*2/28,x=960+Math.round(Math.cos(a)*130),y=545+Math.round(Math.sin(a)*112);
+  R('#747b6c',x-3,y-1,6,2);R('#39493f',x-2,y+1,4,2);
+ }
+ for(let i=0;i<96;i++){
+  const x=90+Math.floor(terrainHash(i,18,418)*1740),y=85+Math.floor(terrainHash(i,25,419)*910);
+  if(Math.abs(x-960)<155)continue;
+  R('#354e3b',x,y,4+i%5,2);R('#53654a',x+1,y-1,2,1);
+  if(i%7===0){R('#7f8272',x+7,y+2,3,2);R('#454e44',x+9,y+4,2,1)}
+ }
+ g.restore();
+}
+function cemeteryMist(x,y,time){
+ const t=Number.isFinite(time)?time:0,out=[];
+ for(let i=0;i<3;i++){const a=((t*.12+i/3)%1+1)%1,k=terrainHash(x,y,430+i);out.push({x:Math.round(x-25+a*31),y:Math.round(y+12+i*5+Math.sin(a*6.283+k*6)*2),w:12+i*5,alpha:.08+.09*Math.sin(a*Math.PI)})}return out;
+}
+function paintCemeteryAtmosphere(g,view,time){
+ if(!horrorFx)return;const t=reduceMotion?0:time;g.save();
+ for(let i=0;i<arenaLights.cemetery.length;i++){
+  const [x,y]=arenaLights.cemetery[i];if(!visibleWorld({x,y},view,72))continue;
+  g.fillStyle='#a9bcaa';g.globalAlpha=.065+.015*Math.sin(t*.45+i);
+  for(let j=0;j<3;j++)g.fillRect(x-12-j*5,y+7+j*5,24+j*10,2);
+  if(!reduceMotion)for(const q of cemeteryMist(x,y,t)){g.fillStyle='#92b7ac';g.globalAlpha=q.alpha;g.fillRect(q.x,q.y,q.w,2);g.fillRect(q.x+3,q.y-1,q.w-6,1)}
+ }
+ for(const [x,y] of arenaIdentity.cemetery.marks){
+  if(reduceMotion||!visibleWorld({x,y},view,60))continue;
+  const a=((t*.18+terrainHash(x,y,435))%1+1)%1;g.globalAlpha=.12*Math.sin(a*Math.PI);g.fillStyle='#bfd1bc';g.fillRect(x-12+Math.round(a*25),y-12-Math.round(a*20),2,2);
+ }
+ g.restore();
+}
 function paintTerrain(g,id,left,top,width,height){
  const t=terrainThemes[id]||terrainThemes.kitchen,right=left+width,bottom=top+height,natural=id==='cemetery'||id==='forest';
  const R=(color,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
@@ -2034,7 +2086,7 @@ function paintTerrain(g,id,left,top,width,height){
   if(natural){const h=26+Math.floor(terrainHash(x,6,0)*16);P('#182a20',[x-15,y+42,x+4,y+42-h,x+19,y+42]);P('#314634',[x-9,y+35,x+4,y+43-h,x+14,y+35]);R('#6c5140',x+3,y+32,4,11)}
   else{plate(x,y+7,65,34,t.tile,t.edge,t.trim);if(id==='kitchen'){R('#171d20',x+7,y+13,51,13);for(let j=0;j<4;j++){R('#555f5d',x+10+j*12,y+15,7,8);R('#9b8270',x+10+j*12,y+15,7,1)}}else if(id==='foodcourt'){R('#2f2e34',x+8,y+12,49,21);R('#bc8b69',x+12,y+15,41,2);R('#4d7773',x+12,y+21,25,2)}else{grate(x+8,y+12,49,20,t.tile,t.trim)}}
  }
- if(id==='kitchen')paintKitchenDetail(g,left,top,width,height);else if(id==='basement')paintBasementDetail(g,left,top,width,height);else if(id==='foodcourt')paintFoodcourtDetail(g,left,top,width,height);else if(id==='slaughter')paintSlaughterDetail(g,left,top,width,height);
+ if(id==='kitchen')paintKitchenDetail(g,left,top,width,height);else if(id==='basement')paintBasementDetail(g,left,top,width,height);else if(id==='foodcourt')paintFoodcourtDetail(g,left,top,width,height);else if(id==='slaughter')paintSlaughterDetail(g,left,top,width,height);else if(id==='cemetery')paintCemeteryDetail(g,left,top,width,height);
  paintArenaFeatures(g,id,left,top,width,height);paintArenaIdentity(g,id,left,top,width,height);
  // Sparse ground lanterns, placed to support navigation instead of repeating a grid.
  for(const [x,y] of arenaLights[id]||arenaLights.kitchen){
