@@ -3760,7 +3760,89 @@ function enemyTacticVector(e,tp,oldX,oldY,dt,round,wasLunging){
  const speed=len*(1-(1-pace)*strength);
  return [mx*speed/Math.max(1,m),my*speed/Math.max(1,m)];
 }
+// V72.2 — Enemy Cooperation: bounded sector assignments, not new attacks.
+const enemySquadRoles={
+ fork:'flank',pepper:'flank',boiler:'ranged',butcher:'guard',
+ crawler:'flank',cableMite:'ranged',eye:'ranged',wretch:'ranged',
+ plate:'guard',neonGhost:'flank',vendingDrone:'ranged',siren:'ranged',
+ knife:'flank',chainHound:'flank',slicer:'flank',maw:'guard',
+ boneWalker:'guard',hands:'flank',stalker:'flank',feaster:'guard',
+ sporeBeetle:'flank',rootHorror:'guard',spitter:'ranged',parasite:'flank'
+};
+const SQUAD_SECTORS=8,SQUAD_CAP=2,SQUAD_RANGE=280;
+function squadSector(dx,dy){return (Math.round(Math.atan2(dy,dx)/(Math.PI/4))+8)%8}
+function squadSectorGap(a,b){const d=Math.abs(a-b);return Math.min(d,8-d)}
+function squadOpenSectors(p,area){
+ // Reserve adjacent lanes toward arena interior rather than steer into a wall.
+ const dx=(area.l+area.r)*.5-p.x,dy=(area.t+area.b)*.5-p.y;
+ const k=Math.hypot(dx,dy)<48?0:squadSector(dx,dy);return [k,(k+1)%8];
+}
+function buildEnemySquadPlans(enemies,players,round,area){
+ const plans=new Map();
+ if(round<3||!players.length)return plans;
+ const groups=players.map(p=>({p,members:[]}));
+ // Snapshot grouping is based on the same nearest-live-player rule as targetPlayer.
+ for(const e of enemies){
+  if(e.dead||e.type==='boss'||!enemySquadRoles[e.type])continue;
+  let best=null,dist=Infinity;
+  for(const g of groups){const d=Math.hypot(g.p.x-e.x,g.p.y-e.y);if(d<dist){best=g;dist=d}}
+  if(best&&dist<=SQUAD_RANGE){const angle=squadSector(e.x-best.p.x,e.y-best.p.y);best.members.push({e,dist,angle,role:enemySquadRoles[e.type]})}
+ }
+ for(const {p,members} of groups){
+  if(members.length<3)continue;
+  const open=squadOpenSectors(p,area),loads=Array(8).fill(0),guards=Array(8).fill(null);
+  // Frontline first: guard lanes are allocated before fast flankers.
+  for(const role of ['guard','flank'])for(const m of members){
+   if(m.role!==role)continue;
+   let sector=-1,score=Infinity;
+   for(let k=0;k<8;k++){
+    if(open.includes(k)||loads[k]>=SQUAD_CAP)continue;
+    const q=squadSectorGap(k,m.angle)*1.5+loads[k]*2;
+    if(q<score){score=q;sector=k}
+   }
+   if(sector<0){
+    // Overflow waits on the outside, without assigning it an escape lane.
+    let outer=-1,dist=Infinity;
+    for(let k=0;k<8;k++){if(open.includes(k))continue;const d=squadSectorGap(k,m.angle);if(d<dist){dist=d;outer=k}}
+    plans.set(m.e,{target:p,role:'reserve',sector:outer,radius:120});continue;
+   }
+   loads[sector]++;
+   const radius=role==='guard'?40:58;
+   plans.set(m.e,{target:p,role,sector,radius});
+   if(role==='guard'&&(!guards[sector]||m.dist<guards[sector].dist))guards[sector]=m;
+  }
+  // Ranged enemies use a nearby guard's lane only if the guard is closer to the player.
+  // No physical shield, damage interception or buff is added.
+  for(const m of members){
+   if(m.role!=='ranged')continue;
+   let best=null,kBest=-1,cost=Infinity;
+   for(let k=0;k<8;k++){
+    const guard=guards[k];if(!guard||guard.dist+24>=m.dist||squadSectorGap(m.angle,k)>2)continue;
+    const delta=Math.hypot(guard.e.x-m.e.x,guard.e.y-m.e.y);if(delta>170)continue;
+    const c=delta+squadSectorGap(m.angle,k)*20;if(c<cost){cost=c;best=guard;kBest=k}
+   }
+   if(best)plans.set(m.e,{target:p,role:'support',sector:kBest,radius:Math.min(250,Math.max(enemyTactics[m.e.type][1],best.dist+52)),guard:best.e});
+  }
+ }
+ return plans;
+}
+function squadSteering(e,tp,oldX,oldY,sx,sy,round,plan,area){
+ if(!plan||plan.target!==tp||e.dead||e.type==='boss'||e.lunge>0||e.tacticRecovery>0||plan.guard?.dead||round<3)return [sx,sy];
+ const len=Math.hypot(sx,sy),distance=Math.hypot(tp.x-oldX,tp.y-oldY);
+ // Preserve contact behavior and locked dashes. Never increase prior displacement.
+ if(!Number.isFinite(len)||len<.00001||distance<34)return [sx,sy];
+ const angle=plan.sector*Math.PI/4;
+ const tx=Math.max(area.l+12,Math.min(area.r-12,tp.x+Math.cos(angle)*plan.radius)),ty=Math.max(area.t+12,Math.min(area.b-12,tp.y+Math.sin(angle)*plan.radius));
+ const dx=tx-oldX,dy=ty-oldY,d=Math.hypot(dx,dy);
+ // A gentle blend retains pursuit and allows passage around the formation.
+ const strength=round===3?.18:round===4?.25:.34;
+ const blend=plan.role==='reserve'?strength*.8:plan.role==='support'?strength*.85:strength;
+ if(d<.001)return [sx*(1-blend),sy*(1-blend)];
+ const pull=Math.min(1,d/20),mx=sx*(1-blend)+dx/d*len*blend*pull,my=sy*(1-blend)+dy/d*len*blend*pull;
+ const cap=Math.max(1,Math.hypot(mx,my)/len);return [mx/cap,my/cap];
+}
 function updateEnemies(dt){
+ const squadPlans=buildEnemySquadPlans(enemies,alivePlayers(),wave,arena);
  for(const e of enemies){
   if(e.dead)continue;
   if(e.bleed>0){e.bleed-=dt;e._bleedTick=(e._bleedTick||0)-dt;if(e._bleedTick<=0){e._bleedTick=.32;damageEnemy(e,3.5)}}
@@ -3864,7 +3946,7 @@ function updateEnemies(dt){
   }else{
    const wobble=Math.sin(e.phase)*.14;e.x+=nx*e.speed*dt+Math.cos(e.phase)*wobble;e.y+=ny*e.speed*dt+Math.sin(e.phase)*wobble;e.attack-=dt;if(e.attack<=0){e.attack=rnd(.7,1.5);if(e.type==='knife'){const a=Math.atan2(dy,dx);projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*125,vy:Math.sin(a)*125,life:1.6,r:2.5,damage:8,pierce:99,color:'#cbd2e0',enemy:true})}}if(d<18)hurtPlayer(tp,dt*9,e.x,e.y);
   }
-  if(e.type!=='boss'){const [sx,sy]=enemyTacticVector(e,tp,prevX,prevY,dt,wave,wasLunging);e.x=prevX+sx;e.y=prevY+sy}
+  if(e.type!=='boss'){const [sx,sy]=enemyTacticVector(e,tp,prevX,prevY,dt,wave,wasLunging),[gx,gy]=squadSteering(e,tp,prevX,prevY,sx,sy,wave,squadPlans.get(e),arena);e.x=prevX+gx;e.y=prevY+gy}
   if(frost<1){e.x=prevX+(e.x-prevX)*frost;e.y=prevY+(e.y-prevY)*frost}
   e.x=clamp(e.x,arena.l+4,arena.r-4);e.y=clamp(e.y,arena.t+4,arena.b-4);
  }
