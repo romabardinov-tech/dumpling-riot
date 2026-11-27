@@ -4,7 +4,7 @@ const c=fs.readFileSync('index.html','utf8');
 const section=(a,b)=>{const i=c.indexOf(a),j=c.indexOf(b,i+a.length);assert(i>=0&&j>i);return c.slice(i,j)};
 let count=0;const check=x=>{assert(x);count++};
 for(const m of c.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))if(m[1].trim())new Function(m[1]);
-new Function('check',section('function soloWaveCount(','function soloRelic(')+section('function buildUpgradeOptions(','function announceUpgrade(')+`
+new Function('check',section('function soloWaveCount(','function soloRelic(')+section('const legendaryPaths=','function eliteWave(')+section('function buildUpgradeOptions(','function announceUpgrade(')+`
 let soloRun={};
 const chars=[{id:'warden'},{id:'revenant'}],weapons=[{name:'A'},{name:'B'},{name:'C'},{name:'D'}],weaponLevels=[1,1,1,1],canEvolve=()=>false;
 let weapon=0,player=null;
