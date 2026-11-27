@@ -1574,7 +1574,7 @@ const arena={l:52,r:1868,t:58,b:1022};
 const terrainThemes={
  kitchen:{base:'#29272a',tile:'#333031',light:'#413a38',edge:'#1b191c',trim:'#827166',glow:'#ffbd82'},
  basement:{base:'#1d2931',tile:'#29353c',light:'#3c4b50',edge:'#111e28',trim:'#657a80',glow:'#a1caff'},
- foodcourt:{base:'#292034',tile:'#34263f',light:'#43314d',edge:'#18121f',trim:'#745977',glow:'#f49edb'},
+ foodcourt:{base:'#292333',tile:'#352c3c',light:'#48394d',edge:'#1a1523',trim:'#80657e',glow:'#dea6d2'},
  slaughter:{base:'#302429',tile:'#3b2b2e',light:'#4b3738',edge:'#1c1319',trim:'#936b58',glow:'#ff845c'},
  cemetery:{base:'#202a27',tile:'#29332d',light:'#354139',edge:'#141d1a',trim:'#68786c',glow:'#b3dba0'},
  forest:{base:'#192920',tile:'#22372b',light:'#304839',edge:'#101d17',trim:'#5d775e',glow:'#b1e6b7'}
@@ -1683,7 +1683,7 @@ function paintArenaFeatures(g,id,left,top,width,height){
    R('#e3b56b',x-7,y-15,14,2);P('#e5cd82',[x+1,y-6,x-5,y+1,x,y+1,x-1,y+8,x+6,y-1,x+1,y-1]);txt('HV',x,y+19,'#a4c8d4');
   }else if(id==='foodcourt'){
    frame(x-24,y-15,48,30,'#594754','#a68c9b');R('#1f2934',x-18,y-9,28,15);for(let k=0;k<3;k++){R(['#c18799','#9db6a0','#d4b078'][k],x-15+k*8,y-6,5,9);R('#ead1b1',x-14+k*8,y-5,2,1)}
-   R('#23262a',x+14,y-7,6,13);R('#b5e8aa',x+15,y-4,4,3);R('#b5e8aa',x-5,y+8,10,2);txt('SUPPLY',x,y+21,'#bbd5a6');
+   R('#23262a',x+14,y-7,6,13);R('#b5e8aa',x+15,y-4,4,3);R('#b5e8aa',x-5,y+8,10,2);R('#886b83',x-21,y-12,30,1);R('#708d90',x-20,y+11,29,1);R('#39343f',x-20,y+3,8,1);txt('SUPPLY',x,y+21,'#bbd5a6');
   }else if(id==='slaughter'){
    frame(x-27,y-13,54,26,'#595653','#929387');for(let i=-22;i<23;i+=8){R('#292e31',x+i,y-7,4,14);R('#90938b',x+i+4,y-7,2,14)}
    for(let i=-24;i<24;i+=8){R('#c49a56',x+i,y-15,4,3);R('#c49a56',x+i,y+12,4,3)}
@@ -1751,7 +1751,7 @@ function paintArenaIdentity(g,id,left,top,width,height){
  g.restore();
 }
 function paintArenaSignature(g,id,view,time){
- if(id==='kitchen'){paintKitchenAtmosphere(g,view,time);return}if(id==='basement'){paintBasementAtmosphere(g,view,time);return}if(!horrorFx)return;const q=arenaIdentity[id];if(!q)return;const t=reduceMotion?0:time;g.save();g.fillStyle=q.color;
+ if(id==='kitchen'){paintKitchenAtmosphere(g,view,time);return}if(id==='basement'){paintBasementAtmosphere(g,view,time);return}if(id==='foodcourt'){paintFoodcourtAtmosphere(g,view,time);return}if(!horrorFx)return;const q=arenaIdentity[id];if(!q)return;const t=reduceMotion?0:time;g.save();g.fillStyle=q.color;
  for(const [x,y] of q.marks){if(!visibleWorld({x,y},view,60))continue;g.save();g.translate(x,y);g.globalAlpha=.25;
  for(let i=0;i<5;i++){const k=terrainHash(x,y,i+90),n=reduceMotion?i*3:((t*(id==='kitchen'?7:3)+i*9)%27),xx=Math.round(-22+i*10+Math.sin(t*.6+k*6)*3),yy=Math.round(-9-n);
  switch(id){
@@ -1854,6 +1854,56 @@ function paintBasementAtmosphere(g,view,time){
  }
  g.restore();
 }
+// V68.12 — Dead Neon: closed storefronts, broken display panels and terrazzo wear.
+function paintFoodcourtDetail(g,left,top,width,height){
+ const right=left+width,bottom=top+height;
+ const R=(c,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ g.save();
+ for(let i=0;i<8;i++){
+  const x=75+i*220,c=i%2?'#97708e':'#659b99';
+  // Shutters and advertising panels outside the walkable rectangle.
+  R('#18151f',x,4,204,50);R('#514452',x+2,6,200,46);R('#766774',x+3,7,198,2);
+  R('#292632',x+7,15,121,33);for(let y=18;y<47;y+=5){R('#514852',x+9,y,117,2);R('#34323c',x+9,y+2,117,1)}
+  R(c,x+9,11,117,2);R('#22252c',x+137,13,57,35);R('#40545d',x+140,16,51,29);
+  for(let k=0;k<4;k++)R(k%2?c:'#6b6875',x+144,20+k*5,12+k*6,2);
+  for(let k=0;k<8;k++)R('#20232d',x+165+k*2,17+k*3,2,3);
+  R('#302732',x+164,28,26,13);R('#63515e',x+185,16,1,13);
+ }
+ // Worn mosaic and faded walkway strips on the existing central plaza.
+ for(const [x,y] of [[728,365],[728,748],[1170,365],[1170,748]]){
+  for(let i=0;i<8;i++){R('#292a31',x+i*7,y,6,6);R(i%2?'#7a596d':'#547778',x+i*7+1,y+1,4,4)}
+ }
+ for(const [x,y] of [[790,456],[1130,620],[300,310],[1570,780]]){
+  const cols=x%2===0?['#5a465b','#504252','#473c4a']:['#456366','#405558','#37484a'];
+  for(let j=0;j<5;j++)R(cols[j%3],x-19-j*2,y+8+j*4,38+j*4,2);
+  for(let i=0;i<6;i++){const dx=Math.floor(terrainHash(x,y,301+i)*56)-28,dy=Math.floor(terrainHash(y,x,311+i)*36)-18;R('#6e626b',x+dx,y+dy,2+i%3,1)}
+ }
+ // Flat scraps, smudged receipts and fragments of broken displays.
+ for(let i=0;i<85;i++){
+  const x=78+Math.floor(terrainHash(i,19,321)*1750),y=80+Math.floor(terrainHash(i,23,322)*900);
+  if(i%3===0){R('#77716a',x,y,5,3);R('#a29b89',x+1,y,3,1);R('#51494d',x+2,y+2,2,1)}
+  else{R('#352d3b',x,y,5,2);R(i%2?'#63616f':'#536d70',x+1,y,2,1)}
+ }
+ g.restore();
+}
+function foodcourtPaper(x,y,time){
+ const t=Number.isFinite(time)?time:0,out=[];
+ for(let i=0;i<3;i++){const a=t*.19+i*2.1+terrainHash(x,y,i+340)*3;out.push({x:Math.round(x+Math.sin(a)*19+i*5-5),y:Math.round(y+Math.cos(a*.73)*8+10),w:3+i%2,h:1+i%2,alpha:.18+.07*Math.sin(a)})}return out;
+}
+function paintFoodcourtAtmosphere(g,view,time){
+ if(!horrorFx)return;const t=reduceMotion?0:time;g.save();
+ for(let i=0;i<arenaLights.foodcourt.length;i++){
+  const [x,y]=arenaLights.foodcourt[i];if(!visibleWorld({x,y},view,60))continue;
+  const c=i%2?'#77b8b4':'#d294bf';g.fillStyle=c;g.globalAlpha=.085+.025*Math.sin(t*.8+i*1.9);
+  for(let j=0;j<5;j++)g.fillRect(x-16-j*3,y+7+j*4,32+j*6,2);
+  if(!reduceMotion){for(const q of foodcourtPaper(x,y,t)){g.fillStyle='#c3b9a7';g.globalAlpha=q.alpha;g.fillRect(q.x,q.y,q.w,q.h)}}
+ }
+ for(let i=0;i<8;i++){
+  const x=75+i*220+9,y=12;if(!visibleWorld({x:x+58,y},view,65))continue;
+  g.fillStyle=i%2?'#bc86b3':'#8fcac3';g.globalAlpha=.16+.07*Math.sin(t*.6+i*2.3);g.fillRect(x,y-1,117,2);
+ }
+ g.restore();
+}
 function paintTerrain(g,id,left,top,width,height){
  const t=terrainThemes[id]||terrainThemes.kitchen,right=left+width,bottom=top+height,natural=id==='cemetery'||id==='forest';
  const R=(color,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
@@ -1934,7 +1984,7 @@ function paintTerrain(g,id,left,top,width,height){
   if(natural){const h=26+Math.floor(terrainHash(x,6,0)*16);P('#182a20',[x-15,y+42,x+4,y+42-h,x+19,y+42]);P('#314634',[x-9,y+35,x+4,y+43-h,x+14,y+35]);R('#6c5140',x+3,y+32,4,11)}
   else{plate(x,y+7,65,34,t.tile,t.edge,t.trim);if(id==='kitchen'){R('#171d20',x+7,y+13,51,13);for(let j=0;j<4;j++){R('#555f5d',x+10+j*12,y+15,7,8);R('#9b8270',x+10+j*12,y+15,7,1)}}else if(id==='foodcourt'){R('#2f2e34',x+8,y+12,49,21);R('#bc8b69',x+12,y+15,41,2);R('#4d7773',x+12,y+21,25,2)}else{grate(x+8,y+12,49,20,t.tile,t.trim)}}
  }
- if(id==='kitchen')paintKitchenDetail(g,left,top,width,height);else if(id==='basement')paintBasementDetail(g,left,top,width,height);
+ if(id==='kitchen')paintKitchenDetail(g,left,top,width,height);else if(id==='basement')paintBasementDetail(g,left,top,width,height);else if(id==='foodcourt')paintFoodcourtDetail(g,left,top,width,height);
  paintArenaFeatures(g,id,left,top,width,height);paintArenaIdentity(g,id,left,top,width,height);
  // Sparse ground lanterns, placed to support navigation instead of repeating a grid.
  for(const [x,y] of arenaLights[id]||arenaLights.kitchen){
@@ -4204,7 +4254,7 @@ function paintRefugeDirection(g,n,view){
 }
 function paintArenaLighting(g,map,view){
  const {x,y,w,h}=view;g.save();g.fillStyle='rgba(10,12,15,.08)';g.fillRect(x,y,w,h);
- for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+85<x||lx-85>x+w||ly+85<y||ly-85>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,85);rad.addColorStop(0,terrainThemes[map.id].glow);rad.addColorStop(.35,terrainThemes[map.id].glow+'65');rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=map.id==='kitchen'?.29:map.id==='basement'?.27:.23;g.fillStyle=rad;g.fillRect(lx-85,ly-85,170,170)}g.restore()
+ for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+85<x||lx-85>x+w||ly+85<y||ly-85>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,85),glow=map.id==='foodcourt'&&arenaLights.foodcourt.findIndex(q=>q[0]===lx&&q[1]===ly)%2===1?'#8ccac6':terrainThemes[map.id].glow;rad.addColorStop(0,glow);rad.addColorStop(.35,glow+'65');rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=map.id==='kitchen'?.29:map.id==='basement'?.27:map.id==='foodcourt'?.26:.23;g.fillStyle=rad;g.fillRect(lx-85,ly-85,170,170)}g.restore()
 }
 // V67: cull presentation only; never remove off-screen simulation objects.
 function visibleWorld(q,view,pad=0){return q.x+pad>=view.x&&q.x-pad<=view.x+view.w&&q.y+pad>=view.y&&q.y-pad<=view.y+view.h}
