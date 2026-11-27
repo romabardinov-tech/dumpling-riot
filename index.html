@@ -977,6 +977,76 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 #menu #campaignPlayBtn[hidden],#menu #campaignSaveWarning[hidden]{display:none!important}
 #menu #campaignPlayBtn:disabled{opacity:.48;cursor:not-allowed}
 #menu #campaignSaveWarning{margin:0;color:#e1b48b;font:500 12px/1.4 system-ui}
+
+/* V75.24 — edge-to-edge menu; leave combat aspect ratio untouched. */
+#wrap:has(#menu:not([style*="display: none"])){width:100vw;height:100vh;height:100dvh;max-width:none;max-height:none}
+#menu{inset:0;padding:0;overflow:hidden;place-items:stretch}
+#menu .menuShell{width:100%;height:100%;max-width:none;max-height:none;border:0;border-radius:0;box-shadow:none;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}
+#menu .menuHeader{padding:clamp(8px,1.8vh,20px) max(clamp(14px,3vw,52px),env(safe-area-inset-right)) clamp(8px,1.8vh,20px) max(clamp(14px,3vw,52px),env(safe-area-inset-left));padding-top:max(clamp(8px,1.8vh,20px),env(safe-area-inset-top))}
+#menu .menuBody{padding:clamp(12px,2.5vh,30px) max(clamp(14px,3vw,52px),env(safe-area-inset-right)) clamp(12px,2.5vh,30px) max(clamp(14px,3vw,52px),env(safe-area-inset-left));min-height:0;overflow-y:auto}
+#menu .menuFooter{padding-left:max(clamp(14px,3vw,52px),env(safe-area-inset-left));padding-right:max(clamp(14px,3vw,52px),env(safe-area-inset-right));padding-bottom:max(10px,env(safe-area-inset-bottom))}
+#menu #homePanel{max-width:none;width:100%;margin:0}
+#menu #homePanel .horrorMarquee{height:clamp(130px,28vh,340px)}
+#menu #homePanel .homeCards{gap:clamp(8px,1.5vw,20px)}
+#menu #homePanel .homeCard{min-height:clamp(100px,14vh,160px)}
+#menu #homePanel .homeCard canvas{max-height:180px}
+#menu #homePanel .homeActions{gap:clamp(8px,1.2vw,16px)}
+#menu #homePanel .homeActions .homeMode{min-height:70px}
+@media(min-width:1000px) and (min-height:600px){
+ #menu #homePanel:not([hidden]){display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);grid-template-rows:auto auto auto;gap:16px;align-items:stretch;min-height:100%}
+ #menu #homePanel .horrorMarquee{grid-column:1;grid-row:1/4;height:100%;min-height:420px;margin:0}
+ #menu #homePanel .homeCards{grid-column:2;grid-row:1;grid-template-columns:1fr}
+ #menu #homePanel>.homeMode[data-open-menu="mode"]{grid-column:2;grid-row:2;margin:0}
+ #menu #homePanel .homeActions{grid-column:2;grid-row:3;margin:0}
+ #menu #homePanel .homeSettings{grid-column:1/-1;margin:0}
+ #menu .menuFooter #startBtn{min-height:54px}
+}
+@media(max-width:650px) and (orientation:portrait){
+ #menu #homePanel .horrorMarquee{height:clamp(120px,23vh,240px)}
+ #menu #homePanel .homeCard{min-height:82px}
+ #menu #homePanel .homeCard canvas{max-height:120px}
+ #menu #homePanel .homeActions .homeMode{min-height:58px}
+ #menu .menuBody{padding-block:10px}
+}
+@media(max-height:520px) and (orientation:landscape){
+ #menu .menuHeader{padding-block:4px;padding-top:max(4px,env(safe-area-inset-top))}
+ #menu .menuBody{padding-block:6px}
+ #menu .menuFooter{padding-bottom:max(4px,env(safe-area-inset-bottom))}
+ #menu #homePanel .horrorMarquee{height:100%;min-height:130px}
+ #menu #homePanel .homeCard{min-height:60px}
+ #menu #homePanel .homeCard canvas{max-height:76px}
+ #menu #homePanel .homeActions .homeMode{min-height:48px}
+}
+/* Story camera: wide establishing shot, hero close-up, apparition reveal. */
+#ritualOverlay.storyCinema{background:#08070c}
+#ritualOverlay.storyCinema .ritualBox{width:min(960px,96%);max-height:96%;border:1px solid #745763;background:#0e0a12;padding:12px;box-shadow:0 0 70px #0009}
+#ritualOverlay.storyCinema .storyScreen{aspect-ratio:16/7;min-height:112px;overflow:hidden;background:#08060d}
+.storyScreen .storyLandscape{animation:none;transition:transform .75s ease,filter .65s ease;transform:scale(1.08);filter:brightness(.66) saturate(.78)}
+.storyScreen[data-speaker="hero"] .storyLandscape{transform:scale(1.22) translate(5%,1%)}
+.storyScreen[data-speaker="echo"] .storyLandscape{transform:scale(1.23) translate(-5%,0);filter:brightness(.43) saturate(.78)}
+.storyScreen .storyActor{background:transparent;cursor:default;width:38%;height:95%;bottom:0;object-fit:contain;transition:opacity .55s,filter .55s,transform .7s ease;filter:none}
+.storyScreen .storyActor.hero{left:4%;transform:translateX(-18%) scale(.88);opacity:.78}
+.storyScreen .storyActor.echo{right:4%;transform:translateX(15%) scale(.88);opacity:.12;filter:drop-shadow(0 0 10px #b52d52)}
+.storyScreen[data-speaker="hero"] .hero{transform:translateX(9%) scale(1.13);opacity:1}
+.storyScreen[data-speaker="hero"] .echo{opacity:.14}
+.storyScreen[data-speaker="echo"] .hero{transform:translateX(-10%) scale(.94);opacity:.55}
+.storyScreen[data-speaker="echo"] .echo{transform:translateX(-8%) scale(1.18);opacity:1;filter:drop-shadow(0 0 12px #ce3758)}
+.storyScreen .storyAtmosphere{position:absolute;inset:0;z-index:3;pointer-events:none;background:transparent;cursor:default;filter:none}
+.storyScreen .storyFog{opacity:.45}
+.storyScreen[data-paused="true"] *{animation-play-state:paused!important;transition:none!important}
+.storyScreen:before{content:"";position:absolute;inset:0;z-index:5;pointer-events:none;border-top:7px solid #08050a;border-bottom:7px solid #08050a}
+.storyDialogue{min-height:98px;border-left-color:#d2a075;padding:10px 12px}
+.storyDialogue span{font-size:clamp(13px,2.1vw,17px);line-height:1.45}
+.storyControls button{min-height:44px}
+@media(max-height:520px) and (orientation:landscape){
+ #ritualOverlay.storyCinema .ritualBox{padding:6px;width:min(760px,97%)}
+ #ritualOverlay.storyCinema .storyScreen{aspect-ratio:16/4.2;min-height:65px}
+ .storyDialogue{min-height:56px;padding:5px 8px}
+ .storyDialogue span{font-size:12px;line-height:1.32}
+ .storyControls button{min-height:34px}
+}
+@media(prefers-reduced-motion:reduce){.storyScreen *{animation:none!important;transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -1695,6 +1765,37 @@ function storyObjective(run,w){
  return SU(1)+' '+c.chapter+'/3 · '+r+'/5 · '+(r===5?(w===FINAL_WAVE?SU(17):SU(10)):SU(11))+(r===2&&!c.clues.includes(selectedMap)?' · '+SU(16):'')+' · '+SU(13)+' '+c.clues.length+'/3';
 }
 function drawStoryPortrait(cv,id){menuArtwork(()=>{const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.translate(48,74);g.scale(1.65,1.65);pixelHeroBody(g,id,0,0,0);paintHeroSignature(g,id,0,0);pixelHeroWeapon(g,id,0,0,0)})}
+
+/* V75.24 — cutscene clock is independent of the combat clock. */
+let storyCinemaInput=null;
+function storyTextTiming(length){const reveal=length/42;return {reveal,duration:Math.max(3.6,reveal+2.7)}}
+function storyActorFrame(cv,id,t,who,shot,still){
+ const g=cv.getContext('2d');if(!g)return;
+ g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);g.imageSmoothingEnabled=false;
+ const phase=still?0:t*4.4,walk=still?0:who==='hero'&&shot==='narrator'&&t<1.5?Math.sin(t*13):Math.sin(phase)*.28;
+ const x=72+(still?0:who==='hero'&&shot==='narrator'?Math.round(Math.min(t,1.5)*12-18):0),y=102+(still?0:Math.round(Math.sin(phase)*1.4));
+ g.save();g.translate(x,y);g.scale(2.35,2.35);
+ if(who==='hero'||id==='nyx'){
+  if(who==='echo'){g.scale(-1,1);g.filter='brightness(.48) saturate(.25)'}
+  pixelHeroBody(g,id,walk,phase,who==='hero'?0:Math.PI);paintHeroSignature(g,id,phase,walk);pixelHeroWeapon(g,id,0,who==='hero'?0:Math.PI,0);
+  if(who==='echo'){g.filter='none';g.fillStyle='#ff637e';g.fillRect(-5,-7,2,2);g.fillRect(3,-7,2,2)}
+ }else{
+  const shift=still?0:Math.round(Math.sin(phase)*2);
+  g.fillStyle='#1b1026';g.beginPath();g.moveTo(-18,15);g.lineTo(-12,-12);g.lineTo(-7,-25);g.lineTo(0,-31);g.lineTo(7,-25);g.lineTo(12,-12);g.lineTo(18,15);g.lineTo(7,11+shift);g.lineTo(0,17);g.lineTo(-7,11-shift);g.closePath();g.fill();
+  g.fillStyle='#41213d';g.fillRect(-9,-18,18,22);g.fillStyle='#100914';g.fillRect(-7,-15,14,10);
+  g.fillStyle='#f46779';g.fillRect(-5,-12,3,2);g.fillRect(2,-12,3,2);g.fillStyle='#ffcdac';g.fillRect(-4,-12,1,1);g.fillRect(3,-12,1,1);
+  g.fillStyle='#7d344d';g.fillRect(-11,1,2,10);g.fillRect(9,1,2,10);
+ }
+ g.restore();
+}
+function storyAtmosphereFrame(cv,t,shot,still){
+ const g=cv.getContext('2d');if(!g)return;g.clearRect(0,0,cv.width,cv.height);
+ if(still)return;
+ const w=cv.width,h=cv.height;
+ for(let j=0;j<24;j++){const x=((j*71+t*(3+j%4))%w+w)%w,y=((j*43-t*(4+j%3))%h+h)%h;g.globalAlpha=.12+(j%4)*.07;g.fillStyle=shot==='echo'?'#e15d79':'#d3ad94';g.fillRect(Math.round(x),Math.round(y),j%3===0?2:1,1)}
+ g.globalAlpha=1;
+ const light=g.createRadialGradient(w*(shot==='echo'?.72:.32),h*.48,0,w*(shot==='echo'?.72:.32),h*.48,w*.55);light.addColorStop(0,shot==='echo'?'#a5254333':'#d29b6330');light.addColorStop(1,'#00000000');g.fillStyle=light;g.fillRect(0,0,w,h);
+}
 function openStoryCinema(frames,title,hint,onFinish,finishLabel){
  if(!frames.length)return false;
  const el=document.getElementById('ritualOverlay'),box=document.getElementById('ritualChoices');
@@ -1703,22 +1804,30 @@ function openStoryCinema(frames,title,hint,onFinish,finishLabel){
  document.getElementById('extractBtn').hidden=true;box.replaceChildren();
  const scene=document.createElement('div');scene.className='storyScreen';scene.setAttribute('aria-hidden','true');
  const bg=document.createElement('canvas');bg.width=320;bg.height=180;bg.className='storyLandscape';menuArtwork(()=>bg.getContext('2d').drawImage(mapThumbnail(selectedMap),0,0,320,180));
- const hero=document.createElement('canvas'),echo=document.createElement('canvas');for(const [cv,cls] of [[hero,'hero'],[echo,'echo']]){cv.width=96;cv.height=104;cv.className='storyActor '+cls;drawStoryPortrait(cv,soloRun.hero)}
- const fog=document.createElement('div');fog.className='storyFog';scene.append(bg,hero,echo,fog);
- const dialogue=document.createElement('div');dialogue.className='storyDialogue';dialogue.setAttribute('aria-live','polite');const speaker=document.createElement('b'),words=document.createElement('span');dialogue.append(speaker,words);
+ const hero=document.createElement('canvas'),echo=document.createElement('canvas');for(const [cv,cls] of [[hero,'hero'],[echo,'echo']]){cv.width=144;cv.height=144;cv.className='storyActor '+cls}
+ const fog=document.createElement('div');fog.className='storyFog';const fx=document.createElement('canvas');fx.width=320;fx.height=140;fx.className='storyAtmosphere';scene.append(bg,hero,echo,fog,fx);
+ const dialogue=document.createElement('div');dialogue.className='storyDialogue';const speaker=document.createElement('b'),words=document.createElement('span'),announcement=document.createElement('span');announcement.style.cssText='position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)';announcement.setAttribute('aria-live','polite');words.setAttribute('aria-hidden','true');dialogue.append(speaker,words,announcement);
  const track=document.createElement('div');track.className='storyTrack';const fill=document.createElement('i');track.append(fill);
  const progress=document.createElement('div');progress.className='storyProgress';
  const controls=document.createElement('div');controls.className='storyControls';
  const pause=document.createElement('button'),next=document.createElement('button'),skip=document.createElement('button');for(const b of [pause,next,skip])b.type='button';
  skip.textContent=SU(4);controls.append(pause,next,skip);box.append(scene,dialogue,track,progress,controls);el.hidden=false;
- const name=locName(chars.find(c=>c.id===soloRun.hero)||chars[0]);let i=0,timer=0,paused=false,done=false;
+ const id=soloRun.hero,name=locName(chars.find(c=>c.id===id)||chars[0]),still=reduceMotion;let i=0,elapsed=0,lastTime=null,lastDraw=-Infinity,shown=-1,raf=0,paused=false,done=false,letters=[],timing;
  function active(){return !done&&state==='story'&&!el.hidden&&box.contains(scene)}
- function schedule(){clearTimeout(timer);if(active()&&!paused)timer=setTimeout(()=>{if(document.hidden){schedule();return}advance()},Math.min(11500,Math.max(3800,frames[i][1].length*57+1100)))}
- function finish(){if(!active())return;done=true;clearTimeout(timer);el.classList.remove('storyCinema');el.hidden=true;box.replaceChildren();clearLocalInput();onFinish()}
- function advance(){if(!active())return;if(i===frames.length-1){finish();return}i++;show()}
- function show(){const [who,txt]=frames[i];scene.dataset.speaker=who;speaker.textContent=who==='hero'?name:who==='echo'?SU(3):SU(2);words.textContent=txt;progress.textContent=(i+1)+' / '+frames.length;fill.style.width=((i+1)/frames.length*100)+'%';next.textContent=i===frames.length-1?finishLabel:SU(5);pause.textContent=paused?SU(7):SU(6);schedule()}
- pause.onclick=()=>{if(!active())return;paused=!paused;pause.textContent=paused?SU(7):SU(6);schedule()};next.onclick=advance;skip.onclick=finish;show();next.focus?.({preventScroll:true});return true;
+ function cleanup(){if(raf)cancelAnimationFrame(raf);raf=0;if(storyCinemaInput===input)storyCinemaInput=null;el.classList.remove('storyCinema')}
+ function finish(){if(!active())return;done=true;cleanup();el.hidden=true;box.replaceChildren();clearLocalInput();onFinish()}
+ function reveal(){shown=letters.length;words.textContent=letters.join('');elapsed=Math.max(elapsed,timing.reveal)}
+ function advance(force=false){if(!active())return;if(!force&&shown<letters.length){reveal();return}if(i===frames.length-1){finish();return}i++;show()}
+ function input(code){if(code==='Escape'){finish();return true}if(code==='Space'||code==='Enter'){advance();return true}return false}
+ function renderActors(){menuArtwork(()=>{storyActorFrame(hero,id,elapsed,'hero',frames[i][0],still);storyActorFrame(echo,id,elapsed,'echo',frames[i][0],still);storyAtmosphereFrame(fx,elapsed,frames[i][0],still)})}
+ function show(){const [who,txt]=frames[i];elapsed=0;lastDraw=-Infinity;shown=-1;letters=Array.from(txt);timing=storyTextTiming(letters.length);scene.dataset.speaker=who;speaker.textContent=who==='hero'?name:who==='echo'?SU(3):SU(2);words.textContent='';announcement.textContent=speaker.textContent+': '+txt;progress.textContent=(i+1)+' / '+frames.length;fill.style.width=(i/frames.length*100)+'%';next.textContent=i===frames.length-1?finishLabel:SU(5);pause.textContent=paused?SU(7):SU(6);if(still)reveal();renderActors()}
+ function tick(now){raf=0;if(!active()){cleanup();return}const dt=lastTime===null?0:Math.min(.1,Math.max(0,(now-lastTime)/1000));lastTime=now;
+  if(!paused&&!document.hidden){elapsed+=dt;const count=still?letters.length:Math.min(letters.length,Math.floor(elapsed*42));if(count>shown){shown=count;words.textContent=letters.slice(0,count).join('')}if(!still&&elapsed-lastDraw>=1/12){lastDraw=elapsed;renderActors()}fill.style.width=((i+Math.min(1,elapsed/timing.duration))/frames.length*100)+'%';if(elapsed>=timing.duration)advance(true)}
+  if(active())raf=requestAnimationFrame(tick)
+ }
+ pause.onclick=()=>{if(!active())return;paused=!paused;scene.dataset.paused=String(paused);pause.textContent=paused?SU(7):SU(6)};next.onclick=()=>advance();skip.onclick=finish;storyCinemaInput=input;show();raf=requestAnimationFrame(tick);next.focus?.({preventScroll:true});return true;
 }
+
 function openHeroStory(){
  if(!soloRun?.campaign||state!=='game'||!campaignStoryBeat(wave))return false;
  const story=storyFor(soloRun.hero),ch=storyChapter(soloRun),talk=(storyTalk[soloRun.hero]||storyTalk.scar)[soloRun.campaign.chapter-1];
@@ -8107,6 +8216,7 @@ function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;updat
 
 addEventListener('keydown',e=>{
  if(e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement||e.target?.isContentEditable)return;
+ if(state==='story'&&storyCinemaInput){if(e.repeat)return;if(e.code!=='Escape'&&e.target?.closest?.('button'))return;if(storyCinemaInput(e.code))e.preventDefault();return}
  if(e.code==='Escape'){if(e.repeat)return;if(state==='game'||state==='pause'){e.preventDefault();togglePause()}else if(state==='gameover'){e.preventDefault();goMenu()}else if(state==='merchant'){e.preventDefault();leaveMerchant()}else if(state==='encounter'){e.preventDefault();leaveEncounter()}return}
  if(state!=='game')return;
  keys.add(e.code);
