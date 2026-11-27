@@ -4953,12 +4953,12 @@ function finishEnemyDeath(e){
 
 function completeSecret(){
  const event=secretEncounter,n=secretReward(meta,soloRun,event);if(!n)return;
- campaignClue(soloRun,event);discoverJournal('story:'+event.map);saveMeta();
+ const personalClue=campaignClue(soloRun,event);discoverJournal('story:'+event.map);saveMeta();
  if(!boss&&!coop&&!onlineMode&&waveState==='fighting')event.route=makeSecretRoute(event,arena,secretRouteStaticAvoid(event));
  const x=clamp(event.x,arena.l+10,arena.r-10),y=clamp(event.y,arena.t+10,arena.b-10);
  drops.push({x,y,type:'heal',value:30,life:24,pulse:0});
  spawnParticles(x,y,22,arenaStories[event.map].color,1.2);ring(x,y,10,arenaStories[event.map].color,.55,44);
- toast(L('SECRET CLEARED · STORY UNLOCKED','ТАЙНИК ЗАЧИЩЕН · ИСТОРИЯ ОТКРЫТА')+' · ◆ +'+n);toastTimer=4;
+ toast((personalClue?L(...heroStoryClues[soloRun.hero]):L('SECRET CLEARED · STORY UNLOCKED','ТАЙНИК ЗАЧИЩЕН · ИСТОРИЯ ОТКРЫТА'))+' · ◆ +'+n);toastTimer=4;
 }
 function nightmareAudio(theme,fear){
  if(!horrorFx||!audioReady())return;
