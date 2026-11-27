@@ -1644,12 +1644,64 @@ const encounterRooms=[
   {id:'force',en:'Force it open',ru:'Взломать',descEn:'Spend 2 bombs · random unowned artifact',descRu:'Потратить 2 бомбы · случайный новый артефакт'},
   {id:'trade',en:'Open with a key',ru:'Открыть ключом',descEn:'Spend 35 coins · random unowned artifact',descRu:'Потратить 35 монет · случайный новый артефакт'}]}
 ];
+// V75.3 — Arena-specific side rooms, once per run. Existing generic rotation is retained.
+const localEncounterRooms=[
+ {id:'furnacePantry',map:'kitchen',en:'The sealed pantry',ru:'Запечатанная кладовая',lineEn:'A warm shelf holds a ration and a tin of red powder.',lineRu:'На тёплой полке лежат паёк и банка красного порошка.',color:'#f0b77d',choices:[
+ {id:'pantryRation',en:'Heat the ration',ru:'Разогреть паёк',descEn:'Spend 1 bomb · heal 30% max HP',descRu:'Потратить 1 бомбу · восстановить 30% макс. HP',bombCost:1,heal:.30},
+ {id:'pantryTin',en:'Buy the iron ration',ru:'Купить железный паёк',descEn:'Spend 18 coins · +15 maximum and current HP',descRu:'Потратить 18 монет · +15 максимального и текущего HP',cost:18,maxHP:15}]},
+ {id:'relayVault',map:'basement',en:'The emergency relay',ru:'Аварийное реле',lineEn:'Two switches remain lit. Only one can be pressed.',lineRu:'Горят два переключателя. Нажать можно только один.',color:'#91d4ed',choices:[
+ {id:'relayGround',en:'Ground the signal',ru:'Заземлить сигнал',descEn:'Spend 12 coins · reduce fear by up to 60',descRu:'Потратить 12 монет · снизить страх до 60 пунктов',cost:12,fearRelief:60},
+ {id:'relayOverload',en:'Overload the relay',ru:'Перегрузить реле',descEn:'+2 bombs (cap 9) · +30 fear next wave',descRu:'+2 бомбы (до 9) · +30 страха в следующей волне',bombGain:2,next:{fear:30}}]},
+ {id:'refundBooth',map:'foodcourt',en:'The refund booth',ru:'Касса возврата',lineEn:'The cashier is gone. The till still accepts strange payments.',lineRu:'Кассир исчез. Касса всё ещё принимает странную плату.',color:'#db9ed3',choices:[
+ {id:'refundPowder',en:'Return unused powder',ru:'Сдать порох',descEn:'Spend 1 bomb · +22 coins',descRu:'Потратить 1 бомбу · +22 монеты',bombCost:1,gainCoins:22},
+ {id:'refundCoupon',en:'Redeem the meal voucher',ru:'Погасить талон',descEn:'Spend 10 coins · heal 20% max HP and reduce fear by 15',descRu:'Потратить 10 монет · восстановить 20% макс. HP и снизить страх на 15',cost:10,heal:.20,fearRelief:15}]},
+ {id:'foremanOffice',map:'slaughter',en:'The foreman’s office',ru:'Кабинет мастера',lineEn:'A forged permit hangs beside the payroll drawer.',lineRu:'Рядом с ящиком зарплат висит поддельный пропуск.',color:'#e28f7c',choices:[
+ {id:'foremanPermit',en:'Sign the permit in blood',ru:'Подписать пропуск кровью',descEn:'Lose 15% max HP as current HP · +10% movement for this run',descRu:'Потерять 15% от макс. HP · +10% скорости до конца забега',hpCost:.15,boostMove:1.10},
+ {id:'foremanPayroll',en:'Take the payroll',ru:'Забрать зарплаты',descEn:'+28 coins · enemies 12% faster next wave',descRu:'+28 монет · враги на 12% быстрее в следующей волне',gainCoins:28,next:{speed:1.12}}]},
+ {id:'ossuary',map:'cemetery',en:'The closed ossuary',ru:'Закрытая костница',lineEn:'A lantern rests beside a purse that rattles with teeth.',lineRu:'Фонарь лежит рядом с кошельком, в котором гремят зубы.',color:'#c8b2eb',choices:[
+ {id:'ossuaryLight',en:'Light the memorial',ru:'Зажечь поминальный свет',descEn:'Spend 1 bomb · reduce fear by up to 45 · +8 coins',descRu:'Потратить 1 бомбу · снизить страх до 45 пунктов · +8 монет',bombCost:1,fearRelief:45,gainCoins:8},
+ {id:'ossuaryPurse',en:'Take the cursed purse',ru:'Взять проклятый кошель',descEn:'+24 coins · +20 fear next wave',descRu:'+24 монеты · +20 страха в следующей волне',gainCoins:24,next:{fear:20}}]},
+ {id:'rootChamber',map:'forest',en:'The root chamber',ru:'Корневая камера',lineEn:'The root offers sap, but its branches twitch when touched.',lineRu:'Корень предлагает сок, но ветви вздрагивают от прикосновения.',color:'#b7d58e',choices:[
+ {id:'rootSap',en:'Drink the sap',ru:'Выпить сок',descEn:'Heal 30% max HP · 3 extra enemies next wave',descRu:'Восстановить 30% макс. HP · 3 дополнительных врага в следующей волне',heal:.30,next:{count:3}},
+ {id:'rootTalisman',en:'Carve a talisman',ru:'Вырезать талисман',descEn:'Spend 20 coins · +8% weapon damage for this run',descRu:'Потратить 20 монет · +8% урона до конца забега',cost:20,boostDamage:1.08}]}
+];
+encounterRooms.push(...localEncounterRooms);
+function localRoomChoice(event,id){return localEncounterRooms.find(r=>r===event.room)?.choices.find(q=>q.id===id)||null}
+function localRoomReason(run,p,n,q){
+ if(run.coins<(q.cost||0))return 'coins';
+ if(p.bomb<(q.bombCost||0))return 'bombs';
+ if(q.hpCost&&p.hp<=Math.ceil(p.maxhp*q.hpCost))return 'health';
+ if((q.fearRelief||q.next?.fear)&&!n)return 'unavailable';
+ if(q.next&&run.nextRoomEffect!=null)return 'unavailable';
+ if(q.bombGain&&p.bomb>=9)return 'full';
+ if(q.heal&&p.hp>=p.maxhp&&!(q.fearRelief&&n.fear>0))return 'full';
+ if(q.fearRelief&&!q.heal&&n.fear<=0)return 'full';
+ return '';
+}
+function applyLocalRoom(run,p,n,q){
+ if(localRoomReason(run,p,n,q))return false;
+ const cost=q.cost||0;run.coins-=cost;run.coinsSpent+=cost;
+ if(q.hpCost)p.hp-=Math.ceil(p.maxhp*q.hpCost);
+ if(q.maxHP){p.maxhp+=q.maxHP;p.hp=Math.min(p.maxhp,p.hp+q.maxHP)}
+ if(q.heal)p.hp=Math.min(p.maxhp,p.hp+Math.ceil(p.maxhp*q.heal));
+ p.bomb=Math.min(9,p.bomb-(q.bombCost||0)+(q.bombGain||0));
+ if(q.fearRelief)n.fear=Math.max(0,n.fear-q.fearRelief);
+ if(q.next)run.nextRoomEffect={...q.next};
+ if(q.boostMove)p.boost.move*=q.boostMove;
+ if(q.boostDamage)p.boost.dmg*=q.boostDamage;
+ if(q.gainCoins)addCoins(run,q.gainCoins);
+ return true;
+}
 function encounterWave(w){return Number.isInteger(w)&&w>=2&&w%5===2}
-function createEncounter(run,w,random=Math.random){
+function createEncounter(run,w,random=Math.random,map=null){
  if(!run||run.closed||run.cleared!==w||!encounterWave(w)||run.lastEncounter===w)return null;
- let pool=encounterRooms.filter(q=>!(run.seenRooms||[]).includes(q.id));
- if(!pool.length){run.seenRooms=[];pool=encounterRooms}
- const room=pool[Math.min(pool.length-1,Math.max(0,Math.floor(random()*pool.length)))];
+ const seen=run.seenRooms||[],local=localEncounterRooms.find(q=>q.map===map&&!seen.includes(q.id)),generic=encounterRooms.filter(q=>!q.map);
+ let room=local&&random()<.60?local:null;
+ if(!room){
+  let pool=generic.filter(q=>!seen.includes(q.id));
+  if(!pool.length){run.seenRooms=seen.filter(id=>localEncounterRooms.some(q=>q.id===id));pool=generic}
+  room=pool[Math.min(pool.length-1,Math.max(0,Math.floor(random()*pool.length)))];
+ }
  if(!room)return null;run.seenRooms=[...(run.seenRooms||[]),room.id];run.lastEncounter=w;
  return {room,w,closed:false};
 }
@@ -1658,6 +1710,7 @@ function encounterReason(run,p,n,event,id){
  if(id==='leave')return '';
  if(id==='summon')return event.hiddenId!=null&&run.coins>=15?'':run.coins<15?'coins':'unavailable';
  if(!event.room.choices.some(q=>q.id===id))return 'unavailable';
+ const local=localRoomChoice(event,id);if(local)return localRoomReason(run,p,n,local);
  if(id==='shatter'&&p.hp<=Math.ceil(p.maxhp*.2))return 'health';
  if(id==='sacrifice'&&p.maxhp-Math.ceil(p.maxhp*.1)<35)return 'health';
  if((id==='drink'||id==='incense')&&p.hp>=p.maxhp)return 'full';
@@ -1671,6 +1724,7 @@ function encounterReason(run,p,n,event,id){
 }
 function resolveEncounter(run,p,n,event,id,random=Math.random,unclaimed=[]){
  if(encounterReason(run,p,n,event,id))return false;
+ const local=localRoomChoice(event,id);if(local){if(!applyLocalRoom(run,p,n,local))return false;event.closed=true;run.roomChoices=(run.roomChoices||0)+1;return true}
  const cost={offering:12,incense:8,wind:15,trade:35}[id]||0;
  switch(id){
  case 'shatter':p.hp-=Math.ceil(p.maxhp*.2);addCoins(run,25);break;
@@ -3102,11 +3156,17 @@ function paintEncounterRoom(cv,room){
  case 'shrine':R(room.color,58,15,12,12);R('#1b111d',61,19,2,2);R('#1b111d',65,19,2,2);R(room.color,54,27,20,15);R('#8b5364',48,42,32,6);break;
  case 'clock':R(room.color,53,15,22,22);R('#221e30',56,18,16,16);R(room.color,63,20,2,7);R(room.color,63,26,6,2);R('#89747c',61,37,6,9);break;
  case 'cache':R('#776c62',49,17,30,30);R('#30232c',52,20,24,24);R(room.color,62,23,3,18);R(room.color,67,31,5,3);break;
+ case 'furnacePantry':R('#634538',45,13,38,34);for(let y=18;y<47;y+=12){R('#a17a55',47,y+7,34,3);R(room.color,53,y,8,7);R('#d16f54',67,y-1,9,8)}break;
+ case 'relayVault':R('#43525e',48,14,32,33);for(let x=53;x<76;x+=12){R('#17202e',x,19,8,21);R(room.color,x+2,22,4,7);R('#b0b5c3',x+2,33,4,5)}R(room.color,59,42,10,2);break;
+ case 'refundBooth':R('#69516e',45,27,38,19);R(room.color,48,27,32,3);R('#31263a',53,15,22,12);R(room.color,56,18,16,4);R('#e7ddc6',59,33,10,10);break;
+ case 'foremanOffice':R('#6b4b44',47,30,34,16);R(room.color,51,31,26,2);R('#c8b9a3',57,15,14,13);R('#744947',59,20,10,2);R('#efc886',62,38,4,3);break;
+ case 'ossuary':R('#53485a',49,13,30,34);R('#d7ccb9',53,20,12,10);R('#392b3b',55,23,3,3);R('#392b3b',61,23,3,3);R(room.color,68,25,7,15);R('#ead9f6',70,28,3,8);break;
+ case 'rootChamber':R('#3f4c3d',61,12,7,36);for(let i=0;i<4;i++){R('#687952',53+i*3,18+i*7,19-i*2,4);R(room.color,60+i%2*5,19+i*7,3,3)}R('#879b64',47,42,34,4);break;
  }
 }
 function openEncounter(){
  if(state!=='game'||waveState!=='clear'||!soloRun)return false;
- const event=createEncounter(soloRun,wave);if(!event)return false;encounter=event;state='encounter';clearLocalInput();setMobileControls(false);
+ const event=createEncounter(soloRun,wave,Math.random,selectedMap);if(!event)return false;encounter=event;state='encounter';clearLocalInput();setMobileControls(false);
  const el=document.getElementById('ritualOverlay'),box=document.getElementById('ritualChoices');box.replaceChildren();
  document.getElementById('ritualTitle').textContent=metaLabel(event.room);
  document.getElementById('ritualHint').textContent=L('Optional side room','Необязательная тайная комната')+' · ◈ '+soloRun.coins+' · HP '+Math.ceil(player.hp)+'/'+player.maxhp;
