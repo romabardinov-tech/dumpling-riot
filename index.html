@@ -1707,7 +1707,7 @@ function paintArenaFeatures(g,id,left,top,width,height){
  }
 }
 function paintArenaAtmosphere(g,id,view,time){
- const f=arenaFeatures[id];if(!f)return;
+ if(!horrorFx)return;const f=arenaFeatures[id];if(!f)return;
  const {x,y,w,h}=view,clock=reduceMotion?0:time;
  g.save();g.globalAlpha=.23;g.fillStyle=f.color;
  // Ambient pixel motes anchored to world cells, bounded to the visible viewport.
@@ -3055,7 +3055,119 @@ function paintBreakable(g,q,fx=true){
  g.restore();
 }
 function paintBreakables(g,view){for(const q of breakableProps){if(q.x+40<view.x||q.x-40>view.x+view.w||q.y+40<view.y||q.y-40>view.y+view.h)continue;paintBreakable(g,q,horrorFx&&!reduceMotion)}}
-function clearCombatPresentation(){impactMarks=[];dashGhosts=[];deathSprites=[];breakableProps=[];propImpactLedger=new WeakMap();shake=0}
+// V71.6 — Dynamic Horror: bounded, non-interactive local scenes, not combat hazards.
+const horrorSceneArt={
+ kitchen:[['breath',4.2,'#c5b3a2','#d09a6b'],['furnaceShadow',3.6,'#35292d','#bf8b65']],
+ basement:[['cableTrace',3.5,'#9cc4d2','#7497b1'],['relayBlackout',4.6,'#252c39','#7795ab']],
+ foodcourt:[['ghostSign',4.1,'#b788ab','#8cb9b7'],['receiptTrail',3.8,'#bfb4aa','#7e9298']],
+ slaughter:[['beltEcho',3.9,'#ab8272','#6c5858'],['machineShadow',4.3,'#30252c','#b77e69']],
+ cemetery:[['memorialEcho',4.7,'#a5b0a4','#b9a6ce'],['mistProcession',4.5,'#91aca7','#c6c7be']],
+ forest:[['rootPulse',4.4,'#77966b','#a6bb80'],['sporeBloom',4.0,'#c1d19e','#789f92']]
+};
+let dynamicHorror=null;
+function newHorrorScene(map,wave){return {map,wave,index:Math.max(0,wave-1),wait:wave===1?6.5:4.5+(wave%3)*.5,active:null}}
+function horrorEnvelope(age,duration){if(!Number.isFinite(age)||!Number.isFinite(duration)||duration<=0)return 0;const u=Math.max(0,Math.min(1,age/duration));return Math.sin(Math.PI*u)**2}
+function chooseHorrorAnchor(landmarks,view,area,avoid,index){
+ const safe=q=>q.x>=Math.max(area.l+48,view.x+46)&&q.x<=Math.min(area.r-48,view.x+view.w-46)&&q.y>=Math.max(area.t+44,view.y+40)&&q.y<=Math.min(area.b-44,view.y+view.h-40)&&avoid.every(p=>!p||Math.hypot(q.x-p.x,q.y-p.y)>(p.pad||0)+34);
+ const points=landmarks.map(([x,y])=>({x,y})).filter(safe);
+ if(points.length)return points[index%points.length];
+ // A world-aligned fallback keeps scenes available outside the authored landmark zone.
+ const cx=Math.round((view.x+view.w*.5)/96)*96,cy=Math.round((view.y+view.h*.5)/96)*96;
+ const fallback=[[-96,-96],[96,-96],[-144,0],[144,0],[-96,96],[96,96],[0,-96],[0,96]].map(([dx,dy])=>({x:cx+dx,y:cy+dy})).filter(safe);
+ return fallback.length?fallback[index%fallback.length]:null;
+}
+function advanceHorrorScene(s,dt,fear,pick){
+ const specs=horrorSceneArt[s.map];if(!specs||!Number.isFinite(dt)||dt<=0)return s;
+ const step=Math.min(.1,dt);
+ if(s.active){s.active.age+=step;if(s.active.age>=s.active.duration){s.active=null;s.wait=12+((s.index*7)%5)-Math.min(4,Math.max(0,fear||0)*.04)}return s}
+ s.wait-=step;if(s.wait>0)return s;
+ const point=pick(s.index);if(!point){s.wait=1.6;return s}
+ const [kind,duration,color,accent]=specs[s.index%specs.length];
+ s.active={kind,duration,color,accent,x:point.x,y:point.y,age:0,seed:s.index};s.index++;return s;
+}
+function tickDynamicHorror(dt){
+ if(!horrorFx||reduceMotion||state!=='game'||waveState!=='fighting'){dynamicHorror=null;return}
+ if(!dynamicHorror||dynamicHorror.map!==selectedMap||dynamicHorror.wave!==wave)dynamicHorror=newHorrorScene(selectedMap,wave);
+ advanceHorrorScene(dynamicHorror,dt,nightmare?.fear||0,index=>{
+  const view={x:camera.x-W/2,y:camera.y-H/2,w:W,h:H};
+  const avoid=[...coopPlayers().filter(p=>!p.dead).map(p=>({x:p.x,y:p.y,pad:32})),...hazards.map(h=>({x:h.x,y:h.y,pad:h.radius+12})),...livingStations.map(p=>({x:p.x,y:p.y,pad:24}))];
+  if(nightmare?.zone)avoid.push({...nightmare.zone,pad:FEAR_RULES.radius+8});
+  if(secretEncounter&&secretEncounter.stage!=='done')avoid.push({...secretEncounter,pad:28});
+  if(boss&&!boss.dead)avoid.push({x:boss.x,y:boss.y,pad:48});
+  return chooseHorrorAnchor([...(arenaLights[selectedMap]||[]),...(arenaIdentity[selectedMap]?.marks||[])],view,arena,avoid,index);
+ });
+}
+function horrorLocalLight(map,x,y,s){
+ if(!s||s.map!==map||!s.active)return 1;
+ const q=s.active;if(q.kind!=='relayBlackout'&&q.kind!=='furnaceShadow'&&q.kind!=='machineShadow')return 1;
+ const proximity=Math.max(0,1-Math.hypot(x-q.x,y-q.y)/120);
+ return 1-.20*proximity*horrorEnvelope(q.age,q.duration);
+}
+function paintHorrorScene(g,q,view){
+ if(!q||q.x+65<view.x||q.x-65>view.x+view.w||q.y+65<view.y||q.y-65>view.y+view.h)return;
+ const env=horrorEnvelope(q.age,q.duration);if(env<=.001)return;
+ const t=Math.max(0,Math.min(1,q.age/q.duration)),base=g.globalAlpha,c=q.color,a=q.accent;
+ const R=(col,x,y,w,h)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))};
+ const L=(col,pts)=>{g.strokeStyle=col;g.lineWidth=1;g.beginPath();g.moveTo(Math.round(pts[0]),Math.round(pts[1]));for(let i=2;i<pts.length;i+=2)g.lineTo(Math.round(pts[i]),Math.round(pts[i+1]));g.stroke()};
+ const P=(col,pts)=>{g.fillStyle=col;g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill()};
+ g.save();g.translate(q.x,q.y);g.globalAlpha=base*env*.32;
+ switch(q.kind){
+ case 'breath':
+  // A compact plume that rises and rolls outward, then disappears.
+  for(let i=0;i<7;i++){const y=-5-i*5-t*13,x=Math.sin(i*.8+t*2)*7,w=10+i*4;R(c,x-w/2,y,w,4);R(a,x-w/2+3,y-1,w-6,1)}
+  break;
+ case 'furnaceShadow':
+  // A long passing furnace-door shadow, painted on the floor only.
+  P(c,[-26,-12,-9,-15,30+t*13,10,25+t*13,19,-20,2]);P(c,[-21,-10,-13,-10,22+t*12,9,17+t*12,13]);R(a,-25,-12,18,2);R(a,-13,-9,5,1);
+  break;
+ case 'cableTrace':
+  // A crawling low-intensity current along an irregular, non-circular wire.
+  L(a,[-35,15,-19,15,-19,-3,2,-3,2,-18,31,-18]);
+  L(c,[-35,17,-17,17,-17,-1,4,-1,4,-16,31,-16]);
+  for(let i=0;i<4;i++){const u=(t*.85+i*.17)%1,x=-32+u*60,y=x<-19?15:x<2?-3:-18;R(c,x,y-1,4,2)}
+  break;
+ case 'relayBlackout':
+  // Local shadow with a tiny fading emergency indicator, not a screen blackout.
+  P(c,[-38,-16,-18,-29,18,-29,38,-16,32,20,-32,20]);R(c,-29,-16,58,33);R(a,-9,-8,18,2);R(a,-3,-4,6,2);
+  break;
+ case 'ghostSign':
+  // Broken storefront lettering appears as a reflection, then fades.
+  for(let i=0;i<5;i++){const x=-30+i*13,y=-12+t*4;R(i%2?a:c,x,y,9,2);R(c,x,y+3,2,9);R(a,x+7,y+5,2,6);if(i%2===0)R(c,x+2,y+10,7,1)}
+  R(a,-32,7+t*4,64,1);
+  break;
+ case 'receiptTrail':
+  for(let i=0;i<6;i++){const x=-29+i*11+Math.sin(t*3+i)*4,y=15-i*5-t*9;P(c,[x,y,x+7,y-1,x+8,y+7,x+1,y+8]);R(a,x+2,y+2,4,1);R(a,x+2,y+5,3,1)}
+  break;
+ case 'beltEcho':
+  // An interrupted phantom conveyor pattern, no danger markers.
+  R(a,-35,-10,70,2);R(a,-35,11,70,2);
+  for(let i=0;i<7;i++){const x=-34+(i*10+t*14)%68;R(c,x,-7,5,17);R(a,x+1,-5,2,13)}
+  break;
+ case 'machineShadow':
+  P(c,[-32,-15,-17,-19,-5,-8,18+t*12,-9,37+t*6,6,31,15,4,11,-16,19,-35,12]);
+  for(let i=0;i<5;i++)R(a,-24+i*11+t*5,8-i%2*5,4,1);
+  break;
+ case 'memorialEcho':
+  // A faded epitaph-like floor reflection, never an enemy silhouette.
+  P(a,[-23,12,-23,-11,-15,-20,15,-20,23,-11,23,12]);P(c,[-20,10,-20,-10,-14,-17,14,-17,20,-10,20,10]);
+  for(let i=0;i<4;i++)R(a,-13+i%2*3,-8+i*5,26-i%2*6,1);
+  R(c,-27,13,54,2);
+  break;
+ case 'mistProcession':
+  for(let i=0;i<6;i++){const x=-34+i*9+t*14,y=-12+i%3*9,w=14+i%3*5;R(c,x,y,w,3);R(a,x+3,y-1,w-6,1);R(c,x+2,y+5,w-4,1)}
+  break;
+ case 'rootPulse':
+  // Root-shaped floor filaments grow slowly outward; not the combat snare.
+  for(let i=0;i<5;i++){const k=i-2,dx=k*12,dy=-16-Math.abs(k)*5,f=.4+.6*t;L(c,[0,15,dx*.4*f,4,dx*f,dy*f,dx*f+k*5,dy*f-8]);R(a,dx*f,dy*f,3,2)}
+  break;
+ case 'sporeBloom':
+  for(let i=0;i<9;i++){const b=i*Math.PI*2/9+q.seed*.13,r=9+22*t,x=Math.cos(b)*r,y=Math.sin(b)*r*.62-t*10;R(i%2?c:a,x,y,2+i%2,2);if(i%3===0)R(c,x+3,y-2,1,1)}
+  break;
+ }
+ g.restore();
+}
+function paintDynamicHorror(g,map,view){if(horrorFx&&!reduceMotion&&state==='game'&&waveState==='fighting'&&dynamicHorror?.map===map)paintHorrorScene(g,dynamicHorror.active,view)}
+function clearCombatPresentation(){impactMarks=[];dashGhosts=[];deathSprites=[];breakableProps=[];propImpactLedger=new WeakMap();dynamicHorror=null;shake=0}
 function addImpact(e,d,owner){if(!horrorFx||reduceMotion)return;const q=impactProfile(d,e.type==='boss'),source=owner==='p1'?player:owner==='p2'?player2:null;pushFx(impactMarks,{x:e.x,y:e.y-8,...q,material:enemyImpactMaterial(e),heavy:e.type==='boss'||d>=60,angle:source?Math.atan2(e.y-source.y,e.x-source.x):0,scar:source?.charId==='scar',vesa:source?.charId==='vesa',nyx:source?.charId==='nyx',mage:source?.charId==='pelmage',shiv:source?.charId==='assassin',golem:source?.charId==='golem',warden:source?.charId==='warden',voidArt:source?.charId==='revenant',max:q.life},COMBAT_FX.marks)}
 // V71.2 — Individual death choreography, visual only.
 const enemyDeathArt={
@@ -3787,7 +3899,7 @@ function updateDrops(dt){
  drops=drops.filter(d=>d.life>0);
 }
 
-function updateFx(dt){tickBreakables(dt);impactMarks=fxTick(impactMarks,dt);dashGhosts=fxTick(dashGhosts,dt);deathSprites=fxTick(deathSprites,dt);for(const p of coopPlayers())p.recoilT=Math.max(0,(p.recoilT||0)-dt);for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.92;p.vy*=.92;p.life-=dt}particles=particles.filter(p=>p.life>0);for(const t of texts){t.y-=18*dt;t.life-=dt}texts=texts.filter(t=>t.life>0);if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)document.getElementById('toast').classList.remove('show')}}
+function updateFx(dt){tickDynamicHorror(dt);tickBreakables(dt);impactMarks=fxTick(impactMarks,dt);dashGhosts=fxTick(dashGhosts,dt);deathSprites=fxTick(deathSprites,dt);for(const p of coopPlayers())p.recoilT=Math.max(0,(p.recoilT||0)-dt);for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.92;p.vy*=.92;p.life-=dt}particles=particles.filter(p=>p.life>0);for(const t of texts){t.y-=18*dt;t.life-=dt}texts=texts.filter(t=>t.life>0);if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)document.getElementById('toast').classList.remove('show')}}
 
 let shake=0;
 const touchInput={moveX:0,moveY:0,aimX:0,aimY:0,aimActive:false,attack:false,p2MoveX:0,p2MoveY:0};let touchAimMode=false;
@@ -5584,7 +5696,7 @@ function paintRefugeDirection(g,n,view){
 }
 function paintArenaLighting(g,map,view){
  const {x,y,w,h}=view;g.save();g.fillStyle='rgba(10,12,15,.08)';g.fillRect(x,y,w,h);
- for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+85<x||lx-85>x+w||ly+85<y||ly-85>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,85),glow=map.id==='foodcourt'&&arenaLights.foodcourt.findIndex(q=>q[0]===lx&&q[1]===ly)%2===1?'#8ccac6':terrainThemes[map.id].glow;rad.addColorStop(0,glow);rad.addColorStop(.35,glow+'65');rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=map.id==='kitchen'?.29:map.id==='basement'?.27:map.id==='foodcourt'?.26:map.id==='slaughter'?.28:.23;g.fillStyle=rad;g.fillRect(lx-85,ly-85,170,170)}g.restore()
+ for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+85<x||lx-85>x+w||ly+85<y||ly-85>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,85),glow=map.id==='foodcourt'&&arenaLights.foodcourt.findIndex(q=>q[0]===lx&&q[1]===ly)%2===1?'#8ccac6':terrainThemes[map.id].glow;rad.addColorStop(0,glow);rad.addColorStop(.35,glow+'65');rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=(map.id==='kitchen'?.29:map.id==='basement'?.27:map.id==='foodcourt'?.26:map.id==='slaughter'?.28:.23)*(horrorFx&&!reduceMotion&&state==='game'&&waveState==='fighting'?horrorLocalLight(map.id,lx,ly,dynamicHorror):1);g.fillStyle=rad;g.fillRect(lx-85,ly-85,170,170)}g.restore()
 }
 // V67: cull presentation only; never remove off-screen simulation objects.
 function visibleWorld(q,view,pad=0){return q.x+pad>=view.x&&q.x-pad<=view.x+view.w&&q.y+pad>=view.y&&q.y-pad<=view.y+view.h}
@@ -5595,7 +5707,7 @@ function draw(){
  ctx.save();
  ctx.translate(Math.round(W/2-camera.x),Math.round(H/2-camera.y));
  // Cached world scenery; actors and attack warnings are still rendered above it.
- ctx.drawImage(getTerrain(m.id),0,0);const view={x:camera.x-W/2,y:camera.y-H/2,w:W,h:H};paintArenaLighting(ctx,m,view);paintArenaAtmosphere(ctx,m.id,view,horrorTime);paintArenaSignature(ctx,m.id,view,horrorTime);paintBreakables(ctx,view);
+ ctx.drawImage(getTerrain(m.id),0,0);const view={x:camera.x-W/2,y:camera.y-H/2,w:W,h:H};paintArenaLighting(ctx,m,view);paintArenaAtmosphere(ctx,m.id,view,horrorTime);paintArenaSignature(ctx,m.id,view,horrorTime);paintDynamicHorror(ctx,m.id,view);paintBreakables(ctx,view);
  // Local light falloff is behind actors and warning rings, never over threat indicators.
  if(soloRun&&state!=='death'){const light=ctx.createRadialGradient(player.x,player.y,48,player.x,player.y,205);light.addColorStop(0,'rgba(0,0,0,0)');light.addColorStop(.65,'rgba(8,5,13,.035)');light.addColorStop(1,'rgba(8,5,13,.23)');ctx.fillStyle=light;ctx.fillRect(view.x,view.y,view.w,view.h)}
  if(nightmare)paintNightmareFloor(ctx,nightmare,nightmareThemes[m.id]);
