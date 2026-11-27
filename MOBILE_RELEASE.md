@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.9. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.10. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -126,3 +126,6 @@ Seventh individual visual pass, WARDEN only. Original aged brass armor, ivory ta
 
 ## V68.9 — Void Reaper: REVENANT
 Eighth individual visual pass, REVENANT only. Original fractured bone-metal armor, torn mantle, hollow mask and luminous core. Unique claws, crystals, rift and ash weapon finishes and attack echoes; drifting void ash, fractured dash trails, impacts and projectile tails. Positive health restored by the existing dash ability emits up to six inward-moving soul particles within the existing global particle cap, disabled by reduced motion/horror FX. Optional voidArt snapshot field, protocol v68 and combat balance unchanged. All eight heroes now have individual visual passes. Inline syntax and 2033 isolated drawing-command, geometry and particle-budget assertions passed. Actual rendered review, mobile FPS and network presentation remain unverified.
+
+## V68.10 — Hell's Kitchen
+First individual arena art pass, KITCHEN only. Original north-wall ovens outside the collision boundary, recessed copper supply pipes, worn tile scratches and warm floor reflections; improved existing steam grilles. World-anchored, viewport-culled steam, low-opacity reflected heat and ember motes, static with reduced motion and disabled with horror FX off. Static details share the existing cached terrain and thumbnail pipeline. Existing hazard/station coordinates, damage, walkable rectangle, enemy pools and other arenas unchanged. Inline syntax and 2911 isolated geometry/drawing-command assertions passed. Actual browser screenshot, mobile performance and full playthrough remain unverified.
