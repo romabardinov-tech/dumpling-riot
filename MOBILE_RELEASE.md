@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.2. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.3. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -105,3 +105,6 @@ Original Canvas pixel geometry for all 32 equipped weapon silhouettes, individua
 
 ## V68.2 — Emberforged: SCAR
 First individual visual pass, SCAR only. Original forged shoulder armor, molten chest seams and belt, distinct heated overlays for cleaver, boomerang, axe and trident; each uses a different short recoil echo. Four ambient embers (seven under 35% HP), directional dash echoes and warm hit sparks. Persistent costume/weapon details remain with motion effects disabled; animated accents respect reduced motion and horror FX. No changes to damage, collision, weapon cooldowns, controls, other hero designs, map graphics or network protocol. Inline script syntax and 3865 isolated drawing-command/geometry assertions passed. Actual rendered image review and mobile playtest remain pending; new local combat effects are not individually synchronized over the network.
+
+## V68.3 — Venom Huntress: VESA
+Second individual visual pass, VESA only. Wine-colored hunter armor with alchemical vials and green reagent channels, distinct overlays for needles, scythe, crossbow and fan, four attack echoes, low ground mist, directional dash residue and acid-colored impact droplets. Projectile trails retain existing core colors and add three decorative reagent motes; optional venomArt flag is carried in snapshots (protocol v68 unchanged). Effects respect reduced motion and horror FX. No changes to combat damage, elemental rules, timings, movement or other hero designs. Inline syntax and 3869 isolated geometry/drawing-command assertions passed. Actual rendered screenshot review, mobile playtest and network visual verification remain pending.
