@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.13. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.75.8. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -303,3 +303,6 @@ Arena atmosphere uses cached 64px radial textures instead of recreating gradient
 
 ## V75.7 — Production quality: hot-loop allocation reduction
 Stable in-place compaction of owned dense simulation/presentation arrays after processing: projectiles, rings, drops, enemies, particles, floating text and short-lived FX. Preserves object identity and survivor order, no item caps or altered rewards. Pickup broad phase rejects players outside each item's maximum actionable axis range before exact Math.hypot; preserves nearest-player and tie priority, strict pickup radii, void attraction and pause behavior. Ring distance computed once per enemy. Regression uses 20k randomized pickup comparisons, 5k distant pickups with zero distance calls, and 3600 synthetic compaction iterations, plus existing combat/lighting/reward suites. No real-device performance, heap profile, FPS or full long-run browser evidence.
+
+## V75.8 — Native release profile and freshness gate
+Default npm run build:mobile now creates offline-release (solo + local co-op, no PeerJS vendor bundle). Web retains experimental online. Explicit npm run build:mobile:online-dev produces a test-only bundle; verify with node scripts/check-mobile.mjs --online-dev, never submit that profile. Default npm run native:sync rebuilds offline profile. Check-mobile rejects wrong profile, version mismatch, stale source or assets, modified bundled HTML, remote Capacitor server and unexpected PeerJS bundle. Privacy draft distinguishes profiles. Five isolated suites and source syntax checks passed. No dependency install, native generation, signing, APK/AAB/IPA or real device tests performed. Package-lock, generated native projects, SDK verification, icons, publisher/contact, ratings, disclosures and store enrollment remain blockers. Do not call this store-ready.

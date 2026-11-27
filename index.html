@@ -980,6 +980,8 @@ function rechargeWeapons(p,dt){
  p.shivCharge=p.weaponCharge[2];
 }
 
+// V75.8: web keeps experimental online; native preparation substitutes false.
+const ONLINE_COOP_ENABLED=true;
 let state='menu',selectedChar=chars[0].id,selectedMap=maps[0].id,weapon=0,last=0,acc=0;
 let campaignMode=false,coop=false,onlineMode=false,isOnlineHost=false,isOnlineGuest=false;let peer=null,netConn=null,netStateConn=null,netRoom='';let netSendTimer=0,guestNetTimer=0,peerReadyPromise=null,netSeq=0,lastNetSeq=0;
 function readStorage(key,fallback){try{return localStorage.getItem(key)??fallback}catch(_){return fallback}}
@@ -3412,7 +3414,7 @@ function makeMenu(){
  if(!heroPlayable(chars.find(c=>c.id===selectedChar),meta,journal,coop||onlineMode))selectedChar=chars[0].id;
  const cc=document.getElementById('charChoices');cc.innerHTML='';document.getElementById('recordLine').textContent=recordText(loadRecord());
  for(const ch of chars){const d=document.createElement('button');d.type='button';d.className='choice'+(ch.id===selectedChar?' sel':'');d.style.setProperty('--accent',ch.color);d.setAttribute('aria-pressed',String(ch.id===selectedChar));d.innerHTML=`<b>${locName(ch)}</b>`;const portrait=document.createElement('canvas');portrait.width=64;portrait.height=56;portrait.className='heroPortrait';portrait.setAttribute('aria-hidden','true');const pg=portrait.getContext('2d');pg.imageSmoothingEnabled=false;pg.translate(23,38);pixelHeroBody(pg,ch.id,0,0,0);paintHeroSignature(pg,ch.id,0,0);pixelHeroWeapon(pg,ch.id,0,0,0);d.prepend(portrait);if(!heroPlayable(ch,meta,journal,coop||onlineMode)){d.classList.add('heroLocked');d.disabled=true;const note=document.createElement('small');note.textContent=ch.unlock&&(coop||onlineMode)?L('Solo only','Только соло'):heroLockText(ch);d.append(note)}d.onclick=()=>{if(!heroPlayable(ch,meta,journal,coop||onlineMode))return;selectedChar=ch.id;saveMenuSelection();makeMenu();cc.querySelector('.sel')?.focus({preventScroll:true})};cc.appendChild(d)}
- const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:L('Endless survival','Бесконечное выживание'),desc:T('modeOneDesc')},{id:'campaign',title:L('Path of Darkness','Путь тьмы'),desc:L('Story campaign · 15 waves · three endings','Кампания · 15 волн · три концовки')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes){const d=document.createElement('button');d.type='button';d.className='modeChoice'+((md.id==='solo'&&!campaignMode&&!coop&&!onlineMode)||(md.id==='campaign'&&campaignMode&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.setAttribute('aria-pressed',String(d.classList.contains('sel')));d.innerHTML=uiPixelIcon(md.id==='campaign'?'solo':md.id)+`<div class="modeCopy"><b>${md.title}</b><p>${md.desc}</p></div>`;d.onclick=()=>{if(md.id!=='online'&&onlineMode&&(netConn||peer))disconnectOnline(L('Left the room','Выход из комнаты'));campaignMode=md.id==='campaign';onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu();modeBox.querySelector('.sel')?.focus({preventScroll:true})};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||L('No room')):'')}
+ const modeBox=document.getElementById('modeChoices');if(modeBox){modeBox.innerHTML='';const modes=[{id:'solo',title:L('Endless survival','Бесконечное выживание'),desc:T('modeOneDesc')},{id:'campaign',title:L('Path of Darkness','Путь тьмы'),desc:L('Story campaign · 15 waves · three endings','Кампания · 15 волн · три концовки')},{id:'local',title:T('twoPlayers'),desc:T('modeTwoDesc')},{id:'online',title:T('onlinePlayers'),desc:T('onlineDesc')}];for(const md of modes.filter(q=>q.id!=='online'||ONLINE_COOP_ENABLED)){const d=document.createElement('button');d.type='button';d.className='modeChoice'+((md.id==='solo'&&!campaignMode&&!coop&&!onlineMode)||(md.id==='campaign'&&campaignMode&&!coop&&!onlineMode)||(md.id==='local'&&coop&&!onlineMode)||(md.id==='online'&&onlineMode)?' sel':'');d.setAttribute('aria-pressed',String(d.classList.contains('sel')));d.innerHTML=uiPixelIcon(md.id==='campaign'?'solo':md.id)+`<div class="modeCopy"><b>${md.title}</b><p>${md.desc}</p></div>`;d.onclick=()=>{if(md.id!=='online'&&onlineMode&&(netConn||peer))disconnectOnline(L('Left the room','Выход из комнаты'));campaignMode=md.id==='campaign';onlineMode=md.id==='online';coop=md.id==='local'||md.id==='online';document.getElementById('onlinePanel').style.display=onlineMode?'block':'none';makeMenu();modeBox.querySelector('.sel')?.focus({preventScroll:true})};modeBox.appendChild(d)}const p2=document.getElementById('modeP2Info');if(p2)p2.textContent=coop&&!onlineMode?T('p2Info')+' · '+locName(chars.find(c=>c.id===otherCharId())):(onlineMode?'ONLINE: '+(netRoom||L('No room')):'')}
  const mc=document.getElementById('mapChoices');mc.innerHTML='';
  for(const m of maps){const d=document.createElement('button');d.type='button';d.className='choice'+(m.id===selectedMap?' sel':'');d.style.setProperty('--accent',m.accent);d.style.setProperty('--card',m.tile);d.setAttribute('aria-pressed',String(m.id===selectedMap));d.innerHTML=`<b>${locName(m).split(' — ')[0]}</b>`;const thumbnail=document.createElement('canvas');thumbnail.width=160;thumbnail.height=90;thumbnail.className='mapPortrait';thumbnail.setAttribute('aria-hidden','true');thumbnail.getContext('2d').drawImage(mapThumbnail(m.id),0,0);d.prepend(thumbnail);d.onclick=()=>{selectedMap=m.id;saveMenuSelection();makeMenu();mc.querySelector('.sel')?.focus({preventScroll:true})};mc.appendChild(d)}
  applyLanguageStatic();renderCheckpointMenu();
@@ -3446,6 +3448,7 @@ const nativeMobile=()=>window.Capacitor?.isNativePlatform?.()===true;
 const peerScriptUrl='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
 let peerLibraryPromise=null;
 function ensurePeerLibrary(){
+ if(!ONLINE_COOP_ENABLED)return Promise.reject(new Error('Online co-op disabled in this build'));
  if(typeof Peer!=='undefined')return Promise.resolve();
  if(peerLibraryPromise)return peerLibraryPromise;
  peerLibraryPromise=new Promise((resolve,reject)=>{
@@ -3644,8 +3647,9 @@ function wireStateNet(c){
  });
  c.on('error',()=>{if(c===netStateConn)netStateConn=null});c.on('close',()=>{if(c===netStateConn)netStateConn=null});
 }
-function startOnlineHost(){if(!netConn?.open){setOnlineStatus(L('Create or join a room first.','Сначала создай комнату и дождись игрока.'));return false}netRun++;netSeq=0;netUpgrade=0;remoteSeenAt=remoteInputAt=Date.now();sendNet({t:'start',map:selectedMap});return true}
+function startOnlineHost(){if(!ONLINE_COOP_ENABLED)return false;if(!netConn?.open){setOnlineStatus(L('Create or join a room first.','Сначала создай комнату и дождись игрока.'));return false}netRun++;netSeq=0;netUpgrade=0;remoteSeenAt=remoteInputAt=Date.now();sendNet({t:'start',map:selectedMap});return true}
 function startGame(fromNetwork=false,checkpoint=null,date=null,rank=null){
+ if(!ONLINE_COOP_ENABLED&&(onlineMode||fromNetwork))return;
  touchAimMode=false;hudElapsed=1;if(savedCheckpoint&&!coop&&!onlineMode&&!checkpoint)return;saveAtBoundary=false;encounter=null;
  if(onlineMode&&!fromNetwork&&(!isOnlineHost||!startOnlineHost()))return;
  const dailyRun=!coop&&!onlineMode?dailyPreset(checkpoint?.run.daily??date??(state!=='menu'?soloRun?.daily:null)):null;
@@ -7273,12 +7277,14 @@ document.getElementById('abyssHome').onclick=()=>{const rank=nextAbyss(meta);if(
 document.getElementById('dailyHome').onclick=()=>{if(state!=='menu'||savedCheckpoint||coop||onlineMode)return;const date=dailyDate();if(document.getElementById('dailyHome').dataset.date!==date){renderDaily();return}startGame(false,null,date)};
 document.getElementById('startBtn').onclick=()=>{if(onlineMode&&!(netConn&&netConn.open)){setMenuTab('mode');setOnlineStatus(L("Create or join a room first.","Сначала создай комнату или подключись."));return}startHorrorMusic();startGame()};
 document.getElementById('createRoomBtn')?.addEventListener('click',async()=>{
+ if(!ONLINE_COOP_ENABLED)return;
  setOnlineStatus(L('Connecting…','Создаём комнату...'));
  try{await setupPeer(true);isOnlineHost=true;isOnlineGuest=false;onlineMode=true;coop=true;if(document.getElementById('roomCodeInput'))document.getElementById('roomCodeInput').value=netRoom;
  setOnlineStatus(L('Waiting for player 2…','Ждём игрока 2…')+' · '+L('Room code:','Код комнаты:')+' '+netRoom);}
  catch(e){}
 });
 document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
+ if(!ONLINE_COOP_ENABLED)return;
  const input=document.getElementById('roomCodeInput');
  const code=String(input?.value||netRoom||'').replace(/\D/g,'').slice(0,5);
  if(input)input.value=code;
