@@ -1,4 +1,4 @@
-const CACHE='dumpling-riot-v75-5';
+const CACHE='dumpling-riot-v75-6';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./privacy.html','./icon-v38-180.png','./icon-v38-192.png','./icon-v38-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('dumpling-riot-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
