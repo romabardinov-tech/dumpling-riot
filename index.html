@@ -4475,10 +4475,17 @@ const heroPainProfiles={
  scar:[118,63,'sawtooth',950,.38],vesa:[186,92,'triangle',1550,.42],nyx:[142,38,'sine',920,.55],pelmage:[226,105,'triangle',1700,.46],
  assassin:[154,112,'square',1100,.29],golem:[64,28,'sawtooth',420,.66],warden:[102,51,'triangle',760,.52],revenant:[82,25,'sine',610,.72]
 };
+// V75.16 — individual vocal contours, not a uniform falling tone.
+// [attack pitch multiplier, peak pitch multiplier, break pitch multiplier, length, formant]
+const deathCryProfiles={
+ scar:[1.1,2.25,.78,1.20,1450],vesa:[1.25,2.65,1.1,1.08,2300],nyx:[1.6,2.1,.49,1.38,1750],pelmage:[1.05,2.4,.83,1.15,2500],
+ assassin:[1.25,2.15,.70,.78,1950],golem:[1.15,1.85,.55,1.50,740],warden:[1.15,2.55,.84,1.25,1500],revenant:[1.7,2.8,.45,1.64,1050]
+};
+function deathCryContour(id){return deathCryProfiles[id]||deathCryProfiles.scar}
 function playPainVoice(p,dying=false){
  if(!audioReady()||!horrorFx||(!dying&&!admitAudio(soundGate,'pain-'+(p?.charId||'scar'),audioCtx.currentTime,.55)))return;
- const q=heroPainProfiles[p?.charId]||heroPainProfiles.scar,now=audioCtx.currentTime,dur=q[4]*(dying?2.05:1);
- for(let i=0;i<(dying?3:2);i++){const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter(),t=now+i*(dying?.09:.025),d=dur*(i?.78:1),mul=[1,1.53,.51][i];o.type=i===0?q[2]:'triangle';o.frequency.setValueAtTime(q[0]*mul,t);o.frequency.exponentialRampToValueAtTime(Math.max(24,q[0]*mul*(dying?1.22:.92)),t+.045);o.frequency.exponentialRampToValueAtTime(Math.max(21,q[1]*mul),t+d);f.type='lowpass';f.frequency.value=q[3];g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime((dying?.09:.047)/(i+1),t+.04);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(f);f.connect(g);g.connect(effectsGain);o.onended=()=>{try{o.disconnect();f.disconnect();g.disconnect()}catch(_){}};o.start(t);o.stop(t+d+.03)}
+ const q=heroPainProfiles[p?.charId]||heroPainProfiles.scar,cry=deathCryContour(p?.charId),now=audioCtx.currentTime,dur=dying?cry[3]:q[4];
+ for(let i=0;i<(dying?3:2);i++){const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter(),t=now+i*(dying?.09:.025),d=dur*(i?.78:1),mul=[1,1.53,.51][i];o.type=i===0?q[2]:'triangle';o.frequency.setValueAtTime(q[0]*mul*(dying?cry[0]:1),t);o.frequency.exponentialRampToValueAtTime(Math.max(24,q[0]*mul*(dying?cry[1]:.92)),t+(dying?d*.16:.045));if(dying){o.frequency.exponentialRampToValueAtTime(Math.max(24,q[0]*mul*cry[2]),t+d*.55);o.frequency.exponentialRampToValueAtTime(Math.max(24,q[0]*mul*cry[1]*.63),t+d*.70)}o.frequency.exponentialRampToValueAtTime(Math.max(21,q[1]*mul),t+d);f.type='lowpass';f.frequency.value=dying?cry[4]:q[3];g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime((dying?.115:.047)/(i+1),t+.04);if(dying){g.gain.exponentialRampToValueAtTime(.025/(i+1),t+d*.48);g.gain.exponentialRampToValueAtTime(.065/(i+1),t+d*.68)}g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(f);f.connect(g);g.connect(effectsGain);o.onended=()=>{try{o.disconnect();f.disconnect();g.disconnect()}catch(_){}};o.start(t);o.stop(t+d+.03)}
 }
 function hurtPlayer(p,dmg,x=p.x,y=p.y){
  if(state!=='game'||!p||p.inv>0||p.dead)return;
@@ -4498,7 +4505,51 @@ function startDeath(p){
  toast((coop&&!alivePlayers().length?'P1 / P2':p===player?'P1':'P2')+' · '+L('DEFEATED','ПОВЕРЖЕН'));
  if(!alivePlayers().length){state='death';deathTimer=0;deathPhase=0;for(const e of enemies){if(e.dead)continue;e.attack=99;e.speed*=.7}}
 }
-function updateDeath(dt){deathTimer+=dt;deathPhase+=dt*3.2;const deadPlayers=coopPlayers();for(const e of enemies){if(e.dead)continue;const t=deadPlayers.reduce((best,p)=>{const db=Math.hypot(best.x-e.x,best.y-e.y),dp=Math.hypot(p.x-e.x,p.y-e.y);return dp<db?p:best},deadPlayers[0]);const dx=t.x-e.x,dy=t.y-e.y,d=Math.hypot(dx,dy)||1;if(d>17){e.x+=(dx/d)*Math.min(34,d*1.4)*dt;e.y+=(dy/d)*Math.min(34,d*1.4)*dt}else{e.x+=Math.cos(e.phase+deathTimer*8)*.35;e.y+=Math.sin(e.phase+deathTimer*8)*.35}}if(deathTimer>.72&&Math.floor(deathTimer*8)!==Math.floor((deathTimer-dt)*8)){for(const p of deadPlayers)bloodBurst(p.x+rnd(-5,5),p.y+rnd(-5,5),12,1)}if(deathTimer>3.5)endGame()}
+// Death-scene feeding: contact-gated, bounded pose cycle; no combat damage.
+const feedingProfiles={
+ fork:[0,-1,8,5,.48,'jaw'],pepper:[0,0,10,7,.45,'jaw'],boiler:[0,-4,18,8,.72,'vent'],butcher:[0,-15,8,6,.67,'jaw'],
+ crawler:[0,7,8,5,.39,'jaw'],cableMite:[0,-8,9,6,.40,'vent'],eye:[0,4,10,5,.54,'iris'],wretch:[0,-19,7,9,.66,'jaw'],
+ plate:[0,0,14,7,.52,'jaw'],neonGhost:[0,-7,7,10,.74,'jaw'],vendingDrone:[-3,-3,15,7,.70,'vent'],siren:[0,-13,13,8,.58,'vent'],
+ knife:[0,-6,8,5,.43,'jaw'],chainHound:[19,0,13,8,.38,'jaw'],slicer:[0,-8,10,6,.50,'jaw'],maw:[0,-7,28,12,.74,'jaw'],
+ boneWalker:[0,-19,8,8,.60,'jaw'],hands:[0,-3,8,6,.44,'hands'],stalker:[0,-15,6,10,.78,'jaw'],feaster:[0,-9,28,13,.81,'jaw'],
+ sporeBeetle:[0,8,10,5,.40,'jaw'],rootHorror:[0,-3,8,9,.72,'jaw'],spitter:[0,-20,14,10,.63,'jaw'],parasite:[0,5,11,7,.43,'jaw']
+};
+const bossFeedingProfiles=[
+ [0,-18,17,11,.78,'jaw'],[0,0,32,14,.92,'vent'],[0,-5,24,12,.67,'vent'],[0,-4,26,12,.83,'jaw'],[0,-13,20,14,.65,'jaw'],
+ [0,-2,30,13,.77,'vent'],[0,-10,21,12,.59,'jaw'],[0,0,32,15,.91,'vent'],[0,-17,19,15,.90,'jaw'],[0,-10,30,14,.84,'jaw'],
+ [0,-7,30,15,.89,'jaw'],[0,-5,23,16,.75,'jaw'],[0,-9,27,14,1.02,'jaw'],[0,5,30,13,.95,'vent'],[0,-10,26,15,.85,'iris']
+];
+function feedingProfile(e){return e.type==='boss'?bossFeedingProfiles[e.bossId]||bossFeedingProfiles[0]:feedingProfiles[e.type]||feedingProfiles.fork}
+function feedingPose(e){if(!e.feeding)return null;const profile=feedingProfile(e),u=((e.feedTime||0)%profile[4])/profile[4],open=u<.40?u/.40:u<.65?1-(u-.40)/.25:0;return {open:Math.max(0,Math.min(1,open)),u,profile}}
+function stepDeathFeeding(e,dt,t,elapsed){
+ if(!t||e.dead)return false;
+ const dx=t.x-e.x,dy=t.y-e.y,d=Math.hypot(dx,dy),reach=e.type==='boss'?38:e.elite?23:17;
+ if(d>reach+1){const travel=Math.min(d-reach,Math.min(54,d*1.4)*dt);e.x+=dx/Math.max(1,d)*travel;e.y+=dy/Math.max(1,d)*travel;e.feeding=false;e.feedTime=0;return false}
+ if(elapsed<.48){e.feeding=false;return false}
+ if(!e.feeding){e.feeding=true;e.feedTime=0}
+ const period=feedingProfile(e)[4],before=e.feedTime||0,after=before+dt;
+ e.feedTime=after;
+ // Bite sound at closure, not during the approach or every frame.
+ return Math.floor((after+period*.35)/period)>Math.floor((before+period*.35)/period);
+}
+function playFeedingCue(e){
+ if(!audioReady()||!horrorFx||!admitAudio(soundGate,'feeding',audioCtx.currentTime,.18))return;
+ const p=feedingProfile(e),now=audioCtx.currentTime,mechanical=p[5]==='vent';
+ const o=audioCtx.createOscillator(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();o.type=mechanical?'square':'triangle';o.frequency.setValueAtTime(mechanical?155:88,now);o.frequency.exponentialRampToValueAtTime(mechanical?52:32,now+.10);f.type='lowpass';f.frequency.value=mechanical?1150:650;g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.05,now+.009);g.gain.exponentialRampToValueAtTime(.0001,now+.12);o.connect(f);f.connect(g);g.connect(effectsGain);o.onended=()=>{try{o.disconnect();f.disconnect();g.disconnect()}catch(_){}};o.start(now);o.stop(now+.14)
+}
+function paintFeedingJaw(g,e){
+ const pose=feedingPose(e);if(!pose)return;const [x,y,w,h,period,kind]=pose.profile,open=reduceMotion?.55:pose.open,gap=Math.round(1+h*open),half=Math.floor(w/2),ink='#100b15',rim='#67505b',tooth='#d4c1a7';
+ const R=(col,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const jaw=(cx,cy,width)=>{const hw=Math.floor(width/2);R(rim,cx-hw-1,cy-1,width+2,gap+5);R(ink,cx-hw,cy,width,gap+3);if(kind==='vent'){for(let i=1;i<width-1;i+=4)R('#a8a39a',cx-hw+i,cy,2,2);R('#ac775e',cx-hw+2,cy+gap+2,width-4,2)}else if(kind==='iris'){R('#82719a',cx-hw+1,cy+1,width-2,2);R('#c9b4df',cx-1,cy+gap+1,2,2)}else{for(let i=1;i<width-1;i+=3){R(tooth,cx-hw+i,cy,2,2);R('#b4a28e',cx-hw+i,cy+gap+1,1,2)}}};
+ g.save();if(kind==='hands'){jaw(-14,y,8);jaw(14,y,8)}else jaw(x,y,w);g.restore()
+}
+function updateDeath(dt){
+ deathTimer+=dt;deathPhase+=dt*3.2;const bodies=coopPlayers().filter(p=>p.dead);
+ for(const e of enemies){if(e.dead||!bodies.length)continue;const target=bodies.reduce((best,p)=>Math.hypot(p.x-e.x,p.y-e.y)<Math.hypot(best.x-e.x,best.y-e.y)?p:best,bodies[0]);
+ if(stepDeathFeeding(e,dt,target,deathTimer))playFeedingCue(e);
+ }
+ if(deathTimer>3.5)endGame()
+}
 function ring(x,y,r,color,life=.25,max=28,owner=null){rings.push({x,y,r:2,max,color,life,maxlife:life,owner})}
 function floatText(x,y,s,color='#ffd76b'){pushFx(texts,{x,y,s,life:.7,color},COMBAT_FX.texts)}
 let levelupBusy=false;const upgradeQueue=[];
@@ -7173,8 +7224,10 @@ function paintFinalBoss(g,stage=1,phase=0,charging=false){
 function drawEnemy(e){
  const motion=enemyMotionPose(e,reduceMotion||!horrorFx),phase=motion.phase,boss=e.type==='boss';
  ctx.save();ctx.translate(Math.round(e.x),Math.round(e.y));const shadow=boss?31:Math.max(9,e.r||9);paintActorContact(ctx,selectedMap,shadow,Math.round(shadow*.65));
- ctx.save();ctx.translate(0,motion.bob);ctx.rotate(motion.lean);ctx.scale(motion.sx,motion.sy);
- if(boss){if(e.bossId>=13)paintHiddenBoss(ctx,bossProfile(e),e.stage||1,phase,!!e.charge);else if(e.bossId===12)paintFinalBoss(ctx,e.stage||1,phase,!!e.charge);else paintRosterBoss(ctx,e,phase,!!e.charge)}else if(e.elite){const q=eliteProfiles[e.elite];ctx.save();ctx.scale(1.35,1.35);pixelEnemy(ctx,e.type,phase,e.lunge||0,e.attack??1);ctx.restore();ctx.fillStyle=q.color;ctx.fillRect(-10,-43,20,2);ctx.fillRect(-8,-47,4,4);ctx.fillRect(4,-47,4,4);ctx.fillRect(-2,-50,4,7);drawPixelText(metaLabel(q),0,-57,7,q.color,'center');}else pixelEnemy(ctx,e.type,phase,e.lunge||0,e.attack??1);
+ const feeding=state==='death'?feedingPose(e):null,chew=feeding&&!reduceMotion?feeding.open:0;
+ ctx.save();ctx.translate(0,motion.bob+Math.round(chew*3));ctx.rotate(motion.lean+chew*.06);ctx.scale(motion.sx,motion.sy*(1+chew*.045));
+ if(boss){if(e.bossId>=13)paintHiddenBoss(ctx,bossProfile(e),e.stage||1,phase,!!e.charge);else if(e.bossId===12)paintFinalBoss(ctx,e.stage||1,phase,!!e.charge);else paintRosterBoss(ctx,e,phase,!!e.charge)}else if(e.elite){const q=eliteProfiles[e.elite];ctx.save();ctx.scale(1.35,1.35);pixelEnemy(ctx,e.type,phase,e.lunge||0,e.attack??1);if(feeding)paintFeedingJaw(ctx,e);ctx.restore();ctx.fillStyle=q.color;ctx.fillRect(-10,-43,20,2);ctx.fillRect(-8,-47,4,4);ctx.fillRect(4,-47,4,4);ctx.fillRect(-2,-50,4,7);drawPixelText(metaLabel(q),0,-57,7,q.color,'center');}else pixelEnemy(ctx,e.type,phase,e.lunge||0,e.attack??1);
+ if(feeding&&(boss||!e.elite))paintFeedingJaw(ctx,e);
  ctx.restore();if(state==='game'&&waveState==='fighting')paintEnemyCue(ctx,e,motion.cue);
  if(boss){
   const encounter=bossEncounterState(e,!!soloRun&&!coop&&!onlineMode);
@@ -7435,8 +7488,8 @@ function paintFearFog(g,n,local,view){
 }
 function paintDeathSequence(g,view,elapsed){
  const t=Math.max(0,Math.min(1,elapsed/3.5)),x=view.x,y=view.y,w=view.w,h=view.h,cx=x+w/2,cy=y+h/2;
- const gradient=g.createRadialGradient(cx,cy,Math.max(4,75*(1-t)),cx,cy,Math.hypot(w,h)*.5);gradient.addColorStop(0,'rgba(42,0,9,'+(.12+t*.54)+')');gradient.addColorStop(1,'rgba(10,0,6,'+(.64+t*.34)+')');g.save();g.fillStyle=gradient;g.fillRect(x,y,w,h);
- if(elapsed>.5){g.globalAlpha=Math.min(1,(elapsed-.5)/.5);g.fillStyle='#12070cdb';g.fillRect(cx-110,cy-23,220,46);g.strokeStyle='#a14b55';g.strokeRect(cx-110,cy-23,220,46);g.font='bold 15px monospace';g.textAlign='center';g.fillStyle='#f1b2a6';g.fillText(L('DEFEATED','ПОВЕРЖЕН'),cx,cy-3);g.font='bold 8px monospace';g.fillStyle='#dececa';g.fillText(T('dead'),cx,cy+12)}g.restore()
+ const gradient=g.createRadialGradient(cx,cy,Math.max(4,75*(1-t)),cx,cy,Math.hypot(w,h)*.5);gradient.addColorStop(0,'rgba(42,0,9,'+(.07+t*.34)+')');gradient.addColorStop(1,'rgba(10,0,6,'+(.42+t*.48)+')');g.save();g.fillStyle=gradient;g.fillRect(x,y,w,h);
+ if(elapsed>2.35){g.globalAlpha=Math.min(1,(elapsed-2.35)/.5);const yy=cy-h*.30;g.fillStyle='#12070cdb';g.fillRect(cx-110,yy-23,220,46);g.strokeStyle='#a14b55';g.strokeRect(cx-110,yy-23,220,46);g.font='bold 15px monospace';g.textAlign='center';g.fillStyle='#f1b2a6';g.fillText(L('DEFEATED','ПОВЕРЖЕН'),cx,yy-3);g.font='bold 8px monospace';g.fillStyle='#dececa';g.fillText(T('dead'),cx,yy+12)}g.restore()
 }
 // V75.6 — Optional lighting, independent of collision. One light per 48px world cell.
 const combatGlowPalette={fire:'#ff9860',poison:'#a2db75',frost:'#8ed9ff',shock:'#ffda7a',curse:'#c29aff',physical:'#e2c59d',enemy:'#e66a66'};
