@@ -6636,6 +6636,16 @@ function paintHazardReadability(g,h){
 // V67: cull presentation only; never remove off-screen simulation objects.
 function visibleWorld(q,view,pad=0){return q.x+pad>=view.x&&q.x-pad<=view.x+view.w&&q.y+pad>=view.y&&q.y-pad<=view.y+view.h}
 function advancePlayerTimers(p,dt){p.fire=Math.max(0,p.fire-dt);p.dash=Math.max(0,p.dash-dt);p.inv=Math.max(0,p.inv-dt);p.hurtT=Math.max(0,(p.hurtT||0)-dt)}
+// V74.5 — Keep low-health presentation behind all combat markers.
+function paintLowHpFrame(g,ratio,view,enabled){
+ if(!enabled||!Number.isFinite(ratio)||ratio>=.55)return;
+ const danger=Math.max(0,Math.min(1,(.55-ratio)/.55));
+ const edge=6+Math.round(13*danger),x=view.x,y=view.y,w=view.w,h=view.h;
+ g.save();g.fillStyle='#8d0f1b';g.globalAlpha=.18+.48*danger;
+ g.fillRect(x,y,w,edge);g.fillRect(x,y+h-edge,w,edge);
+ g.fillRect(x,y+edge,edge,h-2*edge);g.fillRect(x+w-edge,y+edge,edge,h-2*edge);
+ g.restore();
+}
 function draw(){
  const m=maps.find(x=>x.id===selectedMap);ctx.fillStyle=m.floor;ctx.fillRect(0,0,W,H);
  // world camera: preserve the 480x270 pixel canvas, move the world underneath it
@@ -6645,6 +6655,7 @@ function draw(){
  ctx.drawImage(getTerrain(m.id),0,0);const view={x:camera.x-W/2,y:camera.y-H/2,w:W,h:H};paintArenaLighting(ctx,m,view);paintArenaAtmosphere(ctx,m.id,view,horrorTime);paintArenaSignature(ctx,m.id,view,horrorTime);paintDynamicHorror(ctx,m.id,view);paintBreakables(ctx,view);
  // Local light falloff is behind actors and warning rings, never over threat indicators.
  paintFloorVignette(ctx,m.id,view,soloRun&&state!=='death'?player:null,horrorFx);
+ if(state==='game'){const local=onlineMode&&isOnlineGuest?player2:player;paintLowHpFrame(ctx,local.hp/local.maxhp,view,horrorFx&&!local.dead);}
  if(nightmare)paintNightmareFloor(ctx,nightmare,nightmareThemes[m.id]);
  if(waveState==='fighting')paintLivingStations(ctx,m.id,view);
  if(secretEncounter&&waveState==='fighting'){paintSecret(ctx,secretEncounter,horrorTime);paintSecretRoute(ctx,secretEncounter.route,view);}
@@ -6686,25 +6697,6 @@ function draw(){
        ctx.save();ctx.translate(W/2+dx*k,H/2+dy*k);ctx.rotate(Math.atan2(dy,dx));ctx.fillStyle=e.type==='boss'?'#ff4050':'#f4b748';ctx.beginPath();ctx.moveTo(7,0);ctx.lineTo(-5,-4);ctx.lineTo(-5,4);ctx.closePath();ctx.fill();ctx.restore();
      }
    }
- }
- // low-HP blood vision: it builds gradually as health falls, with a subtle heartbeat.
- const hpRatio=clamp(Math.min(...coopPlayers().map(p=>p.hp/p.maxhp)),0,1);
- if(state==='game' && hpRatio<.55){
-   const danger=clamp((.55-hpRatio)/.55,0,1);
-   const pulse=1;
-   ctx.save();
-   ctx.globalAlpha=.11+danger*.38*pulse;
-   ctx.fillStyle='#8d0f1b';ctx.fillRect(0,0,W,H);
-   ctx.globalAlpha=.16+danger*.58*pulse;
-   const b=6+Math.round(25*danger);
-   for(let i=0;i<b;i++){
-     const y1=18+i*3, y2=H-18-i*3;
-     ctx.fillRect(12,y1,Math.max(1,Math.round((W-24)*(i/b)*.45)),1);
-     ctx.fillRect(W-12-Math.max(1,Math.round((W-24)*(i/b)*.45)),y1,Math.max(1,Math.round((W-24)*(i/b)*.45)),1);
-     if(i%3===0){ctx.fillRect(12+i%7,H-18-i,2,3+i%4);ctx.fillRect(W-14-i%6,18+i,2,3+i%5)}
-   }
-   ctx.globalAlpha=.1+danger*.34;ctx.fillStyle='#24040a';ctx.fillRect(12,18,W-24,10);ctx.fillRect(12,H-28,W-24,10);
-   ctx.restore();
  }
  // fixed border HUD-like frame, still pixel
  ctx.fillStyle='rgba(0,0,0,.34)';ctx.fillRect(0,0,W,18);ctx.fillRect(0,H-16,W,16);ctx.fillRect(0,0,12,H);ctx.fillRect(W-12,0,12,H);
@@ -6816,8 +6808,15 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
 window.addEventListener('error',e=>{const msg=(e&&e.error&&e.error.message)||e.message||L('Unknown error','Неизвестная ошибка');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
 window.addEventListener('unhandledrejection',e=>{const msg=(e&&e.reason&&e.reason.message)||String(e.reason||'Promise error');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
 // Keep the fixed 60Hz simulation independent from display refresh/HUD cadence.
-let hudElapsed=1,previousFrameState='',previousFrameWave=0,nextDailyRefresh=0;
-function frame(now){checkNetWatchdog(Date.now());if(document.hidden){last=now;acc=0;hudElapsed=1;requestAnimationFrame(frame);return}const raw=last?Math.max(0,Math.min(.1,(now-last)/1000||0)):0;last=now;if(state==='menu'&&now>=nextDailyRefresh){nextDailyRefresh=now+30000;refreshDailyDate()}const step=1/60;const active=state==='game'||state==='death'||(onlineMode&&isOnlineHost&&state==='pause');if(active){acc+=raw;while(acc>=step){update(step);acc-=step;if(state!=='game'&&state!=='death'&&!(onlineMode&&isOnlineHost&&state==='pause')){acc=0;break}}}else{acc=0;updateNpc(0)}shake=Math.max(0,shake-raw);hudElapsed+=raw;const changed=state!==previousFrameState||wave!==previousFrameWave;if(state==='game'&&(changed||hudElapsed>=1/20)){updateHud();hudElapsed=0}renderTutorial();if(state!=='menu'&&(state==='game'||state==='death'||changed))render();previousFrameState=state;previousFrameWave=wave;requestAnimationFrame(frame)}
+// Cap presentation at 60 Hz without changing the fixed simulation or input.
+function renderFrameDeadline(now,deadline,force=false){
+ const period=1000/60;
+ if(force||!Number.isFinite(deadline)||now-deadline>period*3||now<deadline-period*2)return now+period;
+ if(now+.75<deadline)return null;
+ return deadline+period*Math.max(1,Math.floor((now+.75-deadline)/period)+1);
+}
+let hudElapsed=1,previousFrameState='',previousFrameWave=0,nextDailyRefresh=0,renderDeadline=NaN;
+function frame(now){checkNetWatchdog(Date.now());if(document.hidden){last=now;acc=0;hudElapsed=1;renderDeadline=NaN;requestAnimationFrame(frame);return}const raw=last?Math.max(0,Math.min(.1,(now-last)/1000||0)):0;last=now;if(state==='menu'&&now>=nextDailyRefresh){nextDailyRefresh=now+30000;refreshDailyDate()}const step=1/60;const active=state==='game'||state==='death'||(onlineMode&&isOnlineHost&&state==='pause');if(active){acc+=raw;while(acc>=step){update(step);acc-=step;if(state!=='game'&&state!=='death'&&!(onlineMode&&isOnlineHost&&state==='pause')){acc=0;break}}}else{acc=0;updateNpc(0)}shake=Math.max(0,shake-raw);hudElapsed+=raw;const changed=state!==previousFrameState||wave!==previousFrameWave;if(state==='game'&&(changed||hudElapsed>=1/20)){updateHud();hudElapsed=0}renderTutorial();if(state==='menu'){if(changed)drawRemoteArrow();renderDeadline=NaN;}else if(state==='game'||state==='death'||changed){const due=renderFrameDeadline(now,renderDeadline,changed);if(due!==null){renderDeadline=due;render()}}previousFrameState=state;previousFrameWave=wave;requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 if(!nativeMobile()&&'serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('./sw.js').then(reg=>reg.update()).catch(()=>{})}
 </script>
