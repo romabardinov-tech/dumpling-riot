@@ -4226,10 +4226,7 @@ function pixelArenaEnemy(g,type,phase,lunge,attack){
  const R=(col,x,y,w,h)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
  const P=(col,p)=>{g.fillStyle=col;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
  const ink='#100b15',step=Math.round(Math.sin(phase*2)*2);
- if(type==='chainHound'){
-  for(const x of [-12,6]){R(ink,x,4,6,10+step*(x<0?1:-1));R('#7d7072',x+1,5,4,7+step*(x<0?1:-1))}
-  P(ink,[-18,-9,-8,-15,8,-14,15,-10,20,-3,16,6,4,7,-12,6]);P('#54484e',[-16,-8,-7,-13,7,-12,14,-8,18,-3,14,4,4,5,-11,4]);R('#92969b',-9,-11,14,4);R('#bc9980',-7,-9,3,3);R('#ff6c69',10,-7,4,3);R(ink,8,-1,11,5);R('#d6c1a8',10,-1,2,2);R('#d6c1a8',15,-1,2,2);for(let i=0;i<4;i++){R('#98999d',-18-i*3,-5+i,3,2);R(ink,-17-i*3,-4+i,1,1)}
- }else if(type==='boneWalker'){
+ if(type==='boneWalker'){
   for(const s of [-1,1]){const x=s<0?-7:3;R(ink,x-1,2,5,13+step*s);R('#bba996',x,3,3,11+step*s);R('#e4d7ba',x,11+step*s,5,2);P(ink,[s*5,-10,s*12,-7,s*15,4+step*s,s*11,8+step*s,s*8,-3]);P('#c6b69e',[s*6,-9,s*10,-6,s*13,4+step*s,s*11,5+step*s,s*9,-3])}
   R(ink,-9,-24,18,16);R('#e0d2b7',-7,-22,14,12);R('#9b8a81',-6,-11,12,4);R(ink,-5,-18,4,4);R(ink,2,-18,4,4);R('#a8d8c1',-4,-17,2,2);R('#a8d8c1',3,-17,2,2);R(ink,-1,-14,2,2);R('#b9a68f',-2,-8,4,13);for(let i=0;i<4;i++){R('#d9c6ab',-6,-7+i*3,12-i*2,2);R(ink,-1,-7+i*3,2,2)}
  }else if(type==='sporeBeetle'){
@@ -4391,7 +4388,70 @@ function pixelFoodcourtEnemy(g,type,phase=0,lunge=0,attack=1){
  if(ready){R('#f7ca8b',-2,-30,4,2);R('#f7ca8b',-1,-33,2,2)}
  g.restore();return true;
 }
+// V69.4 — Industrial Horrors: individual factory enemy silhouettes.
+function pixelIndustrialEnemy(g,type,phase=0,lunge=0,attack=1){
+ if(type!=='knife'&&type!=='chainHound'&&type!=='slicer'&&type!=='maw')return false;
+ const R=(c,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ const ink='#100b15',steel='#9aa7a9',rust='#93604c',t=reduceMotion||!Number.isFinite(phase)?0:phase,step=Math.round(Math.sin(t*2)*2),ready=attack>=0&&attack<.18;
+ g.save();
+ if(type==='knife'){
+  // Narrow broken blade with a hooked tip, angular limbs and wrapped handle.
+  for(const s of [-1,1]){
+   const d=step*s;P(ink,[s*3,4,s*8,6,s*11,12+d,s*7,14+d*.5,s*4,9]);P('#65565a',[s*4,6,s*7,7,s*9,11+d,s*7,11+d,s*5,8]);
+   P(ink,[s*5,-6,s*12,-3,s*15,4+d,s*11,7+d,s*7,2]);P('#5b6267',[s*7,-4,s*11,-2,s*13,4+d,s*11,5+d,s*8,1]);R(rust,s<0?-12:10,1+d,2,2);
+  }
+  P(ink,[-7,-10,-7,-21,-2,-29,5,-30,8,-24,4,-19,7,-10,7,7,3,10,-5,10,-8,5]);
+  P('#65747b',[-5,-10,-5,-20,-1,-27,4,-28,6,-24,2,-19,5,-10,5,6,3,8,-4,8,-6,5]);
+  P('#c5c9be',[-4,-20,-1,-27,3,-28,0,-20,-2,-11,-4,-10]);R('#424851',1,-17,3,7);R(rust,-4,-14,2,3);
+  R(ink,-8,-7,16,4);R('#b7a18c',-7,-7,14,1);R('#4e3038',-5,-3,10,9);
+  for(let i=0;i<3;i++)R('#a07e68',-4,-2+i*3,8,1);
+  R(ink,-5,-10,10,3);R(ready?'#ffd09a':'#e87c70',-3,-10,6,1);
+  if(horrorFx&&!reduceMotion&&ready){R('#c5c9be',-10,-17,1,3);R('#c5c9be',-11,-16,3,1)}
+ }else if(type==='chainHound'){
+  // Low quadrupedal steel hound with articulated paws and a slack chain.
+  for(let i=0;i<4;i++){
+   const x=-15+i*8,d=step*(i%2?1:-1);P(ink,[x,1,x+5,1,x+6,9+d,x+3,13+d,x-2,13+d,x-1,7]);P('#70646a',[x+1,3,x+4,3,x+4,9+d,x+2,11+d,x,11+d,x+1,7]);R('#a89c91',x,10+d,3,1);
+  }
+  P(ink,[-23,-7,-15,-15,3,-17,13,-12,20,-10,26,-3,24,7,13,9,7,5,-13,7,-22,2]);
+  P('#52484b',[-21,-6,-14,-13,3,-15,12,-10,19,-8,24,-3,22,5,13,7,7,3,-12,5,-20,1]);
+  for(let i=0;i<4;i++){const x=-15+i*5;R('#8e8883',x,-12,4,7);R('#b3a798',x,-12,3,1);R(rust,x,-7,2,2)}
+  P(ink,[9,-12,12,-22,17,-19,19,-11,23,-16,26,-13,23,-5]);P('#827673',[11,-12,13,-19,16,-17,17,-10,23,-14,24,-12,21,-5]);
+  R(ink,15,-8,9,4);R('#ff8770',17,-7,5,2);R(ink,13,0,12,6);for(let i=0;i<3;i++)R('#d7c5ad',14+i*3,1,2,3);
+  for(let i=0;i<4;i++){const x=-25+i*3,y=-2+Math.round(Math.sin(t+i*.7)*1);R(ink,x-1,y-1,5,4);R('#a4a09a',x,y,3,2);R('#423b40',x+1,y,1,1)}
+  if(lunge>0&&!reduceMotion&&horrorFx){R('#c3a18a',-29,3,4,1);R('#8e7770',-27,6,3,1)}
+ }else if(type==='slicer'){
+  // Industrial saw runner: motor on one shoulder and asymmetric circular blade.
+  for(const s of [-1,1]){const d=step*s;P(ink,[s*3,3,s*9,4,s*14,11+d,s*9,14+d*.5,s*4,8]);P('#5d515b',[s*4,5,s*8,6,s*12,10+d,s*8,12+d*.5,s*6,7]);R('#96867d',s<0?-10:8,8+d,2,2)}
+  P(ink,[-12,-15,-7,-23,5,-22,13,-14,14,4,7,10,-8,10,-13,3]);
+  P('#51474e',[-10,-14,-6,-21,4,-20,11,-13,12,3,6,8,-7,8,-11,2]);R('#a08b80',-7,-19,11,3);R('#353640',-7,-13,13,9);R('#f18976',-5,-11,3,2);R('#f18976',1,-11,3,2);
+  R('#6c5a51',-6,-1,12,7);R('#ba9270',-5,0,3,4);R(rust,2,1,3,3);
+  P(ink,[-10,-9,-20,-5,-23,6+step,-18,10+step,-13,2]);P('#796e70',[-11,-7,-18,-4,-21,6+step,-18,7+step,-15,1]);
+  const sy=-5+step,spin=reduceMotion?0:Math.floor(t*3)%2;
+  P(ink,[9,-10,17,-10,20,sy-2,18,sy+6,10,sy+3]);R('#827a73',12,sy-3,9,7);
+  P(ink,[21,sy-12,27,sy-10,31,sy-4,31,sy+4,26,sy+10,19,sy+10,14,sy+4,14,sy-4]);
+  P(steel,[21,sy-10,26,sy-8,29,sy-3,29,sy+3,25,sy+8,20,sy+8,16,sy+3,16,sy-3]);
+  for(let i=0;i<8;i++){const a=(i+spin*.5)*Math.PI/4,x=Math.round(22+Math.cos(a)*8),y=Math.round(sy+Math.sin(a)*8);R('#d7cfc0',x-1,y-1,2,2)}
+  R('#514c52',20,sy-2,5,5);R(rust,21,sy-1,2,2);
+ }else{
+  // Heavy crusher: oversized segmented jaw, hydraulic pistons and bolt plates.
+  for(const s of [-1,1]){
+   const d=step*s;R(ink,s<0?-17:9,5,9,8+d);R('#685654',s<0?-16:10,6,7,6+d);R('#9c8c80',s<0?-16:10,10+d,7,2);
+   P(ink,[s*13,-12,s*23,-10,s*26,-1+d,s*25,9+d,s*18,11+d,s*13,3]);P('#6e514d',[s*15,-10,s*21,-8,s*24,-1+d,s*23,7+d,s*18,8+d,s*15,3]);R('#a89480',s<0?-22:19,-6,3,10);
+  }
+  P(ink,[-18,-17,-12,-24,12,-24,18,-17,20,4,14,12,-14,12,-20,4]);P('#62504e',[-16,-16,-11,-22,11,-22,16,-16,18,3,13,10,-13,10,-18,3]);
+  R('#8c7b6e',-13,-20,26,4);R('#ad9c86',-12,-20,24,1);R(ink,-12,-14,24,5);R('#e77762',-10,-13,6,2);R('#e77762',4,-13,6,2);
+  for(const s of [-1,1]){R('#b2a18c',s<0?-16:13,-15,3,3);R('#b2a18c',s<0?-16:13,3,3,3)}
+  const jaw=ready?3:step+2;R(ink,-15,-6,30,13+jaw);R('#773a3e',-12,-2,24,6+jaw);
+  for(let i=0;i<6;i++){R('#d3c3a8',-13+i*5,-6,3,4);R('#b5a18d',-12+i*5,3+jaw,3,3)}
+  R('#8e776b',-13,9,26,2);R(rust,-8,10,5,1);
+ }
+ if(lunge>0){R('#e3a67a',-9,12,5,1);R('#e3a67a',4,12,5,1)}
+ if(ready){R('#f7ca8b',-2,-30,4,2);R('#f7ca8b',-1,-33,2,2)}
+ g.restore();return true;
+}
 function pixelEnemy(g,type,phase=0,lunge=0,attack=1){
+ if(pixelIndustrialEnemy(g,type,phase,lunge,attack))return;
  if(pixelFoodcourtEnemy(g,type,phase,lunge,attack))return;
  if(pixelBasementEnemy(g,type,phase,lunge,attack))return;
  if(pixelKitchenEnemy(g,type,phase,lunge,attack))return;
@@ -4405,11 +4465,7 @@ function pixelEnemy(g,type,phase=0,lunge=0,attack=1){
  const arms=(d,m,w=13)=>{for(const s of [-1,1]){const t=s*step;P(ink,[s*7,-8,s*(w+2),-5,s*(w+4),6+t,s*w,12+t,s*8,4]);P(d,[s*8,-6,s*w,-4,s*(w+2),6+t,s*w,9+t,s*9,3]);R(m,s<0?-w:w-2,-3,2,5);R(bone,s<0?-w-2:w,9+t,2,3)}};
  const shell=(d,m,l,w=12,h=16)=>{P(ink,[-w,-h+5,-w+5,-h,w-5,-h,w,-h+5,w+1,5,w-5,12,-w+5,12,-w-1,5]);P(d,[-w+2,-h+5,-w+6,-h+2,w-6,-h+2,w-2,-h+5,w-1,5,w-5,10,-w+5,10,-w+1,5]);P(m,[-w+3,-h+5,-w+7,-h+3,w-7,-h+3,w-3,-h+5,w-5,7,-w+5,7]);R(l,-w+6,-h+3,w,2);R(d,w-5,-h+7,3,h+2)};
  const teeth=(y,w=14)=>{R(ink,-w/2,y,w,5+jaw);for(let x=-w/2+1;x<w/2-1;x+=3){R(bone,x,y,2,2);R('#a48777',x+1,y+3+jaw,1,1)}};
- if(type==='knife'||type==='slicer'){
-  legs('#37323e','#756b77');arms('#52434d','#9f8992',type==='slicer'?14:10);
-  P(ink,[-7,-10,-6,-20,0,-27,7,-18,8,5,5,10,-6,10]);P('#77868e',[-5,-9,-4,-19,0,-24,5,-17,6,3,4,8,-4,8]);P(steel,[-4,-19,0,-24,0,2,-4,4]);R(hi,-3,-17,1,12);R('#413640',-5,-7,11,9);eyes(-6);R('#8d6555',-6,4,12,3);
-  if(type==='slicer'){const y=-8+step;P(ink,[7,y-5,24,y-7,28,y-3,24,y+4,7,y+4]);P(steel,[9,y-4,24,y-5,26,y-2,22,y+2,9,y+2]);R(hi,10,y-4,13,1);R('#823d47',21,y+1,4,1)}
- }else if(type==='maw'||type==='feaster'){
+ if(type==='feaster'){
   const big=type!=='plate',w=type==='maw'?17:big?15:12;legs('#48232e','#9b5955');if(big)arms('#642d39','#a85352',w);
   shell(type==='plate'?'#625057':'#622d39',type==='plate'?'#a38778':'#9b464b','#d1a68e',w,big?16:12);eyes(-6,big?'#ffb06e':'#ff7070');teeth(1,big?w*2-6:14);
   R('#753c44',-w+3,8,w*2-6,2);if(big){R('#e48c72',-w+3,-3,2,4);R('#642b36',w-5,5,3,3)}
