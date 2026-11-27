@@ -2886,6 +2886,7 @@ function beginWave(){
  spatialTimer=0;heartbeatTimer=0;warningAt=-Infinity;clearCombatPresentation();livingStations=makeLivingStations(selectedMap,soloRun,arena);
  secretEncounter=soloRun?createSecret(selectedMap,campaignRound(soloRun,wave),player,arena,arenaFeatures[selectedMap].sites):null;if(secretEncounter)secretEncounter.w=wave;
  if(nightmare)resetNightmareWave(nightmare,chooseShelter(arenaLights[selectedMap],player,arena));
+ resetBreakables(selectedMap,arena,[player,coop?player2:null,secretEncounter,nightmare?.zone,...livingStations,...arenaFeatures[selectedMap].sites.map(([x,y])=>({x,y}))],onlineMode);
  waveState='fighting';waveTime=0;spawned=0;boss=null;enemies=[];projectiles=[];rings=[];hazards=[];
  // Enemy count ramps hard: later waves become crowded, not just tougher individually.
  const bossWave=wave%5===0,hidden=takeHidden(soloRun,wave);
@@ -2987,7 +2988,74 @@ function paintMaterialImpact(g,q,t,r){
  }
  g.restore();
 }
-function clearCombatPresentation(){impactMarks=[];dashGhosts=[];deathSprites=[];shake=0}
+// V71.5 — Local destructible scenery; no collisions, loot, gameplay RNG or network state.
+const breakableArt={
+ kitchen:{kind:'crate',hp:44,r:13,colors:['#a78a62','#66503c','#cfb78e']},
+ basement:{kind:'junction',hp:56,r:12,colors:['#7d969b','#43535c','#bce7ed']},
+ foodcourt:{kind:'display',hp:40,r:13,colors:['#a57a9b','#534054','#9dd5d1']},
+ slaughter:{kind:'drum',hp:66,r:14,colors:['#a88473','#614a49','#dfb78b']},
+ cemetery:{kind:'urn',hp:34,r:12,colors:['#aaa29a','#655d62','#d8c7ae']},
+ forest:{kind:'fungus',hp:38,r:13,colors:['#8da270','#4c6448','#d3dfa5']}
+};
+let breakableProps=[],propImpactLedger=new WeakMap();
+function makeBreakables(map,area,avoid=[]){
+ const spec=breakableArt[map];if(!spec)return [];
+ const spots=[[.18,.23],[.37,.18],[.63,.18],[.82,.23],[.25,.43],[.75,.43],[.25,.65],[.75,.65],[.18,.82],[.37,.81],[.63,.81],[.82,.82],[.42,.35],[.58,.66]];
+ return spots.map(([u,v],id)=>({id,x:Math.round(area.l+(area.r-area.l)*u),y:Math.round(area.t+(area.b-area.t)*v),kind:spec.kind,hp:spec.hp,maxhp:spec.hp,r:spec.r,age:0,hitT:0,broken:false,colors:spec.colors})).filter(q=>avoid.every(p=>!p||Math.hypot(q.x-p.x,q.y-p.y)>75));
+}
+function resetBreakables(map,area,avoid,network=false){breakableProps=network?[]:makeBreakables(map,area,avoid);propImpactLedger=new WeakMap()}
+function segmentDistance2(x,y,ax,ay,bx,by){
+ const dx=bx-ax,dy=by-ay,l=dx*dx+dy*dy,k=l?Math.max(0,Math.min(1,((x-ax)*dx+(y-ay)*dy)/l)):0;
+ return (x-ax-dx*k)**2+(y-ay-dy*k)**2;
+}
+function damageBreakable(q,amount){
+ if(q.broken||!Number.isFinite(amount)||amount<=0)return false;
+ q.hp=Math.max(0,q.hp-amount);q.hitT=.12;
+ if(q.hp===0){q.broken=true;q.age=0;return true}return false;
+}
+function hitBreakables(list,ledger,attack,ax,ay,bx,by,ring=false){
+ if(!attack||attack.enemy||!Number.isFinite(attack.damage)||attack.damage<=0||!list.length)return 0;
+ let seen=ledger.get(attack);if(!seen){seen=new Set();ledger.set(attack,seen)}
+ let destroyed=0;
+ for(const q of list){
+  if(q.broken||seen.has(q.id))continue;
+  const hit=ring?Math.hypot(q.x-attack.x,q.y-attack.y)<=attack.r+q.r:segmentDistance2(q.x,q.y,ax,ay,bx,by)<=(q.r+Math.min(6,Math.max(1,attack.r||2)))**2;
+  if(hit){seen.add(q.id);if(damageBreakable(q,attack.damage))destroyed++}
+ }
+ return destroyed;
+}
+function tickBreakables(dt){for(const q of breakableProps){q.hitT=Math.max(0,q.hitT-dt);if(q.broken)q.age=Math.min(1,q.age+dt)}}
+function paintBreakable(g,q,fx=true){
+ const [c,d,h]=q.colors,ink='#19151c',R=(col,x,y,w,hh)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),w,hh)};
+ const P=(col,a)=>{g.fillStyle=col;g.beginPath();g.moveTo(a[0],a[1]);for(let i=2;i<a.length;i+=2)g.lineTo(a[i],a[i+1]);g.closePath();g.fill()};
+ g.save();g.translate(q.x,q.y);const base=g.globalAlpha;
+ R('#17141b',-13,7,26,5);
+ if(q.broken){
+  // Permanent rubble remains visible until the next wave.
+  for(let i=0;i<5;i++){const x=-12+i*5,y=5+(i%2)*3;R(d,x,y,5,3);R(c,x+1,y,3,2)}
+  if(fx&&q.age<.48){const t=q.age/.48;g.globalAlpha=base*(1-t)*.8;for(let i=0;i<6;i++){const a=q.id*.7+i*Math.PI/3,x=Math.cos(a)*(7+21*t),y=Math.sin(a)*(4+14*t)-12*t*(1-t)*4;R(i%2?c:h,x,y,q.kind==='display'?2:4,q.kind==='fungus'?2:3)}}
+ }else{
+  const hurt=q.hp<q.maxhp*.6;
+  if(q.kind==='crate'){
+   R(ink,-13,-13,26,22);R(c,-11,-11,22,18);R(d,-10,-7,20,2);R(d,-10,1,20,2);R(h,-9,-10,18,2);R(d,-8,-11,3,18);R(d,5,-11,3,18);
+  }else if(q.kind==='junction'){
+   R(ink,-11,-18,22,27);R(d,-9,-16,18,23);R(c,-7,-14,14,15);R(h,-5,-12,10,3);R(ink,-5,-6,10,6);R(h,-4,-5,3,3);R(c,2,-5,2,3);R(c,-5,4,10,2);
+  }else if(q.kind==='display'){
+   R(ink,-12,-20,24,29);R(c,-10,-18,20,25);R(d,-8,-15,16,17);R(h,-7,-14,14,2);for(let i=0;i<3;i++){R(['#bd8d73','#a3c4aa','#bf9ab0'][i],-6+i*5,-9,3,8)}R(h,-6,4,12,2);
+  }else if(q.kind==='drum'){
+   P(ink,[-12,-17,12,-17,15,-13,15,5,10,10,-10,10,-15,5,-15,-13]);R(c,-12,-13,24,19);R(d,-12,-9,24,3);R(d,-12,2,24,3);R(h,-9,-15,18,2);R(h,-10,-5,4,6);
+  }else if(q.kind==='urn'){
+   P(ink,[-7,-19,7,-19,8,-13,13,-7,14,2,8,10,-8,10,-14,2,-13,-7,-8,-13]);P(c,[-6,-17,6,-17,6,-12,11,-6,12,2,7,8,-7,8,-12,2,-11,-6,-6,-12]);R(h,-6,-16,12,2);R(d,-10,-5,20,3);R(h,-7,-2,4,5);
+  }else{
+   P(ink,[-14,-9,-9,-19,5,-20,13,-14,15,-7,7,-2,5,8,-5,8,-7,-2]);P(c,[-12,-9,-8,-17,5,-18,11,-13,13,-8,6,-4,-6,-4]);R(h,-7,-15,5,3);R(h,3,-13,4,2);R(d,-5,-4,10,12);R(c,-3,-3,4,9);
+  }
+  if(hurt){P(ink,[-3,-13,1,-7,-2,-2,4,3,1,7,-1,3,-5,-2,-2,-7]);R(h,1,-6,2,3)}
+  if(fx&&q.hitT>0){g.globalAlpha=base*.45*q.hitT/.12;R(h,-9,-8,18,2)}
+ }
+ g.restore();
+}
+function paintBreakables(g,view){for(const q of breakableProps){if(q.x+40<view.x||q.x-40>view.x+view.w||q.y+40<view.y||q.y-40>view.y+view.h)continue;paintBreakable(g,q,horrorFx&&!reduceMotion)}}
+function clearCombatPresentation(){impactMarks=[];dashGhosts=[];deathSprites=[];breakableProps=[];propImpactLedger=new WeakMap();shake=0}
 function addImpact(e,d,owner){if(!horrorFx||reduceMotion)return;const q=impactProfile(d,e.type==='boss'),source=owner==='p1'?player:owner==='p2'?player2:null;pushFx(impactMarks,{x:e.x,y:e.y-8,...q,material:enemyImpactMaterial(e),heavy:e.type==='boss'||d>=60,angle:source?Math.atan2(e.y-source.y,e.x-source.x):0,scar:source?.charId==='scar',vesa:source?.charId==='vesa',nyx:source?.charId==='nyx',mage:source?.charId==='pelmage',shiv:source?.charId==='assassin',golem:source?.charId==='golem',warden:source?.charId==='warden',voidArt:source?.charId==='revenant',max:q.life},COMBAT_FX.marks)}
 // V71.2 — Individual death choreography, visual only.
 const enemyDeathArt={
@@ -3639,8 +3707,9 @@ function updateEnemies(dt){
 
 function updateProjectiles(dt){
  for(const p of projectiles){
-  p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;
+  const oldX=p.x,oldY=p.y;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;
   if(p.life<=0)continue;
+  if(!onlineMode&&!p.enemy)hitBreakables(breakableProps,propImpactLedger,p,oldX,oldY,p.x,p.y);
   if(p.enemy){
    const tp=targetPlayer(p);
    if(tp&&Math.hypot(p.x-tp.x,p.y-tp.y)<8){hurtPlayer(tp,p.damage,p.x,p.y);p.life=0;}
@@ -3671,6 +3740,7 @@ function updateRings(dt){
   r.life-=dt;
   r.r=lerp(r.r,r.max,.3);
   if(r.damage){
+   if(!onlineMode)hitBreakables(breakableProps,propImpactLedger,r,0,0,0,0,true);
    if(!r.hit)r.hit=new Set();
    for(const e of enemies){
     if(e.dead||r.hit.has(e))continue;
@@ -3717,7 +3787,7 @@ function updateDrops(dt){
  drops=drops.filter(d=>d.life>0);
 }
 
-function updateFx(dt){impactMarks=fxTick(impactMarks,dt);dashGhosts=fxTick(dashGhosts,dt);deathSprites=fxTick(deathSprites,dt);for(const p of coopPlayers())p.recoilT=Math.max(0,(p.recoilT||0)-dt);for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.92;p.vy*=.92;p.life-=dt}particles=particles.filter(p=>p.life>0);for(const t of texts){t.y-=18*dt;t.life-=dt}texts=texts.filter(t=>t.life>0);if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)document.getElementById('toast').classList.remove('show')}}
+function updateFx(dt){tickBreakables(dt);impactMarks=fxTick(impactMarks,dt);dashGhosts=fxTick(dashGhosts,dt);deathSprites=fxTick(deathSprites,dt);for(const p of coopPlayers())p.recoilT=Math.max(0,(p.recoilT||0)-dt);for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.92;p.vy*=.92;p.life-=dt}particles=particles.filter(p=>p.life>0);for(const t of texts){t.y-=18*dt;t.life-=dt}texts=texts.filter(t=>t.life>0);if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)document.getElementById('toast').classList.remove('show')}}
 
 let shake=0;
 const touchInput={moveX:0,moveY:0,aimX:0,aimY:0,aimActive:false,attack:false,p2MoveX:0,p2MoveY:0};let touchAimMode=false;
@@ -5525,7 +5595,7 @@ function draw(){
  ctx.save();
  ctx.translate(Math.round(W/2-camera.x),Math.round(H/2-camera.y));
  // Cached world scenery; actors and attack warnings are still rendered above it.
- ctx.drawImage(getTerrain(m.id),0,0);const view={x:camera.x-W/2,y:camera.y-H/2,w:W,h:H};paintArenaLighting(ctx,m,view);paintArenaAtmosphere(ctx,m.id,view,horrorTime);paintArenaSignature(ctx,m.id,view,horrorTime);
+ ctx.drawImage(getTerrain(m.id),0,0);const view={x:camera.x-W/2,y:camera.y-H/2,w:W,h:H};paintArenaLighting(ctx,m,view);paintArenaAtmosphere(ctx,m.id,view,horrorTime);paintArenaSignature(ctx,m.id,view,horrorTime);paintBreakables(ctx,view);
  // Local light falloff is behind actors and warning rings, never over threat indicators.
  if(soloRun&&state!=='death'){const light=ctx.createRadialGradient(player.x,player.y,48,player.x,player.y,205);light.addColorStop(0,'rgba(0,0,0,0)');light.addColorStop(.65,'rgba(8,5,13,.035)');light.addColorStop(1,'rgba(8,5,13,.23)');ctx.fillStyle=light;ctx.fillRect(view.x,view.y,view.w,view.h)}
  if(nightmare)paintNightmareFloor(ctx,nightmare,nightmareThemes[m.id]);
