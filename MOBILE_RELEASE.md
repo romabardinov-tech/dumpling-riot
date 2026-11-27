@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.12. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.13. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -135,3 +135,6 @@ Second individual arena art pass, BASEMENT only. Wall-mounted distribution cabin
 
 ## V68.12 — Dead Neon: FOODCOURT
 Third individual arena art pass, FOODCOURT only. Original shuttered storefronts and broken advertising screens outside the playable boundary, worn mosaic, scattered receipt scraps and display fragments, expanded supply machine detailing. Alternating pink and teal lighting, low-opacity reflections, slowly drifting paper and gently modulated neon signs; reduced motion freezes lighting and removes moving paper, horror FX off disables added ambience. Static details are shared by cached terrain and map thumbnails. Existing hazard/station coordinates, enemy pools, arena bounds and other maps unchanged. Inline script syntax and 1957 isolated geometry, viewport and drawing-command assertions passed. Actual browser screenshots, smartphone FPS and full playthrough remain unverified.
+
+## V68.13 — Blood Factory: SLAUGHTER
+Fourth individual arena art pass, SLAUGHTER only. Authored wall machinery, chains and hooks outside the playable rectangle, corroded conveyor rollers, recessed metal fittings, rust flakes and expanded cutter detailing. Subdued red emergency lamp reflections, sparse floating dust and brief localized machine sparks. Reduced motion freezes reflection animation and removes added dust and sparks; horror FX off disables added ambience. Cached terrain and thumbnails share static artwork. Existing hazard and station logic, collision boundary, damage, enemies and other arenas unchanged. Inline syntax and 1957 isolated geometry, viewport and drawing-command assertions passed. Actual rendered screenshots, phone FPS and full playthrough remain unverified.
