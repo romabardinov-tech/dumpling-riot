@@ -7293,7 +7293,7 @@ function paintWaveHorror(g,type,w,seed=0,phase=0,less=false){
  if(stage>=2){for(let i=0;i<Math.min(4,stage-1);i++){const x=lean*(2+i*3),y=ey-5-(i%2)*3;R(dark,x-1,y-1,4,4);R(hot,x,y,2,1)}}
  if(stage>=4){const y=my+7;P(dark,[lean*3,y-1,lean*8,y-2,lean*(12+reach),y+6+twitch,lean*(10+reach),y+9+twitch,lean*6,y+4]);R(mid,lean*(8+reach),y+5+twitch,2,2);R(bone,lean*(11+reach),y+7+twitch,1,2)}
  // One additional material mark per wave up to the final art cap.
- for(let i=0;i<Math.min(9,waveN-1);i++){const x=((seed+i*7+variant*3)%13)-6,y=ey+5+((i*3+variant)%9);R(i%3===0?mid:dark,x,y,1,1)}
+ for(let i=0;i<Math.min(29,waveN-1);i++){const x=((seed+i*7+variant*3)%13)-6,y=ey+5+((i*3+variant)%9);R(i%3===0?mid:dark,x,y,1,1)}
  g.restore();return true
 }
 function drawEvolvingEnemy(g,e,phase,round,less=false){
