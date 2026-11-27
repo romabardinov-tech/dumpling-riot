@@ -1572,7 +1572,7 @@ const arena={l:52,r:1868,t:58,b:1022};
 // The arena remains walkable: internal details are recessed/flat scenery,
 // tall walls and equipment are confined to the perimeter.
 const terrainThemes={
- kitchen:{base:'#28232b',tile:'#302a32',light:'#3b343b',edge:'#18161e',trim:'#7d6864',glow:'#ffb071'},
+ kitchen:{base:'#29272a',tile:'#333031',light:'#413a38',edge:'#1b191c',trim:'#827166',glow:'#ffbd82'},
  basement:{base:'#1a2330',tile:'#222d3a',light:'#304050',edge:'#101822',trim:'#526b80',glow:'#8bafff'},
  foodcourt:{base:'#292034',tile:'#34263f',light:'#43314d',edge:'#18121f',trim:'#745977',glow:'#f49edb'},
  slaughter:{base:'#302429',tile:'#3b2b2e',light:'#4b3738',edge:'#1c1319',trim:'#936b58',glow:'#ff845c'},
@@ -1676,7 +1676,7 @@ function paintArenaFeatures(g,id,left,top,width,height){
  for(const [x,y] of f.sites){
   if(x+50<left||x-50>right||y+45<top||y-45>bottom)continue;
   if(id==='kitchen'){
-   frame(x-24,y-13,48,26,'#596361','#929b88');for(let i=-19;i<=19;i+=6){R('#232b2d',x+i,y-8,3,16);R('#a2a99a',x+i+3,y-8,1,14)}
+   frame(x-24,y-13,48,26,'#596361','#929b88');R('#37312e',x-21,y-11,42,22);for(let i=-19;i<=19;i+=6){R('#232b2d',x+i,y-8,3,16);R('#a2a99a',x+i+3,y-8,1,14);R('#a7734f',x+i+1,y-7,1,13)}R('#88664d',x-25,y-3,3,8);R('#88664d',x+22,y-3,3,8);
    for(const i of [-21,18]){bolt(x+i,y-10);bolt(x+i,y+8)}R('#c9965b',x-5,y-15,10,2);txt('STEAM',x,y+19,'#ead4ae');
   }else if(id==='basement'){
    frame(x-21,y-13,42,26,'#394a53','#829da2');for(let i=0;i<3;i++){R('#1c2730',x-15+i*11,y-7,8,14);R('#5e8590',x-14+i*11,y-6,6,2);R('#a9d6c7',x-11+i*11,y+2,2,3)}
@@ -1751,7 +1751,7 @@ function paintArenaIdentity(g,id,left,top,width,height){
  g.restore();
 }
 function paintArenaSignature(g,id,view,time){
- if(!horrorFx)return;const q=arenaIdentity[id];if(!q)return;const t=reduceMotion?0:time;g.save();g.fillStyle=q.color;
+ if(id==='kitchen'){paintKitchenAtmosphere(g,view,time);return}if(!horrorFx)return;const q=arenaIdentity[id];if(!q)return;const t=reduceMotion?0:time;g.save();g.fillStyle=q.color;
  for(const [x,y] of q.marks){if(!visibleWorld({x,y},view,60))continue;g.save();g.translate(x,y);g.globalAlpha=.25;
  for(let i=0;i<5;i++){const k=terrainHash(x,y,i+90),n=reduceMotion?i*3:((t*(id==='kitchen'?7:3)+i*9)%27),xx=Math.round(-22+i*10+Math.sin(t*.6+k*6)*3),yy=Math.round(-9-n);
  switch(id){
@@ -1762,6 +1762,52 @@ function paintArenaSignature(g,id,view,time){
  case 'cemetery':g.fillRect(xx-9,yy+12,19,2);break;
  case 'forest':g.fillRect(xx,yy,2,2);if(i%2===0)g.fillRect(xx+2,yy-1,1,1);break;
  }}g.restore()}g.restore();
+}
+// V68.10 — Hell's Kitchen: authored furnace wall and walkable industrial floor detailing.
+function paintKitchenDetail(g,left,top,width,height){
+ const right=left+width,bottom=top+height;
+ const R=(c,x,y,w,h)=>{if(w<=0||h<=0||x+w<left||x>right||y+h<top||y>bottom)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ g.save();
+ // Industrial ovens stay in the non-walkable north wall.
+ for(let x=100;x<1780;x+=180){
+  R('#171719',x,5,156,48);R('#514843',x+2,6,152,45);R('#82746a',x+3,7,150,2);
+  for(let k=0;k<2;k++){const xx=x+8+k*72;R('#241f20',xx,13,64,29);R('#382725',xx+3,16,58,23);R('#74402d',xx+7,20,50,14);R('#b96d3d',xx+12,23,40,8);for(let j=0;j<5;j++)R('#49352c',xx+12+j*9,20,2,14);R('#bd9d7b',xx+10,37,44,2);R('#b77b4e',xx+48,10,3,2)}
+  R('#343032',x+2,47,152,4);R('#8e7867',x+14,46,126,1);
+ }
+ // Copper supply pipe in the wall, and flat recessed floor piping.
+ R('#382c29',55,0,1810,5);R('#865c43',55,1,1810,2);
+ for(let x=86;x<1850;x+=96){R('#ae8665',x,0,5,5);R('#4e3e35',x+5,0,2,5)}
+ for(const x of [920,996]){
+  R('#1c2223',x,314,6,448);R('#5b4c3f',x+1,315,4,446);R('#91735a',x+2,316,1,444);
+  for(let y=330;y<760;y+=56){R('#393938',x-2,y,10,5);R('#9a8065',x-1,y,8,1)}
+ }
+ // Tile scratches, greasy worn reflections and small floor rivets.
+ for(const [x,y] of [[620,378],[1100,378],[620,620],[1100,620]]){
+  for(let j=0;j<10;j++){const dx=8+Math.floor(terrainHash(x,y,j+141)*184),dy=9+Math.floor(terrainHash(y,x,j+151)*74);R('#645f50',x+dx,y+dy,5+j%4,1);R('#3b3a33',x+dx+2,y+dy+2,3,1)}
+  for(const dx of [6,194])for(const dy of [5,88]){R('#292c29',x+dx,y+dy,3,3);R('#9b8766',x+dx,y+dy,1,1)}
+ }
+ for(const [x,y] of [[650,428],[1080,585],[1450,330],[300,755]]){
+  for(let j=0;j<4;j++){R(['#54453b','#51443c','#493d37','#413934'][j],x-16-j*3,y+9+j*5,32+j*6,2)}
+ }
+ g.restore();
+}
+function kitchenSteamAt(x,y,time){
+ const t=Number.isFinite(time)?time:0,out=[];
+ for(let i=0;i<5;i++){const a=((t*.62+i/5)%1+1)%1,k=terrainHash(x,y,i+201);out.push({x:Math.round(x-18+i*8+Math.sin(a*4+k*6)*3),y:Math.round(y-9-a*28),w:Math.round(3+a*7),h:2+i%2,alpha:.08+(1-a)*.22})}return out;
+}
+function paintKitchenAtmosphere(g,view,time){
+ if(!horrorFx)return;const t=reduceMotion?0:time;g.save();
+ for(const [x,y] of arenaFeatures.kitchen.sites){
+  if(!visibleWorld({x,y},view,55))continue;
+  for(const q of kitchenSteamAt(x,y,t)){g.globalAlpha=q.alpha;g.fillStyle='#b9aea0';g.fillRect(q.x,q.y,q.w,q.h);g.fillStyle='#ded2bc';g.fillRect(q.x+1,q.y-1,Math.max(1,q.w-2),1)}
+ }
+ for(const [x,y] of arenaLights.kitchen){
+  if(!visibleWorld({x,y},view,60))continue;
+  const a=.08+.025*Math.sin(t*1.1+x*.03);
+  g.globalAlpha=a;g.fillStyle='#ffae69';for(let j=0;j<4;j++)g.fillRect(x-18-j*4,y+7+j*5,36+j*8,3);
+  if(!reduceMotion){for(let i=0;i<3;i++){const k=((t*.35+i/3)%1+1)%1;g.globalAlpha=.22*(1-k);g.fillStyle='#e8ad72';g.fillRect(Math.round(x-14+i*13+Math.sin(k*5)*3),Math.round(y-8-k*19),1,2)}}
+ }
+ g.restore();
 }
 function paintTerrain(g,id,left,top,width,height){
  const t=terrainThemes[id]||terrainThemes.kitchen,right=left+width,bottom=top+height,natural=id==='cemetery'||id==='forest';
@@ -1783,7 +1829,7 @@ function paintTerrain(g,id,left,top,width,height){
  }
  if(id==='kitchen'){
   // Kitchen: a broad central tiled work hall, a warm service lane and cold wash bays.
-  R('#353a39',514,286,890,510);paving(518,290,882,502,24,['#3f4340','#444843','#50534b']);
+  R('#353a39',514,286,890,510);paving(518,290,882,502,24,['#41423c','#494943','#555248']);
   for(const y of [305,775]){R('#202825',535,y,850,5);R('#7d7962',535,y+1,850,1)}
   R('#292e2c',920,290,82,502);R('#73705e',921,290,2,502);R('#73705e',1000,290,2,502);
   for(const y of [382,540,698]){grate(940,y,42,17,'#404747','#77776a');R('#6a6756',930,y+19,62,1)}
@@ -1843,6 +1889,7 @@ function paintTerrain(g,id,left,top,width,height){
   if(natural){const h=26+Math.floor(terrainHash(x,6,0)*16);P('#182a20',[x-15,y+42,x+4,y+42-h,x+19,y+42]);P('#314634',[x-9,y+35,x+4,y+43-h,x+14,y+35]);R('#6c5140',x+3,y+32,4,11)}
   else{plate(x,y+7,65,34,t.tile,t.edge,t.trim);if(id==='kitchen'){R('#171d20',x+7,y+13,51,13);for(let j=0;j<4;j++){R('#555f5d',x+10+j*12,y+15,7,8);R('#9b8270',x+10+j*12,y+15,7,1)}}else if(id==='foodcourt'){R('#2f2e34',x+8,y+12,49,21);R('#bc8b69',x+12,y+15,41,2);R('#4d7773',x+12,y+21,25,2)}else{grate(x+8,y+12,49,20,t.tile,t.trim)}}
  }
+ if(id==='kitchen')paintKitchenDetail(g,left,top,width,height);
  paintArenaFeatures(g,id,left,top,width,height);paintArenaIdentity(g,id,left,top,width,height);
  // Sparse ground lanterns, placed to support navigation instead of repeating a grid.
  for(const [x,y] of arenaLights[id]||arenaLights.kitchen){
@@ -4112,7 +4159,7 @@ function paintRefugeDirection(g,n,view){
 }
 function paintArenaLighting(g,map,view){
  const {x,y,w,h}=view;g.save();g.fillStyle='rgba(10,12,15,.08)';g.fillRect(x,y,w,h);
- for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+85<x||lx-85>x+w||ly+85<y||ly-85>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,85);rad.addColorStop(0,terrainThemes[map.id].glow);rad.addColorStop(.35,terrainThemes[map.id].glow+'65');rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.23;g.fillStyle=rad;g.fillRect(lx-85,ly-85,170,170)}g.restore()
+ for(const [lx,ly] of arenaLights[map.id]||arenaLights.kitchen){if(lx+85<x||lx-85>x+w||ly+85<y||ly-85>y+h)continue;const rad=g.createRadialGradient(lx,ly,3,lx,ly,85);rad.addColorStop(0,terrainThemes[map.id].glow);rad.addColorStop(.35,terrainThemes[map.id].glow+'65');rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=map.id==='kitchen'?.29:.23;g.fillStyle=rad;g.fillRect(lx-85,ly-85,170,170)}g.restore()
 }
 // V67: cull presentation only; never remove off-screen simulation objects.
 function visibleWorld(q,view,pad=0){return q.x+pad>=view.x&&q.x-pad<=view.x+view.w&&q.y+pad>=view.y&&q.y-pad<=view.y+view.h}
