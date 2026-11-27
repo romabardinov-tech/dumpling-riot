@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.4. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.5. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -111,3 +111,6 @@ Second individual visual pass, VESA only. Wine-colored hunter armor with alchemi
 
 ## V68.4 — Shadow Phantom: NYX
 Third individual visual pass, NYX only. Original obsidian mantle, split cloak hem, astral chest sigil, pale violet eyes, and distinct finishes for dart, three shards, crescent and void orb. Four attack echoes, bounded drifting shadow motes, directional fractured shadow trails for ordinary dash and third-weapon teleport, and violet impact fragments. Optional shadowArt projectile flag in snapshots; existing core projectile/element colors and protocol v68 unchanged. Animated accents respect reduced motion/horror FX; permanent armor and weapon details remain. No changes to attack damage, movement, invulnerability, cooldowns, collision or other heroes. Inline syntax and 3869 isolated drawing-command and geometry assertions passed. No actual rendered screenshot review, mobile playtest or real network verification; local combat presentation not fully synchronized.
+
+## V68.5 — Arcane Chaos: PELMAGE
+Fourth individual visual pass, PELMAGE only. Original embroidered indigo robes, brass clasps and arcane crystal. Separate visual details and attack echoes for spark (ice blue), flask (amber), meteor (ember coral), and vortex (lavender). Four orbiting pixel runes, six while fourth weapon is selected and fully charged. Rune-shaped dash echoes, impacts and projectile trails. Optional mageArt field in snapshots; protocol v68 and gameplay properties unchanged. Animated accents respect reduced motion/horror FX. Inline syntax and 7717 isolated drawing-command/geometry assertions passed. Actual rendered review, mobile performance and network visual verification remain pending.
