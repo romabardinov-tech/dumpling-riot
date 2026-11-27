@@ -1133,6 +1133,12 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 .wardrobeCard[data-rank="4"] button{background:linear-gradient(135deg,#8c3948,#442135)}
 @media(min-width:1150px){#wardrobeCards{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media(max-width:680px){#wardrobeCards{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}}
+
+#heroPersonaCard{display:grid;gap:6px;margin:10px 0;padding:12px 14px;border:1px solid #715568;border-left:3px solid #d8a680;border-radius:5px;background:linear-gradient(110deg,#2b202d,#17131c);color:#e9d9d2}
+#personaRole{font:800 16px/1.25 system-ui;color:#f0d0a5}
+#personaTraits{font:600 12px/1.3 system-ui;color:#c6b1d1}
+#heroPersonaCard p{margin:0;font:500 12px/1.4 system-ui}
+#personaQuote{font:600 italic 13px/1.4 system-ui;color:#e3a7a1;border-top:1px solid #574353;padding-top:6px}
 </style>
 </head>
 <body>
@@ -1162,7 +1168,7 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 </div><button type="button" class="homeMode homeSettings" data-open-menu="settings" id="settingsHome"><span class="altarGem homeActionIcon" id="settingsHomeIcon" aria-hidden="true"></span><span><strong class="homeActionTitle" id="settingsHomeLabel">SETTINGS</strong><span class="homeActionDetail" id="settingsHomeValue">Sound, controls, privacy</span></span><span class="homeChevron" aria-hidden="true">›</span></button>
 </section>
 <div id="menuBackBar" hidden><button type="button" id="menuBack" aria-label="Back">‹ <span id="menuBackLabel">Back</span></button><span id="menuCurrentTitle"></span><button type="button" id="menuDone">Done</button></div>
-<section class="menuSection" data-menu-panel="hero" hidden><div class="sectionHead"><h3 id="heroHeading">Choose hero</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div><section id="wardrobePanel" aria-labelledby="wardrobeHeading"><div class="wardrobeHeader"><h3 id="wardrobeHeading"></h3><b id="wardrobeBalance"></b></div><p id="wardrobeHint"></p><div id="wardrobeCards"></div><p id="wardrobeNotice" role="status"></p></section></section>
+<section class="menuSection" data-menu-panel="hero" hidden><div class="sectionHead"><h3 id="heroHeading">Choose hero</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="heroPersonaCard"><strong id="personaRole"></strong><span id="personaTraits"></span><p id="personaMotive"></p><p id="personaFear"></p><em id="personaQuote"></em></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div><section id="wardrobePanel" aria-labelledby="wardrobeHeading"><div class="wardrobeHeader"><h3 id="wardrobeHeading"></h3><b id="wardrobeBalance"></b></div><p id="wardrobeHint"></p><div id="wardrobeCards"></div><p id="wardrobeNotice" role="status"></p></section></section>
 <section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Choose arena</h3></div><div class="mapStage"><canvas id="mapStageCanvas" width="480" height="270" aria-hidden="true"></canvas><div class="mapStageCaption"><h2 id="mapStageName"></h2><div id="mapDetail" class="selectionDetail"></div><div id="arenaEnemyPreview" class="arenaEnemyPreview"></div></div></div><div id="mapChoices" class="choices"></div></section>
 <section class="menuSection" data-menu-panel="journal" hidden><div class="altarHeader"><h3 id="journalHeading"></h3><b id="journalCount"></b></div><p id="journalHint" class="selectionDetail"></p><label id="journalFilterLabel" for="journalFilter"></label><select id="journalFilter"></select><div id="journalEntries"></div></section>
 <section class="menuSection" data-menu-panel="altar" hidden><div class="altarHeader"><h3 id="altarHeading"></h3><b id="shardBalance"></b></div><p id="altarHint" class="selectionDetail"></p><nav id="altarNav" aria-label="Алтарь"><button type="button" data-altar-view="build" aria-controls="altarBuild" aria-pressed="true"></button><button type="button" data-altar-view="legacy" aria-controls="altarLegacy" aria-pressed="false"></button><button type="button" data-altar-view="history" aria-controls="altarHistory" aria-pressed="false"></button></nav><section id="altarBuild" data-altar-group="build"><h4 id="contractHeading"></h4><div id="contractChoices" class="altarGrid"></div><h4 id="modifierHeading"></h4><div id="modifierChoices" class="altarGrid"></div><h4 id="perkHeading"></h4><div id="perkChoices" class="altarGrid"></div><h4 id="comboHeading"></h4><div id="comboList" class="achievementGrid"></div></section><section id="altarLegacy" data-altar-group="legacy" hidden><h4 id="achievementHeading"></h4><div id="achievementList" class="achievementGrid"></div><h4 id="legacyHeading"></h4><p id="legacyNotice" class="selectionDetail" role="status"></p><div id="legacyGoals" class="altarGrid"></div><h4 id="heroRecordsHeading"></h4><div id="heroRecords" class="achievementGrid"></div></section><section id="altarHistory" data-altar-group="history" hidden><p id="campaignWins" class="selectionDetail"></p><h4 id="endingHeading"></h4><div id="endingList" class="achievementGrid"></div><h4 id="runHistoryHeading"></h4><div id="runHistoryList" class="achievementGrid"></div></section></section>
@@ -1967,10 +1973,48 @@ function openStoryCinema(frames,title,hint,onFinish,finishLabel){
  pause.onclick=()=>{if(!active())return;paused=!paused;scene.dataset.paused=String(paused);pause.textContent=paused?SU(7):SU(6)};next.onclick=()=>advance();skip.onclick=finish;storyCinemaInput=input;show();raf=requestAnimationFrame(tick);next.focus?.({preventScroll:true});return true;
 }
 
+
+/* V75.31 — character identity and contextual, non-blocking dialogue. */
+const heroPersonas={
+ scar:{role:['The stubborn survivor','Упрямый выживший'],traits:['Blunt, protective, dry humor','Прямолинейный, заботливый, мрачный юмор'],fear:['Leaving someone behind','Бросить кого-то в беде'],motive:['Find the missing kitchen crew.','Найти пропавшую кухонную смену.'],idle:[.95,.025,.55],lines:{start:['One last shift. Again.','Последняя смена. Опять.'],boss:['Big one. Fine.','Здоровяк. Ну и ладно.'],hurt:['Not my last shift.','Это ещё не последняя смена.'],portal:['Smells like trouble.','Пахнет неприятностями.'],clear:['Still standing.','Ещё на ногах.'],resolve:['Nobody gets left behind.','Никого не оставлю.']}},
+ vesa:{role:['The relentless huntress','Неутомимая охотница'],traits:['Observant, patient, fiercely loyal','Наблюдательная, терпеливая, преданная'],fear:['Following a false trail','Пойти по ложному следу'],motive:['Learn what happened to her mentor.','Узнать судьбу наставника.'],idle:[1.25,.016,.35],lines:{start:['Every trail tells a story.','Каждый след что-то расскажет.'],boss:['Watch how it moves.','Смотрю, как оно движется.'],hurt:['Breathe. Find the opening.','Дыши. Найди слабое место.'],portal:['Fresh tracks. Impossible.','Свежие следы. Невозможно.'],clear:['The trail continues.','След продолжается.'],resolve:['I choose my own trail.','Я сама выбираю свой след.']}},
+ nyx:{role:['The fractured shadow','Расколотая тень'],traits:['Quiet, suspicious, introspective','Молчаливый, недоверчивый, задумчивый'],fear:['Losing his own identity','Потерять собственное «я»'],motive:['Recover the shadow stolen from him.','Вернуть украденную тень.'],idle:[.65,.035,.75],lines:{start:['Whose shadow is that?','Чья это тень?'],boss:['It remembers me.','Оно меня помнит.'],hurt:['I am still myself.','Я всё ещё я.'],portal:['No reflection. Good.','Нет отражения. Хорошо.'],clear:['Silence, at last.','Наконец-то тишина.'],resolve:['My name belongs to me.','Моё имя принадлежит мне.']}},
+ pelmage:{role:['The curious heretic','Любопытный еретик'],traits:['Ingenious, eccentric, guilt-ridden','Изобретательный, эксцентричный, терзаемый виной'],fear:['Repeating his fatal experiment','Повторить роковой эксперимент'],motive:['Undo the seventh recipe.','Исправить седьмой рецепт.'],idle:[1.6,.025,.65],lines:{start:['A most peculiar experiment.','Весьма любопытный эксперимент.'],boss:['That was not in the formula.','Этого не было в формуле.'],hurt:['A minor miscalculation!','Небольшой просчёт!'],portal:['Fascinating. And terrible.','Удивительно. И ужасно.'],clear:['Theory confirmed. Mostly.','Теория подтверждена. Почти.'],resolve:['This time I finish the spell.','На этот раз я закончу заклинание.']}},
+ assassin:{role:['The contract breaker','Нарушитель контрактов'],traits:['Precise, cynical, self-reliant','Точный, циничный, независимый'],fear:['Becoming someone else’s weapon','Стать чужим орудием'],motive:['Erase the contract on his life.','Уничтожить контракт на свою жизнь.'],idle:[1.8,.037,.24],lines:{start:['No loose ends.','Без лишних следов.'],boss:['Target acquired.','Цель обнаружена.'],hurt:['Careless. Correct it.','Неосторожно. Исправлю.'],portal:['No witness. No exit.','Ни свидетелей. Ни выхода.'],clear:['Contract closed.','Контракт закрыт.'],resolve:['I answer to no one.','Я никому не подчиняюсь.']}},
+ golem:{role:['The gentle furnace','Добрая печь'],traits:['Patient, literal, quietly compassionate','Терпеливый, буквальный, сострадательный'],fear:['Forgetting his maker','Забыть создателя'],motive:['Remember who gave him life.','Вспомнить, кто дал ему жизнь.'],idle:[.55,.012,.30],lines:{start:['Furnace warm. Heart awake.','Печь тепла. Сердце проснулось.'],boss:['You will not pass.','Ты не пройдёшь.'],hurt:['Cracks. Still functional.','Трещины. Ещё работаю.'],portal:['I remember this heat.','Я помню это тепло.'],clear:['All quiet. Keep warm.','Всё тихо. Сохраняю тепло.'],resolve:['I am more than iron.','Я больше, чем железо.']}},
+ warden:{role:['The last keeper','Последний хранитель'],traits:['Solemn, merciful, resolute','Сдержанный, милосердный, решительный'],fear:['Letting the light die','Позволить свету погаснуть'],motive:['Keep the last lantern burning.','Сохранить огонь последнего фонаря.'],idle:[.75,.012,.40],lines:{start:['Let the light endure.','Пусть свет не угаснет.'],boss:['The dark has no claim here.','Тьме здесь нет места.'],hurt:['The flame still burns.','Пламя ещё горит.'],portal:['Even here, I carry light.','Даже сюда я несу свет.'],clear:['A moment of peace.','Мгновение покоя.'],resolve:['No soul is forgotten.','Ни одна душа не забыта.']}},
+ revenant:{role:['The nameless wanderer','Безымянный странник'],traits:['Haunted, poetic, searching for humanity','Мучимый прошлым, поэтичный, ищущий человечность'],fear:['Becoming the void itself','Стать самой пустотой'],motive:['Recover his lost name.','Вернуть утраченное имя.'],idle:[.48,.043,.85],lines:{start:['The silence knows my name.','Тишина знает моё имя.'],boss:['I have heard you in dreams.','Я слышал тебя во снах.'],hurt:['Am I fading again?','Я снова исчезаю?'],portal:['The void feels familiar.','Пустота кажется знакомой.'],clear:['I remember a little more.','Я вспомнил чуть больше.'],resolve:['I will not forget myself.','Я не забуду себя.']}}
+};
+function personaFor(id){return heroPersonas[id]||heroPersonas.scar}
+let heroBark=null,heroBarkCooldown=0,heroBarkPending=null,heroBarkLow=false;
+function resetHeroBarks(){heroBark=null;heroBarkCooldown=0;heroBarkPending=null;heroBarkLow=false}
+function queueHeroBark(kind,force=false){
+ if(!soloRun||coop||onlineMode||!player||player.dead||!personaFor(player.charId).lines[kind])return false;
+ if(!force&&heroBarkCooldown>0)return false;
+ heroBarkPending=kind;return true;
+}
+function stepHeroBarks(dt){
+ if(state!=='game'||coop||onlineMode||!soloRun||!player||player.dead)return;
+ heroBarkCooldown=Math.max(0,heroBarkCooldown-dt);
+ if(heroBark){heroBark.time-=dt;if(heroBark.time<=0)heroBark=null}
+ const ratio=player.hp/Math.max(1,player.maxhp);
+ if(ratio>.48)heroBarkLow=false;
+ if(ratio<=.28&&!heroBarkLow){heroBarkLow=true;queueHeroBark('hurt',true)}
+ if(heroBarkPending&&heroBarkCooldown<=0){heroBark={kind:heroBarkPending,time:3.2,id:player.charId};heroBarkPending=null;heroBarkCooldown=12}
+}
+function paintHeroBark(g,view,p){
+ if(!heroBark||state!=='game'||p.dead||heroBark.id!==p.charId)return;
+ // Bounded, non-interactive speech caption; never hides enemy telegraphs at the player's feet.
+ const line=L(...personaFor(p.charId).lines[heroBark.kind]),col=(heroArt[p.charId]||heroArt.scar).glow;
+ g.save();g.font='bold 8px monospace';g.textAlign='center';const words=line.split(' '),rows=[];let cur='';for(const word of words){const next=cur?cur+' '+word:word;if(cur&&g.measureText(next).width>130){rows.push(cur);cur=word}else cur=next}if(cur)rows.push(cur);
+ const w=Math.min(146,Math.max(42,...rows.map(x=>g.measureText(x).width+10))),h=rows.length*10+7,x=clamp(p.x,view.x+w/2+4,view.x+view.w-w/2-4),y=clamp(p.y-62-h,view.y+5,view.y+view.h-h-5);
+ g.fillStyle='#100d19ed';g.fillRect(x-w/2,y,w,h);g.strokeStyle=col;g.lineWidth=1;g.strokeRect(x-w/2,y,w,h);g.fillStyle='#f1e6d9';rows.forEach((row,i)=>g.fillText(row,x,y+11+i*10));g.restore();
+}
+
 function openHeroStory(){
  if(!soloRun?.campaign||state!=='game'||!campaignStoryBeat(wave))return false;
  const story=storyFor(soloRun.hero),ch=storyChapter(soloRun),talk=(storyTalk[soloRun.hero]||storyTalk.scar)[soloRun.campaign.chapter-1];
- const frames=[['narrator',L(ch[2],ch[3])],['hero',L(talk[0],talk[1])],['echo',L(talk[2],talk[3])],['hero',L('I have to keep moving.','Нужно идти дальше.')]];
+ const frames=[['narrator',L(ch[2],ch[3])],['hero',L(talk[0],talk[1])],['echo',L(talk[2],talk[3])],['hero',L(...personaFor(soloRun.hero).lines.resolve)]];
  return openStoryCinema(frames,L(...story.title)+' · '+SU(1)+' '+soloRun.campaign.chapter+' / 3',L(ch[0],ch[1])+' · '+SU(10)+' '+(soloRun.campaign.chapter*5)+' · '+SU(12)+' '+((soloRun.campaign.chapter-1)*5+2),()=>{state='game';setMobileControls(true);clearLocalInput()},SU(8));
 }
 function openStoryEpilogue(id){
@@ -3890,6 +3934,7 @@ function renderWardrobe(hero){
 }
 
 function paintMenuStage(hero,map){
+ const persona=personaFor(hero.id);document.getElementById('personaRole').textContent=L(...persona.role);document.getElementById('personaTraits').textContent=L(...persona.traits);document.getElementById('personaMotive').textContent=L('Goal: ','Цель: ')+L(...persona.motive);document.getElementById('personaFear').textContent=L('Fear: ','Страх: ')+L(...persona.fear);document.getElementById('personaQuote').textContent='«'+L(...persona.lines.start)+'»';
  const canvas=document.getElementById('heroStageCanvas');
  menuArtwork(()=>paintHeroSelection(canvas.getContext('2d'),hero));
  canvas.closest('.heroStage').style.setProperty('--hero-accent',hero.color);
@@ -4600,7 +4645,7 @@ function enterDimension(){
  if(!dimensionGate||dimension||state!=='game'||waveState!=='clear'||!soloRun)return false;
  const gate=dimensionGate,spec=gate.spec;
  dimension={spec,returnX:player.x,returnY:player.y,mainDrops:drops,mainBlood:blood,mainNightmare:nightmare,mainSpawned:spawned,mainTarget:targetCount,done:false,exitTime:0,difficulty:dimensionDifficulty(spec,wave),spawned:0,pack:0,trapTimer:3.8};
- dimensionGate=null;clearLocalInput();clearNpc();clearPersonalStory();secretEncounter=null;fieldRecord=null;arenaTrial=null;livingStations=[];breakableProps=[];dynamicHorror=null;horrorDirector=null;
+ dimensionGate=null;queueHeroBark('portal',true);clearLocalInput();clearNpc();clearPersonalStory();secretEncounter=null;fieldRecord=null;arenaTrial=null;livingStations=[];breakableProps=[];dynamicHorror=null;horrorDirector=null;
  Object.assign(arena,{l:340,r:1580,t:250,b:850});
  player.x=960;player.y=550;player.serverX=player.x;player.serverY=player.y;camera.x=player.x;camera.y=player.y;player.inv=Math.max(player.inv,.65);
  drops=[];blood=[];particles=[];texts=[];projectiles=[];hazards=[];rings=[];enemies=[];boss=null;nightmare=null;waveState='fighting';waveTime=0;
@@ -4615,7 +4660,7 @@ function completeDimension(){
  player.hp=Math.min(player.maxhp,player.hp+Math.ceil(player.maxhp*.15));ring(d.exit.x,d.exit.y,8,d.spec.color,.7,55);
  dimensionHud(metaLabel(d.spec),L('Room cleared · return through the gate','Комната зачищена · возвращайся через портал')+' · ◆ +'+reward);
  if(d.spec.campaign){const line=fieldStoryLines[d.spec.hero]?.[d.spec.chapter-1];if(line)personalStoryLine(SU(2),L(line[0],line[1]),6)}
- toast(L('SECRET SPACE CLEARED','ТАЙНОЕ ПРОСТРАНСТВО ЗАЧИЩЕНО')+' · ◆ +'+reward);toastTimer=4;return true;
+ queueHeroBark('clear');toast(L('SECRET SPACE CLEARED','ТАЙНОЕ ПРОСТРАНСТВО ЗАЧИЩЕНО')+' · ◆ +'+reward);toastTimer=4;return true;
 }
 function leaveDimension(){
  if(!dimension?.done)return false;
@@ -4784,7 +4829,7 @@ function beginWave(){
  const localPool=arenaEnemyPool(selectedMap,wave);if(soloRun&&eliteWave(wave)&&spawned<first){const e=spawnEnemy(localPool[localPool.length-1]);empowerElite(e,selectedMap);spawned++;}const mutation=mutantOffer(selectedMap,wave,!!soloRun,bossWave,!!hidden);if(mutation&&spawned<first){empowerMutant(spawnEnemy(mutation.type),selectedMap);spawned++}let localIndex=0;while(spawned<first){spawnWaveEnemy(localIndex<localPool.length?localPool[localIndex]:null);localIndex++;spawned++}
  waveTime=0;
  toast((L("WAVE ","ВОЛНА "))+wave+(bossWave?(L(" · BOSS INCOMING"," · БОСС")) : activeOmen.id!=='none'?' · '+metaLabel(activeOmen):''));if(activeOmen.id!=='none')toastTimer=3;if(secretEncounter){toast(L('HIDDEN CACHE NEARBY','ПОБЛИЗОСТИ ТАЙНИК'));toastTimer=3;}if(soloRun&&eliteWave(wave)){toast(L('ELITE HUNT','ОХОТА НА ЭЛИТУ')+' · '+metaLabel(eliteProfiles[selectedMap]));toastTimer=3.5;}if(hidden){toast(L('HIDDEN HORROR','СКРЫТЫЙ УЖАС')+' · '+L(hidden.name,hidden.ru));toastTimer=4;}if(mutation){toast(L('RARE MUTATION','РЕДКАЯ МУТАЦИЯ')+' · '+metaLabel(mutation));toastTimer=3.5;}
- openHeroStory();
+ if(!openHeroStory()&&(wave===1||bossWave||hidden))queueHeroBark(bossWave||hidden?'boss':'start',true);
 }
 function makeBoss(w,hidden=null){
  const p=hidden||((soloRun?.campaign&&w===FINAL_WAVE||soloRun?.abyss&&w===ABYSS_GOAL)?finalBossProfile:bossForMap(selectedMap,w)),hp=Math.round(soloBossBase(w)*p.hp*(coop?1.55:1)*bossBuildFactor(alivePlayers())),pos=enemySpawnPoint(camera,alivePlayers().length?alivePlayers():[player],arena);
@@ -4876,8 +4921,8 @@ function heroMotionPose(p,less=false,time=0){
  const limp=heroLimpPose(p,phase,motion,less);
  if(less)return {motion,phase:0,walk:0,bob:0,lean:limp?.lean||0,limp};
  if(limp)return {motion,phase,walk:Math.sin(phase)*motion*q.stride*.65,bob:limp.bob,lean:limp.lean,limp};
- const walk=Math.sin(phase)*motion*q.stride;
- return {motion,phase,walk,bob:Math.round(Math.abs(Math.sin(phase))*motion*q.bob+(1-motion)*Math.sin(time*2)*.45),lean:motion*q.lean*Math.cos(phase)};
+ const walk=Math.sin(phase)*motion*q.stride,person=personaFor(p.charId).idle,idlePhase=time*person[0]*2;
+ return {motion,phase,walk,bob:Math.round(Math.abs(Math.sin(phase))*motion*q.bob+(1-motion)*Math.sin(idlePhase)*person[2]),lean:motion*q.lean*Math.cos(phase)+(1-motion)*Math.sin(idlePhase*.7)*person[1]};
 }
 function heroRecoilPose(id,t,slot,less=false){
  const q=motionProfile(id),base=recoilPose(t,slot,less);
@@ -5282,7 +5327,7 @@ function paintTrialDirection(g,q,view){
  const dx=x-view.w/2,dy=y-view.h/2,k=Math.min((view.w/2-25)/Math.max(1,Math.abs(dx)),(view.h/2-36)/Math.max(1,Math.abs(dy)));
  g.save();g.translate(Math.round(view.w/2+dx*k),Math.round(view.h/2+dy*k));g.rotate(Math.atan2(dy,dx));g.strokeStyle=trialThemes[q.map].color;g.lineWidth=1;g.strokeRect(-4,-4,8,8);g.beginPath();g.moveTo(5,-4);g.lineTo(10,0);g.lineTo(5,4);g.stroke();g.restore();
 }
-function clearCombatPresentation(){resetDimensions();clearPersonalStory();impactMarks=[];dashGhosts=[];deathSprites=[];breakableProps=[];propImpactLedger=new WeakMap();dynamicHorror=null;horrorDirector=null;fieldRecord=null;arenaTrial=null;shake=0}
+function clearCombatPresentation(){resetHeroBarks();resetDimensions();clearPersonalStory();impactMarks=[];dashGhosts=[];deathSprites=[];breakableProps=[];propImpactLedger=new WeakMap();dynamicHorror=null;horrorDirector=null;fieldRecord=null;arenaTrial=null;shake=0}
 function addImpact(e,d,owner){if(!horrorFx||reduceMotion)return;const q=impactProfile(d,e.type==='boss'),source=owner==='p1'?player:owner==='p2'?player2:null;pushFx(impactMarks,{x:e.x,y:e.y-8,...q,material:enemyImpactMaterial(e),heavy:e.type==='boss'||d>=60,angle:source?Math.atan2(e.y-source.y,e.x-source.x):0,scar:source?.charId==='scar',vesa:source?.charId==='vesa',nyx:source?.charId==='nyx',mage:source?.charId==='pelmage',shiv:source?.charId==='assassin',golem:source?.charId==='golem',warden:source?.charId==='warden',voidArt:source?.charId==='revenant',max:q.life},COMBAT_FX.marks)}
 // V71.2 — Individual death choreography, visual only.
 const enemyDeathArt={
@@ -6498,6 +6543,7 @@ function togglePause(){
  if(state==='pause'){state='game';setMobileControls(true);document.getElementById('pauseOverlay').style.display='none';initAudio();return;}
 }
 function update(dt){
+ stepHeroBarks(dt);
  const smoothAlpha=1-Math.exp(-dt*13);
  updateNpc(dt);
  if(state==='game'){
@@ -6717,6 +6763,35 @@ function paintWardrobeFront(g,id,rank,phase){
  g.restore();
 }
 
+
+/* Identity-specific finishing pass: facial anatomy, worn materials, personal keepsakes. */
+function paintHeroIdentity(g,id,phase,aim,rank){
+ const a=heroArt[id]||heroArt.scar,ink='#100c17',left=Math.cos(aim)<0,off=left?-1:1,t=reduceMotion?0:Math.round(Math.sin(phase*.75));
+ const R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+ const P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ g.save();
+ switch(id){
+ case 'scar': // split eyebrow, scar, personal order tag
+  R('#8f645b',-8,-18,5,2);R('#281d23',-7,-16,4,1);R('#e7aa88',-6,-17,2,1);R('#55262c',6,-18,2,8);R('#f3a07f',6,-16,1,5);R('#735248',-4,-9,8,2);R('#3c272c',-3,-9,5,1);R('#d7bb91',-11,1,4,5);R('#86644c',-10,2,2,1);R('#86644c',-10,4,2,1);break;
+ case 'vesa': // one side swept hair and mentor's red-thread charm
+  P('#6a334b',[-10,-21,-5,-25,4,-24,0,-19,-7,-16,-9,-15]);R('#c9848e',-7,-23,5,1);R('#f0c5a9',-5,-18,2,2);R('#49303b',-6,-15,4,1);R('#49303b',3,-15,4,1);R('#bb514d',8,-12,1,3);R('#a83c4a',-9,-4,1,6);R('#dd9877',-10,0,3,2);break;
+ case 'nyx': // chipped asymmetric mask, tiny moon insignia
+  P('#7771a1',[-7,-19,-3,-22,0,-20,-4,-17,-5,-11,-7,-13]);R('#171424',-4,-17,1,4);R('#ded5fa',-5,-19,1,3);R('#a9a1ef',-6,-14,4,1);R('#e0ddff',3,-14,2,1);R('#7664a5',1,-10,1,2);P('#c3b8ee',[7,-5,10,-4,8,-1,6,-2,8,-3]);break;
+ case 'pelmage': // reading lens, silver beard, handwritten rune scroll
+  R('#d4be8e',-6,-16,5,1);R('#d4be8e',-7,-15,1,4);R('#d4be8e',-5,-12,4,1);R('#a5e8ff',-5,-14,3,1);R('#e2ceb6',-3,-9,2,4);R('#c4aa96',1,-9,1,3);R('#eee0c8',2,-8,2,3);R('#bea37c',9,1,4,7);R('#e9d6a6',10,2,2,4);R('#6f5670',10,4,2,1);break;
+ case 'assassin': // cut visor and etched guild token
+  R('#131c1b',-7,-16,14,2);R('#829b8e',-6,-17,10,1);R('#c4f4d5',-6,-14,4,1);R('#9fe4b8',3,-14,3,1);R('#1a3028',-5,-10,10,2);R('#70867c',-4,-9,8,1);R('#9bb6a4',-12,0,3,4);R('#304d3f',-11,1,1,2);break;
+ case 'golem': // mismatched riveted face, old maker's stamped initials
+  R('#d5ad80',-9,-21,3,3);R('#46352e',-8,-20,1,1);R('#e2c6a1',5,-21,3,1);R('#2f2523',-7,-17,6,5);R('#ffc079',-6,-16,3,2);R('#ffe1a4',-5,-16,1,1);R('#ff975a',3,-16,3,1);R('#91745d',8,2,3,4);R('#382d2a',9,3,1,2);R('#f4b475',-1,-12,2,1);break;
+ case 'warden': // worn brass helmet, faded oath ribbon
+  R('#e5cba0',-8,-23,14,1);R('#b5a17b',-7,-21,2,2);R('#2d2926',-6,-19,12,1);R('#fae1a8',-5,-17,3,1);R('#fae1a8',2,-17,3,1);R('#9b8154',-1,-17,2,7);R('#ded0a2',-11,-1,3,8);R('#816449',-10,0,1,5);break;
+ case 'revenant': // fractured bone mask, floating memory fragment
+  P('#d1bdcb',[-7,-18,-3,-21,-1,-18,-4,-15,-5,-11,-7,-13]);R('#5b3e6b',-2,-19,1,4);R('#e0c4ef',-5,-14,3,1);R('#f4ddff',2,-14,3,1);R('#826095',5,-12,1,3);P('#bda4d1',[9,0,12,-3+t,15,0,12,4+t]);R('#f0d4f5',11,-1+t,2,2);break;
+ }
+ if(rank>=3){const col=visualWardrobe[id].colors;R(col[2],off*8-1,-7,2,1);R(col[3],off*8,-7,1,1)}
+ g.restore();
+}
+
 function pixelHeroBody(g,id,step=0,phase=0,aim=0,limp=null){
  const cosmeticRank=wardrobeRank(id);paintWardrobeBack(g,id,Math.min(3,cosmeticRank),phase,step);paintWardrobeAscension(g,id,cosmeticRank,phase);paintHeroSilhouetteGear(g,id,phase,step);
  const a=heroArt[id]||heroArt.scar;
@@ -6868,7 +6943,7 @@ function pixelHeroBody(g,id,step=0,phase=0,aim=0,limp=null){
    R('#4b433a',-9,10,7,3);R('#4b433a',3,10,7,3);
  }
  // Aim-facing eye highlight and subtle surface rim on all costumes.
- if(id!=='golem'&&id!=='pelmage')R(a.lit,dir*8+(dir<0?0:-1),-8,1,2);paintWardrobeFront(g,id,Math.min(3,cosmeticRank),phase);paintWardrobeRelic(g,id,cosmeticRank,phase);
+ if(id!=='golem'&&id!=='pelmage')R(a.lit,dir*8+(dir<0?0:-1),-8,1,2);paintWardrobeFront(g,id,Math.min(3,cosmeticRank),phase);paintWardrobeRelic(g,id,cosmeticRank,phase);paintHeroIdentity(g,id,phase,aim,cosmeticRank);
 }
 // V68.1: hand-authored native pixel silhouettes, one for each of 32 weapons.
 // Geometry is cosmetic; weapon damage, collision and timing remain unchanged.
@@ -8777,7 +8852,7 @@ function draw(){
  for(const p of particles){if(!visibleWorld(p,view,p.size+2))continue;ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.fillStyle=p.color;ctx.fillRect(Math.round(p.x),Math.round(p.y),p.size,p.size)}ctx.globalAlpha=1;
  for(const t of texts){if(!visibleWorld(t,view,48))continue;ctx.globalAlpha=clamp(t.life/.7,0,1);drawPixelText(t.s,t.x,t.y,7,t.color,'center')}ctx.globalAlpha=1;
  // subtle pixel horror vignette/flicker over the world
- if(state==='game'){paintFearFog(ctx,nightmare,local,view);paintLowHpFrame(ctx,local.hp/local.maxhp,view,!local.dead);paintNpcComment(ctx,view,local);if(nightmare?.fear>20)for(const p of projectiles)if(p.enemy&&Math.hypot(p.x-local.x,p.y-local.y)<fearSightRadius(nightmare.fear)+25&&visibleWorld(p,view,20))paintCombatProjectile(ctx,p);}
+ if(state==='game'){paintFearFog(ctx,nightmare,local,view);paintLowHpFrame(ctx,local.hp/local.maxhp,view,!local.dead);paintNpcComment(ctx,view,local);paintHeroBark(ctx,view,local);if(nightmare?.fear>20)for(const p of projectiles)if(p.enemy&&Math.hypot(p.x-local.x,p.y-local.y)<fearSightRadius(nightmare.fear)+25&&visibleWorld(p,view,20))paintCombatProjectile(ctx,p);}
  // Warning edges stay above actors, particles and floor darkness.
  if(state==='game'&&waveState==='fighting')for(const h of hazards)if(visibleWorld(h,view,h.radius+8))paintHazardReadability(ctx,h);
  if(state==='death')paintDeathSequence(ctx,view,deathTimer);
