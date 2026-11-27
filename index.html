@@ -4787,7 +4787,84 @@ function pixelFoodcourtBoss(g,id,stage=1,phase=0,charging=false){
  if(charging){R('#ffd292',-14,-50,28,2);R('#ff9b55',-9,-47,18,1)}
  g.restore();return true;
 }
+// V70.4 — Industrial Nightmares: distinct three-phase factory bosses.
+function pixelIndustrialBoss(g,id,stage=1,phase=0,charging=false){
+ if(id!==6&&id!==7)return false;
+ const R=(c,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ const ink='#100912',t=reduceMotion||!Number.isFinite(phase)?0:phase,sway=Math.round(Math.sin(t)*2),hot=id===6?(stage===3?'#ffe9ba':stage===2?'#f1b77c':'#d7a07e'):(stage===3?'#ffb68b':stage===2?'#ed7c65':'#c45b51');
+ g.save();
+ if(id===6){
+  // Blade Foreman: tall steel mask, tool rack and two different cutting assemblies.
+  for(const s of [-1,1]){
+   const d=s*sway;P(ink,[s*7,9,s*18,10,s*24,23+d*.5,s*18,28+d*.5,s*6,25,s*4,16]);P('#4c4950',[s*8,11,s*16,12,s*21,22+d*.5,s*17,25+d*.5,s*8,23,s*6,17]);R('#9c8f82',s<0?-20:10,23+d*.5,10,3);
+  }
+  P(ink,[-23,-26,-15,-37,16,-37,24,-26,26,10,17,24,-17,24,-26,10]);P('#575158',[-21,-25,-14,-35,15,-35,22,-25,24,9,16,22,-16,22,-24,9]);P('#8c8581',[-17,-25,-11,-31,11,-31,18,-24,17,12,10,18,-10,18,-18,12]);R('#b9ae9b',-11,-30,22,3);
+  R('#2f3039',-14,-23,28,31);R('#68626a',-12,-20,24,25);
+  R(ink,-13,-18,26,7);R(hot,-10,-16,7,3);R(hot,3,-16,7,3);R('#39343a',-9,-5,18,10);for(let i=0;i<4;i++)R('#b8a393',-8+i*4,-3,2,5);
+  // Back rack of blades stays distinct from the head.
+  for(let i=0;i<5;i++){const x=-19+i*9,h=7+(i%2)*4;P(ink,[x-2,-34,x-2,-37-h,x+2,-41-h,x+5,-38,x+4,-34]);P('#9aabae',[x,-35,x,-38-h,x+2,-39-h,x+3,-38,x+2,-35]);R('#e1ded0',x,-37-h,1,h-1)}
+  P(ink,[-22,-20,-32,-23,-39,-13,-40,7+sway,-32,17+sway,-23,9]);P('#6b6164',[-24,-18,-31,-21,-36,-12,-37,6+sway,-31,14+sway,-25,8]);R('#b59b83',-35,-10,5,12);
+  const lift=charging?-5:sway;
+  P(ink,[22,-19,33,-22,39,-13+lift,40,9+lift,30,15+lift,23,6]);P('#6b6668',[24,-17,32,-19,36,-12+lift,37,8+lift,30,12+lift,25,5]);R('#a7947f',31,-8+lift,5,13);
+  // Left segmented blade, right circular saw with stepped teeth.
+  P(ink,[-39,-15+sway,-50,-27+sway,-51,-20+sway,-47,8+sway,-38,13+sway]);P('#919fa2',[-41,-14+sway,-48,-24+sway,-49,-20+sway,-45,7+sway,-40,10+sway]);R('#d9d8ce',-48,-19+sway,2,18);
+  const sy=-4+lift,spin=reduceMotion?0:Math.floor(t*4)%2;
+  P(ink,[36,sy-14,43,sy-13,49,sy-7,50,sy+6,44,sy+13,35,sy+13,29,sy+6,29,sy-7]);P('#9aa8a9',[36,sy-12,42,sy-11,47,sy-6,48,sy+5,43,sy+11,36,sy+11,31,sy+5,31,sy-6]);
+  for(let i=0;i<8;i++){const a=(i+spin*.5)*Math.PI/4,x=Math.round(39+Math.cos(a)*10),y=Math.round(sy+Math.sin(a)*10);R('#ded5be',x-1,y-1,2,2)}
+  R('#4a4145',36,sy-3,7,7);R('#ab785a',38,sy-1,3,3);
+  if(stage>=2){
+   // Split armor reveals serrated inner rails and hot actuator rods.
+   for(const s of [-1,1]){const x=s<0?-23:14;R('#3b2b31',x,-9,9,19);for(let i=0;i<3;i++){R('#a48872',x+1,-7+i*6,7,3);R(hot,x+3,-7+i*6,3,1)}}
+   P('#342d36',[-12,-31,-5,-27,-9,-20,-3,-15,-7,-11,-10,-17,-14,-24]);R(hot,-9,-20,2,4);
+  }
+  if(stage===3){
+   // Face guard breaks open; blade rack expands and the saw rim glows.
+   P(ink,[-16,-27,-8,-33,8,-33,16,-27,14,-9,6,-4,-7,-4,-15,-9]);P('#734a43',[-14,-26,-7,-31,7,-31,14,-26,12,-10,5,-6,-6,-6,-13,-10]);R(hot,-11,-20,22,5);R('#fff0d2',-4,-19,8,2);
+   for(const s of [-1,1]){P(ink,[s*20,-24,s*30,-39,s*36,-42,s*32,-26,s*25,-15]);P('#9ca6a1',[s*22,-24,s*30,-36,s*33,-39,s*30,-27,s*25,-18]);R(hot,s<0?-31:28,-33,3,5)}
+   for(let i=0;i<4;i++){const a=(i+spin*.5)*Math.PI/2;R(hot,Math.round(39+Math.cos(a)*9)-1,Math.round(sy+Math.sin(a)*9)-1,3,2)}
+   R(hot,-48,-19+sway,2,18);
+  }
+  if(horrorFx&&!reduceMotion){const d=Math.round(Math.sin(t*1.3)*3);R(hot,24+d,-45,3,2);R('#d5c9b2',-26-d,-44,2,2);if(stage>=2){R(hot,28,sy+13+d,2,2);R(hot,-43,12-d,2,2)}}
+ }else{
+  // Conveyor Maw: low broad conveyor tank with rollers and crushing jaws.
+  for(const s of [-1,1]){
+   const d=s*sway;P(ink,[s*18,10,s*32,10,s*39,20+d*.5,s*34,28+d*.5,s*14,28+d*.5,s*11,20]);P('#514547',[s*20,12,s*31,12,s*36,20+d*.5,s*32,25+d*.5,s*15,25+d*.5,s*14,20]);R('#a28d77',s<0?-32:15,19+d*.5,17,3);
+   for(let i=0;i<3;i++){const x=s<0?-31+i*6:16+i*6;R('#343139',x,23+d*.5,4,2)}
+   P(ink,[s*27,-20,s*40,-18,s*49,-9+d,s*49,8+d,s*41,18+d,s*29,12]);P('#77514b',[s*29,-18,s*39,-16,s*46,-8+d,s*46,7+d,s*39,15+d,s*31,10]);R('#c0a087',s<0?-44:39,-7+d,5,12);
+   for(let i=0;i<3;i++)R('#49363a',s<0?-45:35,-12+i*8+d,9,2);
+  }
+  P(ink,[-31,-24,-23,-33,23,-33,31,-24,34,12,25,25,-25,25,-34,12]);P('#6a4d4a',[-29,-23,-22,-31,22,-31,29,-23,32,11,23,23,-23,23,-32,11]);
+  R('#a58770',-24,-29,48,5);R('#bdab8e',-21,-29,42,2);
+  // Head mounted on the conveyor intake.
+  R(ink,-19,-23,38,9);R(hot,-15,-20,10,3);R(hot,5,-20,10,3);R('#554044',-3,-19,6,4);
+  for(const s of [-1,1]){const x=s<0?-29:24;R('#b8a18a',x,-20,5,3);R('#b8a18a',x,11,5,3);R('#49373b',x,-11,4,19)}
+  const jaw=charging?6:stage===3?5:Math.round((sway+2)*.75);
+  P(ink,[-24,-10,24,-10,27,3,20,13+jaw,-20,13+jaw,-27,3]);R('#77393b',-20,-4,40,12+jaw);
+  for(let i=0;i<8;i++){R('#d7c4a6',-22+i*6,-10,4,5);R('#b69a83',-21+i*6,7+jaw,4,4)}
+  R('#9f8270',-24,18+jaw*.25,48,3);
+  // Moving tread segments are kept within the lower armor.
+  const belt=reduceMotion?0:Math.floor(t*3)%6;
+  for(let i=0;i<7;i++){const x=-21+i*6;R('#393039',x,22,5,3);R('#a18d79',x+((belt+i)%2),22,3,1)}
+  for(const s of [-1,1]){P(ink,[s*17,-31,s*22,-42,s*31,-42,s*31,-30]);P('#877568',[s*19,-32,s*23,-40,s*29,-40,s*29,-31]);R('#beaa8d',s<0?-29:23,-39,6,2)}
+  if(stage>=2){
+   // Exposed rollers and torn guard plates.
+   for(const s of [-1,1]){const x=s<0?-30:19;R('#36272e',x,-9,11,17);for(let i=0;i<3;i++){R('#bf8c72',x+1,-7+i*5,9,3);R(hot,x+3,-7+i*5,5,1)}}
+   P('#3b2830',[-12,-30,-6,-25,-9,-19,-3,-15,-7,-12,-11,-19,-14,-24]);R(hot,-9,-19,2,4);
+  }
+  if(stage===3){
+   // Broken upper housing turns into a raised crushing plate; extra jaw teeth.
+   P(ink,[-25,-29,-18,-40,18,-40,25,-29,20,-16,-20,-16]);P('#8d544c',[-23,-28,-17,-38,17,-38,23,-28,19,-18,-19,-18]);R(hot,-17,-31,12,4);R(hot,5,-31,12,4);R('#e7a081',-11,-37,22,2);
+   for(const s of [-1,1]){P(ink,[s*25,-24,s*35,-34,s*42,-27,s*38,-15,s*31,-11]);P('#b28169',[s*27,-23,s*35,-31,s*39,-27,s*36,-17,s*31,-14]);R(hot,s<0?-38:34,-27,4,3)}
+   P('#b04c43',[-18,0,18,0,15,8,-15,8]);R(hot,-6,1,12,5);R('#ffd0a4',-2,2,4,3);
+  }
+  if(horrorFx&&!reduceMotion){const d=Math.round(Math.sin(t*.9)*3);R('#a89a8b',-21+d,-45,4,2);R(hot,26-d,-43,3,2);if(stage>=2){R(hot,-39,12+d,2,3);R(hot,39,10-d,2,2)}}
+ }
+ if(charging){R('#ffd292',-14,-50,28,2);R('#ff9b55',-9,-47,18,1)}
+ g.restore();return true;
+}
 function paintRosterBoss(g,e,phase=0,charging=false,crest=true){
+ if(pixelIndustrialBoss(g,e.bossId,e.stage||1,phase,charging))return;
  if(pixelFoodcourtBoss(g,e.bossId,e.stage||1,phase,charging))return;
  if(pixelBasementBoss(g,e.bossId,e.stage||1,phase,charging))return;
  if(pixelKitchenBoss(g,e.bossId,e.stage||1,phase,charging))return;
