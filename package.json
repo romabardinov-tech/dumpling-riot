@@ -1,6 +1,6 @@
 {
   "name": "dumpling-riot",
-  "version": "0.74.7",
+  "version": "0.74.8",
   "private": true,
   "engines": {
     "node": ">=22"
@@ -13,7 +13,7 @@
     "android:open": "cap open android",
     "ios:open": "cap open ios",
     "check:mobile": "node scripts/check-mobile.mjs",
-    "test": "node tests/combat-regression.cjs && node tests/ui-regression.cjs && node tests/secret-routes.cjs && node tests/solo-balance.cjs && node tests/stability-regression.cjs && node tests/run-modifiers.cjs && node tests/campaign-paths.cjs && node tests/hero-quests.cjs && node tests/mutants.cjs && node tests/legendary.cjs && node tests/temporary-curses.cjs && node tests/daily-challenge.cjs && node tests/abyss.cjs && node tests/integration-audit.cjs && node tests/lighting.cjs && node tests/animation.cjs && node tests/audio.cjs && node tests/render-pacing.cjs && node tests/squad-pacing.cjs && node tests/horror-director.cjs"
+    "test": "node tests/combat-regression.cjs && node tests/ui-regression.cjs && node tests/secret-routes.cjs && node tests/solo-balance.cjs && node tests/stability-regression.cjs && node tests/run-modifiers.cjs && node tests/campaign-paths.cjs && node tests/hero-quests.cjs && node tests/mutants.cjs && node tests/legendary.cjs && node tests/temporary-curses.cjs && node tests/daily-challenge.cjs && node tests/abyss.cjs && node tests/integration-audit.cjs && node tests/lighting.cjs && node tests/animation.cjs && node tests/audio.cjs && node tests/render-pacing.cjs && node tests/squad-pacing.cjs && node tests/horror-director.cjs && node tests/field-records.cjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.0.0",

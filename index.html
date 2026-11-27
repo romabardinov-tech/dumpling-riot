@@ -1861,9 +1861,77 @@ const arenaStories={
  cemetery:{en:'Names in stone',ru:'Имена на камне',textEn:'The oldest grave has no name. Each night a new inscription appears, always belonging to someone still alive.',textRu:'На самой старой могиле нет имени. Каждую ночь появляется новая надпись — имя того, кто ещё жив.',cacheEn:'Buried inscription',cacheRu:'Погребённая надпись',color:'#d8b9f9'},
  forest:{en:'The root below',ru:'Корень внизу',textEn:'All six places share one root. It grew beneath the city, carrying memories from room to room. Cut one branch and another wakes.',textRu:'Все шесть мест связаны одним корнем. Он вырос под городом, перенося воспоминания из комнаты в комнату. Срежь одну ветвь — проснётся другая.',cacheEn:'Root fragment',cacheRu:'Фрагмент корня',color:'#b7dd87'}
 };
+// V74.8 — Optional environmental records. Independent of cache rewards and endings.
+const fieldRecords={
+ kitchen:[
+ ['Shift order 07','Приказ смены № 07','Do not taste batch seven. Report any voice heard inside a sealed pot to the relay station.','Не пробовать седьмую партию. О голосах из запечатанного котла докладывать на релейную станцию.'],
+ ['Burnt recipe','Обгоревший рецепт','The ingredient was never delivered. It was already growing beneath the drain.','Ингредиент никто не доставлял. Он уже рос под сливом.']],
+ basement:[
+ ['Relay transcript','Запись реле','00:00. The return signal answers before we transmit. It repeats the kitchen shift order.','00:00. Ответ приходит раньше передачи. Сигнал повторяет приказ кухонной смены.'],
+ ['Disconnected cable','Отключённый кабель','We cut the wire. A pale root bridged both ends and the voices returned.','Мы перерезали кабель. Бледный корень соединил концы, и голоса вернулись.']],
+ foodcourt:[
+ ['Receipt 0000','Чек 0000','One order, six destinations. The customer name is blank; the collection time is midnight.','Один заказ, шесть адресов. Имя клиента отсутствует, время выдачи — полночь.'],
+ ['Lost property slip','Бирка находки','A key stamped LINE 7 was left at the counter. The door it opens is not on the floor plan.','На стойке оставили ключ с отметкой ЛИНИЯ 7. Двери, которую он открывает, нет на плане.']],
+ slaughter:[
+ ['Inspection tag','Бирка проверки','Line seven does not transport meat. It transports copies of the workers’ movements.','Седьмая линия переносит не мясо, а копии движений рабочих.'],
+ ['Chalk diagram','Меловая схема','The missing doorway points to the cemetery. The line continues even when the door is closed.','Исчезнувшая дверь ведёт на кладбище. Линия работает даже за закрытой дверью.']],
+ cemetery:[
+ ['Unfinished epitaph','Незаконченная эпитафия','The inscription is dated tomorrow. Its lettering matches the relay transcript.','На надписи стоит завтрашняя дата. Буквы совпадают с записью реле.'],
+ ['Gravedigger note','Записка могильщика','There are no bodies below the oldest stone. Only a root carrying six voices.','Под старейшим камнем нет тел. Только корень, несущий шесть голосов.']],
+ forest:[
+ ['Root cross-section','Срез корня','Six rings, six rooms. Each ring preserves a memory, but the seventh has no owner.','Шесть колец, шесть комнат. Каждое хранит воспоминание, но седьмое никому не принадлежит.'],
+ ['Last field report','Последний полевой отчёт','The Source is not the first voice. It is what remains when all six voices answer together.','Источник — не первый голос. Он возникает, когда все шесть голосов отвечают одновременно.']]
+};
+function fieldRecordIds(){return Object.keys(fieldRecords).flatMap(map=>fieldRecords[map].map((_,i)=>'record:'+map+':'+i))}
+function fieldRecordIndex(round){return round===3||round===8?0:round===4||round===9?1:-1}
+function makeFieldRecord(map,round,p,area,avoid,known){
+ const i=fieldRecordIndex(round),key='record:'+map+':'+i;
+ if(i<0||!fieldRecords[map]||known.includes(key))return null;
+ const points=[];
+ for(const radius of [100,140,180])for(let k=0;k<12;k++){
+  const a=(k+i*2)*Math.PI/6,x=Math.round(p.x+Math.cos(a)*radius),y=Math.round(p.y+Math.sin(a)*radius);
+  if(x<area.l+30||x>area.r-30||y<area.t+30||y>area.b-30)continue;
+  if(avoid.some(q=>q&&Math.hypot(q.x-x,q.y-y)<(q.pad??q.r??25)+24))continue;
+  points.push({x,y});
+ }
+ if(!points.length)return null;
+ const q=points[(i*3+Object.keys(fieldRecords).indexOf(map))%points.length];
+ return {...q,map,i,key,hold:0,done:false};
+}
+function stepFieldRecord(q,p,dt,blocked){
+ if(!q||q.done||!p||p.dead||!Number.isFinite(dt)||dt<=0)return false;
+ if(blocked||Math.hypot(q.x-p.x,q.y-p.y)>22){q.hold=0;return false}
+ q.hold=Math.min(.55,q.hold+dt);if(q.hold+1e-8<.55)return false;
+ q.done=true;return true;
+}
+let fieldRecord=null;
+function updateFieldRecord(dt){
+ const q=fieldRecord;if(!q||q.done||!soloRun||coop||onlineMode||state!=='game'||player.dead)return;
+ const blocked=waveState==='fighting'&&hazards.some(h=>h.damage>0&&h.remaining<=.55&&Math.hypot(h.x-player.x,h.y-player.y)<h.radius+8);
+ if(stepFieldRecord(q,player,dt,blocked)&&discoverJournal(q.key)){
+  const n=fieldRecords[q.map][q.i];toast(L('ARCHIVE: ','АРХИВ: ')+L(n[0],n[1]));toastTimer=3;
+ }
+}
+function paintFieldRecord(g,q,view){
+ if(!q||q.done||!visibleWorld(q,view,30))return;
+ const color=arenaStories[q.map].color;
+ g.save();g.translate(q.x,q.y);g.fillStyle='#130f18';g.fillRect(-9,-8,18,15);g.strokeStyle=color;g.strokeRect(-9,-8,18,15);g.fillStyle=color;
+ const R=(x,y,w,h)=>g.fillRect(x,y,w,h);
+ switch(q.map){
+ case 'kitchen':R(-5,-5,4,10);R(1,-5,4,10);break;
+ case 'basement':R(-6,-4,12,2);R(-4,0,3,4);R(1,0,3,4);break;
+ case 'foodcourt':R(-4,-6,8,11);g.fillStyle='#130f18';R(-2,-3,4,1);R(-2,0,4,1);break;
+ case 'slaughter':R(-5,-5,10,3);R(-1,-2,2,7);break;
+ case 'cemetery':R(-5,-4,10,8);R(-3,-6,6,2);break;
+ case 'forest':R(-1,-6,2,12);R(-5,-2,10,2);R(-4,2,8,2);break;
+ }
+ g.fillStyle=color;g.font='bold 8px monospace';g.textAlign='center';g.fillText(L('RECORD','ЗАПИСЬ'),0,-13);
+ if(q.hold>0){g.fillStyle='#17121c';R(-12,10,24,3);g.fillStyle=color;R(-12,10,24*Math.min(1,q.hold/.55),3)}
+ g.restore();
+}
 const enemyNotes={fork:['Slow melee pursuer.','Медленный преследователь ближнего боя.'],pepper:['Close-range swarm attacker.','Атакует в ближнем бою.'],boiler:['Keeps distance and fires three shots.','Держит дистанцию и стреляет очередью из трёх снарядов.'],butcher:['Warns before a heavy area strike.','Предупреждает перед тяжёлым ударом по площади.'],crawler:['Fast, erratic movement.','Быстро движется рывками.'],cableMite:['Circles and fires electric shots.','Движется вокруг цели и стреляет электрическими снарядами.'],eye:['Retreats while firing a spread.','Отступает и стреляет веером.'],wretch:['Approaches while firing purple bolts.','Приближается и стреляет фиолетовыми снарядами.'],plate:['Tough close-range pursuer.','Крепкий преследователь ближнего боя.'],neonGhost:['Marks a delayed trap under the hero.','Ставит ловушку под героем с задержкой.'],vendingDrone:['Fires paired shots from a distance.','Стреляет парными снарядами с расстояния.'],siren:['Creates wide delayed danger zones.','Создаёт широкие опасные зоны с задержкой.'],knife:['Throws blades while pursuing.','Преследует и бросает лезвия.'],chainHound:['Sudden close-range charge.','Резкий рывок на близкой дистанции.'],slicer:['Very fast charge. Dodge sideways.','Быстрый рывок. Уклоняйся в сторону.'],maw:['Heavy, slow, wide area strike.','Медленный и тяжёлый удар по площади.'],boneWalker:['Approaches and marks a close-range blast.','Приближается и отмечает область взрыва.'],hands:['Circles the hero from the side.','Обходит героя сбоку.'],stalker:['Accelerates when close.','Ускоряется при сближении.'],feaster:['Slow approach and wide attacks.','Медленно сближается и атакует по площади.'],sporeBeetle:['Fast zigzag pursuit.','Быстро преследует зигзагами.'],rootHorror:['Marks a delayed blast at the hero.','Отмечает взрыв под героем с задержкой.'],spitter:['Slow, heavy ranged projectiles.','Медленные тяжёлые снаряды.'],parasite:['Splits into two beetles on death.','После смерти распадается на двух жуков.']};
 const JOURNAL_KEY='dumpling-riot-journal-v1';
-function journalIds(){return [...Object.keys(arenaEnemyNames).map(k=>'enemy:'+k),...bossRoster.map(b=>'boss:'+b.id),'boss:12',...hiddenBosses.map(b=>'boss:'+b.id),...Object.keys(eliteProfiles).map(k=>'elite:'+k),...Object.keys(mutantProfiles).map(k=>'mutant:'+k),...Object.keys(arenaStories).map(k=>'story:'+k)]}
+function journalIds(){return [...Object.keys(arenaEnemyNames).map(k=>'enemy:'+k),...bossRoster.map(b=>'boss:'+b.id),'boss:12',...hiddenBosses.map(b=>'boss:'+b.id),...Object.keys(eliteProfiles).map(k=>'elite:'+k),...Object.keys(mutantProfiles).map(k=>'mutant:'+k),...Object.keys(arenaStories).map(k=>'story:'+k),...fieldRecordIds()]}
 function normalizeJournal(raw){const allowed=new Set(journalIds());return Array.isArray(raw)?[...new Set(raw.filter(k=>typeof k==='string'&&allowed.has(k)))]:[]}
 function readJournal(){try{return normalizeJournal(JSON.parse(readStorage(JOURNAL_KEY,'[]')))}catch(_){return []}}
 let journal=readJournal(),journalMap='all',secretEncounter=null;
@@ -2851,7 +2919,7 @@ function renderJournal(){
  document.getElementById('journalHomeValue').textContent=journal.length+'/'+journalIds().length+' · '+L('Discoveries','Открытия');
  document.getElementById('journalHeading').textContent=L('Night archives','Ночной архив');
  document.getElementById('journalCount').textContent=journal.length+'/'+journalIds().length;
- document.getElementById('journalHint').textContent=L('Defeat enemies to unlock their records. Investigate sealed caches on waves 2 and 7 in solo mode to discover the story.','Побеждай врагов, чтобы открывать записи. Исследуй тайники на 2-й и 7-й волнах в соло, чтобы раскрыть историю.');
+ document.getElementById('journalHint').textContent=L('Defeat enemies to unlock their records. Investigate sealed caches and collect field records on arena waves 3/4 or 8/9 in solo mode.','Побеждай врагов, чтобы открывать записи. Исследуй тайники и собирай записи на 3/4-й или 8/9-й волнах арены в соло.');
  document.getElementById('journalFilterLabel').textContent=L('Arena','Арена')+' ';
  const filter=document.getElementById('journalFilter');filter.replaceChildren();
  for(const [value,label] of [['all',L('All arenas','Все арены')],...maps.map(m=>[m.id,locName(m).split(' — ')[0]])]){const opt=document.createElement('option');opt.value=value;opt.textContent=label;filter.append(opt)}filter.value=journalMap;
@@ -2866,7 +2934,7 @@ function renderJournal(){
   const v=mutantProfiles[m.id];add('mutant:'+m.id,metaLabel(v),metaDesc(v),g=>{pixelEnemy(g,v.type,0,0,1);paintMutantMark(g,m.id)});
   for(const b of bossRoster.filter(b=>b.map===m.id))add('boss:'+b.id,L(b.name),L(b.line),g=>{g.scale(.85,.85);paintRosterBoss(g,{bossId:b.id,kind:b.kind,stage:1},0,false,false)});if(m.id==='forest')add('boss:12',L(finalBossProfile.name,finalBossProfile.ru),L('Campaign finale · can appear in any arena · three phases.','Финал кампании · на любой арене · три фазы.'),g=>{g.scale(.8,.8);paintFinalBoss(g,1,0,false)});
   for(const b of hiddenBosses.filter(b=>b.map===m.id))add('boss:'+b.id,L(b.name,b.ru),L('Optional side-room summon · any arena · ','Призыв в тайной комнате · любая арена · ')+L(b.rewardEn,b.rewardRu),g=>{g.scale(.8,.8);paintHiddenBoss(g,b,1,0,false)});
-  const s=arenaStories[m.id];add('story:'+m.id,metaLabel(s),L(s.textEn,s.textRu),null);section.append(grid);container.append(section);
+  const s=arenaStories[m.id];add('story:'+m.id,metaLabel(s),L(s.textEn,s.textRu),null);for(const [i,n] of fieldRecords[m.id].entries())add('record:'+m.id+':'+i,L(n[0],n[1]),L(n[2],n[3]),null);section.append(grid);container.append(section);
  }
 }
 document.getElementById('journalFilter').addEventListener('change',e=>{journalMap=e.target.value;renderJournal()});
@@ -3372,6 +3440,7 @@ function beginWave(){
  // Enemy count ramps hard: later waves become crowded, not just tougher individually.
  const bossWave=wave%5===0,hidden=takeHidden(soloRun,wave);
  if(!onlineMode&&!coop&&trialEligible(soloRun,wave,bossWave||!!hidden))arenaTrial=makeArenaTrial(selectedMap,wave,player,arena,[...livingStations.map(p=>({...p,pad:36})),nightmare?.zone?{...nightmare.zone,pad:FEAR_RULES.radius}:null,secretEncounter,...breakableProps.map(p=>({...p,pad:p.r})),...arenaFeatures[selectedMap].sites.map(([x,y])=>({x,y,pad:arenaFeatures[selectedMap].radius}))]);
+ if(soloRun&&!coop&&!onlineMode&&!bossWave&&!hidden)fieldRecord=makeFieldRecord(selectedMap,campaignRound(soloRun,wave),player,arena,[secretEncounter,nightmare?.zone?{...nightmare.zone,pad:FEAR_RULES.radius}:null,...livingStations.map(p=>({...p,pad:36})),...breakableProps.map(p=>({...p,pad:p.r})),...arenaFeatures[selectedMap].sites.map(([x,y])=>({x,y,pad:arenaFeatures[selectedMap].radius})),arenaTrial],journal);
  activeOmen=applyRoomEffect(soloRun,nightmare,soloRun?chooseOmen(wave):waveOmens[0]);
  // In two-player mode the arena gets a real co-op population boost.
  targetCount=coop
@@ -3846,7 +3915,7 @@ function paintTrialDirection(g,q,view){
  const dx=x-view.w/2,dy=y-view.h/2,k=Math.min((view.w/2-25)/Math.max(1,Math.abs(dx)),(view.h/2-36)/Math.max(1,Math.abs(dy)));
  g.save();g.translate(Math.round(view.w/2+dx*k),Math.round(view.h/2+dy*k));g.rotate(Math.atan2(dy,dx));g.strokeStyle=trialThemes[q.map].color;g.lineWidth=1;g.strokeRect(-4,-4,8,8);g.beginPath();g.moveTo(5,-4);g.lineTo(10,0);g.lineTo(5,4);g.stroke();g.restore();
 }
-function clearCombatPresentation(){impactMarks=[];dashGhosts=[];deathSprites=[];breakableProps=[];propImpactLedger=new WeakMap();dynamicHorror=null;horrorDirector=null;arenaTrial=null;shake=0}
+function clearCombatPresentation(){impactMarks=[];dashGhosts=[];deathSprites=[];breakableProps=[];propImpactLedger=new WeakMap();dynamicHorror=null;horrorDirector=null;fieldRecord=null;arenaTrial=null;shake=0}
 function addImpact(e,d,owner){if(!horrorFx||reduceMotion)return;const q=impactProfile(d,e.type==='boss'),source=owner==='p1'?player:owner==='p2'?player2:null;pushFx(impactMarks,{x:e.x,y:e.y-8,...q,material:enemyImpactMaterial(e),heavy:e.type==='boss'||d>=60,angle:source?Math.atan2(e.y-source.y,e.x-source.x):0,scar:source?.charId==='scar',vesa:source?.charId==='vesa',nyx:source?.charId==='nyx',mage:source?.charId==='pelmage',shiv:source?.charId==='assassin',golem:source?.charId==='golem',warden:source?.charId==='warden',voidArt:source?.charId==='revenant',max:q.life},COMBAT_FX.marks)}
 // V71.2 — Individual death choreography, visual only.
 const enemyDeathArt={
@@ -4936,7 +5005,7 @@ function update(dt){
  camera.x=clamp(camera.x,W/2,world.w-W/2);camera.y=clamp(camera.y,H/2,world.h-H/2);
  horrorTime+=dt;for(const p of coopPlayers())advancePlayerTimers(p,dt)
  if(!player.dead&&(mouse.down||touchInput.attack))attack();
- if(state==='game'){updateNightmare(dt);updateSecret(dt);updateSpatialAudio(dt)}updateEnemies(dt);if(state==='game')updateLivingStations(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);if(state==='game')updateArenaTrial(dt);updateFx(dt);
+ if(state==='game'){updateNightmare(dt);updateSecret(dt);updateSpatialAudio(dt)}updateEnemies(dt);if(state==='game')updateLivingStations(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);if(state==='game'){updateArenaTrial(dt);updateFieldRecord(dt)}updateFx(dt);
  enemies=enemies.filter(e=>!e.dead);
  if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if((waveTime>=delay||enemies.length===0)&&allowWaveSpawn(!!soloRun,wave,enemies.length)){waveTime=0;spawnEnemy();spawned++}}
  if(canClearCombat(state,waveState,spawned,targetCount,boss,enemies,hazards,!!soloRun)){waveState='clear';if(soloRun){const rest=safeRestAttacks(projectiles,hazards);projectiles=rest.projectiles;hazards=rest.hazards;}expireTrial(arenaTrial);tutorialEvent('wave');if(nightmare?.hunter){nightmare.hunter.dead=true;hazards=hazards.filter(h=>h.source!==nightmare.hunter);nightmare.hunter=null}if(nightmare){nightmare.echo=null;nightmare.fear=fearClamp(nightmare.fear-12)}between=soloRun?4:1.6;let reward=0;if(soloRun){reward=clearWaveReward(meta,soloRun,wave,selectedMap);if(reward){addCoins(soloRun,Math.floor(coinReward(wave)*modifierValue(soloRun,'coins'))+(activeCampaignPath(soloRun).coinsClear??0));settleHeroQuest(soloRun)}saveMeta()}toast(L('WAVE CLEARED · COLLECT XP','ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')+(reward?' · ◆ +'+reward:''));toastTimer=2.5}
@@ -6748,6 +6817,7 @@ function draw(){
  if(waveState==='fighting')paintLivingStations(ctx,m.id,view);
  if(secretEncounter&&waveState==='fighting'){paintSecret(ctx,secretEncounter,horrorTime);paintSecretRoute(ctx,secretEncounter.route,view);}
  if(waveState==='fighting')paintArenaTrial(ctx,arenaTrial,view);
+ if(state==='game')paintFieldRecord(ctx,fieldRecord,view);
  // blood stains and corpses
  for(const b of blood){if(!visibleWorld(b,view,b.r+4))continue;ctx.globalAlpha=b.a;ctx.fillStyle='#4f0913';ctx.fillRect(Math.round(b.x-b.r),Math.round(b.y-b.r*.45),Math.max(2,Math.round(b.r*2)),Math.max(2,Math.round(b.r*.9)));ctx.fillStyle='#9f1829';ctx.fillRect(Math.round(b.x-b.r*.55),Math.round(b.y-b.r*.25),Math.max(2,Math.round(b.r*1.1)),Math.max(2,Math.round(b.r*.5)))}ctx.globalAlpha=1;
  // enemy warnings: fixed radius, shrinking countdown ring, no reliance on color alone
