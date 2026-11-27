@@ -1729,7 +1729,7 @@ function updateSpatialAudio(dt){
  const p=onlineMode&&isOnlineGuest?player2:player;if(p.dead)return;
  spatialTimer-=dt;if(spatialTimer<=0){spatialTimer=1.8;const threat=nearestEnemy(p);if(threat&&!threat.dead){const t=arenaScores[selectedMap]||arenaScores.kitchen;spatialTone(threat.x,threat.y,threat.type==='boss'?43:t.tone,.19,.045,'triangle')}}
  const tension=tensionLevel(p.hp/Math.max(1,p.maxhp),nightmare?.fear||0,!!boss);heartbeatTimer-=dt;if(tension>0&&heartbeatTimer<=0){heartbeatTimer=tension===2?.62:1.15;spatialTone(p.x,p.y,58,.12,.04,'sine')}else if(!tension)heartbeatTimer=0;
- ambientTimer-=dt;if(ambientTimer<=0){const q=soundscapeEvent(selectedMap,ambientIndex++,tension);ambientTimer=q.period;const fixtures=arenaLights[selectedMap]||arenaLights.kitchen;let source=fixtures[0],best=Infinity;for(const f of fixtures){const d=(f[0]-p.x)**2+(f[1]-p.y)**2;if(d<best){best=d;source=f}}if(source)spatialTone(source[0],source[1],q.hz,q.duration,q.volume,q.type)}
+ ambientTimer-=dt;if(ambientTimer<=0){const q=directorAmbient(horrorDirector,soundscapeEvent(selectedMap,ambientIndex++,tension));ambientTimer=q.period;const fixtures=arenaLights[selectedMap]||arenaLights.kitchen;let source=fixtures[0],best=Infinity;for(const f of fixtures){const d=(f[0]-p.x)**2+(f[1]-p.y)**2;if(d<best){best=d;source=f}}if(source)spatialTone(source[0],source[1],q.hz,q.duration,q.volume,q.type)}
 }
 let musicVolume=Number(readStorage('dumpling-riot-music-volume','65'));if(!Number.isFinite(musicVolume))musicVolume=65;musicVolume=Math.max(0,Math.min(100,musicVolume));
 const scoreRoots=[38,38,34,36,38,38,31,33,38,41,34,36,38,34,31,33];
@@ -3600,6 +3600,47 @@ const horrorSceneArt={
  cemetery:[['memorialEcho',4.7,'#a5b0a4','#b9a6ce'],['mistProcession',4.5,'#91aca7','#c6c7be']],
  forest:[['rootPulse',4.4,'#77966b','#a6bb80'],['sporeBloom',4.0,'#c1d19e','#789f92']]
 };
+// V74.7 — Presentation director. No gameplay RNG, damage, fear or spawn changes.
+const directorSceneSounds={
+ kitchen:[83,.40,'triangle'],basement:[55,.56,'sine'],foodcourt:[233,.30,'sine'],
+ slaughter:[67,.38,'triangle'],cemetery:[139,.72,'sine'],forest:[91,.60,'sine']
+};
+function newHorrorDirector(map,round){return {map,round,phase:'quiet',pressure:0,age:0,recovery:0}}
+let horrorDirector=null;
+function directorPressure(hp,fear,near,urgent,bossActive){
+ const safe=(x,def=0)=>Number.isFinite(x)?x:def;
+ const h=Math.max(0,Math.min(1,safe(hp,1))),f=Math.max(0,Math.min(1,safe(fear)/100));
+ const crowd=Math.max(0,Math.min(1,safe(near)/5));
+ return Math.min(1,Math.max(bossActive?.9:0,urgent?.82:0,h<.25?.86:0,.43*f+.34*crowd+.23*(1-h)));
+}
+function stepHorrorDirector(q,dt,pressure){
+ if(!Number.isFinite(dt)||dt<=0)return q;
+ const step=Math.min(.1,dt),target=Math.max(0,Math.min(1,Number.isFinite(pressure)?pressure:0));
+ // Immediate high-danger recognition, smooth downward recovery.
+ q.pressure=target>q.pressure?target:q.pressure+(target-q.pressure)*(1-Math.exp(-step*1.6));
+ q.age+=step;
+ function phase(next){if(q.phase!==next){q.phase=next;q.age=0}}
+ if(q.pressure>=.72){phase('peak');q.recovery=5;return q}
+ if(q.phase==='peak'&&q.pressure>=.48)return q;
+ if(q.phase==='peak')phase('recovery');
+ if(q.phase==='recovery'){q.recovery=Math.max(0,q.recovery-step);if(q.recovery>0)return q;phase('quiet');return q}
+ if(q.phase==='quiet'&&q.age>=3&&q.pressure<.48)phase('build');
+ if(q.phase==='build'&&q.pressure>=.58)phase('quiet');
+ return q;
+}
+function directorAmbient(q,event){
+ if(!q)return event;
+ const quiet=q.phase==='peak'||q.phase==='recovery';
+ return {...event,period:event.period*(quiet?1.65:q.phase==='build'?.9:1.2),volume:event.volume*(quiet?.36:q.phase==='build'?.9:.65)};
+}
+function directorAllowsScene(q){return !q||q.phase==='build'}
+function tickHorrorDirector(dt){
+ if(!horrorFx||state!=='game'||waveState!=='fighting'||!soloRun||coop||onlineMode||player.dead){horrorDirector=null;return}
+ if(!horrorDirector||horrorDirector.map!==selectedMap||horrorDirector.round!==wave)horrorDirector=newHorrorDirector(selectedMap,wave);
+ let near=0;for(const e of enemies){if(!e.dead&&(e.x-player.x)**2+(e.y-player.y)**2<100**2)near++}
+ const urgent=hazards.some(h=>h.damage>0&&h.remaining<=.8&&(h.x-player.x)**2+(h.y-player.y)**2<(h.radius+20)**2);
+ stepHorrorDirector(horrorDirector,dt,directorPressure(player.hp/Math.max(1,player.maxhp),nightmare?.fear||0,near,urgent,!!boss&&!boss.dead));
+}
 let dynamicHorror=null;
 function newHorrorScene(map,wave){return {map,wave,index:Math.max(0,wave-1),wait:wave===1?6.5:4.5+(wave%3)*.5,active:null}}
 function horrorEnvelope(age,duration){if(!Number.isFinite(age)||!Number.isFinite(duration)||duration<=0)return 0;const u=Math.max(0,Math.min(1,age/duration));return Math.sin(Math.PI*u)**2}
@@ -3624,6 +3665,12 @@ function advanceHorrorScene(s,dt,fear,pick){
 function tickDynamicHorror(dt){
  if(!horrorFx||reduceMotion||state!=='game'||waveState!=='fighting'){dynamicHorror=null;return}
  if(!dynamicHorror||dynamicHorror.map!==selectedMap||dynamicHorror.wave!==wave)dynamicHorror=newHorrorScene(selectedMap,wave);
+ // Complete/fade active scenery; do not start new scenes during peak or recovery.
+ if(!directorAllowsScene(horrorDirector)&&!dynamicHorror.active)return;
+ if(dynamicHorror.active&&(horrorDirector?.phase==='peak'||horrorDirector?.phase==='recovery')){
+  dynamicHorror.active.age=Math.max(dynamicHorror.active.age,dynamicHorror.active.duration*.82);
+ }
+ const previous=dynamicHorror.active;
  advanceHorrorScene(dynamicHorror,dt,nightmare?.fear||0,index=>{
   const view={x:camera.x-W/2,y:camera.y-H/2,w:W,h:H};
   const avoid=[...coopPlayers().filter(p=>!p.dead).map(p=>({x:p.x,y:p.y,pad:32})),...hazards.map(h=>({x:h.x,y:h.y,pad:h.radius+12})),...livingStations.map(p=>({x:p.x,y:p.y,pad:24}))];
@@ -3632,6 +3679,11 @@ function tickDynamicHorror(dt){
   if(boss&&!boss.dead)avoid.push({x:boss.x,y:boss.y,pad:48});
   return chooseHorrorAnchor([...(arenaLights[selectedMap]||[]),...(arenaIdentity[selectedMap]?.marks||[])],view,arena,avoid,index);
  });
+ // One localized environmental sound per scene, no fake hit or warning cues.
+ const active=dynamicHorror.active;
+ if(!previous&&active&&horrorDirector?.phase==='build'){
+  const cue=directorSceneSounds[selectedMap];if(cue)spatialTone(active.x,active.y,cue[0],cue[1],.026,cue[2]);
+ }
 }
 function horrorLocalLight(map,x,y,s){
  if(!s||s.map!==map||!s.active)return 1;
@@ -3794,7 +3846,7 @@ function paintTrialDirection(g,q,view){
  const dx=x-view.w/2,dy=y-view.h/2,k=Math.min((view.w/2-25)/Math.max(1,Math.abs(dx)),(view.h/2-36)/Math.max(1,Math.abs(dy)));
  g.save();g.translate(Math.round(view.w/2+dx*k),Math.round(view.h/2+dy*k));g.rotate(Math.atan2(dy,dx));g.strokeStyle=trialThemes[q.map].color;g.lineWidth=1;g.strokeRect(-4,-4,8,8);g.beginPath();g.moveTo(5,-4);g.lineTo(10,0);g.lineTo(5,4);g.stroke();g.restore();
 }
-function clearCombatPresentation(){impactMarks=[];dashGhosts=[];deathSprites=[];breakableProps=[];propImpactLedger=new WeakMap();dynamicHorror=null;arenaTrial=null;shake=0}
+function clearCombatPresentation(){impactMarks=[];dashGhosts=[];deathSprites=[];breakableProps=[];propImpactLedger=new WeakMap();dynamicHorror=null;horrorDirector=null;arenaTrial=null;shake=0}
 function addImpact(e,d,owner){if(!horrorFx||reduceMotion)return;const q=impactProfile(d,e.type==='boss'),source=owner==='p1'?player:owner==='p2'?player2:null;pushFx(impactMarks,{x:e.x,y:e.y-8,...q,material:enemyImpactMaterial(e),heavy:e.type==='boss'||d>=60,angle:source?Math.atan2(e.y-source.y,e.x-source.x):0,scar:source?.charId==='scar',vesa:source?.charId==='vesa',nyx:source?.charId==='nyx',mage:source?.charId==='pelmage',shiv:source?.charId==='assassin',golem:source?.charId==='golem',warden:source?.charId==='warden',voidArt:source?.charId==='revenant',max:q.life},COMBAT_FX.marks)}
 // V71.2 — Individual death choreography, visual only.
 const enemyDeathArt={
@@ -4791,7 +4843,7 @@ function updateDrops(dt){
  drops=drops.filter(d=>d.life>0);
 }
 
-function updateFx(dt){tickDynamicHorror(dt);tickBreakables(dt);impactMarks=fxTick(impactMarks,dt);dashGhosts=fxTick(dashGhosts,dt);deathSprites=fxTick(deathSprites,dt);for(const p of coopPlayers()){p.recoilT=Math.max(0,(p.recoilT||0)-dt);stepHeroMotion(p,dt)}for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.92;p.vy*=.92;p.life-=dt}particles=particles.filter(p=>p.life>0);for(const t of texts){t.y-=18*dt;t.life-=dt}texts=texts.filter(t=>t.life>0);if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)document.getElementById('toast').classList.remove('show')}}
+function updateFx(dt){tickHorrorDirector(dt);tickDynamicHorror(dt);tickBreakables(dt);impactMarks=fxTick(impactMarks,dt);dashGhosts=fxTick(dashGhosts,dt);deathSprites=fxTick(deathSprites,dt);for(const p of coopPlayers()){p.recoilT=Math.max(0,(p.recoilT||0)-dt);stepHeroMotion(p,dt)}for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.92;p.vy*=.92;p.life-=dt}particles=particles.filter(p=>p.life>0);for(const t of texts){t.y-=18*dt;t.life-=dt}texts=texts.filter(t=>t.life>0);if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)document.getElementById('toast').classList.remove('show')}}
 
 let shake=0;
 const touchInput={moveX:0,moveY:0,aimX:0,aimY:0,aimActive:false,attack:false,p2MoveX:0,p2MoveY:0};let touchAimMode=false;
