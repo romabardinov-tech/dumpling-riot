@@ -4863,7 +4863,74 @@ function pixelIndustrialBoss(g,id,stage=1,phase=0,charging=false){
  if(charging){R('#ffd292',-14,-50,28,2);R('#ff9b55',-9,-47,18,1)}
  g.restore();return true;
 }
+// V70.5 — Graveyard Nightmares. Individual three-phase cemetery boss sprites.
+function pixelGraveyardBoss(g,id,stage=1,phase=0,charging=false){
+ if(id!==8&&id!==9)return false;
+ const R=(c,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ const ink='#100912',t=reduceMotion||!Number.isFinite(phase)?0:phase,sway=Math.round(Math.sin(t)*2),hot=id===8?(stage===3?'#f5ddff':stage===2?'#d9b0f6':'#b494cf'):(stage===3?'#f3f3c7':stage===2?'#d7e1ae':'#aab99c');
+ g.save();
+ if(id===8){
+  // Mourning veil with articulated hem, crown and floating spectral arms.
+  const h=sway;
+  P(ink,[-17,-28,-10,-38,11,-38,19,-28,23,-4,31,17,24,26+h,15,22,7,27-h,-3,23,-14,27+h,-22,23,-32,26-h,-25,2]);
+  P('#3d304e',[-15,-27,-9,-36,10,-36,17,-27,21,-4,28,16,22,24+h,15,19,7,25-h,-3,20,-13,25+h,-22,20,-29,23-h,-23,2]);
+  P('#69516f',[-13,-26,-8,-34,-2,-31,-6,-7,-9,14,-18,23+h,-25,18,-19,-2]);
+  P('#51405e',[5,-33,12,-30,16,-23,14,-4,22,15,22,22-h,12,17,8,23-h,3,9]);
+  for(const s of [-1,1]){
+   const d=s*sway,l=charging?-5:0;
+   P(ink,[s*17,-20,s*29,-24,s*39,-13+d+l,s*45,-2+d+l,s*43,9+d+l,s*33,13+d+l,s*25,4,s*18,-4]);
+   P('#715670',[s*19,-19,s*28,-22,s*37,-12+d+l,s*42,-2+d+l,s*40,8+d+l,s*33,10+d+l,s*27,3,s*20,-4]);
+   P('#a58a9c',[s*34,d+l,s*43,-5+d+l,s*47,-1+d+l,s*42,4+d+l,s*46,8+d+l,s*40,10+d+l,s*34,7+d+l]);
+   R('#b8a1b7',s<0?-30:26,-17,4,6);
+  }
+  P(ink,[-15,-35,-20,-47,-13,-43,-8,-52,0,-45,8,-52,13,-43,20,-47,15,-35]);
+  P('#87758e',[-13,-36,-17,-44,-12,-41,-8,-49,0,-42,8,-49,12,-41,17,-44,13,-36]);R(hot,-2,-46,4,5);R('#c0afc8',-12,-37,24,2);
+  P(ink,[-12,-32,-8,-38,8,-38,13,-31,10,-18,3,-12,-4,-12,-11,-18]);
+  P('#b9adae',[-10,-31,-7,-36,7,-36,11,-30,8,-19,3,-14,-4,-14,-9,-19]);R(ink,-9,-29,18,7);R(hot,-7,-27,5,3);R(hot,2,-27,5,3);R('#655363',-4,-18,8,3);
+  P('#92839f',[-9,-12,0,-7,9,-12,6,0,0,5,-6,0]);R(hot,-3,-5,6,6);
+  for(const s of [-1,1]){P('#8b698b',[s*12,-7,s*15,0,s*19,18+s*h,s*13,20+s*h,s*10,7]);R('#c0a4bb',s<0?-15:11,-5,4,2)}
+  if(stage>=2){
+   P(ink,[-12,-32,-3,-29,-7,-24,-1,-21,-5,-16,-9,-19,-10,-25]);R(hot,-6,-25,2,5);
+   for(const s of [-1,1]){P('#97799f',[s*20,-28,s*28,-37,s*33,-33,s*27,-23,s*22,-15]);R(hot,s<0?-29:25,-33,4,2)}
+   P('#2e233c',[-14,7,-5,10,-10,22+h,-17,24+h,-21,16]);R(hot,-13,15+h,4,2);
+  }
+  if(stage===3){
+   P(ink,[-15,-33,-8,-39,8,-39,15,-33,13,-20,4,-12,-4,-12,-13,-20]);P('#78588f',[-13,-32,-7,-37,7,-37,13,-32,11,-21,4,-14,-4,-14,-11,-21]);R(hot,-10,-28,20,4);R('#fff1ff',-3,-28,6,2);
+   P(ink,[-12,-7,0,-15,12,-7,15,8,6,18,-6,18,-15,8]);P('#8b5eb1',[-10,-6,0,-13,10,-6,13,7,5,16,-5,16,-13,7]);P(hot,[-6,-2,0,-8,6,-2,7,8,0,12,-7,8]);R('#fff1ff',-2,0,4,7);
+   for(const s of [-1,1]){P('#9071a6',[s*25,-18,s*36,-34,s*43,-35,s*38,-25,s*31,-13]);R(hot,s<0?-39:36,-31,3,5)}
+  }
+  if(horrorFx&&!reduceMotion){const a=g.globalAlpha,d=Math.round(Math.sin(t*.8)*3);g.globalAlpha=a*.34;R(hot,-26+d,23,5,2);R('#a38abf',22-d,25,4,2);if(stage>=2){R(hot,-32,-34+d,2,4);R(hot,31,-35-d,2,3)}g.globalAlpha=a}
+ }else{
+  // Ossuary armor, rib shield, skull-headed staff and articulated legs.
+  const bone='#c3b69d',light='#e1d3b0';
+  for(const s of [-1,1]){
+   const d=s*sway;P(ink,[s*6,9,s*18,10,s*25,23+d*.5,s*20,28+d*.5,s*8,27,s*5,18]);P('#7f7569',[s*8,11,s*16,12,s*22,22+d*.5,s*18,25+d*.5,s*10,25,s*7,18]);R(bone,s<0?-19:10,22+d*.5,9,3);
+   P(ink,[s*19,-22,s*28,-31,s*37,-25,s*39,-7+d,s*35,12+d,s*25,13,s*19,1]);P('#82776a',[s*21,-21,s*28,-28,s*34,-24,s*36,-7+d,s*32,10+d,s*26,11,s*21,1]);for(let i=0;i<3;i++)R(bone,s<0?-33:26,-19+i*7+d,7,4);R(light,s<0?-32:27,-19+d,4,1);
+  }
+  P(ink,[-24,-25,-16,-37,16,-37,24,-25,26,10,17,24,-17,24,-26,10]);P('#594c51',[-22,-24,-15,-35,15,-35,22,-24,24,9,16,22,-16,22,-24,9]);
+  R('#342a34',-17,-17,34,34);R('#9d8d7b',-2,-18,4,34);
+  for(let i=0;i<5;i++){const y=-14+i*6,w=18-i;P(ink,[-w-1,y-1,w+1,y-1,w+1,y+4,3,y+6,-3,y+6,-w-1,y+4]);P(bone,[-w,y,w,y,w,y+2,3,y+4,-3,y+4,-w,y+2]);R(light,-w+2,y,7,1)}
+  P(ink,[-15,-36,-10,-47,9,-47,15,-36,13,-23,6,-18,-6,-18,-13,-23]);P(bone,[-13,-35,-9,-45,8,-45,13,-35,11,-24,5,-20,-5,-20,-11,-24]);R(light,-8,-44,15,3);
+  R(ink,-10,-38,8,7);R(ink,2,-38,8,7);R(hot,-8,-36,4,3);R(hot,4,-36,4,3);R(ink,-2,-30,4,4);R('#837267',-8,-24,16,3);for(let i=0;i<4;i++)R(light,-7+i*4,-23,2,2);
+  P(ink,[-39,-21,-48,-12,-47,7,-36,19,-27,9,-27,-11]);P('#7d7066',[-38,-19,-46,-11,-45,6,-36,16,-29,8,-29,-10]);R('#4a3c40',-39,-12,7,23);for(let i=0;i<4;i++){R(bone,-43,-10+i*6,15,3);R(light,-41,-10+i*6,8,1)}
+  const lift=charging?-6:sway;R(ink,36,-32+lift,6,54);R('#95826f',38,-30+lift,2,50);
+  P(ink,[31,-39+lift,36,-47+lift,46,-47+lift,51,-39+lift,49,-29+lift,42,-25+lift,33,-29+lift]);P(bone,[33,-38+lift,37,-45+lift,45,-45+lift,49,-38+lift,47,-30+lift,42,-27+lift,35,-30+lift]);R(ink,35,-39+lift,5,5);R(ink,43,-39+lift,4,5);R(hot,36,-38+lift,2,2);R(hot,44,-38+lift,2,2);
+  if(stage>=2){
+   P(ink,[-17,-16,-6,-12,-10,-4,-4,1,-8,8,-18,4]);P('#645750',[-16,-14,-8,-11,-12,-4,-6,1,-9,6,-16,3]);R(hot,-13,-4,4,5);
+   P('#594c51',[4,-45,7,-39,4,-34,9,-30,5,-28,2,-34,5,-39]);R(hot,5,-34,2,3);
+  }
+  if(stage===3){
+   for(const s of [-1,1]){P(ink,[s*20,-24,s*26,-42,s*34,-48,s*35,-37,s*30,-20]);P(bone,[s*22,-24,s*28,-41,s*32,-45,s*33,-37,s*29,-23]);R(light,s<0?-33:30,-40,2,10)}
+   P(ink,[-15,-8,-7,-16,7,-16,15,-8,15,10,7,18,-7,18,-15,10]);P('#586c50',[-13,-7,-6,-14,6,-14,13,-7,13,9,6,16,-6,16,-13,9]);R(hot,-8,-6,16,14);R('#f9f8df',-2,-4,4,10);R(bone,-44,-13,17,3);R(hot,39,-21+lift,2,18);
+  }
+  if(horrorFx&&!reduceMotion){const d=Math.round(Math.sin(t*.9)*3),a=g.globalAlpha;g.globalAlpha=a*.45;R(hot,-20+d,-48,3,2);R(hot,18-d,-49,2,2);if(stage>=2){R(hot,-20,8+d,2,3);R(hot,22,5-d,2,2)}g.globalAlpha=a}
+ }
+ if(charging){R('#ffd292',-14,-50,28,2);R('#ff9b55',-9,-47,18,1)}
+ g.restore();return true;
+}
 function paintRosterBoss(g,e,phase=0,charging=false,crest=true){
+ if(pixelGraveyardBoss(g,e.bossId,e.stage||1,phase,charging))return;
  if(pixelIndustrialBoss(g,e.bossId,e.stage||1,phase,charging))return;
  if(pixelFoodcourtBoss(g,e.bossId,e.stage||1,phase,charging))return;
  if(pixelBasementBoss(g,e.bossId,e.stage||1,phase,charging))return;
