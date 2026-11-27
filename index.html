@@ -957,6 +957,11 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 @media(max-height:520px) and (orientation:landscape){.storyScreen{aspect-ratio:16/4;min-height:70px}.storyDialogue{min-height:51px;padding:5px 8px}.storyDialogue span{font-size:12px}.storyControls button{min-height:32px}#ritualOverlay.storyCinema .ritualBox{padding:6px}}
 @media(prefers-reduced-motion:reduce){.storyScreen *{animation:none!important;transition:none!important}}
 
+
+#personalStoryHud[hidden]{display:none!important}
+#personalStoryHud{position:absolute;top:31%;left:50%;transform:translateX(-50%);width:min(340px,62%);padding:6px 10px;box-sizing:border-box;z-index:46;background:#150e1ce8;border:1px solid #9274a1;border-left:3px solid #d4b2e5;color:#f1e3f5;pointer-events:none;text-align:center;font:600 12px/1.35 system-ui;box-shadow:0 2px 9px #0008}
+#personalStoryHud b{display:block;color:#d9b3e6;font-size:10px;margin-bottom:3px}
+@media(max-height:520px) and (orientation:landscape){#personalStoryHud{top:27%;width:min(310px,48%);font-size:10px;padding:3px 6px}}
 </style>
 </head>
 <body>
@@ -969,7 +974,7 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
   <div id="rightHud" class="panel"><div><span id="scoreLabel">ОЧКИ</span> <b id="scoreTxt">0</b></div><div class="small" id="targetTxt">ВРАГОВ: 0</div><div id="lootHud" class="small" hidden></div><div id="modifierHud" class="small" style="color:#e6c28a" hidden></div><div id="curseHud" class="small" style="color:#f3a1be" hidden></div><div id="heroQuestHud" class="small" style="color:#a8dfbc" hidden></div><div id="trialHud" class="small" style="color:#dbc99e" hidden></div><div id="elementHud" class="small" hidden></div><div id="coinHud" class="small" hidden></div><div id="campaignHud" class="small" hidden></div><div id="abilityHud" class="panel"><div class="abilityRow"><span id="dashHudLabel">РЫВОК</span><b id="dashHudValue">—</b></div><div class="bar"><div id="dashHudFill" class="fill" style="background:#6fe1a2"></div></div><div class="abilityRow"><span id="bombHudLabel">БОМБЫ</span><b id="bombHudValue">3</b></div></div></div><div id="fearHud" class="panel" hidden><div class="fearHead"><span id="fearLabel">FEAR</span><b id="fearValue">0%</b></div><div class="fearTrack"><i id="fearFill"></i></div><small id="fearStatus"></small><small id="fearRefuge"></small></div>
   <div id="weaponHud"></div>
   <div id="relicHud" class="panel relic-card" style="display:none;right:10px;bottom:52px;left:auto"><b>СЕРДЦЕ КУХНИ</b><span id="relicLabel">УНИКАЛЬНАЯ РЕЛИКВИЯ</span></div>
-  <div id="toast">READY</div><section id="tutorialHud" hidden><div class="tutorialTop"><span id="tutorialCount"></span><button type="button" id="tutorialSkip">Skip</button></div><span id="tutorialTask" role="status" aria-live="polite"></span><div class="tutorialTrack" aria-hidden="true"><i id="tutorialFill"></i></div></section><div id="npcSubtitle" role="status" aria-live="polite" hidden><b id="npcSpeaker"></b><span id="npcWords"></span></div>
+  <div id="toast">READY</div><section id="tutorialHud" hidden><div class="tutorialTop"><span id="tutorialCount"></span><button type="button" id="tutorialSkip">Skip</button></div><span id="tutorialTask" role="status" aria-live="polite"></span><div class="tutorialTrack" aria-hidden="true"><i id="tutorialFill"></i></div></section><div id="personalStoryHud" role="status" aria-live="polite" hidden><b></b><span></span></div><div id="npcSubtitle" role="status" aria-live="polite" hidden><b id="npcSpeaker"></b><span id="npcWords"></span></div>
 </div>
 <div id="menu" data-view="home"><div class="box menuShell">
 <header class="menuHeader"><div class="brand"><svg class="brandMark" viewBox="0 0 32 32" aria-hidden="true"><path fill="#e8c8a2" d="M4 15h2v-4h3V8h4V5h6v3h4v3h3v4h2v8h-4v3H8v-3H4z"/><path fill="#a96e5b" d="M6 20h20v3h-4v2H10v-2H6z"/><path fill="#261e24" d="M8 13h6v3H8zm10 0h6v3h-6zM12 19h8v2h-8z"/></svg><div><div class="title">DUMPLING <span class="red">RIOT</span></div><div id="menuTag" hidden>NIGHT SHIFT</div></div></div><div id="langBar"><label id="languageLabel" for="languageSelect">LANGUAGE</label><select id="languageSelect" aria-label="Language"><option value="en">English</option><option value="ru">Русский</option><option value="fi">Suomi</option><option value="de">Deutsch</option><option value="fr">Français</option><option value="es">Español</option><option value="pt">Português</option><option value="pl">Polski</option><option value="uk">Українська</option></select></div></header>
@@ -1710,6 +1715,122 @@ function openStoryEpilogue(id){
  return openStoryCinema(frames,L(...storyFor(soloRun.hero).title),metaLabel(end),()=>endGame(true,true),SU(9));
 }
 
+
+
+/* V75.22 — optional personal evidence and supernatural meetings during combat. */
+const fieldStoryLines={
+ scar:[
+ ['An order slip: Table 0. Signed by Scarf, dated tomorrow.','Чек: стол № 0. Подпись Скарфа. Завтрашняя дата.','A cook who never clocks out never leaves.','Повар, который не сдаёт смену, никогда не уйдёт.'],
+ ['A shift roster. Each missing worker is marked PRESENT.','Табель смены. Напротив каждого пропавшего — НА МЕСТЕ.','We are still waiting for you in the kitchen.','Мы всё ещё ждём тебя на кухне.'],
+ ['The last bill is blank except for one name: yours.','Последний счёт пуст, кроме одного имени — твоего.','There is still time to cancel the order.','Ещё есть время отменить заказ.']
+ ],
+ vesa:[
+ ['A red thread knotted in your mentor’s secret code.','Алая нить завязана тайным узлом наставника.','You learned to follow tracks. Now learn to doubt them.','Ты научилась читать следы. Теперь научись сомневаться.'],
+ ['A hunting diary describes a creature that copies familiar voices.','Дневник охотника описывает существо, копирующее знакомые голоса.','Do you remember the real sound of my voice?','Ты помнишь, как на самом деле звучал мой голос?'],
+ ['The last footprint ends at a mirror, not a trail.','Последний след заканчивается у зеркала, а не на тропе.','The hunt ends when you stop following me.','Охота закончится, когда ты перестанешь идти за мной.']
+ ],
+ nyx:[
+ ['A photograph shows your shadow without you.','На фотографии твоя тень — без тебя.','I learned to move while you slept.','Я научился двигаться, пока ты спал.'],
+ ['A diary in your handwriting describes a childhood you never had.','Дневник твоим почерком описывает детство, которого у тебя не было.','One of us is a copy. Look closer.','Один из нас — копия. Присмотрись.'],
+ ['A broken mirror reflects only the room behind you.','Разбитое зеркало отражает только комнату за спиной.','You cannot outrun your own outline.','От собственного силуэта не убежать.']
+ ],
+ pelmage:[
+ ['A seventh symbol has appeared on a six-symbol recipe.','В рецепте из шести символов появился седьмой.','A spell does not ask permission to live.','Заклинание не просит разрешения жить.'],
+ ['A formula replaces every name with the word FUEL.','Формула заменяет каждое имя словом ТОПЛИВО.','Your magic remembers every mistake.','Твоя магия помнит каждую ошибку.'],
+ ['A burned page reveals the missing counterspell.','Обгоревшая страница раскрывает недостающее контрзаклинание.','You wrote the beginning. I wrote the ending.','Ты написал начало. Я написал конец.']
+ ],
+ assassin:[
+ ['The contract is stamped PAID before the target was named.','На контракте стоит ОПЛАЧЕНО до указания цели.','A contract is only as real as the name on it.','Контракт реален лишь настолько, насколько реально имя на нём.'],
+ ['A guild list: the names disappear as you read them.','Список гильдии: имена исчезают прямо при чтении.','Your name is the last one left.','Твоё имя осталось последним.'],
+ ['A pen rests beside a contract with no signature.','Перо лежит рядом с контрактом без подписи.','Who is holding the pen now?','Кто теперь держит перо?']
+ ],
+ golem:[
+ ['A workshop blueprint labels your furnace CONTAINMENT.','На чертеже твоя печь обозначена как КОНТЕЙНЕР.','The fire remembers the hands that built you.','Огонь помнит руки, которые тебя создали.'],
+ ['A recording: “If it hears a heartbeat, do not open the furnace.”','Запись: «Если услышит сердцебиение, не открывать печь».','You were not built to obey me.','Тебя создали не для того, чтобы служить мне.'],
+ ['The maker’s final note: “Choose your own purpose.”','Последняя записка создателя: «Сам выбери своё предназначение».','Even a furnace can learn to refuse.','Даже печь может научиться отказывать.']
+ ],
+ warden:[
+ ['A ledger lists extinguished lanterns, one by one.','В журнале один за другим отмечены погасшие фонари.','Do not let the last flame go out.','Не дай последнему огню погаснуть.'],
+ ['An oath engraved on a lantern: light is borrowed, never owned.','На фонаре выгравирована клятва: свет дают взаймы, им не владеют.','The dark knows the shape of your light.','Тьма знает форму твоего света.'],
+ ['An unlit wick carries the names of the lost keepers.','На негорящем фитиле имена пропавших хранителей.','One lantern can still lead them home.','Один фонарь ещё может привести их домой.']
+ ],
+ revenant:[
+ ['A grave marker has been scratched smooth from the inside.','Надгробие выскоблено изнутри до гладкой поверхности.','You were someone before you were nothing.','Ты был кем-то, прежде чем стать ничем.'],
+ ['A torn portrait shows a face you almost recognize.','На порванном портрете лицо, которое ты почти узнаёшь.','A name is more than a sound.','Имя — не просто звук.'],
+ ['The missing letters form a name in your own handwriting.','Недостающие буквы складываются в имя твоим почерком.','Say your name before the silence takes it.','Произнеси своё имя, пока его не забрала тишина.']
+ ]
+};
+const fieldStoryUi={
+ en:['Personal trace','Unknown presence','Memory','Approach the marked spot','Read the personal trace','Approach the apparition'],
+ ru:['Личный след','Неизвестное присутствие','Воспоминание','Подойди к отмеченному месту','Прочитай личную записку','Подойди к призраку'],
+ fi:['Henkilökohtainen jälki','Tuntematon läsnäolo','Muisto','Lähesty merkittyä paikkaa','Lue henkilökohtainen jälki','Lähesty ilmestystä'],
+ de:['Persönliche Spur','Unbekannte Präsenz','Erinnerung','Geh zur markierten Stelle','Lies die persönliche Spur','Nähere dich der Erscheinung'],
+ fr:['Trace personnelle','Présence inconnue','Souvenir','Approchez du lieu marqué','Lire la trace personnelle','Approcher l’apparition'],
+ es:['Rastro personal','Presencia desconocida','Recuerdo','Acércate al lugar marcado','Lee el rastro personal','Acércate a la aparición'],
+ pt:['Vestígio pessoal','Presença desconhecida','Memória','Aproxime-se do local marcado','Leia o vestígio pessoal','Aproxime-se da aparição'],
+ pl:['Osobisty ślad','Nieznana obecność','Wspomnienie','Podejdź do oznaczonego miejsca','Odczytaj osobisty ślad','Podejdź do zjawy'],
+ uk:['Особистий слід','Невідома присутність','Спогад','Підійди до позначеного місця','Прочитай особистий слід','Підійди до привида']
+};
+function FSU(i){return (fieldStoryUi[lang]||fieldStoryUi.en)[i]}
+let personalStoryEvent=null,personalStoryMessage=null;
+function clearPersonalStory(){personalStoryEvent=null;personalStoryMessage=null;document.getElementById('personalStoryHud').hidden=true}
+function personalStoryPosition(p,area,avoid,seed){
+ for(const radius of [116,154,190,80])for(let k=0;k<16;k++){
+  const a=(k+seed)*Math.PI/8,x=Math.round(p.x+Math.cos(a)*radius),y=Math.round(p.y+Math.sin(a)*radius);
+  if(x<area.l+28||x>area.r-28||y<area.t+28||y>area.b-28)continue;
+  if(avoid.some(q=>q&&Math.hypot(q.x-x,q.y-y)<(q.pad??q.r??25)+24))continue;
+  return {x,y};
+ }
+ return null;
+}
+function makePersonalStory(run,w,p,area,avoid,blocked=false){
+ if(!run?.campaign||run.closed||blocked)return null;
+ const round=campaignRound(run,w),chapter=run.campaign.chapter;
+ if(round!==3&&round!==4)return null;
+ const lines=fieldStoryLines[run.hero]?.[chapter-1];if(!lines)return null;
+ const pos=personalStoryPosition(p,area,avoid,chapter*3+Object.keys(fieldStoryLines).indexOf(run.hero)+round);
+ return pos?{...pos,w,hero:run.hero,kind:round===3?'note':'echo',lines,hold:0,done:false,fade:0}:null;
+}
+function personalStoryLine(speaker,line,duration=5){
+ personalStoryMessage={speaker,line,time:duration};
+ const h=document.getElementById('personalStoryHud');h.querySelector('b').textContent=speaker;h.querySelector('span').textContent=line;h.hidden=false;
+}
+function stepPersonalStory(q,p,dt){
+ if(!q||q.done||p.dead||!Number.isFinite(dt)||dt<=0)return false;
+ if(Math.hypot(q.x-p.x,q.y-p.y)>24){q.hold=0;return false}
+ q.hold+=dt;if(q.hold<.45)return false;q.done=true;q.fade=q.kind==='echo'?1.25:.4;return true;
+}
+function updatePersonalStory(dt){
+ if(state!=='game'||!soloRun?.campaign||coop||onlineMode)return;
+ if(personalStoryMessage){personalStoryMessage.time-=dt;if(personalStoryMessage.time<=0){personalStoryMessage=null;document.getElementById('personalStoryHud').hidden=true}}
+ const q=personalStoryEvent;if(!q||q.w!==wave||player.dead)return;
+ if(q.done){q.fade=Math.max(0,q.fade-dt);return}
+ if(!stepPersonalStory(q,player,dt))return;
+ const name=locName(chars.find(c=>c.id===q.hero)||chars[0]);
+ if(q.kind==='note'){personalStoryLine(name+' · '+FSU(0),L(q.lines[0],q.lines[1]),6);spatialTone(q.x,q.y,315,.20,.045,'triangle')}
+ else{personalStoryLine(FSU(2)+' · '+name,L(q.lines[2],q.lines[3]),6);creatureCall('hollow');spatialTone(q.x,q.y,75,.55,.045,'sine')}
+ ring(q.x,q.y,8,'#d9b3e6',.55,36);spawnParticles(q.x,q.y,10,'#d9b3e6',.55);
+}
+function paintPersonalStory(g,q,view){
+ if(!q||q.done&&q.fade<=0||!visibleWorld(q,view,38))return;
+ const pulse=reduceMotion?0:Math.sin(horrorTime*3)*2;
+ g.save();g.translate(Math.round(q.x),Math.round(q.y));g.globalAlpha=q.done?Math.min(1,q.fade):1;
+ g.strokeStyle='#c49cda';g.setLineDash([3,3]);g.beginPath();g.arc(0,0,22+pulse,0,TAU);g.stroke();g.setLineDash([]);
+ if(q.kind==='note'){
+  g.fillStyle='#251d2c';g.fillRect(-9,-10,18,16);g.fillStyle='#ead5b6';g.fillRect(-6,-9,12,14);g.fillStyle='#846a80';for(let y=-6;y<4;y+=3)g.fillRect(-4,y,8,1);
+ }else{
+  g.save();g.globalAlpha*=.68;g.translate(0,pulse-2);pixelHeroBody(g,q.hero,0,0,0);paintHeroSignature(g,q.hero,0,0);g.restore();
+  g.fillStyle='#c6a4e6';g.fillRect(-5,-16,2,2);g.fillRect(3,-16,2,2);
+ }
+ if(!q.done){g.fillStyle='#f2d7ff';g.font='bold 8px monospace';g.textAlign='center';g.fillText(q.kind==='note'?FSU(0):FSU(1),0,-31);if(q.hold>0)g.fillRect(-12,16,24*Math.min(1,q.hold/.45),2)}
+ g.restore();
+}
+function paintPersonalStoryDirection(g,q,view){
+ if(!q||q.done||state!=='game')return;
+ const x=q.x-view.x,y=q.y-view.y;if(x>=20&&x<=W-20&&y>=26&&y<=H-26)return;
+ const dx=x-W/2,dy=y-H/2,k=Math.min((W/2-26)/Math.max(1,Math.abs(dx)),(H/2-40)/Math.max(1,Math.abs(dy)));
+ g.save();g.translate(Math.round(W/2+dx*k),Math.round(H/2+dy*k));g.rotate(Math.atan2(dy,dx));g.fillStyle='#d9b3e6';g.beginPath();g.moveTo(7,0);g.lineTo(0,-5);g.lineTo(-7,0);g.lineTo(0,5);g.closePath();g.fill();g.restore();
+}
 
 function newCampaign(start){return CAMPAIGN_MAPS.includes(start)?{start,visited:[start],chapter:1,gate:0,options:[],finalKilled:false,won:false,clues:[],ending:null,paths:[]}:null}
 function routeOptions(c,round,random=Math.random,hero=null){
@@ -4020,6 +4141,7 @@ function beginWave(){
  const bossWave=wave%5===0,hidden=takeHidden(soloRun,wave);
  if(!onlineMode&&!coop&&trialEligible(soloRun,wave,bossWave||!!hidden))arenaTrial=makeArenaTrial(selectedMap,wave,player,arena,[...livingStations.map(p=>({...p,pad:36})),nightmare?.zone?{...nightmare.zone,pad:FEAR_RULES.radius}:null,secretEncounter,...breakableProps.map(p=>({...p,pad:p.r})),...arenaFeatures[selectedMap].sites.map(([x,y])=>({x,y,pad:arenaFeatures[selectedMap].radius}))]);
  if(soloRun&&!coop&&!onlineMode&&!bossWave&&!hidden)fieldRecord=makeFieldRecord(selectedMap,campaignRound(soloRun,wave),player,arena,[secretEncounter,nightmare?.zone?{...nightmare.zone,pad:FEAR_RULES.radius}:null,...livingStations.map(p=>({...p,pad:36})),...breakableProps.map(p=>({...p,pad:p.r})),...arenaFeatures[selectedMap].sites.map(([x,y])=>({x,y,pad:arenaFeatures[selectedMap].radius})),arenaTrial],journal);
+ if(soloRun?.campaign&&!coop&&!onlineMode)personalStoryEvent=makePersonalStory(soloRun,wave,player,arena,[secretEncounter,fieldRecord,arenaTrial,nightmare?.zone?{...nightmare.zone,pad:FEAR_RULES.radius}:null,...livingStations.map(p=>({...p,pad:36})),...breakableProps.map(p=>({...p,pad:p.r})),...arenaFeatures[selectedMap].sites.map(([x,y])=>({x,y,pad:arenaFeatures[selectedMap].radius}))],bossWave||!!hidden);
  activeOmen=applyRoomEffect(soloRun,nightmare,soloRun?chooseOmen(wave):waveOmens[0]);
  // In two-player mode the arena gets a real co-op population boost.
  targetCount=coop?coopWaveCount(wave):soloWaveCount(wave);
@@ -4532,7 +4654,7 @@ function paintTrialDirection(g,q,view){
  const dx=x-view.w/2,dy=y-view.h/2,k=Math.min((view.w/2-25)/Math.max(1,Math.abs(dx)),(view.h/2-36)/Math.max(1,Math.abs(dy)));
  g.save();g.translate(Math.round(view.w/2+dx*k),Math.round(view.h/2+dy*k));g.rotate(Math.atan2(dy,dx));g.strokeStyle=trialThemes[q.map].color;g.lineWidth=1;g.strokeRect(-4,-4,8,8);g.beginPath();g.moveTo(5,-4);g.lineTo(10,0);g.lineTo(5,4);g.stroke();g.restore();
 }
-function clearCombatPresentation(){impactMarks=[];dashGhosts=[];deathSprites=[];breakableProps=[];propImpactLedger=new WeakMap();dynamicHorror=null;horrorDirector=null;fieldRecord=null;arenaTrial=null;shake=0}
+function clearCombatPresentation(){clearPersonalStory();impactMarks=[];dashGhosts=[];deathSprites=[];breakableProps=[];propImpactLedger=new WeakMap();dynamicHorror=null;horrorDirector=null;fieldRecord=null;arenaTrial=null;shake=0}
 function addImpact(e,d,owner){if(!horrorFx||reduceMotion)return;const q=impactProfile(d,e.type==='boss'),source=owner==='p1'?player:owner==='p2'?player2:null;pushFx(impactMarks,{x:e.x,y:e.y-8,...q,material:enemyImpactMaterial(e),heavy:e.type==='boss'||d>=60,angle:source?Math.atan2(e.y-source.y,e.x-source.x):0,scar:source?.charId==='scar',vesa:source?.charId==='vesa',nyx:source?.charId==='nyx',mage:source?.charId==='pelmage',shiv:source?.charId==='assassin',golem:source?.charId==='golem',warden:source?.charId==='warden',voidArt:source?.charId==='revenant',max:q.life},COMBAT_FX.marks)}
 // V71.2 — Individual death choreography, visual only.
 const enemyDeathArt={
@@ -5069,7 +5191,7 @@ function finishEnemyDeath(e){
 
 function completeSecret(){
  const event=secretEncounter,n=secretReward(meta,soloRun,event);if(!n)return;
- const personalClue=campaignClue(soloRun,event);discoverJournal('story:'+event.map);saveMeta();
+ const personalClue=campaignClue(soloRun,event);discoverJournal('story:'+event.map);saveMeta();if(personalClue)personalStoryLine(FSU(0),L(...heroStoryClues[soloRun.hero]),5);
  if(!boss&&!coop&&!onlineMode&&waveState==='fighting')event.route=makeSecretRoute(event,arena,secretRouteStaticAvoid(event));
  const x=clamp(event.x,arena.l+10,arena.r-10),y=clamp(event.y,arena.t+10,arena.b-10);
  drops.push({x,y,type:'heal',value:30,life:24,pulse:0});
@@ -5805,7 +5927,7 @@ function update(dt){
  camera.x=clamp(camera.x,W/2,world.w-W/2);camera.y=clamp(camera.y,H/2,world.h-H/2);
  horrorTime+=dt;for(const p of coopPlayers())advancePlayerTimers(p,dt)
  if(!player.dead&&(mouse.down||touchInput.attack))attack();
- if(state==='game'){updateNightmare(dt);updateSecret(dt);updateSpatialAudio(dt)}updateEnemies(dt);if(state==='game')updateLivingStations(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);if(state==='game'){updateArenaTrial(dt);updateFieldRecord(dt)}updateFx(dt);
+ if(state==='game'){updateNightmare(dt);updateSecret(dt);updateSpatialAudio(dt)}updateEnemies(dt);if(state==='game')updateLivingStations(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);if(state==='game'){updateArenaTrial(dt);updateFieldRecord(dt);updatePersonalStory(dt)}updateFx(dt);
  retainInPlace(enemies,e=>!e.dead);
  if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=Math.max(.30,(coop?.68:.78)-wave*.022);if((waveTime>=delay||enemies.length===0)&&allowWaveSpawn(!coop,wave,enemies.length)){waveTime=0;spawnWaveEnemy();spawned++}}
  if(canClearCombat(state,waveState,spawned,targetCount,boss,enemies,hazards,!!soloRun)){waveState='clear';if(soloRun){const rest=safeRestAttacks(projectiles,hazards);projectiles=rest.projectiles;hazards=rest.hazards;}expireTrial(arenaTrial);tutorialEvent('wave');if(nightmare?.hunter){nightmare.hunter.dead=true;hazards=hazards.filter(h=>h.source!==nightmare.hunter);nightmare.hunter=null}if(nightmare){nightmare.echo=null;nightmare.anomaly=null;nightmare.fear=fearClamp(nightmare.fear-12)}between=soloRun?4:1.6;let reward=0;if(soloRun){reward=clearWaveReward(meta,soloRun,wave,selectedMap);if(reward){addCoins(soloRun,Math.floor(coinReward(wave)*modifierValue(soloRun,'coins'))+(activeCampaignPath(soloRun).coinsClear??0));settleHeroQuest(soloRun)}saveMeta()}toast(L('WAVE CLEARED · COLLECT XP','ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')+(reward?' · ◆ +'+reward:''));toastTimer=2.5}
@@ -7849,7 +7971,7 @@ function draw(){
  if(waveState==='fighting')paintLivingStations(ctx,m.id,view);
  if(secretEncounter&&waveState==='fighting'){paintSecret(ctx,secretEncounter,horrorTime);paintSecretRoute(ctx,secretEncounter.route,view);}
  if(waveState==='fighting')paintArenaTrial(ctx,arenaTrial,view);
- if(state==='game')paintFieldRecord(ctx,fieldRecord,view);
+ if(state==='game'){paintFieldRecord(ctx,fieldRecord,view);paintPersonalStory(ctx,personalStoryEvent,view);}
  // blood stains and corpses
  for(const b of blood){if(!visibleWorld(b,view,b.r+4))continue;ctx.globalAlpha=b.a;ctx.fillStyle='#4f0913';ctx.fillRect(Math.round(b.x-b.r),Math.round(b.y-b.r*.45),Math.max(2,Math.round(b.r*2)),Math.max(2,Math.round(b.r*.9)));ctx.fillStyle='#9f1829';ctx.fillRect(Math.round(b.x-b.r*.55),Math.round(b.y-b.r*.25),Math.max(2,Math.round(b.r*1.1)),Math.max(2,Math.round(b.r*.5)))}ctx.globalAlpha=1;
  // enemy warnings: fixed radius, shrinking countdown ring, no reliance on color alone
@@ -7877,7 +7999,7 @@ function draw(){
  if(state==='game'&&waveState==='fighting')for(const h of hazards)if(visibleWorld(h,view,h.radius+8))paintHazardReadability(ctx,h);
  if(state==='death')paintDeathSequence(ctx,view,deathTimer);
  ctx.restore();
- paintFearFrame(ctx,nightmare);paintSecretDirection(ctx,secretEncounter,view);paintRefugeDirection(ctx,nightmare,view);if(state==='game'&&waveState==='fighting')paintTrialDirection(ctx,arenaTrial,view);
+ paintFearFrame(ctx,nightmare);paintSecretDirection(ctx,secretEncounter,view);paintPersonalStoryDirection(ctx,personalStoryEvent,view);paintRefugeDirection(ctx,nightmare,view);if(state==='game'&&waveState==='fighting')paintTrialDirection(ctx,arenaTrial,view);
  if(state==='game'){const p=onlineMode&&isOnlineGuest?player2:player;if(!p.dead){const px=Math.round(p.x-camera.x+W/2),py=Math.round(p.y-camera.y+H/2);if(px>=12&&px<W-12&&py>=18&&py<H-16){ctx.save();ctx.globalAlpha=.9;ctx.strokeStyle=p.dash<=0?'#b6c3a2':'#a67b69';ctx.lineWidth=1;ctx.beginPath();ctx.arc(px,py+12,12,Math.PI*.16,Math.PI*.84);ctx.stroke();ctx.restore()}}}
  // Tactical direction cue: guide the player to the nearest remaining enemy.
  if(state==='game'&&waveState==='fighting'){
@@ -7926,7 +8048,7 @@ function updateFearHud(n){
  document.getElementById('fearValue').textContent=pct+'%';document.getElementById('fearFill').style.width=pct+'%';document.getElementById('fearStatus').textContent=txt;
  document.getElementById('fearRefuge').textContent=n.charge>0?L('Light','Свет')+' · '+Math.ceil(n.charge)+'s':L('LIGHT SPENT','СВЕТ ПОГАС');fh.dataset.stage=String(stage);fh.classList.toggle('panic',stage===2);
 }
-function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;updateFearHud(nightmare);const loot=document.getElementById('lootHud');loot.hidden=!soloRun;const lootText=soloRun?'◆ '+soloRun.earned+' · '+L('Loot','Артефакты')+' '+(localP.artifacts?.length||0)+'/'+runArtifacts.length+(secretEncounter?.stage==='sealed'&&waveState==='fighting'?' · '+L('Cache','Тайник'):secretEncounter?.stage==='ambush'?' · '+L('Guards','Стражи')+' '+secretEncounter.remaining:''):'';if(loot.textContent!==lootText)loot.textContent=lootText;const rule=modifierFor(soloRun?.modifier),ruleHud=document.getElementById('modifierHud');ruleHud.hidden=!soloRun||rule.id==='classic'&&!soloRun.abyss;const ruleText=(soloRun?.abyss?L('Abyss','Бездна')+' '+soloRun.abyss+' · '+Math.min(wave,ABYSS_GOAL)+'/'+ABYSS_GOAL+' · '+abyssStageText(soloRun,wave):'')+(soloRun?.daily?L('Daily','День')+' '+Math.min(wave,DAILY_GOAL)+'/'+DAILY_GOAL+' · ':'')+(rule.id==='classic'?'':'◇ '+metaLabel(rule));if(ruleHud.textContent!==ruleText)ruleHud.textContent=ruleText;ruleHud.title=rule.id==='classic'?'':metaDesc(rule);const curse=activeCurse(soloRun,wave),curseHud=document.getElementById('curseHud');curseHud.hidden=!curse;const curseText=curse?'☠ '+metaLabel(curse)+' · '+Math.max(0,soloRun.curse.start+CURSE_LENGTH-1-soloRun.cleared)+' '+L('waves','волн'):'';if(curseHud.textContent!==curseText)curseHud.textContent=curseText;curseHud.title=curse?metaDesc(curse)+' · +3 '+L('shards per clear','осколка за волну'):'';const qh=document.getElementById('heroQuestHud'),hq=questFor(soloRun?.hero),progress=soloRun?.quest;qh.hidden=!hq||!progress;const qtext=hq&&progress?metaLabel(hq)+' · '+(progress.claimed?'✓':Math.floor(progress.progress)+'/'+hq.goal+(progress.progress>=hq.goal?' · '+L('Clear wave','Зачисти волну'):'')):'';if(qh.textContent!==qtext)qh.textContent=qtext;qh.title=(hq?metaDesc(hq)+' · +'+HERO_QUEST_COINS+' '+L('coins','монет'):'')+(soloRun&&heroSpecialties[localP.charId]?' · '+metaLabel(heroSpecialties[localP.charId])+': '+metaDesc(heroSpecialties[localP.charId]):'');const trial=document.getElementById('trialHud'),trialText=state==='game'&&waveState==='fighting'?trialHudText(arenaTrial):'';trial.hidden=!trialText;if(trial.textContent!==trialText)trial.textContent=trialText;const campaignHud=document.getElementById('campaignHud');campaignHud.hidden=!soloRun?.campaign;if(soloRun?.campaign){const txt=storyObjective(soloRun,wave);campaignHud.title=SU(15);if(campaignHud.textContent!==txt)campaignHud.textContent=txt}const coins=document.getElementById('coinHud');coins.hidden=!soloRun;if(soloRun){const value='◈ '+soloRun.coins;if(coins.textContent!==value)coins.textContent=value;}const dashReady=localP.dash<=0,ability=dashProfiles[localP.charId]||dashProfiles.scar;document.getElementById('dashHudLabel').textContent=locName(ability);const dashValue=document.getElementById('dashHudValue');dashValue.textContent=dashReady?(L("READY","ГОТОВ")):localP.dash.toFixed(1)+'s';dashValue.classList.toggle('abilityReady',dashReady);document.getElementById('dashHudFill').style.width=(clamp(1-localP.dash/(soloRun?artifactDashCooldown(localP,ability.cooldown):ability.cooldown),0,1)*100)+'%';document.getElementById('bombHudLabel').textContent=L("BOMBS","БОМБЫ");document.getElementById('bombHudValue').textContent=localP.bomb;const remoteP=onlineMode&&isOnlineGuest?player:player2;const deathV=document.getElementById('remoteDeathVignette');if(deathV)deathV.style.display=(state==='game'&&coop&&remoteP.dead&&alivePlayers().length>0)?'block':'none';const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&localP.hp/localP.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display='none';relicEl.classList.remove('relic-pulse')}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(localP.hp));document.getElementById('xpTxt').textContent=`${Math.floor(localP.xp)}/${localP.next}`;document.getElementById('lvlTxt').textContent=localP.lvl;const lp=document.getElementById('localLevelPanel');if(lp)lp.style.display=onlineMode?'block':'none';const ll=document.getElementById('localLvlTxt');if(ll)ll.textContent=localP.lvl;const lx=document.getElementById('localXpTxt');if(lx)lx.textContent=`${Math.floor(localP.xp)}/${localP.next}`;const lf=document.getElementById('localXpFill');if(lf)lf.style.width=clamp(localP.xp/localP.next*100,0,100)+'%';document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+(enemies.length+Math.max(0,targetCount-spawned));document.getElementById('hpFill').style.width=clamp(localP.hp/localP.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(localP.xp/localP.next*100,0,100)+'%';
+function updateHud(){const localP=onlineMode&&isOnlineGuest?player2:player;updateFearHud(nightmare);const loot=document.getElementById('lootHud');loot.hidden=!soloRun;const lootText=soloRun?'◆ '+soloRun.earned+' · '+L('Loot','Артефакты')+' '+(localP.artifacts?.length||0)+'/'+runArtifacts.length+(secretEncounter?.stage==='sealed'&&waveState==='fighting'?' · '+L('Cache','Тайник'):secretEncounter?.stage==='ambush'?' · '+L('Guards','Стражи')+' '+secretEncounter.remaining:''):'';if(loot.textContent!==lootText)loot.textContent=lootText;const rule=modifierFor(soloRun?.modifier),ruleHud=document.getElementById('modifierHud');ruleHud.hidden=!soloRun||rule.id==='classic'&&!soloRun.abyss;const ruleText=(soloRun?.abyss?L('Abyss','Бездна')+' '+soloRun.abyss+' · '+Math.min(wave,ABYSS_GOAL)+'/'+ABYSS_GOAL+' · '+abyssStageText(soloRun,wave):'')+(soloRun?.daily?L('Daily','День')+' '+Math.min(wave,DAILY_GOAL)+'/'+DAILY_GOAL+' · ':'')+(rule.id==='classic'?'':'◇ '+metaLabel(rule));if(ruleHud.textContent!==ruleText)ruleHud.textContent=ruleText;ruleHud.title=rule.id==='classic'?'':metaDesc(rule);const curse=activeCurse(soloRun,wave),curseHud=document.getElementById('curseHud');curseHud.hidden=!curse;const curseText=curse?'☠ '+metaLabel(curse)+' · '+Math.max(0,soloRun.curse.start+CURSE_LENGTH-1-soloRun.cleared)+' '+L('waves','волн'):'';if(curseHud.textContent!==curseText)curseHud.textContent=curseText;curseHud.title=curse?metaDesc(curse)+' · +3 '+L('shards per clear','осколка за волну'):'';const qh=document.getElementById('heroQuestHud'),hq=questFor(soloRun?.hero),progress=soloRun?.quest;qh.hidden=!hq||!progress;const qtext=hq&&progress?metaLabel(hq)+' · '+(progress.claimed?'✓':Math.floor(progress.progress)+'/'+hq.goal+(progress.progress>=hq.goal?' · '+L('Clear wave','Зачисти волну'):'')):'';if(qh.textContent!==qtext)qh.textContent=qtext;qh.title=(hq?metaDesc(hq)+' · +'+HERO_QUEST_COINS+' '+L('coins','монет'):'')+(soloRun&&heroSpecialties[localP.charId]?' · '+metaLabel(heroSpecialties[localP.charId])+': '+metaDesc(heroSpecialties[localP.charId]):'');const trial=document.getElementById('trialHud'),trialText=state==='game'&&waveState==='fighting'?trialHudText(arenaTrial):'';trial.hidden=!trialText;if(trial.textContent!==trialText)trial.textContent=trialText;const campaignHud=document.getElementById('campaignHud');campaignHud.hidden=!soloRun?.campaign;if(soloRun?.campaign){const txt=storyObjective(soloRun,wave)+(personalStoryEvent&&!personalStoryEvent.done?' · '+FSU(personalStoryEvent.kind==='note'?4:5):'');campaignHud.title=SU(15);if(campaignHud.textContent!==txt)campaignHud.textContent=txt}const coins=document.getElementById('coinHud');coins.hidden=!soloRun;if(soloRun){const value='◈ '+soloRun.coins;if(coins.textContent!==value)coins.textContent=value;}const dashReady=localP.dash<=0,ability=dashProfiles[localP.charId]||dashProfiles.scar;document.getElementById('dashHudLabel').textContent=locName(ability);const dashValue=document.getElementById('dashHudValue');dashValue.textContent=dashReady?(L("READY","ГОТОВ")):localP.dash.toFixed(1)+'s';dashValue.classList.toggle('abilityReady',dashReady);document.getElementById('dashHudFill').style.width=(clamp(1-localP.dash/(soloRun?artifactDashCooldown(localP,ability.cooldown):ability.cooldown),0,1)*100)+'%';document.getElementById('bombHudLabel').textContent=L("BOMBS","БОМБЫ");document.getElementById('bombHudValue').textContent=localP.bomb;const remoteP=onlineMode&&isOnlineGuest?player:player2;const deathV=document.getElementById('remoteDeathVignette');if(deathV)deathV.style.display=(state==='game'&&coop&&remoteP.dead&&alivePlayers().length>0)?'block':'none';const p2txt=document.getElementById('p2HpTxt');if(p2txt)p2txt.textContent=coop?Math.max(0,Math.ceil(player2.hp)):'0';const p2fill=document.getElementById('p2HpFill');if(p2fill)p2fill.style.width=coop?clamp(player2.hp/player2.maxhp*100,0,100)+'%':'0%';const wrapEl=document.getElementById('wrap');if(wrapEl)wrapEl.classList.toggle('low-hp',state==='game'&&localP.hp/localP.maxhp<.32);const relicEl=document.getElementById('relicHud');if(relicEl){relicEl.style.display='none';relicEl.classList.remove('relic-pulse')}const relicLabel=document.getElementById('relicLabel');if(relicLabel)relicLabel.textContent=T('relic');document.getElementById('hpTxt').textContent=Math.max(0,Math.ceil(localP.hp));document.getElementById('xpTxt').textContent=`${Math.floor(localP.xp)}/${localP.next}`;document.getElementById('lvlTxt').textContent=localP.lvl;const lp=document.getElementById('localLevelPanel');if(lp)lp.style.display=onlineMode?'block':'none';const ll=document.getElementById('localLvlTxt');if(ll)ll.textContent=localP.lvl;const lx=document.getElementById('localXpTxt');if(lx)lx.textContent=`${Math.floor(localP.xp)}/${localP.next}`;const lf=document.getElementById('localXpFill');if(lf)lf.style.width=clamp(localP.xp/localP.next*100,0,100)+'%';document.getElementById('waveTxt').textContent=wave;document.getElementById('scoreTxt').textContent=Math.floor(score);document.getElementById('targetTxt').textContent=T('enemies')+': '+(enemies.length+Math.max(0,targetCount-spawned));document.getElementById('hpFill').style.width=clamp(localP.hp/localP.maxhp*100,0,100)+'%';document.getElementById('xpFill').style.width=clamp(localP.xp/localP.next*100,0,100)+'%';
  if(boss){document.getElementById('bossHud').style.display='block';document.getElementById('bossName').textContent=locName(boss)+' · '+T('boss');document.getElementById('bossFill').style.width=clamp(boss.hp/boss.maxhp*100,0,100)+'%';
   const label=document.getElementById('bossState'),enabled=!!soloRun&&!coop&&!onlineMode,mode=bossEncounterState(boss,enabled);
   label.hidden=!enabled;label.dataset.mode=mode;
