@@ -1089,6 +1089,26 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
  #ritualOverlay.storyCinema .storyControls button{min-height:30px;font-size:11px}
 }
 
+
+/* V75.27 — live horror poster and more tactile menu hierarchy. */
+#menu .menuShell{background:radial-gradient(ellipse at 75% 10%,#302130 0%,transparent 58%),linear-gradient(135deg,#151018,#101018 65%)}
+#menu .menuHeader{background:#151019;border-bottom:1px solid #70505a}
+#menu #homePanel .horrorMarquee{border:1px solid #9b6670;border-radius:8px;background:#17111d;box-shadow:0 0 28px #a7384b25;min-height:180px}
+#menu #homePanel .horrorMarquee canvas{object-fit:cover;object-position:68% 50%;filter:none}
+#menu #homePanel .marqueeCopy{justify-content:flex-end;padding:clamp(12px,2vw,28px);gap:5px;background:linear-gradient(0deg,#100a17db 0%,transparent 78%);pointer-events:none}
+#menu #homePanel .marqueeTitle{font-size:clamp(30px,5vw,76px);line-height:.91;margin:2px 0;color:#f3d6b3;letter-spacing:-.035em;text-shadow:3px 4px #120a14}
+#menu #homePanel .marqueeTitle strong{color:#e9636f}
+#menu #homePanel #homeHeading{font-size:clamp(11px,1.3vw,16px);color:#e9c8c3;max-width:80%}
+#menu #homePortalNote{font:700 11px/1.3 system-ui;color:#e8b799;letter-spacing:.045em}
+#menu #homeCampaignShortcut{pointer-events:auto;touch-action:manipulation;min-height:40px;padding:6px 18px;border:1px solid #c58b72;background:#7c3547;color:#ffe3c4;font:800 13px system-ui;border-radius:3px;cursor:pointer}
+#menu #homePanel .homeCard{border-color:#77535d;background:#1a1420;border-radius:7px;box-shadow:0 4px 12px #0005}
+#menu #homePanel .homeCardCopy,#menu #homePanel .homeCard[data-open-menu=map] .homeCardCopy{background:linear-gradient(120deg,#302331,#1b1621)}
+#menu #homePanel .homeMode{border-radius:5px;background:linear-gradient(115deg,#302330,#1a1720);border-bottom:1px solid #59424e}
+#menu #homePanel .homeMode[data-open-menu=mode]{border-left:3px solid #dca178}
+#menu #homePanel .homeActions .homeMode{background:linear-gradient(120deg,#231b29,#19151e)}
+#menu .btn#startBtn{background:linear-gradient(180deg,#b74c54,#782536);border-color:#e7977f;box-shadow:0 3px 0 #3f1626,0 0 18px #c34b5730}
+@media(max-width:650px) and (orientation:portrait){#menu #homePanel .horrorMarquee{min-height:195px}#menu #homePanel .marqueeTitle{font-size:38px}#menu #homeCampaignShortcut{min-height:36px}}
+@media(max-height:520px) and (orientation:landscape){#menu #homePanel .horrorMarquee{min-height:145px}#menu #homePanel .marqueeCopy{padding:7px;gap:2px}#menu #homePanel .marqueeTitle{font-size:30px}#menu #homePanel #homeHeading{font-size:10px}#menu #homePortalNote{font-size:9px}#menu #homeCampaignShortcut{min-height:28px;padding:3px 10px;font-size:11px}}
 </style>
 </head>
 <body>
@@ -1108,7 +1128,7 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 <nav id="menuTabs" aria-label="Game mode"><button type="button" data-menu-tab="hero" aria-pressed="true"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="12" y="5" width="8" height="2" fill="#131018"/><rect x="10" y="7" width="12" height="10" fill="#131018"/><rect x="12" y="7" width="8" height="8" fill="#e5b66e"/><rect x="13" y="8" width="6" height="2" fill="#f4e5c5"/><rect x="12" y="12" width="2" height="2" fill="#131018"/><rect x="18" y="12" width="2" height="2" fill="#131018"/><rect x="9" y="17" width="14" height="5" fill="#131018"/><rect x="11" y="17" width="10" height="4" fill="#e5b66e"/></svg><b id="heroTabLabel">Hero</b></button><button type="button" data-menu-tab="map" aria-pressed="false"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><polygon points="2,7 11,3 21,7 30,3 30,25 21,29 11,25 2,29" fill="#131018"/><polygon points="4,9 11,6 21,10 28,6 28,23 21,26 11,22 4,26" fill="#53616b"/><polygon points="4,9 11,6 11,22 4,26" fill="#a9bbc3"/><polygon points="21,10 28,6 28,23 21,26" fill="#a9bbc3"/><rect x="13" y="11" width="3" height="3" fill="#f4e5c5"/><rect x="16" y="14" width="3" height="3" fill="#e5b66e"/><rect x="19" y="11" width="3" height="3" fill="#dc5a59"/><rect x="19" y="17" width="3" height="3" fill="#dc5a59"/></svg><b id="mapTabLabel">Arena</b></button><button type="button" data-menu-tab="mode" aria-pressed="false"><svg class="uiPixelIcon" aria-hidden="true" focusable="false" viewBox="0 0 32 32" shape-rendering="crispEdges"><rect x="4" y="4" width="24" height="24" fill="#131018"/><rect x="6" y="6" width="20" height="20" fill="#53616b"/><rect x="9" y="10" width="14" height="2" fill="#f4e5c5"/><rect x="9" y="16" width="14" height="2" fill="#f4e5c5"/><rect x="9" y="22" width="14" height="2" fill="#f4e5c5"/><rect x="12" y="8" width="4" height="6" fill="#e5b66e"/><rect x="19" y="14" width="4" height="6" fill="#80dbab"/><rect x="10" y="20" width="4" height="6" fill="#dc5a59"/></svg><b id="modeTabLabel">Mode</b></button></nav>
 <div id="menuBody" class="menuBody">
 <section class="menuSection" data-menu-panel="home" id="homePanel">
-  <div class="homeIntro horrorMarquee"><canvas id="menuKeyArt" width="400" height="144" aria-hidden="true"></canvas><div class="marqueeShade"></div><div class="marqueeCopy"><span id="homeEyebrow">NIGHT SHIFT</span><h1 class="marqueeTitle">DUMPLING<br><strong>RIOT</strong></h1><p id="homeHeading">Ready for the riot?</p></div><span class="marqueeEdge" aria-hidden="true"></span></div>
+  <div class="homeIntro horrorMarquee"><canvas id="menuKeyArt" width="480" height="270" aria-hidden="true"></canvas><div class="marqueeShade"></div><div class="marqueeCopy"><span id="homeEyebrow">NIGHT SHIFT</span><h1 class="marqueeTitle">DUMPLING<br><strong>RIOT</strong></h1><p id="homeHeading">Ready for the riot?</p><span id="homePortalNote"></span><button type="button" id="homeCampaignShortcut">Campaign</button></div><span class="marqueeEdge" aria-hidden="true"></span></div>
   <div class="homeCards">
     <button type="button" class="homeCard" data-open-menu="hero"><canvas id="homeHeroCanvas" width="200" height="108" aria-hidden="true"></canvas><span class="homeCardCopy"><small id="homeHeroLabel">HERO</small><strong id="homeHeroName">SCARF</strong><span id="homeHeroStats">HP 110 · Speed 88</span></span><span class="homeChevron" aria-hidden="true">›</span></button>
     <button type="button" class="homeCard" data-open-menu="map"><canvas id="homeMapCanvas" width="240" height="135" aria-hidden="true"></canvas><span class="homeCardCopy"><small id="homeMapLabel">ARENA</small><strong id="homeMapName">KITCHEN</strong><span id="homeMapFeature">Steam vents</span></span><span class="homeChevron" aria-hidden="true">›</span></button>
@@ -4003,6 +4023,21 @@ function openRitual(){
  const extract=document.getElementById('extractBtn');extract.hidden=!canExtractRun(soloRun);extract.textContent=L('Extract alive · bonus shards','Спастись живым · бонусные осколки');
  el.hidden=false;
 }
+
+/* V75.27 — live menu poster uses the same pixel art and palette as the cinematics. */
+let menuFilmBack=null,menuFilmMap='',menuFilmTime=0,menuFilmLast=-Infinity;
+function paintLiveMenu(now,force=false){
+ const menu=document.getElementById('menu');if(!force&&(state!=='menu'||menu.dataset.view!=='home'||reduceMotion))return;
+ if(!force&&now-menuFilmLast<1000/15)return;menuFilmLast=now;
+ const cv=document.getElementById('menuKeyArt'),g=cv.getContext('2d'),hero=chars.find(c=>c.id===selectedChar)||chars[0],map=maps.find(m=>m.id===selectedMap)||maps[0];
+ if(!g)return;if(!menuFilmBack||menuFilmMap!==map.id){menuFilmBack=document.createElement('canvas');menuFilmBack.width=cv.width;menuFilmBack.height=cv.height;cinemaBackdrop(menuFilmBack,map.id);menuFilmMap=map.id}
+ const w=cv.width,h=cv.height,t=reduceMotion?0:now/1000,accent=arenaFeatures[map.id]?.color||'#e0a07c';g.setTransform(1,0,0,1,0,0);g.imageSmoothingEnabled=false;g.drawImage(menuFilmBack,0,0,w,h);
+ const px=340,py=130,pulse=reduceMotion?0:Math.sin(t*1.7);const halo=g.createRadialGradient(px,py,6,px,py,110);halo.addColorStop(0,accent+'99');halo.addColorStop(.45,'#91334c55');halo.addColorStop(1,'#00000000');g.fillStyle=halo;g.fillRect(px-110,py-110,220,220);
+ g.save();g.translate(px,py);for(let i=0;i<4;i++){g.strokeStyle=i===0?accent:'#b05b78';g.globalAlpha=.65-i*.12;g.lineWidth=2;g.beginPath();g.ellipse(0,0,46-i*8+pulse*2,70-i*12,0,0,TAU);g.stroke()}g.restore();
+ const hx=295,hy=206;g.fillStyle='#08070eaa';g.beginPath();g.ellipse(hx,hy+4,35,8,0,0,TAU);g.fill();g.save();g.translate(hx,hy+(reduceMotion?0:Math.round(Math.sin(t*4)*1.5)));g.scale(3.4,3.4);g.translate(0,-13);pixelHeroBody(g,hero.id,0,t*4,0);paintHeroSignature(g,hero.id,t*4,0);pixelHeroWeapon(g,hero.id,0,-.3,0);g.restore();
+ for(let i=0;i<28;i++){const x=(i*83+t*(3+i%4))%w,y=((i*41-t*(3+i%3))%h+h)%h;g.fillStyle=accent;g.globalAlpha=.13+i%4*.10;g.fillRect(Math.round(x),Math.round(y),i%4===0?2:1,1)}g.globalAlpha=1;
+ const shade=g.createLinearGradient(0,0,w,0);shade.addColorStop(0,'#0a0816ee');shade.addColorStop(.40,'#0a081678');shade.addColorStop(.72,'#00000000');g.fillStyle=shade;g.fillRect(0,0,w,h);
+}
 function refreshMenuHome(hero,map,mode){
  const en=lang==='en',f=arenaFeatures[map.id];
  const labels={homeEyebrow:L("NIGHT SHIFT","НОЧНАЯ СМЕНА"),homeHeading:L("Ready for the riot?","Готов к бунту?"),homeHeroLabel:L("HERO","ГЕРОЙ"),homeMapLabel:L("ARENA","АРЕНА"),homeModeLabel:L("MODE","РЕЖИМ"),homeHeroName:locName(hero),homeHeroStats:'HP '+hero.hp+' · '+(L("Speed ","Скорость "))+hero.speed,homeMapName:locName(map).split(' — ')[0],homeMapFeature:L(f.en,f.ru),homeModeName:mode==='online'?(L("Online co-op","Онлайн")) : mode==='local'?(L("Local co-op","2 игрока")):campaignMode?CMW(0)+' · '+L(...storyFor(hero.id).title):L('Endless survival','Выживание'),settingsHomeLabel:L('Settings','Настройки'),settingsHomeValue:L('Sound, controls, privacy','Звук, управление, приватность'),settingsHeading:L('Game settings','Настройки игры'),menuBackLabel:L("Back","Назад"),menuDone:L("Done","Готово")};
@@ -4010,7 +4045,7 @@ function refreshMenuHome(hero,map,mode){
  document.getElementById('homeModeIcon').innerHTML=uiPixelIcon(mode);
  for(const key of ['altar','journal','daily','abyss','settings'])document.getElementById(key+'HomeIcon').innerHTML=uiPixelIcon(key);
  renderAltar();renderJournal();
- menuArtwork(()=>{const keyArt=document.getElementById('menuKeyArt');paintMenuKeyArt(keyArt.getContext('2d'),hero,map)});
+ menuArtwork(()=>paintLiveMenu(performance.now(),true));document.getElementById('homeCampaignShortcut').textContent=CMW(0);document.getElementById('homePortalNote').textContent=L('Portals · 25 / 50 / 75 / 100','Порталы · 25 / 50 / 75 / 100');
  const view=document.getElementById('menu').dataset.view;document.getElementById('menuCurrentTitle').textContent=view==='hero'?(L("Choose hero","Выбери героя")):view==='map'?(L("Choose arena","Выбери арену")):view==='mode'?(L("Game mode","Режим игры")):view==='altar'?L('Cursed altar','Проклятый алтарь'):view==='journal'?L('Night archives','Ночной архив'):view==='settings'?L('Settings','Настройки'):'';
 }
 function copyMenuPreviews(){const hc=document.getElementById('homeHeroCanvas'),mc=document.getElementById('homeMapCanvas');for(const [cv,source] of [[hc,'heroStageCanvas'],[mc,'mapStageCanvas']]){const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,cv.width,cv.height);g.drawImage(document.getElementById(source),0,0,cv.width,cv.height)}}
@@ -4119,6 +4154,7 @@ function refreshCampaignModeCard(){
  play.textContent=CMW(2);play.hidden=!active;play.disabled=!!savedCheckpoint;
  warning.textContent=CMW(3);warning.hidden=!active||!savedCheckpoint;
 }
+document.getElementById('homeCampaignShortcut').onclick=()=>{if(selectCampaignMode())setMenuTab('mode')};
 document.getElementById('campaignModeBtn').onclick=()=>{if(selectCampaignMode()){setMenuTab('mode');document.getElementById('campaignModeBtn').focus({preventScroll:true})}};
 document.getElementById('campaignPlayBtn').onclick=()=>{if(state!=='menu'||!campaignMode||coop||onlineMode||savedCheckpoint)return;document.getElementById('startBtn').click()};
 
@@ -4384,10 +4420,10 @@ function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlaye
 
 /* V75.25 — optional side spaces; main wave is settled exactly once. */
 const dimensionTiers={
- 25:{en:'The Ash Catacombs',ru:'Пепельные катакомбы',color:'#e0a07c',floor:'#302124',wall:'#583a36',types:['boiler','boneWalker','butcher'],names:[['Ash Wraith','Пепельный призрак'],['Cinder Guard','Пепельный страж'],['Furnace Keeper','Хранитель печи']],count:12,reward:25,mark:0},
- 50:{en:'The Drowned Circuit',ru:'Затопленный контур',color:'#79cce8',floor:'#17282f',wall:'#33546a',types:['cableMite','eye','vendingDrone'],names:[['Wire Leech','Проводная пиявка'],['Blind Signal','Слепой сигнал'],['Circuit Sentinel','Страж контура']],count:15,reward:40,mark:1},
- 75:{en:'The Mirror Abyss',ru:'Зеркальная бездна',color:'#d3a2ec',floor:'#261d36',wall:'#59446a',types:['neonGhost','stalker','siren'],names:[['Broken Reflection','Разбитое отражение'],['Glass Stalker','Стеклянный охотник'],['Mirror Oracle','Зеркальный оракул']],count:18,reward:60,mark:2},
- 100:{en:'The Heart Beyond',ru:'Сердце за гранью',color:'#f46c8b',floor:'#301820',wall:'#6d303e',types:['parasite','maw','feaster'],names:[['Void Larva','Личинка пустоты'],['Heart Eater','Пожиратель сердца'],['The Last Witness','Последний свидетель']],count:22,reward:100,mark:3}
+ 25:{en:'The Ash Catacombs',ru:'Пепельные катакомбы',color:'#e0a07c',floor:'#302124',wall:'#583a36',types:['boiler','boneWalker','butcher'],names:[['Ash Wraith','Пепельный призрак'],['Cinder Guard','Пепельный страж'],['Furnace Keeper','Хранитель печи']],count:18,reward:35,mark:0},
+ 50:{en:'The Drowned Circuit',ru:'Затопленный контур',color:'#79cce8',floor:'#17282f',wall:'#33546a',types:['cableMite','eye','vendingDrone'],names:[['Wire Leech','Проводная пиявка'],['Blind Signal','Слепой сигнал'],['Circuit Sentinel','Страж контура']],count:24,reward:55,mark:1},
+ 75:{en:'The Mirror Abyss',ru:'Зеркальная бездна',color:'#d3a2ec',floor:'#261d36',wall:'#59446a',types:['neonGhost','stalker','siren'],names:[['Broken Reflection','Разбитое отражение'],['Glass Stalker','Стеклянный охотник'],['Mirror Oracle','Зеркальный оракул']],count:30,reward:85,mark:2},
+ 100:{en:'The Heart Beyond',ru:'Сердце за гранью',color:'#f46c8b',floor:'#301820',wall:'#6d303e',types:['parasite','maw','feaster'],names:[['Void Larva','Личинка пустоты'],['Heart Eater','Пожиратель сердца'],['The Last Witness','Последний свидетель']],count:36,reward:140,mark:3}
 };
 const hiddenChambers={
  kitchen:['Forgotten pantry','Забытая кладовая'],basement:['Sealed maintenance vault','Запечатанный технический отсек'],foodcourt:['Closed service room','Закрытая служебная комната'],slaughter:['Abandoned inspection cell','Заброшенная контрольная камера'],cemetery:['Nameless crypt','Безымянный склеп'],forest:['Buried hollow','Погребённая нора']
@@ -4411,12 +4447,12 @@ function dimensionSpec(run,w,map){
  if(run.campaign){
   if(![3,8,13].includes(w))return null;
   const chapter=run.campaign.chapter,base=dimensionTiers[[25,50,75][chapter-1]],name=campaignRooms[run.hero]||campaignRooms.scar;
-  return {...base,...(campaignRoomArt[run.hero]||campaignRoomArt.scar),en:name[0]+' · '+chapter,ru:name[1]+' · '+chapter,names:[['Lost Memory','Потерянная память'],['Twisted Echo','Искажённый отголосок'],['Memory Keeper','Хранитель воспоминаний']],count:4+chapter*2,reward:8+chapter*4,campaign:true,hero:run.hero,chapter,kind:'memory'};
+  return {...base,...(campaignRoomArt[run.hero]||campaignRoomArt.scar),en:name[0]+' · '+chapter,ru:name[1]+' · '+chapter,names:[['Lost Memory','Потерянная память'],['Twisted Echo','Искажённый отголосок'],['Memory Keeper','Хранитель воспоминаний']],count:7+chapter*3,reward:10+chapter*5,campaign:true,hero:run.hero,chapter,kind:'memory'};
  }
  if(dimensionTiers[w])return {...dimensionTiers[w],kind:'portal'};
  if([10,20,40,60,80,90].includes(w)){
   const name=hiddenChambers[map],base=dimensionTiers[w<25?25:w<50?50:w<75?75:100];
-  return {...base,en:name[0],ru:name[1],types:arenaEnemyRoster[map].slice(0,3),names:[['Hidden Crawler','Тайный ползун'],['Room Shade','Тень комнаты'],['Secret Keeper','Хранитель тайника']],count:5+Math.floor(w/20),reward:8+Math.floor(w/5),kind:'chamber'};
+  return {...base,en:name[0],ru:name[1],types:arenaEnemyRoster[map].slice(0,3),names:[['Hidden Crawler','Тайный ползун'],['Room Shade','Тень комнаты'],['Secret Keeper','Хранитель тайника']],count:8+Math.floor(w/15),reward:12+Math.floor(w/5),kind:'chamber'};
  }
  return null;
 }
@@ -4440,27 +4476,51 @@ function skipDimensionGate(){
  if(!dimensionGate||dimension)return;dimensionGate=null;between=Math.min(between,1);dimensionHud('','');
 }
 document.getElementById('dimensionSkip').onclick=skipDimensionGate;
+
+/* V75.27 — separate difficulty contract, staged reinforcements and telegraphed hazards. */
+function dimensionDifficulty(spec,round){
+ const portal=spec.kind==='portal',chapter=spec.chapter||0,depth=portal?Math.max(1,Math.min(4,Math.floor(round/25))):chapter||Math.min(3,1+Math.floor(round/35));
+ return {depth,portal,guardians:portal&&depth>=3?2:1,first:Math.min(spec.count-1,Math.ceil(spec.count*.58)),hp:portal?1.34+depth*.15:1.12+depth*.07,guardianHP:portal?3.9+depth*.65:2.8+depth*.45,speed:portal?1.09+depth*.035:1.04+depth*.025,damage:portal?1.18+depth*.09:1.04+depth*.06,period:portal?Math.max(2.6,4.4-depth*.32):5-depth*.38};
+}
 function dimensionMob(spec,i,round,position){
- const tier=i===spec.count-1?2:i%2,e=makeArenaEnemy(spec.types[tier],position.x,position.y,soloStatRound(round));
- e.dimensionMob={name:spec.names[tier],color:spec.color,mark:spec.mark,guardian:tier===2};
- const late=spec.kind==='portal'?1.6:1.05;
- e.hp*=late*(tier===2?3.2:1.15)*soloEnemyScaling(round).hp;e.maxhp=e.hp;e.speed=Math.min(155,e.speed*(tier===1?1.18:1));e.r=Math.round(e.r*(tier===2?1.45:1.08));e.damageScale=enemyWaveDamage(round)*(tier===2?1.3:1);
- e.artWave=round;e.artSeed=i*7;e.dimensionPulse=2.5+i*.6;return e;
+ const q=dimensionDifficulty(spec,round),tier=i>=spec.count-q.guardians?2:i%2,e=makeArenaEnemy(spec.types[tier],position.x,position.y,soloStatRound(round));
+ e.dimensionMob={name:spec.names[tier],color:spec.color,mark:spec.mark,guardian:tier===2,phase:1};
+ const balance=soloEnemyScaling(round);e.hp*=q.hp*(tier===2?q.guardianHP:1.28)*balance.hp;e.maxhp=e.hp;e.speed=Math.min(165,e.speed*q.speed*(tier===1?1.22:tier===2?1.12:1));e.r=Math.round(e.r*(tier===2?1.55:1.1));e.damageScale=enemyWaveDamage(round)*q.damage*(tier===2?1.22:1);
+ e.artWave=round;e.artSeed=i*7;e.dimensionPulse=1.7+(i%4)*.65;return e;
+}
+function spawnDimensionPack(d,end){
+ const spec=d.spec,from=d.spawned;
+ for(let i=from;i<end;i++){const a=i*2.399963229728653+d.pack*1.27,r=260+(i%3)*34,pos={x:clamp(player.x+Math.cos(a)*r,arena.l+26,arena.r-26),y:clamp(player.y+Math.sin(a)*r,arena.t+26,arena.b-26)};const e=dimensionMob(spec,i,wave,pos);enemies.push(e);ring(pos.x,pos.y,6,spec.color,.6,27)}
+ d.spawned=end;spawned=end;d.pack++;
+}
+function dimensionPattern(mark,x,y,depth,phase,arena){
+ const clampPoint=(xx,yy,r)=>({x:clamp(xx,arena.l+r+4,arena.r-r-4),y:clamp(yy,arena.t+r+4,arena.b-r-4),r});
+ const p=[],push=(xx,yy,r,delay)=>p.push({...clampPoint(xx,yy,r),delay});
+ const hard=phase>=2;
+ if(mark===0){push(x,y,31+depth*2,1.15);for(let i=0;i<(hard?4:2);i++){const a=i*Math.PI/2;push(x+Math.cos(a)*72,y+Math.sin(a)*72,23+depth,1.5+i*.13)}}
+ else if(mark===1){for(let i=-1;i<=1;i++)push(x+i*53,y,21+depth,1.2+(i+1)*.17);if(hard)for(const k of [-1,1])push(x,y+k*57,23+depth,1.65)}
+ else if(mark===2){for(let i=0;i<4;i++){const a=Math.PI/4+i*Math.PI/2;push(x+Math.cos(a)*66,y+Math.sin(a)*66,24+depth,1.25+i*.08)}if(hard)push(x,y,29+depth,1.7)}
+ else{push(x,y,34+depth*2,1.2);for(let i=0;i<(hard?6:4);i++){const a=i*Math.PI*2/(hard?6:4);push(x+Math.cos(a)*88,y+Math.sin(a)*88,23+depth,1.55+i*.08)}}
+ return p;
+}
+function dimensionAttack(d,e=null){
+ const q=d.difficulty,phase=e?.dimensionMob?.phase||1,pattern=dimensionPattern(d.spec.mark,player.x,player.y,q.depth,phase,arena),damage=(q.portal?12:8)+q.depth*2+(phase-1)*3;
+ // Cap warning density, never instantly apply damage or stack an entire room on the player.
+ const limit=q.portal?16:10;for(const h of pattern.slice(0,Math.max(0,limit-hazards.length)))scheduleHazard(h.x,h.y,h.r,damage,h.delay,e,'dimension');
 }
 function enterDimension(){
  if(!dimensionGate||dimension||state!=='game'||waveState!=='clear'||!soloRun)return false;
  const gate=dimensionGate,spec=gate.spec;
- dimension={spec,returnX:player.x,returnY:player.y,mainDrops:drops,mainBlood:blood,mainNightmare:nightmare,mainSpawned:spawned,mainTarget:targetCount,done:false,exitTime:0};
+ dimension={spec,returnX:player.x,returnY:player.y,mainDrops:drops,mainBlood:blood,mainNightmare:nightmare,mainSpawned:spawned,mainTarget:targetCount,done:false,exitTime:0,difficulty:dimensionDifficulty(spec,wave),spawned:0,pack:0,trapTimer:3.8};
  dimensionGate=null;clearLocalInput();clearNpc();clearPersonalStory();secretEncounter=null;fieldRecord=null;arenaTrial=null;livingStations=[];breakableProps=[];dynamicHorror=null;horrorDirector=null;
  Object.assign(arena,{l:340,r:1580,t:250,b:850});
  player.x=960;player.y=550;player.serverX=player.x;player.serverY=player.y;camera.x=player.x;camera.y=player.y;player.inv=Math.max(player.inv,.65);
  drops=[];blood=[];particles=[];texts=[];projectiles=[];hazards=[];rings=[];enemies=[];boss=null;nightmare=null;waveState='fighting';waveTime=0;
- targetCount=spawned=spec.count;
- for(let i=0;i<spec.count;i++){const a=i*Math.PI*2/spec.count,r=220+(i%3)*35,pos={x:clamp(player.x+Math.cos(a)*r,arena.l+24,arena.r-24),y:clamp(player.y+Math.sin(a)*r,arena.t+24,arena.b-24)};enemies.push(dimensionMob(spec,i,wave,pos))}
- dimensionHud(metaLabel(spec),L('Defeat the hidden creatures','Уничтожь тайных существ')+' · '+spec.count);ring(player.x,player.y,8,spec.color,.65,75);toast(metaLabel(spec));toastTimer=4;return true;
+ targetCount=spec.count;spawned=0;spawnDimensionPack(dimension,dimension.difficulty.first);
+ dimensionHud(metaLabel(spec),L('Sealed arena · survive both assaults','Арена запечатана · переживи оба натиска')+' · '+spec.count);ring(player.x,player.y,8,spec.color,.65,75);toast(metaLabel(spec));toastTimer=4;return true;
 }
 function completeDimension(){
- if(!dimension||dimension.done)return false;
+ if(!dimension||dimension.done||dimension.spawned<dimension.spec.count)return false;
  const d=dimension;d.done=true;d.exitTime=8;d.exit={x:960,y:550};waveState='clear';between=8;
  const rest=safeRestAttacks(projectiles,hazards);projectiles=rest.projectiles;hazards=[];
  const reward=d.spec.reward;soloRun.earned+=reward;meta.shards=metaInt(meta.shards+reward);addCoins(soloRun,Math.ceil(reward/2));saveMeta();
@@ -4478,9 +4538,16 @@ function leaveDimension(){
 function updateDimensionFlow(dt){
  if(dimension){
   const d=dimension;
-  if(!d.done){let remaining=0;for(const e of enemies){if(e.dead)continue;remaining++;if(!e.dimensionMob?.guardian)continue;e.dimensionPulse-=dt;if(e.dimensionPulse<=0){e.dimensionPulse=3.8;scheduleHazard(player.x,player.y,26,10+Math.min(15,wave*.14),1.15,e)}}
+  if(!d.done){
+   let remaining=0;for(const e of enemies){if(e.dead)continue;remaining++;if(!e.dimensionMob?.guardian)continue;
+    const phase=e.hp/e.maxhp<=.38?3:e.hp/e.maxhp<=.72?2:1;
+    if(phase>e.dimensionMob.phase){e.dimensionMob.phase=phase;e.speed=Math.min(165,e.speed*1.13);e.damageScale*=1.10;ring(e.x,e.y,8,d.spec.color,.65,60);creatureCall('hollow');toast(L('KEEPER ENRAGED','ХРАНИТЕЛЬ В ЯРОСТИ')+' · '+phase+'/3');toastTimer=2.5}
+    e.dimensionPulse-=dt;if(e.dimensionPulse<=0){e.dimensionPulse=Math.max(1.9,d.difficulty.period-(phase-1)*.55);dimensionAttack(d,e)}
+   }
+   d.trapTimer-=dt;if(remaining>0&&d.trapTimer<=0){d.trapTimer=d.difficulty.period+1.8;dimensionAttack(d)}
+   if(d.spawned<d.spec.count&&remaining<=Math.max(1,Math.floor(d.difficulty.first*.2))){spawnDimensionPack(d,d.spec.count);toast(L('THE KEEPERS HAVE AWAKENED','ХРАНИТЕЛИ ПРОБУДИЛИСЬ'));toastTimer=3;return true}
    if(remaining===0&&!pendingDeathBlast(hazards)){completeDimension();return true}
-   dimensionHud(metaLabel(d.spec),L('Hidden creatures remaining','Осталось тайных существ')+': '+remaining);
+   dimensionHud(metaLabel(d.spec),L('Assault','Натиск')+' '+Math.min(2,d.pack)+'/2 · '+L('Remaining','Осталось')+': '+(remaining+d.spec.count-d.spawned));
   }else{d.exitTime-=dt;if(d.exitTime<=0||Math.hypot(player.x-d.exit.x,player.y-d.exit.y)<23)leaveDimension()}
   return true;
  }
@@ -4521,7 +4588,7 @@ function paintDimensionCreature(g,e,phase){
  const q=e.dimensionMob,r=e.r||10,p=reduceMotion?0:Math.round(Math.sin(phase)*2);g.save();
  g.fillStyle='#140c1b';g.beginPath();g.moveTo(-r-4,7);g.lineTo(-r,-r);g.lineTo(-r*.45,-r-10);g.lineTo(r*.45,-r-10);g.lineTo(r,-r);g.lineTo(r+4,7);g.lineTo(0,3+p);g.closePath();g.fill();
  g.fillStyle=q.color;switch(q.mark){case 0:for(let i=-r+3;i<r;i+=5)g.fillRect(i,-r-3,2,10);break;case 1:for(let i=-r+2;i<r;i+=5){g.fillRect(i,-r,2,9);g.fillRect(i+1,1,3,2)}break;case 2:g.fillRect(-r,-r-5,r*2,2);g.fillRect(-r,-r-4,2,r);g.fillRect(r-2,-r-4,2,r);break;default:g.fillRect(-r+2,-r-7,r*2-4,3);g.fillRect(-2,-r-10,4,13)}
- g.fillStyle='#f5ddd4';g.fillRect(-5,-r+2,3,2);g.fillRect(3,-r+2,3,2);if(q.guardian){g.strokeStyle=q.color;g.strokeRect(-r-3,-r-13,r*2+6,r*2+15)}g.restore();
+ g.fillStyle='#f5ddd4';g.fillRect(-5,-r+2,3,2);g.fillRect(3,-r+2,3,2);if(q.guardian){g.strokeStyle=q.color;g.strokeRect(-r-3,-r-13,r*2+6,r*2+15);if(q.phase>=2){g.fillStyle=q.color;for(let i=-1;i<=1;i+=2){g.fillRect(i*r-2,-r-12,4,9);g.fillRect(i*(r+3)-2,-r-3,4,12)}if(q.phase>=3){g.fillStyle='#f9d6c4';g.fillRect(-3,-r-15,6,6);g.strokeRect(-r-7,-r-17,r*2+14,r*2+24)}}}g.restore();
 }
 function paintExpandedTerrain(g,id,left,top,width,height){
  const t=terrainThemes[id]||terrainThemes.kitchen;
@@ -8552,7 +8619,7 @@ function renderFrameDeadline(now,deadline,force=false){
  return deadline+period*Math.max(1,Math.floor((now+.75-deadline)/period)+1);
 }
 let hudElapsed=1,previousFrameState='',previousFrameWave=0,nextDailyRefresh=0,renderDeadline=NaN;
-function frame(now){checkNetWatchdog(Date.now());if(document.hidden){last=now;acc=0;hudElapsed=1;renderDeadline=NaN;requestAnimationFrame(frame);return}const raw=last?Math.max(0,Math.min(.1,(now-last)/1000||0)):0;last=now;if(state==='menu'&&now>=nextDailyRefresh){nextDailyRefresh=now+30000;refreshDailyDate()}const step=1/60;const active=state==='game'||state==='death'||(onlineMode&&isOnlineHost&&state==='pause');if(active){acc+=raw;while(acc>=step){update(step);acc-=step;if(state!=='game'&&state!=='death'&&!(onlineMode&&isOnlineHost&&state==='pause')){acc=0;break}}}else{acc=0;updateNpc(0)}shake=Math.max(0,shake-raw);hudElapsed+=raw;const changed=state!==previousFrameState||wave!==previousFrameWave;if(state==='game'&&(changed||hudElapsed>=1/20)){updateHud();hudElapsed=0}renderTutorial();if(state==='menu'){if(changed)drawRemoteArrow();renderDeadline=NaN;}else if(state==='game'||state==='death'||changed){const due=renderFrameDeadline(now,renderDeadline,changed);if(due!==null){renderDeadline=due;render()}}previousFrameState=state;previousFrameWave=wave;requestAnimationFrame(frame)}
+function frame(now){checkNetWatchdog(Date.now());if(document.hidden){last=now;acc=0;hudElapsed=1;renderDeadline=NaN;requestAnimationFrame(frame);return}const raw=last?Math.max(0,Math.min(.1,(now-last)/1000||0)):0;last=now;if(state==='menu'&&now>=nextDailyRefresh){nextDailyRefresh=now+30000;refreshDailyDate()}const step=1/60;const active=state==='game'||state==='death'||(onlineMode&&isOnlineHost&&state==='pause');if(active){acc+=raw;while(acc>=step){update(step);acc-=step;if(state!=='game'&&state!=='death'&&!(onlineMode&&isOnlineHost&&state==='pause')){acc=0;break}}}else{acc=0;updateNpc(0)}shake=Math.max(0,shake-raw);hudElapsed+=raw;const changed=state!==previousFrameState||wave!==previousFrameWave;if(state==='game'&&(changed||hudElapsed>=1/20)){updateHud();hudElapsed=0}renderTutorial();if(state==='menu'){if(changed)drawRemoteArrow();menuArtwork(()=>paintLiveMenu(now));renderDeadline=NaN;}else if(state==='game'||state==='death'||changed){const due=renderFrameDeadline(now,renderDeadline,changed);if(due!==null){renderDeadline=due;render()}}previousFrameState=state;previousFrameWave=wave;requestAnimationFrame(frame)}
 // All terrain, lighting, art and menu dependencies are initialized at this point.
 setLanguage(lang);
 setMenuTab('home');
