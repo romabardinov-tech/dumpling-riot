@@ -4226,10 +4226,7 @@ function pixelArenaEnemy(g,type,phase,lunge,attack){
  const R=(col,x,y,w,h)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
  const P=(col,p)=>{g.fillStyle=col;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
  const ink='#100b15',step=Math.round(Math.sin(phase*2)*2);
- if(type==='boneWalker'){
-  for(const s of [-1,1]){const x=s<0?-7:3;R(ink,x-1,2,5,13+step*s);R('#bba996',x,3,3,11+step*s);R('#e4d7ba',x,11+step*s,5,2);P(ink,[s*5,-10,s*12,-7,s*15,4+step*s,s*11,8+step*s,s*8,-3]);P('#c6b69e',[s*6,-9,s*10,-6,s*13,4+step*s,s*11,5+step*s,s*9,-3])}
-  R(ink,-9,-24,18,16);R('#e0d2b7',-7,-22,14,12);R('#9b8a81',-6,-11,12,4);R(ink,-5,-18,4,4);R(ink,2,-18,4,4);R('#a8d8c1',-4,-17,2,2);R('#a8d8c1',3,-17,2,2);R(ink,-1,-14,2,2);R('#b9a68f',-2,-8,4,13);for(let i=0;i<4;i++){R('#d9c6ab',-6,-7+i*3,12-i*2,2);R(ink,-1,-7+i*3,2,2)}
- }else if(type==='sporeBeetle'){
+ if(type==='sporeBeetle'){
   for(const s of [-1,1])for(let i=0;i<3;i++){const y=-5+i*5;P(ink,[s*6,y,s*13,y-3,s*16,y+2+step,s*12,y+4+step,s*6,y+3]);R('#7b9160',s<0?-14:11,y+step,3,2)}
   P(ink,[-10,-12,-5,-17,5,-17,11,-10,12,5,6,11,-6,11,-12,5]);P('#3d5039',[-8,-11,-4,-15,4,-15,9,-9,10,4,5,9,-5,9,-10,4]);R('#84934c',-7,-11,14,6);R('#c7db75',-5,-13,4,3);R('#d6ed98',3,-10,3,3);R('#d3f4a4',-5,0,3,2);R('#d3f4a4',2,0,3,2);R('#23372a',-2,-7,2,15);R('#728650',-7,5,5,2);R('#728650',2,5,5,2);
  }else if(type==='rootHorror'){
@@ -4450,7 +4447,77 @@ function pixelIndustrialEnemy(g,type,phase=0,lunge=0,attack=1){
  if(ready){R('#f7ca8b',-2,-30,4,2);R('#f7ca8b',-1,-33,2,2)}
  g.restore();return true;
 }
+// V69.5 — Graveyard Horrors. Four distinct cemetery spirits and undead.
+function pixelGraveyardEnemy(g,type,phase=0,lunge=0,attack=1){
+ if(type!=='boneWalker'&&type!=='hands'&&type!=='stalker'&&type!=='feaster')return false;
+ const R=(c,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ const ink='#100b15',bone='#c3b69d',hi='#e4d6b6',t=reduceMotion||!Number.isFinite(phase)?0:phase,step=Math.round(Math.sin(t*1.9)*2),ready=attack>=0&&attack<.18;
+ g.save();
+ if(type==='boneWalker'){
+  // Deliberately open rib cage, broken skull, long articulated bones.
+  for(const s of [-1,1]){
+   const d=step*s;P(ink,[s*3,0,s*8,2,s*10,8+d,s*11,13+d*.5,s*4,14+d*.5,s*4,9+d]);
+   P(bone,[s*4,2,s*6,3,s*8,8+d,s*9,12+d*.5,s*6,12+d*.5,s*6,8+d]);R(hi,s<0?-10:6,12+d*.5,4,1);
+   P(ink,[s*5,-15,s*12,-12,s*17,-4+d,s*15,4+d,s*11,6+d,s*10,0+d,s*12,-4+d,s*7,-9]);
+   P('#a7998a',[s*6,-13,s*10,-11,s*15,-4+d,s*13,3+d,s*12,3+d,s*12,-1+d,s*13,-4+d,s*7,-11]);R(hi,s<0?-15:13,-5+d,2,3);
+  }
+  R(ink,-3,-16,6,22);R(bone,-1,-15,3,19);
+  for(let i=0;i<4;i++){const y=-13+i*4,w=8-i;P(ink,[-w-1,y-1,w+1,y-1,w+2,y+3,3,y+5,-3,y+5,-w-2,y+3]);R(bone,-w,y,w*2,2);R(hi,-w,y,4,1);R('#5b514b',-w+1,y+2,2,2);R('#5b514b',w-2,y+2,2,2)}
+  P(ink,[-10,-26,-6,-31,5,-30,10,-25,9,-18,5,-14,-5,-14,-9,-18]);P(bone,[-8,-25,-5,-29,4,-28,8,-24,7,-19,4,-16,-4,-16,-7,-19]);R(hi,-5,-28,8,2);
+  R(ink,-6,-24,5,4);R(ink,1,-24,5,4);R('#b9d7b7',-5,-23,2,2);R('#b9d7b7',2,-23,2,2);R(ink,-1,-19,2,2);R('#82746e',-4,-16,8,1);R('#645954',5,-28,1,5);R('#645954',3,-25,3,1);
+  if(ready){R('#d5e7ac',-5,3,10,1)}
+ }else if(type==='hands'){
+  // Two crawling grave hands; no humanoid torso, articulated finger tips.
+  for(const s of [-1,1]){
+   const d=step*s,x=s*14;
+   P(ink,[s*2,-3,s*7,-12+d,s*19,-14+d,s*25,-6+d,s*24,6+d,s*17,12+d,s*7,9+d,s*3,4]);
+   P('#755664',[s*4,-2,s*8,-10+d,s*18,-12+d,s*23,-5+d,s*22,5+d,s*16,10+d,s*8,7+d,s*5,3]);
+   P('#a68b8d',[s*9,-7+d,s*18,-9+d,s*20,-2+d,s*17,5+d,s*10,4+d]);R('#c3a6a1',x-3,-5+d,6,2);
+   for(let i=0;i<4;i++){const xx=s*(8+i*4),yy=-12-(i%2)*5+d+(i%2?step:0);
+    R(ink,xx-2,yy-5,5,12);R('#96777f',xx-1,yy-4,3,9);R('#d4bbab',xx-1,yy-4,2,3);R('#5c4255',xx-1,yy+2,3,1)
+   }
+   P(ink,[s*7,0,s*2,-7+d,s*0,-5+d,s*2,3+d,s*6,6]);P('#b29492',[s*6,0,s*2,-4+d,s*2,-2+d,s*3,2+d,s*5,4]);
+   R('#3c2938',x-4,1+d,8,3);R('#b9d7b7',x-2,1+d,4,1);
+  }
+  R('#3d2c39',-4,4,8,3);R('#987e80',-2,5,4,1);
+ }else if(type==='stalker'){
+  // Tall tattered burial shroud, narrow hollow mask and scythe-like fingers.
+  const d=step,l=lunge>0?2:0;
+  for(const s of [-1,1]){const k=step*s;P(ink,[s*2,1,s*7,4,s*10,10+k,s*14,13+k*.5,s*6,14+k*.5,s*3,8]);P('#584555',[s*3,3,s*6,5,s*8,10+k,s*11,12+k*.5,s*7,12+k*.5,s*5,8])}
+  P(ink,[-10,-18,-6,-28,2,-32,9,-28,13,-18,11,-6,15,8+d,8,6,4,13-d,-3,9,-10,13+d,-14,3,-11,-6]);
+  P('#3b3045',[-8,-17,-5,-26,2,-30,7,-26,11,-17,9,-6,12,6+d,7,4,4,10-d,-3,7,-9,10+d,-11,2,-9,-6]);
+  P('#64536a',[-7,-16,-4,-25,1,-28,-1,-18,-3,3,-7,8+d,-9,1]);R('#88737e',-5,-25,2,8);
+  P('#ada09b',[-5,-23,2,-25,7,-20,5,-11,1,-8,-4,-12,-7,-19]);R(ink,-4,-20,9,5);R('#e5bfc0',-3,-19,3,2);R('#e5bfc0',2,-19,3,2);R('#5b4b55',-1,-14,3,3);
+  for(const s of [-1,1]){
+   const k=step*s;P(ink,[s*9,-13,s*17,-10,s*(22+l),1+k,s*(25+l),7+k,s*19,10+k,s*14,4,s*10,-2]);
+   P('#655363',[s*10,-11,s*16,-8,s*(20+l),1+k,s*(23+l),6+k,s*19,8+k,s*15,3,s*11,-2]);
+   P(bone,[s*19,6+k,s*(25+l),8+k,s*22,12+k,s*19,9+k]);R('#9e8584',s<0?-17:14,-7,3,3);
+  }
+  if(horrorFx&&!reduceMotion&&lunge>0){const a=g.globalAlpha;g.globalAlpha=a*.3;R('#aa8da5',-18,-1,4,9);R('#75637e',16,0,3,8);g.globalAlpha=a}
+ }else{
+  // Crypt Feaster: a hunched sarcophagus-like torso and expanding skeletal jaw.
+  for(const s of [-1,1]){
+   const d=step*s;P(ink,[s*8,5,s*16,5,s*19,12+d,s*14,14+d*.5,s*7,14+d*.5,s*7,9]);
+   P('#6f535b',[s*9,6,s*14,6,s*17,11+d,s*14,12+d*.5,s*9,12+d*.5]);R('#aa8278',s<0?-15:9,10+d,6,1);
+   P(ink,[s*13,-12,s*22,-9,s*27,0+d,s*28,8+d,s*21,12+d,s*15,5]);
+   P('#79515a',[s*15,-10,s*21,-7,s*25,0+d,s*26,7+d,s*21,10+d,s*16,4]);R('#b59489',s<0?-24:21,2+d,3,5);
+  }
+  P(ink,[-17,-17,-11,-25,10,-25,17,-18,21,-3,19,7,12,13,-12,13,-19,7,-21,-3]);
+  P('#6d4a54',[-15,-16,-10,-23,9,-23,15,-17,19,-3,17,6,11,11,-11,11,-17,6,-19,-3]);
+  P('#aa9387',[-12,-21,-7,-25,7,-25,13,-19,11,-10,-11,-10]);R('#c8b49d',-7,-23,14,2);
+  R(ink,-10,-19,20,7);R('#dfb99e',-8,-17,5,2);R('#dfb99e',3,-17,5,2);R('#8e6c70',-2,-14,4,2);
+  const jaw=ready?4:step+2;
+  P(ink,[-15,-8,15,-8,17,1,12,7+jaw,-12,7+jaw,-17,1]);R('#55303e',-12,-4,24,8+jaw);
+  for(let i=0;i<6;i++){R(hi,-13+i*5,-8,3,4);R(bone,-12+i*5,3+jaw,3,3)}
+  R('#a78678',-13,10,26,1);for(const x of [-15,12]){R('#b7a28e',x,-9,2,5);R('#59414a',x,4,2,3)}
+ }
+ if(lunge>0){R('#e3a67a',-9,12,5,1);R('#e3a67a',4,12,5,1)}
+ if(ready){R('#f7ca8b',-2,-30,4,2);R('#f7ca8b',-1,-33,2,2)}
+ g.restore();return true;
+}
 function pixelEnemy(g,type,phase=0,lunge=0,attack=1){
+ if(pixelGraveyardEnemy(g,type,phase,lunge,attack))return;
  if(pixelIndustrialEnemy(g,type,phase,lunge,attack))return;
  if(pixelFoodcourtEnemy(g,type,phase,lunge,attack))return;
  if(pixelBasementEnemy(g,type,phase,lunge,attack))return;
@@ -4465,22 +4532,12 @@ function pixelEnemy(g,type,phase=0,lunge=0,attack=1){
  const arms=(d,m,w=13)=>{for(const s of [-1,1]){const t=s*step;P(ink,[s*7,-8,s*(w+2),-5,s*(w+4),6+t,s*w,12+t,s*8,4]);P(d,[s*8,-6,s*w,-4,s*(w+2),6+t,s*w,9+t,s*9,3]);R(m,s<0?-w:w-2,-3,2,5);R(bone,s<0?-w-2:w,9+t,2,3)}};
  const shell=(d,m,l,w=12,h=16)=>{P(ink,[-w,-h+5,-w+5,-h,w-5,-h,w,-h+5,w+1,5,w-5,12,-w+5,12,-w-1,5]);P(d,[-w+2,-h+5,-w+6,-h+2,w-6,-h+2,w-2,-h+5,w-1,5,w-5,10,-w+5,10,-w+1,5]);P(m,[-w+3,-h+5,-w+7,-h+3,w-7,-h+3,w-3,-h+5,w-5,7,-w+5,7]);R(l,-w+6,-h+3,w,2);R(d,w-5,-h+7,3,h+2)};
  const teeth=(y,w=14)=>{R(ink,-w/2,y,w,5+jaw);for(let x=-w/2+1;x<w/2-1;x+=3){R(bone,x,y,2,2);R('#a48777',x+1,y+3+jaw,1,1)}};
- if(type==='feaster'){
-  const big=type!=='plate',w=type==='maw'?17:big?15:12;legs('#48232e','#9b5955');if(big)arms('#642d39','#a85352',w);
-  shell(type==='plate'?'#625057':'#622d39',type==='plate'?'#a38778':'#9b464b','#d1a68e',w,big?16:12);eyes(-6,big?'#ffb06e':'#ff7070');teeth(1,big?w*2-6:14);
-  R('#753c44',-w+3,8,w*2-6,2);if(big){R('#e48c72',-w+3,-3,2,4);R('#642b36',w-5,5,3,3)}
- }else if(type==='parasite'){
+ if(type==='parasite'){
   const green=type==='parasite',d=green?'#273c2b':'#452934',m=green?'#638748':'#965458',l=green?'#b8ce75':'#ce897a';
   for(const s of [-1,1])for(let i=0;i<3;i++){const y=-7+i*6,t=s*(i%2?step:-step);P(ink,[s*5,y,s*12,y-5+t,s*16,y+1+t,s*14,y+6+t,s*10,y+1,s*5,y+3]);P(d,[s*7,y,s*12,y-3+t,s*14,y+1+t,s*12,y+3+t,s*9,y+1]);R(l,s<0?-15:13,y+3+t,2,2)}
   shell(d,m,l,9,12);for(let i=0;i<3;i++){R(m,-6,-10+i*5,12,3);R(l,-5,-10+i*5,6,1)}eyes(-2,green?'#d7ff9a':'#ff9690');teeth(4,10);
- }else if(type==='stalker'){
-  const purple=type==='wretch',d=purple?'#38263f':'#2b1d2a',m=purple?'#735484':'#75424f',l=purple?'#bf99db':'#c68a88';
-  legs(d,m);arms(d,m,13);shell(d,m,l,10,21);P('#c8a9a2',[-6,-17,4,-18,7,-12,4,-5,-4,-5,-7,-10]);R('#957884',3,-15,3,7);eyes(-13,purple?'#e3beff':'#ff7777');teeth(-5,10);R(m,-3,2,6,4);R(l,-2,2,2,3);
  }else if(type==='spitter'){
   legs('#2a3d32','#64844e');shell('#2b4838','#548354','#a7cf7c',12,14);eyes(-7,'#c2ffa5');P(ink,[-7,-1,7,-1,9,5,5,9,-5,9,-9,5]);R('#87c66b',-5,4,10,3);R('#c8f5a5',-2,3,4,2);R('#79a964',-3,9,2,3+jaw);R('#79a964',3,10,1,2+jaw);
- }else if(type==='hands'){
-  shell('#503741','#8b626b','#c09392',8,13);eyes(-6);
-  for(const s of [-1,1]){P(ink,[s*7,-5,s*15,-8,s*20,-2+step*s,s*19,8+step*s,s*12,10,s*8,5]);P('#90666d',[s*9,-4,s*14,-6,s*18,-1+step*s,s*17,6+step*s,s*12,8,s*10,4]);for(let i=0;i<3;i++){const x=s<0?-20+i*4:10+i*4;R(ink,x,-12-i%2*3+step*s,4,9);R('#b58b89',x+1,-11-i%2*3+step*s,2,7);R(bone,x+1,-13-i%2*3+step*s,2,2)}}teeth(3,10);
  }else{shell('#392834','#8a5361','#c88a86',10,13);eyes(-6);teeth(3)}
  if(lunge>0){R('#e3a67a',-9,12,5,1);R('#e3a67a',4,12,5,1)}
  if(attack>=0&&attack<.18){R('#f7ca8b',-2,-29,4,2);R('#f7ca8b',-1,-32,2,2)}
