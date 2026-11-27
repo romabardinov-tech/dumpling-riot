@@ -309,3 +309,6 @@ Default npm run build:mobile now creates offline-release (solo + local co-op, no
 
 ## V75.9 — Main menu audit and clarity
 Settings moved out of the fixed footer into a scrollable dedicated menu screen, keeping start/continue visible without expanding the footer. Home groups altar/archive/daily/abyss cards; compact and safe-area styles. Saved solo continue/discard hidden and guarded while co-op is selected, preserving save and preventing stale network state. Online guest start explicitly opens room panel with waiting message. Three isolated UI suites passed; actual viewport screenshots, touch tests, live network and device verification remain outstanding.
+
+## V75.10 — Critical menu startup fix and authored home cards
+Reproduced full-script boot failure: mapThumbnail called paintArenaLighting before arenaLightingProfiles initialized. Deferred single initial menu build until all renderer dependencies and error listeners initialized. Added nonempty static fallback names, localized prominent action titles, secondary metadata, five custom pixel SVG icons, consistent panel geometry and readable typography at portrait/landscape sizes. Full script executes in RU/EN and online/offline profiles using strict ID DOM/Canvas doubles; no actual browser screenshot/device verification. Previous isolated UI tests did not catch initialization-order regression.
