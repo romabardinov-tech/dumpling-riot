@@ -1411,6 +1411,11 @@ function recordHeroQuest(event,amount=1,target=null){
  if(state!=='game'||waveState!=='fighting'||!soloRun||player.dead)return false;
  return advanceHeroQuest(soloRun,event,amount,target,questTargets);
 }
+function golemQuestHit(cast,e,record){
+ if(!cast||cast.done||!e||cast.targets.has(e))return false;
+ cast.targets.add(e);if(cast.targets.size<3)return false;
+ cast.done=true;return record('golemCrowd',1,cast);
+}
 function projectileQuestEvent(p){
  if(p.owner!=='p1')return null;
  return p.artHero==='vesa'&&p.bleed?'vesaBleed':p.artHero==='assassin'&&p.poison?'shivPoison':null;
@@ -1445,7 +1450,7 @@ function dailyPreset(date){
 function validDailyRun(run,w){
  if(run.daily==null)return true;
  const q=dailyPreset(run.daily);
- return !!(q&&run.campaign===null&&run.hero===q.hero&&run.startMap===q.map&&run.contract===q.contract&&run.modifier===q.modifier&&w<=DAILY_GOAL);
+ return !!(q&&run.campaign===null&&run.hero===q.hero&&run.startMap===q.map&&run.contract===q.contract&&run.modifier===q.modifier&&Number.isInteger(w)&&w>=1&&w<=DAILY_GOAL);
 }
 function dailyBonusAvailable(data,date,today=dailyDate()){
  return validDailyDate(date)&&date<=today&&(!validDailyDate(data.dailyClaim)||date>data.dailyClaim);
@@ -1456,15 +1461,23 @@ function claimDailyBonus(data,run,today=dailyDate()){
 }
 function dailyCompleted(run){return !!(run?.daily&&run.cleared>=DAILY_GOAL)}
 function renderDaily(){
- const q=dailyPreset(dailyDate()),b=document.getElementById('dailyHome');
+ const q=dailyPreset(dailyDate()),b=document.getElementById('dailyHome');b.dataset.date=q.date;
  document.getElementById('dailyHomeLabel').textContent=L('DAILY CHALLENGE','ЕЖЕДНЕВНОЕ ИСПЫТАНИЕ')+' · '+q.date+' UTC';
  document.getElementById('dailyHomeValue').textContent=locName(chars.find(h=>h.id===q.hero))+' · '+locName(maps.find(m=>m.id===q.map)).split(' — ')[0]+' · '+metaLabel(contractFor(q.contract))+' · '+metaLabel(modifierFor(q.modifier))+' · '+L('10 waves','10 волн')+' · '+(dailyBonusAvailable(meta,q.date)?'◆ +20':L('Bonus claimed','Бонус получен'));
  b.disabled=!!savedCheckpoint||coop||onlineMode;
  b.title=b.disabled?L('Finish saved run or select solo first','Заверши сохранённый забег или выбери соло'):L('No permanent upgrades; random loot remains','Без постоянных усилений; случайный лут сохраняется');
 }
-function restoreDailyMenu(){
- const q=menuChoiceDefaults(readStorage('dumpling-riot-hero',''),readStorage('dumpling-riot-arena',''));
- selectedChar=q.hero;selectedMap=q.map;
+let specialMenuSnapshot=null;
+function rememberSpecialMenu(){
+ if(!specialMenuSnapshot)specialMenuSnapshot={hero:selectedChar,map:selectedMap,campaign:campaignMode};
+}
+function restoreSpecialMenu(){
+ const q=specialMenuSnapshot||menuChoiceDefaults(readStorage('dumpling-riot-hero',''),readStorage('dumpling-riot-arena',''));
+ selectedChar=q.hero;selectedMap=q.map;campaignMode=!!q.campaign;specialMenuSnapshot=null;
+}
+function refreshDailyDate(){
+ if(state!=='menu')return;
+ const b=document.getElementById('dailyHome');if(b.dataset.date!==dailyDate())renderDaily();
 }
 // V73.8 — Post-campaign Abyss: three ranks, finite trials, first-clear rewards.
 const ABYSS_GOAL=15;
@@ -1503,6 +1516,8 @@ function renderAbyss(){
  b.disabled=!q||!!savedCheckpoint||coop||onlineMode;
  b.title=q?L('Three acts: extra enemies, less refuge charge, stronger final boss. Choose hero and arena first.','Три этапа: больше врагов, меньше света, сильнее финальный босс. Сначала выбери героя и арену.'):L('Finish the campaign','Заверши кампанию');
 }
+function runWaveLimit(run){return run?.daily?DAILY_GOAL:run?.abyss?ABYSS_GOAL:run?.campaign?FINAL_WAVE:Infinity}
+function canExtractRun(run){return !!(run&&!run.closed&&!run.daily&&!run.abyss&&run.cleared>=10)}
 function normalizeRunHistory(raw){
  if(!Array.isArray(raw))return [];
  return raw.slice(0,12).filter(q=>q&&chars.some(c=>c.id===q.hero)&&['won','escaped','dead','abandoned'].includes(q.outcome)).map(q=>{
@@ -1533,10 +1548,10 @@ function unlockAchievements(data,round,contract,escaped=false){
  const unlocked=[];for(const a of metaAchievements)if(checks[a.id]&&!data.achievements.includes(a.id)){data.achievements.push(a.id);unlocked.push(a.id)}return unlocked;
 }
 function clearWaveReward(data,run,round,map){
- if(!run||run.closed||!Number.isInteger(round)||round!==run.cleared+1||!Object.hasOwn(data.maps,map))return 0;
+ if(!run||run.closed||!Number.isInteger(round)||round!==run.cleared+1||round>runWaveLimit(run)||!Object.hasOwn(data.maps,map))return 0;
  const extra=clearCurseBonus(run,round);run.cleared=round;const n=waveReward(round,run.contract)+extra+claimDailyBonus(data,run)+claimAbyssBonus(data,run);run.earned+=n;data.shards=Math.min(1000000000,data.shards+n);data.best=Math.max(data.best,round);data.maps[map]=Math.max(data.maps[map],campaignRound(run,round));unlockAchievements(data,round,run.contract);return n;
 }
-function finishMetaRun(data,run,escaped,outcome='abandoned'){if(!run||run.closed||escaped&&run.cleared<10)return false;run.closed=true;data.runs=metaInt(data.runs+1);data.kills=metaInt(data.kills+run.kills);if(escaped){data.escapes=metaInt(data.escapes+1);const n=10*contractFor(run.contract).mult;run.earned+=n;data.shards=metaInt(data.shards+n);unlockAchievements(data,run.cleared,run.contract,true)}rememberRun(data,run,escaped||dailyCompleted(run)||abyssCompleted(run),outcome);return true}
+function finishMetaRun(data,run,escaped,outcome='abandoned'){if(!run||run.closed||escaped&&!canExtractRun(run))return false;run.closed=true;data.runs=metaInt(data.runs+1);data.kills=metaInt(data.kills+run.kills);if(escaped){data.escapes=metaInt(data.escapes+1);const n=10*contractFor(run.contract).mult;run.earned+=n;data.shards=metaInt(data.shards+n);unlockAchievements(data,run.cleared,run.contract,true)}rememberRun(data,run,escaped||dailyCompleted(run)||abyssCompleted(run),outcome);return true}
 function chooseOmen(round,random=Math.random){return round>=3&&round%5!==0&&random()<.38?waveOmens[1+Math.min(2,Math.floor(random()*3))]:waveOmens[0]}
 function applyRitual(p,id){if(id==='heal'){p.hp=Math.min(p.maxhp,p.hp+p.maxhp*.5)}else if(id==='blood'){p.maxhp=Math.max(1,Math.floor(p.maxhp*.85));p.hp=Math.min(p.hp,p.maxhp);p.boost.dmg*=1.2}else if(id==='supply'){p.bomb=Math.min(9,p.bomb+2);p.boost.move*=1.08}else return false;return true}
 // V56: optional side rooms between waves. No new network or persistent rewards.
@@ -2970,7 +2985,7 @@ function openRitual(){
  const box=document.getElementById('ritualChoices');box.replaceChildren();
  const offered=curseOffer(soloRun,wave);const options=offered?[...ritualChoices,{...offered,id:'curse:'+offered.id,descEn:offered.descEn+' · 5 waves · +3 shards per clear',descRu:offered.descRu+' · 5 волн · +3 осколка за зачистку'}]:ritualChoices;
  for(const q of options){const b=document.createElement('button');b.type='button';b.className='ritualOption'+(q.id.startsWith('curse:')?' curseChoice':'');const h=document.createElement('b'),d=document.createElement('small');h.textContent=metaLabel(q);d.textContent=metaDesc(q);b.append(h,d);b.onclick=()=>{if(state!=='ritual')return;if(q.id.startsWith('curse:')){if(!acceptCurse(soloRun,wave,q.id.slice(6)))return}else if(!applyRitual(player,q.id))return;if(soloRun.campaign&&openCampaignRoute())return;el.hidden=true;state='game';setMobileControls(true);wave++;beginWave()};box.append(b)}
- const extract=document.getElementById('extractBtn');extract.hidden=soloRun.cleared<10||!!soloRun.abyss;extract.textContent=L('Extract alive · bonus shards','Спастись живым · бонусные осколки');
+ const extract=document.getElementById('extractBtn');extract.hidden=!canExtractRun(soloRun);extract.textContent=L('Extract alive · bonus shards','Спастись живым · бонусные осколки');
  el.hidden=false;
 }
 function refreshMenuHome(hero,map,mode){
@@ -2996,7 +3011,7 @@ document.getElementById('horrorFxToggle').addEventListener('click',()=>{horrorFx
 document.getElementById('soundToggle').addEventListener('click',()=>{const p=document.getElementById('soundPanel');p.hidden=!p.hidden;document.getElementById('soundToggle').setAttribute('aria-expanded',String(!p.hidden))});
 document.getElementById('npcVoiceToggle').addEventListener('click',()=>{npcVoiceEnabled=!npcVoiceEnabled;writeStorage('dumpling-riot-npc-voice',npcVoiceEnabled?'1':'0');if(!npcVoiceEnabled)try{window.speechSynthesis?.cancel()}catch(_){}updateSoundPanel()});
 document.getElementById('musicVolume').addEventListener('input',e=>{musicVolume=Math.max(0,Math.min(100,Number(e.target.value)||0));writeStorage('dumpling-riot-music-volume',String(musicVolume));applyMusicVolume();updateSoundPanel()});
-document.getElementById('extractBtn').addEventListener('click',()=>{if(state==='ritual'&&soloRun&&soloRun.cleared>=10&&wave>=10)endGame(true,true)});
+document.getElementById('extractBtn').addEventListener('click',()=>{if(state==='ritual'&&canExtractRun(soloRun)&&wave>=10)endGame(true,true)});
 document.getElementById('privacyBtn').addEventListener('click',()=>{location.href='./privacy.html'});
 document.getElementById('tutorialToggle').addEventListener('click',()=>setTutorialEnabled(!tutorialEnabled));
 document.getElementById('tutorialSkip').addEventListener('click',()=>{if(!tutorial||state!=='game')return;setTutorialEnabled(false);tutorial=null;renderTutorial()});
@@ -3035,7 +3050,7 @@ let savedCheckpoint=readCheckpoint(),saveAtBoundary=false;
 function checkpointNotice(message){const el=document.getElementById('checkpointNotice');el.textContent=message;el.hidden=!message}
 function renderCheckpointMenu(){
  const el=document.getElementById('checkpointMenu'),go=document.getElementById('continueRunBtn'),discard=document.getElementById('discardRunBtn');el.hidden=!savedCheckpoint;
- if(savedCheckpoint){const q=savedCheckpoint,m=maps.find(m=>m.id===q.map),ch=chars.find(c=>c.id===q.run.hero);go.textContent=L('Continue','Продолжить')+' · '+L('Wave','Волна')+' '+q.wave+' · '+locName(ch)+' · '+locName(m).split(' — ')[0];discard.textContent=L('Discard save','Удалить забег')}
+ if(savedCheckpoint){const q=savedCheckpoint,m=maps.find(m=>m.id===q.map),ch=chars.find(c=>c.id===q.run.hero);go.textContent=L('Continue','Продолжить')+(q.run.daily?' · '+L('Daily','День')+' '+q.run.daily:q.run.abyss?' · '+L('Abyss','Бездна')+' '+q.run.abyss:'')+' · '+L('Wave','Волна')+' '+q.wave+' · '+locName(ch)+' · '+locName(m).split(' — ')[0];discard.textContent=L('Discard save','Удалить забег')}
  document.getElementById('startBtn').disabled=!!savedCheckpoint&&!coop&&!onlineMode;renderDaily();renderAbyss();
 }
 function consumeCheckpoint(storage,expected){
@@ -3046,14 +3061,14 @@ function suspendAtBoundary(){
  saveAtBoundary=false;
  const q={v:1,wave,map:selectedMap,weapon,score,combo,fear:nightmare?.fear||0,relic:!!relicOwned,run:cpPick(soloRun,checkpointRunFields),player:cpPick(player,checkpointPlayerFields),drops:drops.filter(d=>d.life>0).map(d=>cpPick(d,['x','y','type','value','artifact','life','pulse']))};
  try{const raw=JSON.stringify(q);if(!validCheckpoint(q)||parseCheckpoint(localStorage.getItem(CHECKPOINT_KEY)))throw Error('checkpoint unavailable');const current=JSON.stringify(meta);localStorage.setItem(META_KEY,current);if(localStorage.getItem(META_KEY)!==current)throw Error('meta save');localStorage.setItem(CHECKPOINT_KEY,raw);if(localStorage.getItem(CHECKPOINT_KEY)!==raw)throw Error('run save');savedCheckpoint=JSON.parse(raw)}catch(_){toast(L('SAVE FAILED · RUN STILL ACTIVE','НЕ УДАЛОСЬ СОХРАНИТЬ · ЗАБЕГ ПРОДОЛЖАЕТСЯ'));toastTimer=4;return false}
- const start=soloRun.startMap,isDaily=!!soloRun.daily;soloRun=null;selectedMap=start;if(isDaily)restoreDailyMenu();goMenu();checkpointNotice(L('Run saved on this device. You can close the game.','Забег сохранён на устройстве. Игру можно закрыть.'));return true;
+ const start=soloRun.startMap,special=!!(soloRun.daily||soloRun.abyss);soloRun=null;selectedMap=start;if(special)restoreSpecialMenu();goMenu();checkpointNotice(L('Run saved on this device. You can close the game.','Забег сохранён на устройстве. Игру можно закрыть.'));return true;
 }
 function requestBoundarySave(){
  if(state!=='pause'||!soloRun||soloRun.closed||savedCheckpoint)return;
  saveAtBoundary=true;togglePause();toast(L('Save after this wave and any rest-stop choices','Сохранение после этой волны и выбора наград'));toastTimer=4;
 }
 document.getElementById('saveExitBtn').onclick=requestBoundarySave;
-document.getElementById('continueRunBtn').onclick=()=>{if(state!=='menu'||!savedCheckpoint)return;const q=consumeCheckpoint(localStorage,savedCheckpoint);if(!q){checkpointNotice(L('Cannot read or consume save. Run not started.','Не удалось открыть сохранение. Забег не запущен.'));return}savedCheckpoint=null;coop=false;onlineMode=false;isOnlineHost=false;isOnlineGuest=false;campaignMode=!!q.run.campaign;selectedChar=q.run.hero;selectedMap=q.map;if(!q.run.daily&&!q.run.abyss)selectedContract=q.run.contract;checkpointNotice('');startGame(false,q)};
+document.getElementById('continueRunBtn').onclick=()=>{if(state!=='menu'||!savedCheckpoint)return;const q=consumeCheckpoint(localStorage,savedCheckpoint);if(!q){checkpointNotice(L('Cannot read or consume save. Run not started.','Не удалось открыть сохранение. Забег не запущен.'));return}savedCheckpoint=null;if(q.run.daily||q.run.abyss)rememberSpecialMenu();coop=false;onlineMode=false;isOnlineHost=false;isOnlineGuest=false;campaignMode=!!q.run.campaign;selectedChar=q.run.hero;selectedMap=q.map;if(!q.run.daily&&!q.run.abyss)selectedContract=q.run.contract;checkpointNotice('');startGame(false,q)};
 document.getElementById('discardRunBtn').onclick=()=>{if(state!=='menu'||!savedCheckpoint||!window.confirm(L('Discard this suspended run? Banked shards are kept.','Удалить сохранённый забег? Полученные осколки останутся.')))return;const q=consumeCheckpoint(localStorage,savedCheckpoint);if(!q){checkpointNotice(L('Cannot remove save','Не удалось удалить сохранение'));return}savedCheckpoint=null;checkpointNotice('');makeMenu()};
 function makeMenu(){
  if(!heroPlayable(chars.find(c=>c.id===selectedChar),meta,journal,coop||onlineMode))selectedChar=chars[0].id;
@@ -3298,6 +3313,7 @@ function startGame(fromNetwork=false,checkpoint=null,date=null,rank=null){
  const dailyRun=!coop&&!onlineMode?dailyPreset(checkpoint?.run.daily??date??(state!=='menu'?soloRun?.daily:null)):null;
  const abyssRun=!coop&&!onlineMode&&!dailyRun?abyssRank(checkpoint?.run.abyss??rank??(state!=='menu'?soloRun?.abyss:null)):null;
  if(abyssRun&&!checkpoint&&(!nextAbyss(meta)||abyssRun.rank>nextAbyss(meta)))return;
+ if(state==='menu'&&(dailyRun||abyssRun))rememberSpecialMenu();
  if(!heroPlayable(chars.find(c=>c.id===selectedChar),meta,journal,coop||onlineMode))selectedChar=chars[0].id;
  secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;
  if(soloRun?.campaign)selectedMap=soloRun.campaign.start;closeSoloRun();if(dailyRun){selectedChar=dailyRun.hero;selectedMap=dailyRun.map;campaignMode=false}if(abyssRun)campaignMode=false;soloRun=!coop&&!onlineMode?{hero:selectedChar,startMap:selectedMap,campaign:campaignMode?newCampaign(selectedMap):null,contract:abyssRun?'normal':dailyRun?.contract??selectedContract,modifier:abyssRun?'classic':dailyRun?.modifier??(checkpoint?modifierFor(checkpoint.run.modifier).id:rollModifier(selectedModifier)),daily:dailyRun?.date??null,abyss:abyssRun?.rank??null,cleared:0,earned:0,kills:0,closed:false,coins:0,coinsEarned:0,coinsSpent:0,purchases:0,lastShop:0,pact:null,lastEncounter:0,seenRooms:[],roomChoices:0,nextRoomEffect:null,hiddenSummoned:[],hiddenDefeated:[],nextHidden:null,stationUses:0,quest:newHeroQuest(selectedChar),curse:null,curseClears:0}:null;document.getElementById('ritualOverlay').hidden=true;
@@ -3308,7 +3324,7 @@ function startGame(fromNetwork=false,checkpoint=null,date=null,rank=null){
  player.weapon=0;player2.weapon=coop?1:0;
  weapon=0;weaponLevels[0]=weaponLevels[1]=weaponLevels[2]=weaponLevels[3]=1;player.weaponLevels=[1,1,1,1];player2.weaponLevels=[1,1,1,1];wave=1;score=0;combo=1;boss=null;enemies=[];projectiles=[];particles=[];rings=[];texts=[];drops=[];blood=[];hazards=[];deathTimer=0;deathPhase=0;relicOwned=false;horrorTime=0;arenaEventTimer=8;arenaEventIndex=0;camera.x=(player.x+player2.x)/2;camera.y=(player.y+player2.y)/2;waveState='fighting';waveTime=0;spawned=0;state='game';document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';tutorial=makeTutorial(tutorialEnabled,!!soloRun);tutorialSignature='';if(checkpoint){soloRun=checkpoint.run;if(soloRun.quest===undefined)soloRun.quest=newHeroQuest(soloRun.hero);soloRun.curse=soloRun.curse??null;soloRun.curseClears=soloRun.curseClears??0;selectedMap=checkpoint.map;selectedChar=soloRun.hero;Object.assign(player,cpPick(checkpoint.player,checkpointPlayerFields));player.legendarySlot=player.legendarySlot??null;player.legendaryReadyAt=0;player.charId=selectedChar;player.weapon=weapon=checkpoint.weapon;player.dead=false;player.vx=player.vy=0;player.serverX=player.x;player.serverY=player.y;wave=checkpoint.wave;score=checkpoint.score;combo=checkpoint.combo;nightmare=newNightmare();nightmare.fear=checkpoint.fear;relicOwned=checkpoint.relic;drops=checkpoint.drops;camera.x=clamp(player.x,W/2,world.w-W/2);camera.y=clamp(player.y,H/2,world.h-H/2)}setHud(true);beginWave();if(!checkpoint){const q=modifierFor(soloRun?.modifier);toast(q.id==='classic'?(coop?T('twoPlayers')+' · ':'')+T('wave')+' 1':metaLabel(q)+' · '+metaDesc(q));if(q.id!=='classic')toastTimer=5;}else{toast(L('RUN RESUMED','ЗАБЕГ ВОССТАНОВЛЕН')+' · '+T('wave')+' '+wave);toastTimer=3;}if(location.protocol!=='file:')requestMobileFullscreen();
 }
-function goMenu(){if(onlineMode&&(netConn||peer)&&!netClosing){disconnectOnline(L('Left the room','Выход из комнаты'));return}saveAtBoundary=false;tutorial=null;renderTutorial();clearCombatPresentation();livingStations=[];encounter=null;if(soloRun?.campaign)selectedMap=soloRun.campaign.start;secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun();if(soloRun?.daily)restoreDailyMenu();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
+function goMenu(){if(onlineMode&&(netConn||peer)&&!netClosing){disconnectOnline(L('Left the room','Выход из комнаты'));return}saveAtBoundary=false;tutorial=null;renderTutorial();clearCombatPresentation();livingStations=[];encounter=null;if(soloRun?.campaign)selectedMap=soloRun.campaign.start;secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun();if(soloRun?.daily||soloRun?.abyss)restoreSpecialMenu();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
 function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlayers?7:4)+Math.floor(round/4))}
 function beginWave(){
  if(suspendAtBoundary())return;
@@ -3999,7 +4015,7 @@ function attackFor(p,weaponIndex,target=null){
  p.weaponCharge[weaponIndex]=0;if(p===player)tutorialEvent('attack');
  p.shivCharge=p.weaponCharge[2];
  p.fire=soloRun?Math.min(weaponChargeDuration(p,weaponIndex),.18):w.rate/p.boost.rate;p.recoilT=.14;p.recoilSlot=weaponIndex;p.recoilAim=ang;
- const element=soloRun?w.element:null,ascensionToken=legendaryToken(p,weaponIndex,!!soloRun);
+ const element=soloRun?w.element:null,ascensionToken=legendaryToken(p,weaponIndex,!!soloRun),golemQuestCast=soloRun&&p===player&&p.charId==='golem'?{targets:new Set(),done:false}:null;
  const damage=w.dmg*p.boost.dmg*(Math.random()<p.boost.crit?2:1)*(soloRun&&hasCombo(p,'predator')?1.15:1);
  const wide=p.heroUpgrades?.includes('wide'),pierceBonus=p.heroUpgrades?.includes('pierce')?2:0;
  const proj=(aa,dmg=damage,extra={})=>projectiles.push({
@@ -4007,7 +4023,7 @@ function attackFor(p,weaponIndex,target=null){
   life:extra.life||1.2,r:extra.r||2.2,damage:dmg,pierce:(extra.pierce??w.pierce)+pierceBonus,color:extra.color||w.color,kind:extra.kind||w.kind,owner:p===player?'p1':'p2',
   bleed:extra.bleed||0,poison:extra.poison||0,explosive:!!extra.explosive,explosionRadius:extra.explosionRadius||0,element,legendaryToken:ascensionToken,artHero:p.charId,artSlot:weaponIndex,artEvolved:!!p.evolved?.[weaponIndex],venomArt:p.charId==='vesa',shadowArt:p.charId==='nyx',mageArt:p.charId==='pelmage'?weaponIndex:null,shivArt:p.charId==='assassin',golemArt:p.charId==='golem',wardenArt:p.charId==='warden',voidArt:p.charId==='revenant'
  });
- const ringHit=(x,y,max,color,life,dmg=damage)=>rings.push({x,y,r:4,max:wide?Math.round(max*1.35):max,color,life,maxlife:life,damage:dmg,hit:new Set(),owner:p===player?'p1':'p2',element,legendaryToken:ascensionToken,artHero:p.charId,artSlot:weaponIndex,artEvolved:!!p.evolved?.[weaponIndex],artAim:ang});
+ const ringHit=(x,y,max,color,life,dmg=damage)=>rings.push({x,y,r:4,max:wide?Math.round(max*1.35):max,color,life,maxlife:life,damage:dmg,hit:new Set(),owner:p===player?'p1':'p2',element,legendaryToken:ascensionToken,golemQuestCast,artHero:p.charId,artSlot:weaponIndex,artEvolved:!!p.evolved?.[weaponIndex],artAim:ang});
  const fx=(color,n=7)=>spawnParticles(p.x+Math.cos(ang)*10,p.y+Math.sin(ang)*10,n,color,.8);
  if(p.evolved?.[weaponIndex]){const col='#ffd38b';switch(weaponIndex){case 0:ringHit(p.x,p.y,42,col,.22,damage*.27);break;case 1:proj(ang,damage*.42,{pierce:w.pierce+3,color:col});break;case 2:{const length=Math.min(105,Math.hypot(tx-p.x,ty-p.y));ringHit(p.x+Math.cos(ang)*length,p.y+Math.sin(ang)*length,34,col,.3,damage*.36);break}case 3:for(const side of [-1,1])proj(ang+side*.22,damage*.3,{pierce:w.pierce+1,color:col});break}fx(col,4)}
 
@@ -4152,7 +4168,7 @@ function finishEnemyDeath(e){
  e.hp=0;e.dead=true;addDeathSprite(e);
  if(!onlineMode&&state==='game'){if(e.type==='boss')discoverJournal('boss:'+e.bossId);else{discoverJournal('enemy:'+e.type);if(e.elite)discoverJournal('elite:'+e.elite);if(e.mutation)discoverJournal('mutant:'+e.mutation)}}
  if(state==='game'&&e.secretGuard&&secretEncounter?.stage==='ambush'&&secretEncounter.w===wave){secretEncounter.remaining=Math.max(0,secretEncounter.remaining-1);if(secretEncounter.remaining===0)completeSecret();}
- if(soloRun&&!soloRun.closed){soloRun.kills++;if(e.type==='boss')addCoins(soloRun,12+(modifierFor(soloRun.modifier).bossCoins??0));else if(e.elite)addCoins(soloRun,6);else if(e.mutation){addCoins(soloRun,MUTANT_COINS);const blast=mutantDeathHazard(e);if(blast&&state==='game')scheduleHazard(blast.x,blast.y,blast.radius,blast.damage,blast.delay);floatText(e.x,e.y-25,'+'+MUTANT_COINS+' ◈',mutantProfiles[e.mutation].color)}if(!player.dead&&player.artifacts?.includes('soul'))player.hp=Math.min(player.maxhp,player.hp+2+(hasCombo(player,'reaper')?1:0));if(e.elite){const owned=player.artifacts.concat(drops.filter(d=>d.type==='artifact').map(d=>d.artifact));const a=chooseArtifact(owned);if(a)drops.push({x:e.x,y:e.y,type:'artifact',artifact:a.id,life:1,pulse:0});else drops.push({x:e.x,y:e.y,type:'heal',value:35,life:24,pulse:0});toast(L('ELITE DEFEATED','ЭЛИТА ПОВЕРЖЕНА'));toastTimer=2.5;}}
+ if(soloRun&&!soloRun.closed){soloRun.kills++;if(e.type==='boss')addCoins(soloRun,12+(modifierFor(soloRun.modifier).bossCoins??0));else if(e.elite)addCoins(soloRun,6);else if(e.mutation){addCoins(soloRun,MUTANT_COINS);const blast=mutantDeathHazard(e);if(blast&&state==='game')scheduleHazard(blast.x,blast.y,blast.radius,blast.damage,blast.delay,null,'mutantDeath');floatText(e.x,e.y-25,'+'+MUTANT_COINS+' ◈',mutantProfiles[e.mutation].color)}if(!player.dead&&player.artifacts?.includes('soul'))player.hp=Math.min(player.maxhp,player.hp+2+(hasCombo(player,'reaper')?1:0));if(e.elite){const owned=player.artifacts.concat(drops.filter(d=>d.type==='artifact').map(d=>d.artifact));const a=chooseArtifact(owned);if(a)drops.push({x:e.x,y:e.y,type:'artifact',artifact:a.id,life:1,pulse:0});else drops.push({x:e.x,y:e.y,type:'heal',value:35,life:24,pulse:0});toast(L('ELITE DEFEATED','ЭЛИТА ПОВЕРЖЕНА'));toastTimer=2.5;}}
  enemyDeathVoice(e.type);
  score+=e.type==='boss'?3200:e.elite?800:[100,170,220][enemyTier(e.type)];
  combo=Math.min(9,combo+.25);dropEnemyXP(e);
@@ -4220,6 +4236,13 @@ function updateSecret(dt){
 }
 function scheduleHazard(x,y,radius,damage,delay=.75,source=null,kind=null){
  hazards.push({x,y,radius,damage,remaining:delay,duration:delay,source,kind});if(damage>0&&horrorTime-warningAt>.45&&spatialTone(x,y,source?.type==='boss'?155:240,.13,.06,'triangle'))warningAt=horrorTime;
+}
+function pendingDeathBlast(list){return list.some(h=>h.kind==='mutantDeath'&&h.remaining>0)}
+function canClearCombat(s,phase,spawned,total,boss,enemies,hazards,solo){
+ return s==='game'&&phase==='fighting'&&spawned>=total&&!boss&&enemies.length===0&&(!solo||!pendingDeathBlast(hazards));
+}
+function safeRestAttacks(projectiles,hazards){
+ return {projectiles:projectiles.filter(p=>!p.enemy),hazards:hazards.filter(h=>h.damage<=0||h.kind==='foodcourt')};
 }
 function updateHazards(dt){
  for(const h of hazards){
@@ -4591,6 +4614,7 @@ function updateProjectiles(dt){
 function updateRings(dt){
  for(const r of rings){
   r.life-=dt;
+  if(r.life<=0)continue;
   r.r=lerp(r.r,r.max,.3);
   if(r.damage){
    if(!onlineMode)hitBreakables(breakableProps,propImpactLedger,r,0,0,0,0,true);
@@ -4604,7 +4628,7 @@ function updateRings(dt){
      hitWithElement(e,r.damage*fall,r.owner,r.element);
      if(r.legendaryToken)triggerLegendary(r,e,r.damage*fall);
      r.hit.add(e);
-     if(r.artHero==='golem'&&r.owner==='p1'&&r.hit.size===3)recordHeroQuest('golemCrowd',1,r);
+     if(r.golemQuestCast&&r.owner==='p1')golemQuestHit(r.golemQuestCast,e,recordHeroQuest);
     }
    }
   }
@@ -4739,7 +4763,7 @@ function update(dt){
  if(state==='game'){updateNightmare(dt);updateSecret(dt);updateSpatialAudio(dt)}updateEnemies(dt);if(state==='game')updateLivingStations(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);if(state==='game')updateArenaTrial(dt);updateFx(dt);
  enemies=enemies.filter(e=>!e.dead);
  if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if((waveTime>=delay||enemies.length===0)&&allowWaveSpawn(!!soloRun,wave,enemies.length)){waveTime=0;spawnEnemy();spawned++}}
- if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';expireTrial(arenaTrial);tutorialEvent('wave');if(nightmare?.hunter){nightmare.hunter.dead=true;hazards=hazards.filter(h=>h.source!==nightmare.hunter);nightmare.hunter=null}if(nightmare){nightmare.echo=null;nightmare.fear=fearClamp(nightmare.fear-12)}between=soloRun?4:1.6;let reward=0;if(soloRun){reward=clearWaveReward(meta,soloRun,wave,selectedMap);if(reward){addCoins(soloRun,Math.floor(coinReward(wave)*modifierValue(soloRun,'coins'))+(activeCampaignPath(soloRun).coinsClear??0));settleHeroQuest(soloRun)}saveMeta()}toast(L('WAVE CLEARED · COLLECT XP','ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')+(reward?' · ◆ +'+reward:''));toastTimer=2.5}
+ if(canClearCombat(state,waveState,spawned,targetCount,boss,enemies,hazards,!!soloRun)){waveState='clear';if(soloRun){const rest=safeRestAttacks(projectiles,hazards);projectiles=rest.projectiles;hazards=rest.hazards;}expireTrial(arenaTrial);tutorialEvent('wave');if(nightmare?.hunter){nightmare.hunter.dead=true;hazards=hazards.filter(h=>h.source!==nightmare.hunter);nightmare.hunter=null}if(nightmare){nightmare.echo=null;nightmare.fear=fearClamp(nightmare.fear-12)}between=soloRun?4:1.6;let reward=0;if(soloRun){reward=clearWaveReward(meta,soloRun,wave,selectedMap);if(reward){addCoins(soloRun,Math.floor(coinReward(wave)*modifierValue(soloRun,'coins'))+(activeCampaignPath(soloRun).coinsClear??0));settleHeroQuest(soloRun)}saveMeta()}toast(L('WAVE CLEARED · COLLECT XP','ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')+(reward?' · ◆ +'+reward:''));toastTimer=2.5}
  if(!alivePlayers().length)return;
  if(state==='game'&&waveState==='clear'){between-=dt;if(between<=0){if(dailyCompleted(soloRun)||abyssCompleted(soloRun)){endGame(true,false)}else if(soloRun?.campaign&&wave===FINAL_WAVE){if(!openCampaignEnding())endGame(true,false)}else if(soloRun&&wave%5===0)openRitual();else if(!(soloRun&&merchantWave(wave)&&openMerchant())&&!(soloRun&&encounterWave(wave)&&openEncounter())){wave++;beginWave()}}}
  combo=Math.max(1,combo-dt*.12);
@@ -4755,7 +4779,7 @@ function endGame(broadcast=true,escaped=false){saveAtBoundary=false;tutorial=nul
  document.getElementById('finalWave').textContent=wave;
  if(soloRun){const route=soloRun.campaign?.visited||[soloRun.startMap];document.getElementById('finalMeta').textContent+=' · '+L('Kills','Убийства')+' '+soloRun.kills+' · '+L('Cleared waves','Зачищено волн')+' '+soloRun.cleared+' · '+runRouteText(route)+' · '+L('Room choices','Решения в комнатах')+' '+soloRun.roomChoices+' · '+L('Hidden bosses','Скрытые боссы')+' '+soloRun.hiddenDefeated.length+' · '+L('Stations used','Объекты использованы')+' '+soloRun.stationUses;}
  document.getElementById('gameover').style.display='grid';
- document.getElementById('retryBtn').disabled=onlineMode&&isOnlineGuest;setMobileControls(false);
+ const retry=document.getElementById('retryBtn');retry.disabled=onlineMode&&isOnlineGuest;retry.textContent=abyssCompleted(soloRun)&&soloRun.abyss<3?L('NEXT RANK','СЛЕДУЮЩИЙ РАНГ'):dailyCompleted(soloRun)?L('PLAY AGAIN','ПОВТОРИТЬ'):T('retry');setMobileControls(false);
  if(broadcast&&onlineMode)sendNet({t:'gameover',score:Math.floor(score),wave,level:player.lvl});
 }
 
@@ -6589,7 +6613,7 @@ setupMobile();
 const touchOrientation=window.matchMedia('(orientation: portrait)');const onTouchOrientation=()=>{if(state==='game'){clearLocalInput();if(!onlineMode)togglePause()}};if(touchOrientation.addEventListener)touchOrientation.addEventListener('change',onTouchOrientation);else if(touchOrientation.addListener)touchOrientation.addListener(onTouchOrientation);
 setLanguage(lang);
 document.getElementById('abyssHome').onclick=()=>{const rank=nextAbyss(meta);if(state!=='menu'||!rank||savedCheckpoint||coop||onlineMode)return;startGame(false,null,null,rank)};
-document.getElementById('dailyHome').onclick=()=>{if(state!=='menu'||savedCheckpoint||coop||onlineMode)return;startGame(false,null,dailyDate())};
+document.getElementById('dailyHome').onclick=()=>{if(state!=='menu'||savedCheckpoint||coop||onlineMode)return;const date=dailyDate();if(document.getElementById('dailyHome').dataset.date!==date){renderDaily();return}startGame(false,null,date)};
 document.getElementById('startBtn').onclick=()=>{if(onlineMode&&!(netConn&&netConn.open)){setMenuTab('mode');setOnlineStatus(L("Create or join a room first.","Сначала создай комнату или подключись."));return}startHorrorMusic();startGame()};
 document.getElementById('createRoomBtn')?.addEventListener('click',async()=>{
  setOnlineStatus(L('Connecting…','Создаём комнату...'));
@@ -6630,13 +6654,13 @@ document.getElementById('joinRoomBtn')?.addEventListener('click',async()=>{
  }catch(e){
    setOnlineStatus(L('Connection error','Ошибка подключения')+(e&&e.message?' · '+e.message:''));
  }
-});document.getElementById('retryBtn').onclick=()=>{if(onlineMode&&isOnlineGuest){setOnlineStatus(L('Waiting for host restart','Ждём перезапуска от ведущего'));return}startHorrorMusic();startGame()};document.getElementById('menuBtn').onclick=goMenu;
+});document.getElementById('retryBtn').onclick=()=>{if(onlineMode&&isOnlineGuest){setOnlineStatus(L('Waiting for host restart','Ждём перезапуска от ведущего'));return}startHorrorMusic();if(abyssCompleted(soloRun)&&soloRun.abyss<3)startGame(false,null,null,nextAbyss(meta));else if(soloRun?.daily)startGame(false,null,dailyDate());else startGame()};document.getElementById('menuBtn').onclick=goMenu;
 
 window.addEventListener('error',e=>{const msg=(e&&e.error&&e.error.message)||e.message||L('Unknown error','Неизвестная ошибка');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
 window.addEventListener('unhandledrejection',e=>{const msg=(e&&e.reason&&e.reason.message)||String(e.reason||'Promise error');const box=document.getElementById('fatalError');if(box){box.style.display='grid';box.querySelector('code').textContent=msg;}});
 // Keep the fixed 60Hz simulation independent from display refresh/HUD cadence.
-let hudElapsed=1,previousFrameState='',previousFrameWave=0;
-function frame(now){checkNetWatchdog(Date.now());if(document.hidden){last=now;acc=0;hudElapsed=1;requestAnimationFrame(frame);return}const raw=last?Math.max(0,Math.min(.1,(now-last)/1000||0)):0;last=now;const step=1/60;const active=state==='game'||state==='death'||(onlineMode&&isOnlineHost&&state==='pause');if(active){acc+=raw;while(acc>=step){update(step);acc-=step;if(state!=='game'&&state!=='death'&&!(onlineMode&&isOnlineHost&&state==='pause')){acc=0;break}}}else{acc=0;updateNpc(0)}shake=Math.max(0,shake-raw);hudElapsed+=raw;const changed=state!==previousFrameState||wave!==previousFrameWave;if(state==='game'&&(changed||hudElapsed>=1/20)){updateHud();hudElapsed=0}renderTutorial();if(state!=='menu'&&(state==='game'||state==='death'||changed))render();previousFrameState=state;previousFrameWave=wave;requestAnimationFrame(frame)}
+let hudElapsed=1,previousFrameState='',previousFrameWave=0,nextDailyRefresh=0;
+function frame(now){checkNetWatchdog(Date.now());if(document.hidden){last=now;acc=0;hudElapsed=1;requestAnimationFrame(frame);return}const raw=last?Math.max(0,Math.min(.1,(now-last)/1000||0)):0;last=now;if(state==='menu'&&now>=nextDailyRefresh){nextDailyRefresh=now+30000;refreshDailyDate()}const step=1/60;const active=state==='game'||state==='death'||(onlineMode&&isOnlineHost&&state==='pause');if(active){acc+=raw;while(acc>=step){update(step);acc-=step;if(state!=='game'&&state!=='death'&&!(onlineMode&&isOnlineHost&&state==='pause')){acc=0;break}}}else{acc=0;updateNpc(0)}shake=Math.max(0,shake-raw);hudElapsed+=raw;const changed=state!==previousFrameState||wave!==previousFrameWave;if(state==='game'&&(changed||hudElapsed>=1/20)){updateHud();hudElapsed=0}renderTutorial();if(state!=='menu'&&(state==='game'||state==='death'||changed))render();previousFrameState=state;previousFrameWave=wave;requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 if(!nativeMobile()&&'serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('./sw.js').then(reg=>reg.update()).catch(()=>{})}
 </script>
