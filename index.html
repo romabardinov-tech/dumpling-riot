@@ -85,7 +85,7 @@ canvas{filter:brightness(1.10) saturate(1.03);display:block;width:100%;height:10
 @media(max-width:900px), (pointer:coarse){
   body{place-items:center;background:#050309;touch-action:none;overscroll-behavior:none}
   #wrap{width:100vw;height:100dvh;filter:contrast(1.04) saturate(.9);overflow:hidden}
-  canvas{position:absolute;left:50%;top:50%;width:100%;height:100%;transform:translate(-50%,-50%);object-fit:contain;touch-action:none}
+  #game{position:absolute;left:50%;top:50%;width:100%;height:100%;transform:translate(-50%,-50%);object-fit:contain;touch-action:none}
   #mobileControls{display:none}
   #weaponHud{bottom:10px;left:50%;transform:translateX(-50%);display:none}
   .panel{transform:scale(.92);transform-origin:top left}
@@ -1139,6 +1139,101 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 #personaTraits{font:600 12px/1.3 system-ui;color:#c6b1d1}
 #heroPersonaCard p{margin:0;font:500 12px/1.4 system-ui}
 #personaQuote{font:600 italic 13px/1.4 system-ui;color:#e3a7a1;border-top:1px solid #574353;padding-top:6px}
+
+/* V75.32 — one viewport owner; menu previews and cinematic canvas are NOT the game canvas. */
+#ritualOverlay.storyCinema[hidden]{display:none!important}
+#ritualOverlay.storyCinema:not([hidden]){position:absolute;inset:0;display:block;overflow:hidden;touch-action:pan-y;z-index:150;background:#09060e}
+#ritualOverlay.storyCinema .ritualBox{position:absolute;inset:0;display:flex;flex-direction:column;gap:0;width:100%;height:100%;max-width:100%;max-height:100%;min-width:0;min-height:0;transform:none;margin:0;border:0;padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));overflow:hidden}
+#ritualOverlay.storyCinema #ritualTitle,#ritualOverlay.storyCinema #ritualHint{position:static;inset:auto;flex:none;max-width:100%;min-width:0;overflow-wrap:anywhere;text-align:center}
+#ritualOverlay.storyCinema #ritualTitle{font:800 clamp(15px,2.5vw,30px)/1.16 system-ui;margin:0 0 3px}
+#ritualOverlay.storyCinema #ritualHint{font:500 clamp(10px,1.3vw,14px)/1.25 system-ui;margin:0 0 8px}
+#ritualOverlay.storyCinema #ritualChoices{position:relative;inset:auto;flex:1;min-height:0;min-width:0;width:100%;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto auto;grid-template-areas:"film" "dialogue" "controls";gap:7px;overflow:hidden}
+#ritualOverlay.storyCinema .storyScreen{position:relative;inset:auto;grid-area:film;align-self:stretch;min-width:0;min-height:0;width:100%;height:100%;aspect-ratio:auto;display:flex;align-items:center;justify-content:center;background:#0d0913;overflow:hidden;border:1px solid #58404f}
+#ritualOverlay.storyCinema .storyScreen:before,#ritualOverlay.storyCinema .storyScreen:after{display:none}
+#ritualOverlay.storyCinema .storyFilm{position:absolute;inset:0;left:0;top:0;width:100%;height:100%;max-width:100%;max-height:100%;transform:none!important;object-fit:contain;object-position:center;display:block;filter:brightness(1.18) saturate(1.04);touch-action:auto;pointer-events:none}
+#ritualOverlay.storyCinema .storyDialogue{grid-area:dialogue;position:relative;inset:auto;transform:none;width:100%;max-width:none;min-width:0;min-height:0;max-height:25vh;overflow-x:hidden;overflow-y:auto;padding:8px 12px;margin:0;border-left:3px solid #d2a075;touch-action:pan-y}
+#ritualOverlay.storyCinema .storyDialogue b{font:800 clamp(11px,1.4vw,15px)/1.2 system-ui;margin-bottom:4px}
+#ritualOverlay.storyCinema .storyDialogue span{font:500 clamp(14px,1.7vw,21px)/1.35 system-ui;overflow-wrap:anywhere}
+#ritualOverlay.storyCinema .storyControls{grid-area:controls;position:relative;inset:auto;transform:none;width:100%;max-width:none;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0}
+#ritualOverlay.storyCinema .storyControls button{min-width:0;min-height:44px;height:auto;white-space:normal;overflow-wrap:anywhere;font:700 clamp(11px,1.3vw,15px)/1.15 system-ui;touch-action:manipulation}
+#ritualOverlay.storyCinema .storyProgress{position:absolute;top:5px;right:5px;left:auto;z-index:10;background:#100a16b8;padding:3px 6px;border-radius:3px;font-size:11px;pointer-events:none}
+#ritualOverlay.storyCinema .storyTrack{position:absolute;inset:auto 0 0;height:2px;z-index:11;pointer-events:none}
+@media(max-width:900px),(pointer:coarse){
+ html,body{width:100%;height:100%;max-width:100%;overscroll-behavior:none;touch-action:auto}
+ #wrap{width:100%;height:100%;height:100dvh;max-width:100%;max-height:100%;overflow:hidden;touch-action:auto}
+ #wrap.storyFullscreen{width:100%!important;height:100dvh!important;max-width:100%!important;max-height:100%!important}
+ #game{touch-action:none}
+ #menu,#menu .menuShell{width:100%;height:100%;max-width:100%;max-height:100%;min-width:0;min-height:0;overflow:hidden}
+ #menu .menuShell{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto}
+ #menu .menuHeader,#menu .menuFooter,#menu .menuBody{min-width:0;max-width:100%;width:100%}
+ #menu .menuHeader{padding: max(6px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left));gap:6px}
+ #menu .menuBody{overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:8px max(8px,env(safe-area-inset-right)) 12px max(8px,env(safe-area-inset-left));touch-action:pan-y}
+ #menu .menuFooter{padding:5px max(8px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));overflow:hidden}
+ #menu .brand,#menu .brand>div,#langBar,#menu .runSummary{min-width:0}
+ #menu .brand{flex:1;gap:5px}#menu .brandMark{width:27px;height:27px;flex-shrink:0}#menu .brand .title{font-size:clamp(15px,4.2vw,24px);white-space:normal;overflow-wrap:anywhere;line-height:1.04}
+ #menu #langBar{flex:0 1 105px;margin:0;gap:2px;max-width:36%;display:flex;flex-direction:column;align-items:stretch}
+ #menu #languageSelect{width:100%;min-width:0;max-width:100%;font-size:12px}
+ #menu #languageLabel{font-size:8px;white-space:normal}
+ #menu .menuSection:not([hidden]){width:100%;max-width:100%;min-width:0}
+ #menu .menuSection [id],#menu .homeCard,#menu .homeMode,#menu .wardrobeCard,#menu .choice,#menu .modeChoice{min-width:0;overflow-wrap:anywhere}
+ #menu canvas:not(#menuKeyArt){position:static;inset:auto;transform:none;max-width:100%;touch-action:pan-y}
+ #menu #menuKeyArt{position:absolute;inset:0;transform:none;width:100%;height:100%;object-fit:cover;touch-action:pan-y}
+ #menu .homeCards,#menu .heroStage,#menu #wardrobeCards,#menu .altarGrid,#menu .achievementGrid,#menu .modeChoices{min-width:0;max-width:100%}
+ #menu .heroStage{grid-template-columns:minmax(0,1fr);gap:4px}
+ #menu .heroStage canvas{height:auto;max-height:180px;object-fit:contain}
+ #menu .stageInfo{padding:7px;min-width:0;max-width:100%}
+ #menu #heroPersonaCard{padding:9px}
+ #menu #charChoices,#menu #mapChoices{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+ #menu .choice{padding:5px;overflow:hidden}
+ #menu #heroArsenal{grid-template-columns:repeat(2,minmax(0,1fr));min-width:0}
+ #menu #wardrobeCards{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ #menu .wardrobeCard{overflow:hidden;padding:5px}
+ #menu .wardrobeCard canvas{width:100%;height:auto;aspect-ratio:176/150}
+ #menu .wardrobeCard button{width:100%;white-space:normal;overflow-wrap:anywhere}
+ #menu .runSummary{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;font-size:10px;white-space:normal;max-width:100%;overflow-wrap:anywhere}
+ #menu .runSummary b{min-width:0;max-width:100%;white-space:normal}
+ #menu #recordLine{font-size:10px;white-space:normal;overflow-wrap:anywhere}
+ #menu #startBtn{min-height:44px;margin-top:5px;font-size:14px}
+ #menu #checkpointMenu{padding:3px 0;gap:4px}
+ #menu #checkpointMenu button{min-width:0;max-width:100%;white-space:normal}
+ #mobileControls{width:100%;height:100%;height:100dvh;max-width:100%;max-height:100%;overflow:hidden}
+ #hud #rightHud{right:max(4px,env(safe-area-inset-right));top:max(4px,env(safe-area-inset-top));max-width:42%;overflow-wrap:anywhere;line-height:1.2}
+ #hud #rightHud .small{font-size:9px;white-space:normal}
+ #dimensionHud,#personalStoryHud{max-width:calc(100% - max(10px,env(safe-area-inset-left)) - max(10px,env(safe-area-inset-right)));overflow-wrap:anywhere}
+ #ritualOverlay.storyCinema .storyDialogue{max-height:28vh}
+}
+@media(max-width:650px) and (orientation:portrait){
+ #menu #homePanel:not([hidden]){display:flex;flex-direction:column;gap:8px}
+ #menu #homePanel .horrorMarquee{height:clamp(185px,29vh,260px);min-height:185px;flex:none;margin:0}
+ #menu #homePanel .homeCards{grid-template-columns:minmax(0,1fr)}
+ #menu #homePanel .homeActions{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ #menu #homePanel .homeCard{grid-template-columns:minmax(0,34%) minmax(0,1fr)}
+ #menu #homePanel .homeCardCopy,#menu #homePanel .homeCard[data-open-menu=map] .homeCardCopy{padding:8px 17px 8px 8px}
+ #menu #homePanel .homeMode{margin:0;min-width:0}
+ #menu #homePanel .marqueeTitle{font-size:clamp(29px,8.7vw,40px)}
+ #ritualOverlay.storyCinema .storyScreen{min-height:0}
+ #ritualOverlay.storyCinema .storyDialogue{font-size:15px;padding:10px;max-height:31vh}
+ #ritualOverlay.storyCinema .storyControls button{min-height:46px}
+}
+@media(max-width:360px) and (orientation:portrait){#menu #homePanel .homeActions{grid-template-columns:minmax(0,1fr)}}
+@media(max-height:520px) and (orientation:landscape){
+ #menu .menuHeader{padding-top:max(4px,env(safe-area-inset-top));padding-bottom:4px}
+ #menu .menuFooter{padding-top:3px;padding-bottom:max(3px,env(safe-area-inset-bottom))}
+ #menu .menuFooter #startBtn{min-height:35px;font-size:13px;margin:3px 0}
+ #menu .menuBody{padding-top:5px;padding-bottom:5px}
+ #menu .heroStage{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}
+ #menu .heroStage canvas{max-height:120px}
+ #menu #charChoices,#menu #mapChoices,#menu #wardrobeCards{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #ritualOverlay.storyCinema .ritualBox{padding:max(4px,env(safe-area-inset-top)) max(7px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(7px,env(safe-area-inset-left))}
+ #ritualOverlay.storyCinema #ritualTitle{font-size:16px}
+ #ritualOverlay.storyCinema #ritualHint{font-size:10px;margin-bottom:4px}
+ #ritualOverlay.storyCinema #ritualChoices{grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;grid-template-areas:"film dialogue" "film controls";gap:5px}
+ #ritualOverlay.storyCinema .storyDialogue{max-height:100%;min-height:0;align-self:stretch;padding:7px;display:flex;flex-direction:column;justify-content:center}
+ #ritualOverlay.storyCinema .storyDialogue span{font-size:clamp(12px,2.9vh,16px)}
+ #ritualOverlay.storyCinema .storyControls button{min-height:40px;font-size:10px;padding:4px}
+ #ritualOverlay.storyCinema .storyProgress{left:5px;right:auto}
+}
+
 </style>
 </head>
 <body>
@@ -1964,13 +2059,13 @@ function openStoryCinema(frames,title,hint,onFinish,finishLabel){
  function reveal(){shown=letters.length;words.textContent=letters.join('');elapsed=Math.max(elapsed,timing.reveal)}
  function advance(force=false){if(!active())return;if(!force&&shown<letters.length){reveal();return}if(i===frames.length-1){finish();return}i++;show()}
  function input(code){if(code==='Escape'){finish();return true}if(code==='Space'||code==='Enter'){advance();return true}return false}
- function renderActors(){menuArtwork(()=>cinemaFilmFrame(film,back,id,elapsed,frames[i][0],still))}
+ function renderActors(){try{cinemaFilmFrame(film,back,id,elapsed,frames[i][0],still)}catch(error){const g=film.getContext('2d');if(g){g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.fillStyle='#241b2c';g.fillRect(0,0,film.width,film.height);g.drawImage(back,0,0);try{g.save();g.translate(165,190);g.scale(2.6,2.6);pixelHeroBody(g,id,0,0,0);g.restore()}catch(_){g.setTransform(1,0,0,1,0,0)}}if(!scene.dataset.fallback){scene.dataset.fallback='true';console.warn('Cinematic fallback',error)}}}
  function show(){const [who,txt]=frames[i];elapsed=0;lastDraw=-Infinity;shown=-1;letters=Array.from(txt);timing=storyTextTiming(letters.length);scene.dataset.speaker=who;speaker.textContent=who==='hero'?name:who==='echo'?SU(3):SU(2);words.textContent='';announcement.textContent=speaker.textContent+': '+txt;progress.textContent=(i+1)+' / '+frames.length;fill.style.width=(i/frames.length*100)+'%';next.textContent=i===frames.length-1?finishLabel:SU(5);pause.textContent=paused?SU(7):SU(6);if(still)reveal();renderActors();if(who==='echo'){creatureCall('hollow');spatialTone(player.x,player.y,57,.48,.035,'sine')}}
  function tick(now){raf=0;if(!active()){cleanup();return}const dt=lastTime===null?0:Math.min(.1,Math.max(0,(now-lastTime)/1000));lastTime=now;
   if(!paused&&!document.hidden){elapsed+=dt;const count=still?letters.length:Math.min(letters.length,Math.floor(elapsed*42));if(count>shown){shown=count;words.textContent=letters.slice(0,count).join('')}if(!still&&elapsed-lastDraw>=1/24){lastDraw=elapsed;renderActors()}fill.style.width=((i+Math.min(1,elapsed/timing.duration))/frames.length*100)+'%';if(elapsed>=timing.duration)advance(true)}
   if(active())raf=requestAnimationFrame(tick)
  }
- pause.onclick=()=>{if(!active())return;paused=!paused;scene.dataset.paused=String(paused);pause.textContent=paused?SU(7):SU(6)};next.onclick=()=>advance();skip.onclick=finish;storyCinemaInput=input;show();raf=requestAnimationFrame(tick);next.focus?.({preventScroll:true});return true;
+ pause.onclick=()=>{if(!active())return;paused=!paused;scene.dataset.paused=String(paused);pause.textContent=paused?SU(7):SU(6)};next.onclick=()=>advance();skip.onclick=finish;storyCinemaInput=input;show();raf=requestAnimationFrame(tick);if(!matchMedia('(pointer: coarse)').matches)next.focus?.({preventScroll:true});return true;
 }
 
 
