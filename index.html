@@ -4484,7 +4484,7 @@ function dimensionDifficulty(spec,round){
 }
 function dimensionMob(spec,i,round,position){
  const q=dimensionDifficulty(spec,round),tier=i>=spec.count-q.guardians?2:i%2,e=makeArenaEnemy(spec.types[tier],position.x,position.y,soloStatRound(round));
- e.dimensionMob={name:spec.names[tier],color:spec.color,mark:spec.mark,guardian:tier===2,phase:1};
+ e.dimensionMob={name:spec.names[tier],color:spec.color,mark:spec.mark,guardian:tier===2,phase:1,variant:tier};
  const balance=soloEnemyScaling(round);e.hp*=q.hp*(tier===2?q.guardianHP:1.28)*balance.hp;e.maxhp=e.hp;e.speed=Math.min(165,e.speed*q.speed*(tier===1?1.22:tier===2?1.12:1));e.r=Math.round(e.r*(tier===2?1.55:1.1));e.damageScale=enemyWaveDamage(round)*q.damage*(tier===2?1.22:1);
  e.artWave=round;e.artSeed=i*7;e.dimensionPulse=1.7+(i%4)*.65;return e;
 }
@@ -4584,12 +4584,80 @@ function paintDimensionGate(g,q,color,label){
 function paintDimensionArrow(g,q,view,color){
  if(!q)return;const x=q.x-view.x,y=q.y-view.y;if(x>=20&&x<=W-20&&y>=25&&y<=H-25)return;const dx=x-W/2,dy=y-H/2,k=Math.min((W/2-24)/Math.max(1,Math.abs(dx)),(H/2-34)/Math.max(1,Math.abs(dy)));g.save();g.translate(W/2+dx*k,H/2+dy*k);g.rotate(Math.atan2(dy,dx));g.fillStyle=color;g.beginPath();g.moveTo(8,0);g.lineTo(-6,-5);g.lineTo(-6,5);g.closePath();g.fill();g.restore()
 }
+
+/* V75.28 — original native pixel anatomy; no hitbox or combat-stat changes. */
+const dimensionSkin=[
+ ['#24151c','#56312e','#a25b42','#e9ba8a'],
+ ['#101d2a','#2d4053','#57798b','#b8eced'],
+ ['#21162c','#493052','#88689e','#e8d3fa'],
+ ['#260e1b','#62263c','#a74b61','#f6c0ad']
+];
 function paintDimensionCreature(g,e,phase){
- const q=e.dimensionMob,r=e.r||10,p=reduceMotion?0:Math.round(Math.sin(phase)*2);g.save();
- g.fillStyle='#140c1b';g.beginPath();g.moveTo(-r-4,7);g.lineTo(-r,-r);g.lineTo(-r*.45,-r-10);g.lineTo(r*.45,-r-10);g.lineTo(r,-r);g.lineTo(r+4,7);g.lineTo(0,3+p);g.closePath();g.fill();
- g.fillStyle=q.color;switch(q.mark){case 0:for(let i=-r+3;i<r;i+=5)g.fillRect(i,-r-3,2,10);break;case 1:for(let i=-r+2;i<r;i+=5){g.fillRect(i,-r,2,9);g.fillRect(i+1,1,3,2)}break;case 2:g.fillRect(-r,-r-5,r*2,2);g.fillRect(-r,-r-4,2,r);g.fillRect(r-2,-r-4,2,r);break;default:g.fillRect(-r+2,-r-7,r*2-4,3);g.fillRect(-2,-r-10,4,13)}
- g.fillStyle='#f5ddd4';g.fillRect(-5,-r+2,3,2);g.fillRect(3,-r+2,3,2);if(q.guardian){g.strokeStyle=q.color;g.strokeRect(-r-3,-r-13,r*2+6,r*2+15);if(q.phase>=2){g.fillStyle=q.color;for(let i=-1;i<=1;i+=2){g.fillRect(i*r-2,-r-12,4,9);g.fillRect(i*(r+3)-2,-r-3,4,12)}if(q.phase>=3){g.fillStyle='#f9d6c4';g.fillRect(-3,-r-15,6,6);g.strokeRect(-r-7,-r-17,r*2+14,r*2+24)}}}g.restore();
+ const q=e.dimensionMob,v=q.variant??(q.guardian?2:0),stage=q.phase||1,mark=q.mark||0;
+ const [ink,shade,mid,hi]=dimensionSkin[mark]||dimensionSkin[0],glow=q.color||hi,less=reduceMotion,beat=less?0:Math.sin(phase*1.8),step=Math.round(beat*2),jaw=less?0:Math.max(0,Math.round(Math.sin(phase*2.3)*2)),scale=Math.max(.68,Math.min(1.40,(e.r||10)/12)),heavy=v===2;
+ const R=(c,x,y,w,h)=>{if(w>0&&h>0){g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}};
+ const P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ const L=(c,p,w=1)=>{g.strokeStyle=c;g.lineWidth=w;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.stroke()};
+ g.save();g.scale(scale,scale);
+ // Three independent silhouettes per dimension: scavenger, hunter, keeper.
+ if(mark===0){
+  if(v===0){
+   P(ink,[-12,7,-15,-7,-9,-18,-1,-22,8,-18,12,-6,9,4,3,11,-3,7]);P(shade,[-9,4,-11,-7,-6,-16,0,-19,7,-15,9,-5,5,4,0,6]);
+   for(const k of [-1,1]){P(ink,[k*7,-6,k*14,-4,k*18,4+step*k,k*12,8+step*k,k*9,2]);L(mid,[k*9,-4,k*13,-1,k*14,4+step*k],2)}
+   P(mid,[-7,-16,0,-21,6,-15,3,-10,-4,-10]);R(hi,-4,-17,3,2);R(glow,-3,-12,6,2);R(ink,-5,-7,10,4+jaw);for(let i=-4;i<5;i+=3)R(hi,i,-7,1,2);
+   L(glow,[-7,1,-3,-2,1,2,3,-1]);
+  }else if(v===1){
+   for(const k of [-1,1]){P(ink,[k*5,-1,k*12,3,k*12,13+k*step,k*5,13+k*step,k*3,6]);P(mid,[k*6,3,k*9,5,k*9,11+k*step,k*6,11+k*step]);P(ink,[k*9,-14,k*18,-12,k*20,0,k*14,4,k*9,-5]);L(hi,[k*12,-12,k*16,-11,k*17,-7],2)}
+   P(ink,[-12,-17,12,-17,14,3,6,8,-7,8,-14,3]);P(shade,[-10,-15,10,-15,11,2,5,6,-5,6,-11,2]);R(mid,-8,-9,16,3);R(ink,-5,-8,10,10);R(glow,-3,-6,6,6);
+   P(ink,[-9,-18,-6,-26,6,-26,9,-18,5,-12,-5,-12]);R(mid,-5,-24,10,8);R(hi,-4,-23,8,1);R(ink,-5,-20,10,4);R(glow,-4,-19,8,1);
+  }else{
+   for(const k of [-1,1]){P(ink,[k*9,-17,k*20,-22,k*25,-13,k*22,5,k*13,9,k*9,1]);P(mid,[k*12,-16,k*20,-19,k*22,-12,k*19,3,k*14,5]);R(hi,k<0?-20:16,-18,4,2);P(ink,[k*3,5,k*12,5,k*14,14+k*step,k*4,14+k*step]);R(shade,k<0?-11:4,8+k*step,7,4)}
+   P(ink,[-17,-16,17,-16,15,8,9,13,-9,13,-15,8]);P(shade,[-14,-14,14,-14,12,7,7,10,-7,10,-12,7]);R(mid,-11,-10,22,17);R(ink,-9,-8,18,13);R(glow,-7,-6,14,9);for(let x=-8;x<9;x+=5)R(ink,x,-7,2,11);R(hi,-5,-4,10,1);
+   P(ink,[-11,-17,-9,-29,-4,-32,7,-32,11,-25,10,-17]);R(mid,-7,-28,14,10);R(hi,-5,-27,10,1);R(ink,-6,-24,12,5);R(glow,-4,-22,8,2);
+  }
+ }else if(mark===1){
+  if(v===0){
+   for(const k of [-1,1])for(let i=0;i<3;i++){const y=-7+i*5;L(ink,[k*5,y,k*12,y-4,k*17,y+4+step*k],3);L(mid,[k*6,y,k*12,y-3,k*16,y+3+step*k]);R(glow,k*16-1,y+2+step*k,2,2)}
+   P(ink,[-9,-13,0,-20,9,-13,11,2,4,9,-4,9,-11,2]);P(mid,[-6,-12,0,-17,6,-12,8,0,3,6,-3,6,-8,0]);R(shade,-5,-7,10,10);R(glow,-3,-10,6,3);R(hi,-1,-10,2,1);L(glow,[0,-5,0,2,3,4]);
+  }else if(v===1){
+   for(const k of [-1,1]){L(ink,[k*8,-9,k*17,-12,k*19,0,k*15,9+step*k],5);L(mid,[k*8,-9,k*17,-12,k*19,0,k*15,8+step*k],2);R(glow,k*17-2,-12,4,3)}
+   P(ink,[-13,-10,-8,-22,8,-22,13,-10,10,5,0,11,-10,5]);P(shade,[-10,-10,-6,-19,6,-19,10,-10,7,3,0,8,-7,3]);P(mid,[-8,-12,0,-17,8,-12,8,-4,0,1,-8,-4]);P(ink,[-7,-11,0,-15,7,-11,0,-5]);R(glow,-4,-12,8,3);R(hi,-1,-12,3,2);
+   for(let y=1;y<6;y+=3)R(glow,-5,y,10,1);
+  }else{
+   for(const k of [-1,1]){P(ink,[k*9,-18,k*22,-22,k*27,-10,k*24,4,k*14,7,k*10,-1]);P(mid,[k*13,-17,k*21,-19,k*24,-10,k*21,2,k*15,4]);for(let i=0;i<3;i++)R(glow,k*20-2,-14+i*5,4,2);L(ink,[k*10,4,k*17,10,k*19,17+step*k],6);L(mid,[k*10,4,k*17,10,k*19,16+step*k],2)}
+   P(ink,[-15,-22,15,-22,18,-7,12,10,-12,10,-18,-7]);P(shade,[-12,-20,12,-20,15,-7,10,7,-10,7,-15,-7]);R(mid,-10,-17,20,14);R(ink,-8,-15,16,10);R(glow,-6,-13,12,6);R(hi,-2,-12,4,4);L(glow,[-8,2,-4,4,0,0,4,4,8,2],2);
+   P(ink,[-8,-22,-5,-32,5,-32,8,-22]);R(mid,-4,-29,8,7);R(hi,-3,-29,6,2);
+  }
+ }else if(mark===2){
+  if(v===0){
+   P(ink,[-13,9,-11,-7,-7,-19,0,-25,7,-19,11,-7,15,11,6,6,0,13,-6,5]);P(shade,[-10,6,-8,-7,-5,-17,0,-21,5,-17,8,-6,10,6,3,3,0,8,-3,3]);P(mid,[-5,-16,0,-21,5,-16,3,-9,-3,-9]);R(hi,-2,-18,3,2);R(glow,-5,-13,3,1);R(glow,2,-13,3,1);L(glow,[-7,-5,-3,0,-5,6]);L(mid,[7,-5,3,1,6,7]);
+  }else if(v===1){
+   for(const k of [-1,1]){P(ink,[k*3,-3,k*10,4,k*13,15+step*k,k*6,12+step*k,k*2,5]);P(mid,[k*5,1,k*8,5,k*10,12+step*k,k*6,9+step*k]);P(ink,[k*6,-14,k*17,-13,k*22,6,k*14,1,k*9,-4]);P(hi,[k*11,-12,k*16,-11,k*18,1,k*13,-2])}
+   P(ink,[-10,-17,0,-28,10,-17,7,2,0,9,-7,2]);P(mid,[-7,-16,0,-24,7,-16,5,1,0,6,-5,1]);P(shade,[-5,-13,0,-19,5,-13,0,-4]);L(hi,[-4,-17,0,-22,4,-17]);R(glow,-4,-12,8,2);
+  }else{
+   for(const k of [-1,1]){P(ink,[k*8,-15,k*14,-30,k*27,-37,k*24,-14,k*32,5,k*18,10,k*11,-2]);P(mid,[k*12,-15,k*16,-27,k*24,-32,k*21,-13,k*27,3,k*19,6]);L(hi,[k*16,-26,k*22,-30,k*20,-16]);L(glow,[k*16,-7,k*21,-2,k*18,5])}
+   P(ink,[-15,10,-12,-15,-7,-26,0,-33,7,-26,12,-15,15,10,6,6,0,17,-6,6]);P(shade,[-12,7,-9,-15,-5,-24,0,-29,5,-24,9,-15,12,7,5,2,0,12,-5,2]);P(mid,[-8,-15,0,-25,8,-15,0,-3]);P(ink,[-5,-15,0,-21,5,-15,0,-8]);R(glow,-3,-15,6,2);R(hi,-1,-15,2,1);P(hi,[0,-2,5,3,0,8,-5,3]);P(glow,[0,0,3,3,0,6,-3,3]);
+  }
+ }else{
+  if(v===0){
+   P(ink,[-13,2,-11,-8,-5,-16,4,-17,12,-10,14,1,9,8,-6,8]);P(mid,[-10,1,-8,-7,-3,-13,3,-14,9,-8,11,0,7,5,-5,5]);for(const k of [-1,1])for(let i=0;i<2;i++){L(ink,[k*(5+i*3),2,k*(9+i*5),7+step*k,k*(13+i*4),8+step*k],3);R(hi,k*(13+i*4)-1,8+step*k,2,2)}R(ink,-7,-4,14,6+jaw);for(let i=-6;i<7;i+=3)R(hi,i,-4,1,3);R(glow,-5,-9,3,2);R(glow,3,-9,3,2);
+  }else if(v===1){
+   for(const k of [-1,1]){P(ink,[k*8,-12,k*17,-13,k*23,0,k*18,9+step*k,k*12,4,k*8,-3]);P(mid,[k*11,-10,k*16,-10,k*19,0,k*16,5+step*k,k*13,2]);L(hi,[k*17,4+step*k,k*19,7+step*k],2);P(ink,[k*4,3,k*11,5,k*12,14+step*k,k*5,14+step*k])}
+   P(ink,[-14,-13,-7,-22,8,-22,14,-13,12,7,-12,7]);P(mid,[-11,-12,-6,-19,7,-19,11,-12,9,5,-9,5]);R(shade,-9,-10,18,14);R(ink,-8,-6,16,10+jaw);for(let i=-7;i<8;i+=3){R(hi,i,-6,2,3);R(hi,i,1+jaw,1,3)}R(glow,-7,-12,4,2);R(glow,3,-12,4,2);
+  }else{
+   for(const k of [-1,1]){P(ink,[k*9,-17,k*19,-28,k*31,-31,k*25,-14,k*30,6,k*20,13,k*12,5]);P(mid,[k*13,-15,k*21,-25,k*27,-27,k*22,-13,k*26,4,k*19,9,k*15,3]);P(hi,[k*21,-24,k*26,-27,k*23,-16]);L(glow,[k*16,-10,k*21,-6,k*18,3],2);L(ink,[k*9,5,k*19,12,k*24,16+step*k],5);L(mid,[k*10,5,k*19,12,k*24,16+step*k],2)}
+   P(ink,[-16,-15,-11,-28,0,-35,11,-28,16,-15,13,12,0,17,-13,12]);P(mid,[-13,-14,-9,-25,0,-31,9,-25,13,-14,10,10,0,14,-10,10]);P(shade,[-9,-14,-5,-23,0,-27,5,-23,9,-14,0,-7]);R(glow,-8,-18,5,3);R(glow,3,-18,5,3);R(hi,-1,-24,2,4);R(ink,-10,-5,20,13+jaw);for(let i=-9;i<10;i+=4){R(hi,i,-5,2,4);R(hi,i,5+jaw,2,3)}R(glow,-2,1,4,4+jaw);
+  }
+ }
+ // In rage, new anatomy grows; high contrast silhouettes remain distinct.
+ if(heavy&&stage>=2){for(const k of [-1,1]){
+  const x=k*15,reach=stage===3?12:7;P(ink,[x-k*3,-12,x+k*3,-24,x+k*reach,-34-stage*2,x+k*(reach+2),-23,x+k*4,-8]);P(mid,[x,-13,x+k*4,-23,x+k*reach,-30-stage*2,x+k*reach,-23,x+k*3,-12]);R(glow,x+k*(reach-2)-1,-24,2,4);
+  if(stage===3){P(ink,[k*10,0,k*22,1,k*31,8,k*26,15,k*13,9]);P(shade,[k*13,2,k*22,3,k*27,8,k*24,12,k*14,7]);R(hi,k*25-1,10,2,4)}
+ }}
+ if(heavy&&stage===3){R(glow,-4,-35,8,2);R(hi,-2,-37,4,2);L(glow,[-6,7,0,11,6,7],2)}
+ g.restore();
 }
+
 function paintExpandedTerrain(g,id,left,top,width,height){
  const t=terrainThemes[id]||terrainThemes.kitchen;
  for(const [x,y] of [[2040,230],[2240,500],[2050,790],[440,1220],[1100,1200],[1770,1220],[2300,1160]]){
@@ -6425,7 +6493,26 @@ function endGame(broadcast=true,escaped=false){saveAtBoundary=false;tutorial=nul
 
 function drawPixelText(text,x,y,size=8,color='#f6efd9',align='left'){ctx.fillStyle=color;ctx.font=`bold ${size}px ui-monospace,monospace`;ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(text,x,y)}
 // Pixel character models: native Canvas art, one world pixel per sprite pixel.
+
+function paintHeroSilhouetteGear(g,id,phase,step){
+ const a=heroArt[id]||heroArt.scar,t=reduceMotion?0:Math.round(Math.sin(phase)*2+step*.5);
+ const P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ const R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+ const ink='#100c17';g.save();
+ switch(id){
+ case 'scar':P(ink,[-11,-9,-17,-9,-23,-3,-21,2+t,-16,1,-10,-4]);P('#78383e',[-12,-8,-17,-7,-21,-3,-20,t,-16,-1,-11,-5]);R('#d66a54',-20,-3,4,1);break;
+ case 'vesa':P(ink,[-9,-14,-15,-8,-17,7,-12,14+t,-8,10,-7,-3]);P('#592c42',[-10,-12,-14,-7,-15,7,-12,11+t,-9,9]);R('#a5766a',-14,0,1,5);break;
+ case 'nyx':for(const k of [-1,1]){P(ink,[k*8,-12,k*16,-5,k*20,9+t*k,k*14,17+t*k,k*9,10]);P('#25213e',[k*10,-10,k*15,-4,k*17,9+t*k,k*14,14+t*k,k*11,8]);R('#8279bb',k*15-1,5+t*k,1,5)}break;
+ case 'pelmage':P(ink,[-9,-6,-18,-5,-20,8,-16,13+t,-9,12]);P('#35466e',[-10,-5,-16,-3,-18,7,-15,10+t,-10,10]);R('#c5b083',-17,6,4,1);break;
+ case 'assassin':P(ink,[-9,-12,-16,-7,-20,3+t,-16,7+t,-11,2]);P('#465851',[-10,-10,-15,-6,-18,3+t,-16,4+t,-12,0]);R('#b5c2af',-17,1+t,2,2);break;
+ case 'golem':for(const k of [-1,1]){P(ink,[k*10,-11,k*16,-17,k*20,-17,k*21,-7,k*17,-4]);P('#68564a',[k*12,-10,k*16,-15,k*18,-15,k*19,-7,k*16,-6]);R('#d3ad79',k*17-1,-14,2,3)}break;
+ case 'warden':for(const k of [-1,1]){P(ink,[k*9,-8,k*16,-6,k*19,7+t*k,k*14,14+t*k,k*10,10]);P('#706348',[k*11,-6,k*15,-4,k*17,7+t*k,k*14,11+t*k,k*12,8]);R('#c9b382',k*15-1,5+t*k,2,3)}break;
+ case 'revenant':for(const k of [-1,1]){P(ink,[k*9,-12,k*16,-16,k*21,-7,k*16,4+t*k,k*21,13+t*k,k*12,18+t*k,k*9,8]);P('#493453',[k*11,-11,k*15,-13,k*18,-7,k*14,5+t*k,k*18,13+t*k,k*13,15+t*k,k*11,7]);R('#ad8ec3',k*16-1,-9,2,4)}break;
+ }g.restore();
+}
+
 function pixelHeroBody(g,id,step=0,phase=0,aim=0,limp=null){
+ paintHeroSilhouetteGear(g,id,phase,step);
  const a=heroArt[id]||heroArt.scar;
  const ink='#100c17',cream='#e9c9a6',tan='#b88976',shade='#78535a';
  const R=(color,x,y,w,h)=>{g.fillStyle=color;g.fillRect(x,y,w,h)};
@@ -8066,9 +8153,24 @@ function paintWaveHorror(g,type,w,seed=0,phase=0,less=false){
  for(let i=0;i<Math.min(29,waveN-1);i++){const x=((seed+i*7+variant*3)%13)-6,y=ey+5+((i*3+variant)%9);R(i%3===0?mid:dark,x,y,1,1)}
  g.restore();return true
 }
+
+function paintEnemyMaterialDetail(g,e,phase,less){
+ const a=waveHorrorArt[e.type];if(!a)return;const [map,ey,my,mw,side,variant]=a,pal=waveHorrorPalette[map];if(!pal)return;
+ const [dark,mid,hot,bone]=pal,seed=e.artSeed||0,k=seed%2?-1:1,t=less?0:Math.round(Math.sin(phase*2+seed)),R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+ g.save();
+ const x=k*Math.max(4,side-4),y=-5+variant%3*3;
+ if(map==='basement'||map==='foodcourt'||map==='kitchen'){
+  R(dark,x-2,y-2,4,5);R(mid,x-1,y-1,2,3);R(bone,x-1,y-1,1,1);R(hot,x-1,y+2,1,1);
+ }else{
+  for(let i=0;i<3;i++){R(dark,x-k*i,y+i,2,1);R(mid,x-k*i,y+i+1,1,1)}
+  if(roundNumber(e.artWave)>=8)R(hot,x-1,y-2+t,2,1);
+ }
+ g.restore();
+}
+function roundNumber(n){return Number.isFinite(n)?n:1}
 function drawEvolvingEnemy(g,e,phase,round,less=false){
  pixelEnemy(g,e.type,phase,e.lunge||0,e.attack??1);
- paintWaveHorror(g,e.type,e.artWave??round,e.artSeed??0,phase,less)
+ paintWaveHorror(g,e.type,e.artWave??round,e.artSeed??0,phase,less);paintEnemyMaterialDetail(g,e,phase,less)
 }
 
 // V75.19 — health-driven boss anatomy, distinct material and anchors for each identity.
@@ -8145,7 +8247,7 @@ function drawEnemy(e){
   }else if(!soloRun&&(e.comboWindup||0)<=0&&(e.comboRecover||0)>0){const w=24*Math.min(1,e.comboRecover/bossComboFor(e.bossId)[1]);ctx.fillStyle='#17251f';ctx.fillRect(-13,-61,26,4);ctx.fillStyle='#b3e1b1';ctx.fillRect(-12,-60,w,2)}
  }
  if(e.champion){const q=championProfiles[e.champion];drawPixelText(L(q.en,q.ru),0,-53,7,q.color,'center');ctx.fillStyle='#20141d';ctx.fillRect(-18,-45,36,4);ctx.fillStyle=q.color;ctx.fillRect(-17,-44,34*Math.max(0,e.hp/e.maxhp),2)}
- if(e.dimensionMob){const q=e.dimensionMob;drawPixelText(L(...q.name),0,-e.r-23,7,q.color,'center');ctx.fillStyle='#21131d';ctx.fillRect(-14,-e.r-17,28,3);ctx.fillStyle=q.color;ctx.fillRect(-14,-e.r-17,28*Math.max(0,e.hp/e.maxhp),2)}
+ if(e.dimensionMob){const q=e.dimensionMob,y=q.guardian?-63:-39;drawPixelText(L(...q.name),0,y-6,7,q.color,'center');const w=q.guardian?42:28;ctx.fillStyle='#21131d';ctx.fillRect(-w/2,y,w,4);ctx.fillStyle=q.color;ctx.fillRect(-w/2+1,y+1,(w-2)*Math.max(0,e.hp/e.maxhp),2);if(q.guardian){drawPixelText('I'.repeat(q.phase||1),0,y+11,7,q.color,'center')}}
  if(e.mutation)paintMutantMark(ctx,e.mutation,e.mutantArmor,e.mutantWindup,e.mutantRush);
  if(!boss&&(e.hit>0||e.elite||e.mutation)&&e.maxhp>0){const w=e.elite?35:Math.max(12,Math.min(24,Math.round((e.r||9)*1.5))),y=e.elite?-40:-34;ctx.fillStyle='#1c111a';ctx.fillRect(-w/2,y,w,3);ctx.fillStyle=e.elite?eliteProfiles[e.elite].color:e.mutation?mutantProfiles[e.mutation].color:'#e56b67';ctx.fillRect(-w/2,y,w*Math.max(0,Math.min(1,e.hp/e.maxhp)),2)}
  if(soloRun){const active=[e.burnStatus?'fire':null,e.venomStatus?'poison':null,e.frozen>0?'frost':null,e.cursed>0?'curse':null,e.shockCooldown>0?'shock':null].filter(Boolean);active.forEach((k,i)=>{ctx.fillStyle=elements[k].color;ctx.fillRect(-active.length*2+i*4,10,3,3)})}
