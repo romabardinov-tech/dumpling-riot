@@ -1,0 +1,12 @@
+const fs=require('node:fs'),assert=require('node:assert/strict'),c=fs.readFileSync('index.html','utf8');let count=0;const check=x=>{assert(x);count++};const section=(a,b)=>{const i=c.indexOf(a),j=c.indexOf(b,i+a.length);assert(i>=0&&j>i);return c.slice(i,j)};
+new Function('check',section('function soloWaveCount(','function soloRelic(')+section('const championProfiles=','function spawnWaveEnemy(')+section('function championPattern(','function championTick(')+`
+for(let w=1;w<=100;w++){check(soloWaveCount(w+1)>=soloWaveCount(w));check(coopWaveCount(w)>soloWaveCount(w));check(enemyWaveDamage(w+1)>=enemyWaveDamage(w));check(soloBossBase(w+1)>soloBossBase(w));check(soloActiveLimit(w)<=36);check(!allowWaveSpawn(false,w,48));
+ const n=soloWaveCount(w),slots=Array.from({length:n},(_,i)=>i).filter(i=>championSlot(w,i,n));check(w<3?slots.length===0:slots.length>=1&&slots.length<=Math.ceil(n/8));
+}
+check(soloWaveCount(1)===12&&soloWaveCount(5)===28&&soloWaveCount(10)===48&&soloWaveCount(15)===68);check(soloBossBase(5)===4600&&soloBossBase(10)===7700&&soloBossBase(15)===11800);
+check(bossBuildFactor([{weaponLevels:[1,1,1,1],boost:{dmg:1,rate:1}}])===1);check(bossBuildFactor([{weaponLevels:[7,1,1,1],boost:{dmg:2,rate:1.4},evolved:[true]}])>1.4);check(bossBuildFactor([{weaponLevels:[100],boost:{dmg:100,rate:100}}])===1.55);
+let horrorTime=1,hits=0;const hurtPlayer=(p,d)=>{p.hp-=d;hits++};const p={hp:100},e={x:0,y:0,damageScale:1.5};enemyContactHit(p,e,10);check(hits===1&&p.hp===92.2);enemyContactHit(p,e,10);check(hits===1);horrorTime=1.7;enemyContactHit(p,e,10);check(hits===2);p.inv=1;horrorTime=3;enemyContactHit(p,e,10);check(hits===2);
+const unique=new Set();for(const [map,q] of Object.entries(championProfiles)){const e={type:q.type,hp:100,speed:60,r:12,damageScale:1.3,x:0,y:0};check(empowerChampion(e,map,8));check(e.hp>=370&&e.maxhp===e.hp&&e.damageScale>1.3&&e.champion===map);const pattern=championPattern(map,e,{x:100,y:10,vx:20,vy:10});check(pattern.length>=2&&pattern.every(h=>h.delay>=.85&&h.damage>0));unique.add(JSON.stringify(pattern));}check(unique.size===6);
+`)(check);
+check(c.includes('damage:damage*(source?.damageScale||1)'));check(c.includes('projectiles[k].damage*=e.damageScale||1'));check(c.includes('bossBuildFactor(alivePlayers())'));check(c.includes('spawnWaveEnemy();spawned++'));check(c.includes('champion:e.champion'));
+console.log('Horde escalation: '+count+' assertions passed; wave budgets, boss scaling, contact cooldown and six champion patterns. Live balance not tested.');
