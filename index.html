@@ -1109,6 +1109,20 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 #menu .btn#startBtn{background:linear-gradient(180deg,#b74c54,#782536);border-color:#e7977f;box-shadow:0 3px 0 #3f1626,0 0 18px #c34b5730}
 @media(max-width:650px) and (orientation:portrait){#menu #homePanel .horrorMarquee{min-height:195px}#menu #homePanel .marqueeTitle{font-size:38px}#menu #homeCampaignShortcut{min-height:36px}}
 @media(max-height:520px) and (orientation:landscape){#menu #homePanel .horrorMarquee{min-height:145px}#menu #homePanel .marqueeCopy{padding:7px;gap:2px}#menu #homePanel .marqueeTitle{font-size:30px}#menu #homePanel #homeHeading{font-size:10px}#menu #homePortalNote{font-size:9px}#menu #homeCampaignShortcut{min-height:28px;padding:3px 10px;font-size:11px}}
+
+#wardrobePanel{margin-top:16px;padding:12px;border:1px solid #66505d;background:linear-gradient(135deg,#211a28,#15131c);border-radius:6px}
+.wardrobeHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#wardrobeHeading{margin:0;color:#eed3aa;font:800 18px/1.2 system-ui}#wardrobeBalance{color:#e8b780;white-space:nowrap;font:800 15px system-ui}
+#wardrobeHint,#wardrobeNotice{font:500 12px/1.45 system-ui;color:#d3bdca;margin:8px 0}
+#wardrobeCards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.wardrobeCard{display:flex;flex-direction:column;gap:5px;min-width:0;padding:7px;background:#211a29;border:1px solid #56485e;border-radius:5px;--rank-accent:#b3a6b8}
+.wardrobeCard[data-rank="1"]{--rank-accent:#99c5a2}.wardrobeCard[data-rank="2"]{--rank-accent:#c4a2e9}.wardrobeCard[data-rank="3"]{--rank-accent:#e9bb78}
+.wardrobeCard[data-equipped="true"]{border-color:var(--rank-accent);box-shadow:inset 0 0 0 1px var(--rank-accent)}
+.wardrobeCard canvas{height:auto;width:100%;aspect-ratio:120/112;object-fit:contain;background:#18121f;filter:none;cursor:default}
+.wardrobeCard b{font:750 13px/1.3 system-ui;color:#f4e5d7;overflow-wrap:anywhere}.wardrobeCard small{font:600 11px system-ui;color:var(--rank-accent)}
+.wardrobeCard button{margin-top:auto;min-height:40px;padding:5px;border:1px solid var(--rank-accent);border-radius:3px;background:#342635;color:#f4e3c8;font:700 12px/1.25 system-ui;cursor:pointer;touch-action:manipulation}
+.wardrobeCard button:disabled{opacity:.62;cursor:default}.wardrobeCard[data-equipped="true"] button{opacity:1;color:var(--rank-accent)}
+@media(max-width:680px){#wardrobeCards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -1138,7 +1152,7 @@ html.inGame body:has(#merchantOverlay:not([hidden])){touch-action:pan-y}
 </div><button type="button" class="homeMode homeSettings" data-open-menu="settings" id="settingsHome"><span class="altarGem homeActionIcon" id="settingsHomeIcon" aria-hidden="true"></span><span><strong class="homeActionTitle" id="settingsHomeLabel">SETTINGS</strong><span class="homeActionDetail" id="settingsHomeValue">Sound, controls, privacy</span></span><span class="homeChevron" aria-hidden="true">›</span></button>
 </section>
 <div id="menuBackBar" hidden><button type="button" id="menuBack" aria-label="Back">‹ <span id="menuBackLabel">Back</span></button><span id="menuCurrentTitle"></span><button type="button" id="menuDone">Done</button></div>
-<section class="menuSection" data-menu-panel="hero" hidden><div class="sectionHead"><h3 id="heroHeading">Choose hero</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div></section>
+<section class="menuSection" data-menu-panel="hero" hidden><div class="sectionHead"><h3 id="heroHeading">Choose hero</h3></div><div class="heroStage"><canvas id="heroStageCanvas" width="200" height="108" aria-hidden="true"></canvas><div class="stageInfo"><h2 id="heroStageName"></h2><div id="heroStageStats"></div><div id="heroDetail" class="selectionDetail"></div></div></div><div id="charChoices" class="choices"></div><div id="heroArsenal" class="heroArsenal"></div><section id="wardrobePanel" aria-labelledby="wardrobeHeading"><div class="wardrobeHeader"><h3 id="wardrobeHeading"></h3><b id="wardrobeBalance"></b></div><p id="wardrobeHint"></p><div id="wardrobeCards"></div><p id="wardrobeNotice" role="status"></p></section></section>
 <section class="menuSection" data-menu-panel="map" hidden><div class="sectionHead"><h3 id="mapHeading">Choose arena</h3></div><div class="mapStage"><canvas id="mapStageCanvas" width="480" height="270" aria-hidden="true"></canvas><div class="mapStageCaption"><h2 id="mapStageName"></h2><div id="mapDetail" class="selectionDetail"></div><div id="arenaEnemyPreview" class="arenaEnemyPreview"></div></div></div><div id="mapChoices" class="choices"></div></section>
 <section class="menuSection" data-menu-panel="journal" hidden><div class="altarHeader"><h3 id="journalHeading"></h3><b id="journalCount"></b></div><p id="journalHint" class="selectionDetail"></p><label id="journalFilterLabel" for="journalFilter"></label><select id="journalFilter"></select><div id="journalEntries"></div></section>
 <section class="menuSection" data-menu-panel="altar" hidden><div class="altarHeader"><h3 id="altarHeading"></h3><b id="shardBalance"></b></div><p id="altarHint" class="selectionDetail"></p><nav id="altarNav" aria-label="Алтарь"><button type="button" data-altar-view="build" aria-controls="altarBuild" aria-pressed="true"></button><button type="button" data-altar-view="legacy" aria-controls="altarLegacy" aria-pressed="false"></button><button type="button" data-altar-view="history" aria-controls="altarHistory" aria-pressed="false"></button></nav><section id="altarBuild" data-altar-group="build"><h4 id="contractHeading"></h4><div id="contractChoices" class="altarGrid"></div><h4 id="modifierHeading"></h4><div id="modifierChoices" class="altarGrid"></div><h4 id="perkHeading"></h4><div id="perkChoices" class="altarGrid"></div><h4 id="comboHeading"></h4><div id="comboList" class="achievementGrid"></div></section><section id="altarLegacy" data-altar-group="legacy" hidden><h4 id="achievementHeading"></h4><div id="achievementList" class="achievementGrid"></div><h4 id="legacyHeading"></h4><p id="legacyNotice" class="selectionDetail" role="status"></p><div id="legacyGoals" class="altarGrid"></div><h4 id="heroRecordsHeading"></h4><div id="heroRecords" class="achievementGrid"></div></section><section id="altarHistory" data-altar-group="history" hidden><p id="campaignWins" class="selectionDetail"></p><h4 id="endingHeading"></h4><div id="endingList" class="achievementGrid"></div><h4 id="runHistoryHeading"></h4><div id="runHistoryList" class="achievementGrid"></div></section></section>
@@ -2321,11 +2335,41 @@ function rememberRun(data,run,escaped,outcome){
  updateHeroBest(data,run.hero,run.cleared);
  data.history=normalizeRunHistory([entry,...(data.history||[])]);
 }
+
+/* V75.29 — per-hero cosmetic wardrobe; permanent, no combat bonuses. */
+const visualHeroIds=['scar','vesa','nyx','pelmage','assassin','golem','warden','revenant'];
+const visualTiers=[
+ {en:'Original',ru:'Оригинал',cost:0},
+ {en:'Forged',ru:'Закалённый',cost:25},
+ {en:'Masterwork',ru:'Мастерский',cost:60},
+ {en:'Legendary',ru:'Легендарный',cost:120}
+];
+const visualWardrobe={
+ scar:{names:[['Ember plate','Пламенный доспех'],['Furnace lord','Владыка печи'],['Infernal knight','Рыцарь пламени']],colors:['#472a33','#a45b45','#f5bc81','#ffe5bd']},
+ vesa:{names:[['Crimson tracker','Алый следопыт'],['Venom ranger','Ядовитый охотник'],['Bloodmoon huntress','Охотница кровавой луны']],colors:['#45293f','#94617b','#bce582','#f1d2bf']},
+ nyx:{names:[['Shadow weave','Теневая ткань'],['Astral armor','Астральные доспехи'],['Eclipse phantom','Призрак затмения']],colors:['#302346','#7867ad','#c1afff','#f0ddff']},
+ pelmage:{names:[['Runic coat','Руническая мантия'],['Crystal sage','Кристальный мудрец'],['Arcane sovereign','Владыка магии']],colors:['#293951','#667fb7','#a4e3ff','#e9e3bc']},
+ assassin:{names:[['Silent steel','Безмолвная сталь'],['Phantom blade','Призрачный клинок'],['Emerald reaper','Изумрудный жнец']],colors:['#203c37','#52796e','#9debc0','#e4efdd']},
+ golem:{names:[['Copper shell','Медный корпус'],['Titan forge','Кузня титана'],['Solar colossus','Солнечный колосс']],colors:['#4d3931','#94775d','#ffb666','#fff1bd']},
+ warden:{names:[['Gilded lantern','Золотой фонарь'],['Sanctuary guard','Страж святилища'],['Dawn sentinel','Страж рассвета']],colors:['#4e4335','#9c895c','#ffda8b','#fff3d0']},
+ revenant:{names:[['Bone mantle','Костяная мантия'],['Void herald','Вестник пустоты'],['Eternal revenant','Вечный возвращённый']],colors:['#3e294b','#795787','#d0a4ee','#f2d9ff']}
+};
+let visualPreview=null;
+function normalizeWardrobe(raw){const out={};for(const id of visualHeroIds){const owned=metaInt(raw?.[id]?.owned,3),equipped=metaInt(raw?.[id]?.equipped,owned);out[id]={owned,equipped}}return out}
+function wardrobeRank(id){return visualPreview?.id===id?visualPreview.rank:meta.wardrobe?.[id]?.equipped||0}
+function wardrobeAction(data,id,rank){
+ if(!visualHeroIds.includes(id)||!Number.isInteger(rank)||rank<0||rank>3)return false;
+ const slot=data.wardrobe?.[id];if(!slot)return false;
+ if(rank<=slot.owned){slot.equipped=rank;return true}
+ if(rank!==slot.owned+1||data.shards<visualTiers[rank].cost)return false;
+ data.shards-=visualTiers[rank].cost;slot.owned=slot.equipped=rank;return true
+}
+
 function normalizeMeta(raw){
  const o=raw&&typeof raw==='object'?raw:{},r={shards:metaInt(o.shards),runs:metaInt(o.runs),escapes:metaInt(o.escapes),kills:metaInt(o.kills),best:metaInt(o.best),campaignWins:metaInt(o.campaignWins),endings:normalizeEndings(o.endings),history:normalizeRunHistory(o.history),dailyClaim:validDailyDate(o.dailyClaim)?o.dailyClaim:null,abyssCleared:normalizeAbyss(o.abyssCleared),perks:{},maps:{},achievements:[]};
  for(const p of metaPerks)r.perks[p.id]=metaInt(o.perks?.[p.id],5);
  for(const m of ['kitchen','basement','foodcourt','slaughter','cemetery','forest'])r.maps[m]=metaInt(o.maps?.[m]);
- r.achievements=metaAchievements.filter(a=>Array.isArray(o.achievements)&&o.achievements.includes(a.id)).map(a=>a.id);r.heroBest=normalizeHeroBest(o.heroBest,r.history);r.milestoneClaims=normalizeMilestoneClaims(o.milestoneClaims);return r;
+ r.achievements=metaAchievements.filter(a=>Array.isArray(o.achievements)&&o.achievements.includes(a.id)).map(a=>a.id);r.heroBest=normalizeHeroBest(o.heroBest,r.history);r.milestoneClaims=normalizeMilestoneClaims(o.milestoneClaims);r.wardrobe=normalizeWardrobe(o.wardrobe);return r;
 }
 function readMeta(){try{return normalizeMeta(JSON.parse(readStorage(META_KEY,'{}')))}catch(_){return normalizeMeta({})}}
 function saveMeta(){writeStorage(META_KEY,JSON.stringify(meta))}
@@ -3801,13 +3845,31 @@ function paintArenaEnemyPreview(id){
  const title=document.createElement('span');title.className='arenaEnemyLabel';title.textContent=L('Local enemies','Местные враги');el.append(title);
  for(const type of arenaEnemyRoster[id]||arenaEnemyRoster.kitchen){const item=document.createElement('span');item.className='arenaEnemyItem';const cv=document.createElement('canvas');cv.width=64;cv.height=48;cv.setAttribute('aria-hidden','true');const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.translate(32,33);pixelEnemy(g,type,0,0,1);const name=document.createElement('span');name.textContent=arenaEnemyName(type);item.append(cv,name);el.append(item)}
 }
+
+function renderWardrobe(hero){
+ const id=hero.id,slot=meta.wardrobe[id],spec=visualWardrobe[id];if(!slot||!spec)return;
+ document.getElementById('wardrobeHeading').textContent=L('Character forge','Кузница обликов');
+ document.getElementById('wardrobeBalance').textContent='◆ '+meta.shards;
+ document.getElementById('wardrobeHint').textContent=L('Permanent cosmetic sets · buy in order · equip any unlocked look for free.','Постоянные облики · открывай по порядку · бесплатно меняй купленные комплекты. Характеристики не меняются.');
+ const box=document.getElementById('wardrobeCards');box.replaceChildren();
+ for(let rank=0;rank<=3;rank++){
+  const q=visualTiers[rank],card=document.createElement('div'),cv=document.createElement('canvas'),h=document.createElement('b'),label=document.createElement('small'),button=document.createElement('button');card.className='wardrobeCard';card.dataset.rank=String(rank);card.dataset.equipped=String(slot.equipped===rank);cv.width=120;cv.height=112;cv.setAttribute('aria-hidden','true');h.textContent=rank?L(...spec.names[rank-1]):metaLabel(q);label.textContent=metaLabel(q);
+  menuArtwork(()=>{const prior=visualPreview;try{visualPreview={id,rank};const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.fillStyle='#18121f';g.fillRect(0,0,120,112);g.fillStyle=spec.colors[0];g.fillRect(8,8,104,96);g.save();g.translate(52,76);g.scale(1.9,1.9);pixelHeroBody(g,id,0,0,0);paintHeroSignature(g,id,0,0);pixelHeroWeapon(g,id,0,0,0);g.restore()}finally{visualPreview=prior}});
+  button.type='button';button.disabled=slot.equipped===rank||rank>slot.owned+1||rank>slot.owned&&meta.shards<q.cost;
+  button.textContent=slot.equipped===rank?L('Equipped','Надет'):rank<=slot.owned?L('Equip','Надеть'):rank>slot.owned+1?L('Locked','Закрыт'):'◆ '+q.cost+' · '+L('Unlock','Открыть');
+  button.onclick=()=>{const next=normalizeMeta(meta);if(!heroPlayable(hero,meta,journal,coop||onlineMode)||!wardrobeAction(next,id,rank))return;
+   try{const raw=JSON.stringify(next);localStorage.setItem(META_KEY,raw);if(localStorage.getItem(META_KEY)!==raw)throw Error('save');meta=next;makeMenu();document.getElementById('wardrobeNotice').textContent=L('Appearance equipped.','Новый облик надет.')}catch(_){document.getElementById('wardrobeNotice').textContent=L('Could not save. Try again.','Не удалось сохранить. Попробуй ещё раз.')}
+  };card.append(cv,h,label,button);box.append(card);
+ }
+}
+
 function paintMenuStage(hero,map){
  const canvas=document.getElementById('heroStageCanvas');
  menuArtwork(()=>paintHeroSelection(canvas.getContext('2d'),hero));
  canvas.closest('.heroStage').style.setProperty('--hero-accent',hero.color);
  document.getElementById('heroStageName').textContent=locName(hero);document.getElementById('heroStageStats').textContent=(L("Health ","Здоровье "))+hero.hp+' / '+(L("Speed ","Скорость "))+hero.speed;
  menuArtwork(()=>{const mg=document.getElementById('mapStageCanvas').getContext('2d');mg.save();try{mg.translate(-720,-405);paintTerrain(mg,map.id,720,405,480,270);paintArenaAtmosphere(mg,map.id,{x:720,y:405,w:480,h:270},0)}finally{mg.restore()}});
- document.getElementById('mapStageName').textContent=locName(map).split(' — ')[0];
+ document.getElementById('mapStageName').textContent=locName(map).split(' — ')[0];renderWardrobe(hero);
 }
 
 function heroUnlocked(ch,data,entries){return !!ch&&(!ch.unlock||ch.unlock==='win'&&data.campaignWins>0||ch.unlock==='hidden'&&['boss:13','boss:14'].some(id=>entries.includes(id)))}
@@ -6511,8 +6573,43 @@ function paintHeroSilhouetteGear(g,id,phase,step){
  }g.restore();
 }
 
+
+/* Cosmetic silhouettes are authored on the same pixel grid as the base model. */
+function paintWardrobeBack(g,id,rank,phase,step){
+ if(!rank)return;const spec=visualWardrobe[id];if(!spec)return;
+ const [dark,mid,glow,hi]=spec.colors,ink='#100b16',t=reduceMotion?0:Math.round(Math.sin(phase)*2+step*.4);
+ const R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+ const P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ g.save();
+ // A full-length mantle or armored back assembly, behind the native silhouette.
+ for(const k of [-1,1]){
+  const x=k*(rank===3?21:17);
+  if(id==='golem'||id==='scar'||id==='warden'){
+   P(ink,[k*9,-15,k*15,-19,x,-15,x+k*2,-3,k*15,6,k*9,1]);P(dark,[k*11,-14,k*15,-17,x-k,-13,x,-4,k*15,3,k*11,0]);P(mid,[k*15,-17,x-k,-13,x-k,-8,k*13,-10]);R(hi,x-k*3-1,-13,3,1);
+   if(rank>=2){P(ink,[k*11,-19,k*16,-27,k*21,-24,k*22,-13,k*14,-12]);P(mid,[k*14,-19,k*16,-24,k*19,-22,k*19,-15,k*15,-14]);R(glow,k*18-1,-22,2,5)}
+  }else{
+   P(ink,[k*9,-16,k*14,-11,x,-2,x+k*2,13+t*k,k*13,20+t*k,k*8,13,k*8,-3]);P(dark,[k*11,-14,k*14,-9,x-k,-1,x,12+t*k,k*13,17+t*k,k*10,11]);P(mid,[k*13,-8,x-k,-1,x-k,11+t*k,k*14,15+t*k,k*15,8]);R(glow,x-k*2-1,9+t*k,2,4);
+   if(rank>=2){P(ink,[k*9,-13,k*15,-22,k*21,-16,k*18,-8,k*12,-8]);P(mid,[k*12,-13,k*15,-19,k*18,-16,k*16,-10,k*13,-10]);R(hi,k*16-1,-17,2,2)}
+  }
+  if(rank===3){P(ink,[k*11,-22,k*16,-32,k*22,-29,k*20,-18,k*14,-16]);P(mid,[k*14,-22,k*16,-29,k*20,-27,k*18,-19]);R(glow,k*17-1,-26,2,5)}
+ }
+ g.restore();
+}
+function paintWardrobeFront(g,id,rank,phase){
+ if(!rank||!visualWardrobe[id])return;const [dark,mid,glow,hi]=visualWardrobe[id].colors,ink='#100b16',R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)},P=(c,p)=>{g.fillStyle=c;g.beginPath();g.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]);g.closePath();g.fill()};
+ g.save();
+ for(const k of [-1,1]){
+  const x=k<0?-14:9;R(ink,x,-7,5,5);R(mid,x+1,-6,3,3);R(hi,x+1,-6,2,1);R(glow,x+2,-4,1,1);
+  if(rank>=2){R(ink,k<0?-9:5,5,4,5);R(mid,k<0?-8:6,6,2,3);R(glow,k<0?-8:6,6,2,1)}
+  if(rank===3){const xx=k<0?-17:13;R(hi,xx,-15,3,1);R(glow,xx+1,-14,1,4);R(mid,xx,-10,3,2)}
+ }
+ if(rank>=2){P(ink,[0,-7,5,-3,0,3,-5,-3]);P(mid,[0,-6,4,-3,0,1,-4,-3]);P(glow,[0,-5,2,-3,0,0,-2,-3]);R(hi,-1,-4,2,1)}
+ if(rank===3){const t=reduceMotion?0:Math.round(Math.sin(phase*2));R(glow,-6,4,12,1);R(hi,-2,4,4,1);for(const k of [-1,1]){R(glow,k*21-1,-3+t*k,1,2);R(hi,k*23-1,6-t*k,1,1)}}
+ g.restore();
+}
+
 function pixelHeroBody(g,id,step=0,phase=0,aim=0,limp=null){
- paintHeroSilhouetteGear(g,id,phase,step);
+ const cosmeticRank=wardrobeRank(id);paintWardrobeBack(g,id,cosmeticRank,phase,step);paintHeroSilhouetteGear(g,id,phase,step);
  const a=heroArt[id]||heroArt.scar;
  const ink='#100c17',cream='#e9c9a6',tan='#b88976',shade='#78535a';
  const R=(color,x,y,w,h)=>{g.fillStyle=color;g.fillRect(x,y,w,h)};
@@ -6662,7 +6759,7 @@ function pixelHeroBody(g,id,step=0,phase=0,aim=0,limp=null){
    R('#4b433a',-9,10,7,3);R('#4b433a',3,10,7,3);
  }
  // Aim-facing eye highlight and subtle surface rim on all costumes.
- if(id!=='golem'&&id!=='pelmage')R(a.lit,dir*8+(dir<0?0:-1),-8,1,2);
+ if(id!=='golem'&&id!=='pelmage')R(a.lit,dir*8+(dir<0?0:-1),-8,1,2);paintWardrobeFront(g,id,cosmeticRank,phase);
 }
 // V68.1: hand-authored native pixel silhouettes, one for each of 32 weapons.
 // Geometry is cosmetic; weapon damage, collision and timing remain unchanged.
