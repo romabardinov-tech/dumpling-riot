@@ -884,9 +884,15 @@ const SOLO_WEAPON_FLOORS=[.20,.25,.42,.16];
 const SOLO_FOURTH_DAMAGE={scar:1.45,vesa:1.55,nyx:2.05,pelmage:2.65,assassin:1.25,golem:1.8,warden:2.05,revenant:1.65};
 function soloWeaponDamage(id,slot){return slot===3?(SOLO_FOURTH_DAMAGE[id]||1):1}
 function balancedCharge(rate,boost,hero,slot,solo){const floor=solo?SOLO_WEAPON_FLOORS[slot]:.28;const d=Math.max(floor,rate/boost);return hero==='assassin'&&slot===2?Math.max(d,2.8):d}
-function soloWaveCount(w){return w%5===0?1+Math.min(7+Math.floor(w*.9),22):w<=4?5+w*3:Math.min(10+Math.floor(w*2.35),42)}
-function soloBossBase(w){return 950+250*w+Math.max(0,w-5)*15}
+// V72.7 — Solo difficulty curve: preserve contract modifiers and co-op.
+function soloWaveCount(w){return w%5===0?1+Math.min(6+Math.floor(w*.8),22):w<=4?5+w*3:Math.min(8+Math.floor(w*2.1),42)}
+function soloBossBase(w){return 850+240*w+Math.max(0,w-5)*20}
 function soloEnemyScaling(w){return {hp:w<=3?.86+(w-1)*.05:1,speed:w<=3?.92+(w-1)*.04:1}}
+function soloStatRound(w){return w<=20?w:20+10*Math.log1p((w-20)/10)}
+function soloActiveLimit(w){return Math.min(18,8+Math.floor(w/3))}
+function soloHurtScale(w){return w<=2?.90:w===3?.95:1}
+function soloXPScale(w){return w>=6&&w<=15?1.1:1}
+function allowWaveSpawn(solo,w,alive){return !solo||alive<soloActiveLimit(w)}
 function soloRelic(p){p.maxhp+=20;p.hp=Math.min(p.maxhp,p.hp+Math.ceil(p.maxhp*.4));p.boost.dmg*=1.15;p.boost.rate*=1.08;p.boost.move*=1.05;p.bomb=Math.min(9,p.bomb+1)}
 function heroWeaponStats(p,i){
  const base=weapons[i],lv=(p&&Array.isArray(p.weaponLevels)?p.weaponLevels[i]:weaponLevels[i])||1,ch=chars.find(c=>c.id===(p&&p.charId))||chars[0],mult=(heroWeaponMods[ch.id]||heroWeaponMods.scar)[i]||1,tune=(heroWeaponTune[ch.id]||heroWeaponTune.scar)[i]||{d:1,r:1};
@@ -3001,7 +3007,7 @@ function beginWave(){
    boss=makeBoss(wave,hidden);if(soloRun){const q=contractFor(soloRun.contract);boss.hp*=q.hp;boss.maxhp=boss.hp;boss.speed=Math.min(145,boss.speed*q.speed)}enemies.push(boss);spawned=1;
    initAudio();bossDialogue(boss,true);
  }
- const first=waveSpawnBudget(wave,coop,targetCount);
+ const first=Math.min(waveSpawnBudget(wave,coop,targetCount),soloRun?soloActiveLimit(wave):Infinity);
  const localPool=arenaEnemyPool(selectedMap,wave);if(soloRun&&eliteWave(wave)&&spawned<first){const e=spawnEnemy(localPool[localPool.length-1]);empowerElite(e,selectedMap);spawned++;}let localIndex=0;while(spawned<first){spawnEnemy(localIndex<localPool.length?localPool[localIndex]:null);localIndex++;spawned++}
  waveTime=0;
  toast((L("WAVE ","ВОЛНА "))+wave+(bossWave?(L(" · BOSS INCOMING"," · БОСС")) : activeOmen.id!=='none'?' · '+metaLabel(activeOmen):''));if(activeOmen.id!=='none')toastTimer=3;if(secretEncounter){toast(L('HIDDEN CACHE NEARBY','ПОБЛИЗОСТИ ТАЙНИК'));toastTimer=3;}if(soloRun&&eliteWave(wave)){toast(L('ELITE HUNT','ОХОТА НА ЭЛИТУ')+' · '+metaLabel(eliteProfiles[selectedMap]));toastTimer=3.5;}if(hidden){toast(L('HIDDEN HORROR','СКРЫТЫЙ УЖАС')+' · '+L(hidden.name,hidden.ru));toastTimer=4;}
@@ -3026,7 +3032,7 @@ function spawnEnemy(forcedType=null,position=null){
  const pool=arenaEnemyPool(selectedMap,wave);
  const type=forcedType&&arenaEnemyRoster[selectedMap]?.includes(forcedType)?forcedType:arenaEnemyType(selectedMap,wave);
  const pos=position||enemySpawnPoint(camera,alivePlayers().length?alivePlayers():[player],arena);
- const e=makeArenaEnemy(type,clamp(pos.x,arena.l+8,arena.r-8),clamp(pos.y,arena.t+8,arena.b-8),wave);if(soloRun){const q=contractFor(soloRun.contract);const balance=soloEnemyScaling(wave);e.hp*=q.hp*activeOmen.hp*balance.hp;e.maxhp=e.hp;e.speed=Math.min(165,e.speed*q.speed*activeOmen.speed*balance.speed)}enemies.push(e);return e;
+ const e=makeArenaEnemy(type,clamp(pos.x,arena.l+8,arena.r-8),clamp(pos.y,arena.t+8,arena.b-8),soloRun?soloStatRound(wave):wave);if(soloRun){const q=contractFor(soloRun.contract);const balance=soloEnemyScaling(wave);e.hp*=q.hp*activeOmen.hp*balance.hp;e.maxhp=e.hp;e.speed=Math.min(165,e.speed*q.speed*activeOmen.speed*balance.speed)}enemies.push(e);return e;
 }
 
 // V61: presentation only; bounded effects never change collisions or damage.
@@ -3510,7 +3516,7 @@ function hurtPlayer(p,dmg,x=p.x,y=p.y){
  const ch=chars.find(c=>c.id===p.charId)||chars[0];
  if(p.heroUpgrades?.includes('armor'))dmg*=.72;
  if(ch.id==='golem')dmg*=.78;
- if(soloRun)dmg*=contractFor(soloRun.contract).hurt;if(p.artifacts?.includes('mirror'))dmg*=.88;if(soloRun&&hasCombo(p,'guardian'))dmg*=.9;
+ if(soloRun)dmg*=contractFor(soloRun.contract).hurt*soloHurtScale(wave);if(p.artifacts?.includes('mirror'))dmg*=.88;if(soloRun&&hasCombo(p,'guardian'))dmg*=.9;
  markTrialDamage(arenaTrial,p,player,dmg);p.hp-=dmg;if(nightmare&&p===player&&wave>1)nightmare.fear=fearClamp(nightmare.fear+Math.min(6,dmg*.28));p.inv=.16;p.hurtT=.24;p.hurtLean=(Math.random()<.5?-1:1)*(.16+Math.random()*.12);
  initAudio();sfx('hurt');playPainVoice(p);bloodBurst(p.x,p.y,5,.45);shake=Math.max(shake,.07);
  if(p.hp<=0)startDeath(p)
@@ -3550,7 +3556,9 @@ function buildUpgradeOptions(p){
   nyx:[['nyx_move','ТЕНЕВОЙ ШАГ','Скорость +25%.'],['nyx_dmg','ЯД ТЕНИ','Урон +30%.'],['nyx_pierce','МНОЖЕСТВО ТЕНЕЙ','Теневые снаряды пробивают ещё 2 цели.']],
   pelmage:[['pel_rate','АРКАННЫЙ ОТКАТ','Заклинания на 28% быстрее.'],['pel_dmg','МАНА ПЕЛЬМЕНЯ','Урон +35%.'],['pel_wide','МЕТЕОРИТНЫЙ ВИХРЬ','Заклинания взрываются на 40% дальше.']],
   assassin:[['ass_crit','СМЕРТЕЛЬНЫЙ КРИТ','Критический шанс +18%.'],['ass_move','ШЕПОТ','Скорость +30%.'],['ass_dmg','ЯДОВИТЫЙ КЛИНОК','Урон +35%.']],
-  golem:[['gol_armor','ЧУГУННАЯ КОЖА','+70 HP и полное лечение.'],['gol_dmg','ПЕРЕГРЕВ','Урон +45%.'],['gol_tank','ПАРОВОЙ ТАНК','Урон +10% и получаемый урон −28%.']]
+  golem:[['gol_armor','ЧУГУННАЯ КОЖА','+70 HP и полное лечение.'],['gol_dmg','ПЕРЕГРЕВ','Урон +45%.'],['gol_tank','ПАРОВОЙ ТАНК','Урон +10% и получаемый урон −28%.']],
+  warden:soloRun?[['ward_hp','СВЕТ УБЕЖИЩА','+45 HP и полное лечение.'],['ward_rate','ПЛАМЯ ФОНАРЯ','Скорострельность +25%.'],['ward_dmg','СВЕТ ИЗГНАНИЯ','Урон +30%.']]:[],
+  revenant:soloRun?[['rev_hp','ПЛОТЬ ПУСТОТЫ','+40 HP и полное лечение.'],['rev_crit','ПЕЧАТЬ ПУСТОТЫ','Шанс крита +14%.'],['rev_move','ТЕНЬ БЕЗДНЫ','Скорость +24%.']]:[]
  }[ch.id]||[];
  const pool=[
   {id:'dmg',title:'+25% УРОН',desc:'Увеличивает урон только этого игрока.'},
@@ -3583,6 +3591,12 @@ function applyUpgrade(p,o){
   case'pel_rate':p.boost.rate*=1.28;break;case'pel_dmg':p.boost.dmg*=1.35;break;case'pel_wide':p.heroUpgrades.push('wide');break;
   case'ass_crit':p.boost.crit=Math.min(1,p.boost.crit+.18);break;case'ass_move':p.boost.move*=1.3;break;case'ass_dmg':p.boost.dmg*=1.35;break;
   case'gol_armor':p.maxhp+=70;p.hp=p.maxhp;break;case'gol_dmg':p.boost.dmg*=1.45;break;case'gol_tank':p.boost.dmg*=1.1;p.heroUpgrades.push('armor');break;
+  case'ward_hp':if(soloRun){p.maxhp+=45;p.hp=p.maxhp}break;
+  case'ward_rate':if(soloRun)p.boost.rate*=1.25;break;
+  case'ward_dmg':if(soloRun)p.boost.dmg*=1.3;break;
+  case'rev_hp':if(soloRun){p.maxhp+=40;p.hp=p.maxhp}break;
+  case'rev_crit':if(soloRun)p.boost.crit=Math.min(1,p.boost.crit+.14);break;
+  case'rev_move':if(soloRun)p.boost.move*=1.24;break;
   default: if(o.id.startsWith('weapon_')){const i=Number(o.id.split('_')[1]);if(Number.isInteger(i)&&i>=0&&i<4){p.weaponLevels[i]=Math.min(8,(p.weaponLevels[i]||1)+1);p.weapon=i;if(p===player)weapon=i;}}
  }
 }
@@ -3603,10 +3617,10 @@ function upgradePresentation(p,o){
  const id=o.id,en=lang==='en',ch=chars.find(x=>x.id===p.charId)||chars[0],w=/^weapon_([0-3])$/.exec(id),ev=/^evolve_([0-3])$/.exec(id);
  if(ev){const i=Number(ev[1]),q=evolutionPaths[i];return {icon:inventoryIcon(ch.id,i),title:metaLabel(q)+' · '+locName(heroWeaponStats(p,i)),effect:L('EVOLVE','ЭВОЛЮЦИЯ'),detail:metaDesc(q)}}
  if(w){const i=Number(w[1]),lv=p.weaponLevels?.[i]||1,old=heroWeaponStats(p,i).dmg*p.boost.dmg*(soloRun&&hasCombo(p,'predator')?1.15:1),newD=old*(1+lv*.22)/(1+(lv-1)*.22);return {icon:inventoryIcon(ch.id,i),title:locName(heroWeaponStats(p,i)),effect:(L("Level ","Уровень "))+lv+' → '+(lv+1),detail:(L("Damage ","Урон "))+Math.round(old)+' → '+Math.round(newD)}}
- const effects={dmg:['damage',25],rate:['rate',20],move:['move',16],hp:['hp',35],bomb:['bomb',1],crit:['crit',8],scar_blade:['damage',35],scar_armor:['hp',45],scar_wide:['wide',35],vesa_bleed:['crit',12],vesa_rate:['rate',25],vesa_pierce:['pierce',2],nyx_move:['move',25],nyx_dmg:['damage',30],nyx_pierce:['pierce',2],pel_rate:['rate',28],pel_dmg:['damage',35],pel_wide:['wide',35],ass_crit:['crit',18],ass_move:['move',30],ass_dmg:['damage',35],gol_armor:['hp',70],gol_dmg:['damage',45],gol_tank:['armor',28]};
+ const effects={dmg:['damage',25],rate:['rate',20],move:['move',16],hp:['hp',35],bomb:['bomb',1],crit:['crit',8],scar_blade:['damage',35],scar_armor:['hp',45],scar_wide:['wide',35],vesa_bleed:['crit',12],vesa_rate:['rate',25],vesa_pierce:['pierce',2],nyx_move:['move',25],nyx_dmg:['damage',30],nyx_pierce:['pierce',2],pel_rate:['rate',28],pel_dmg:['damage',35],pel_wide:['wide',35],ass_crit:['crit',18],ass_move:['move',30],ass_dmg:['damage',35],gol_armor:['hp',70],gol_dmg:['damage',45],gol_tank:['armor',28],ward_hp:['hp',45],ward_rate:['rate',25],ward_dmg:['damage',30],rev_hp:['hp',40],rev_crit:['crit',14],rev_move:['move',24]};
  const [kind,v]=effects[id]||['damage',0];
  const names={damage:['Урон','Damage'],rate:['Скорость атаки','Attack rate'],move:['Скорость движения','Movement speed'],hp:['Здоровье','Health'],bomb:['Бомба','Bomb'],crit:['Шанс крита','Critical chance'],wide:['Радиус атаки','Attack radius'],pierce:['Пробивание','Piercing'],armor:['Броня','Armor']};
- const detail={damage:'×'+(p.boost.dmg||1).toFixed(2)+' → ×'+((p.boost.dmg||1)*(1+v/100)).toFixed(2),rate:'×'+(p.boost.rate||1).toFixed(2)+' → ×'+((p.boost.rate||1)*(1+v/100)).toFixed(2),move:'×'+(p.boost.move||1).toFixed(2)+' → ×'+((p.boost.move||1)*(1+v/100)).toFixed(2),hp:p.maxhp+' → '+(p.maxhp+v)+(L(" · full heal"," · лечение")),bomb:p.bomb+' → '+(p.bomb+1),crit:Math.round(p.boost.crit*100)+'% → '+Math.round((p.boost.crit+v/100)*100)+'%',wide:L("Area attacks","Атаки по площади"),pierce:L("Projectiles pass through enemies","Снаряды проходят сквозь цели"),armor:L("Damage +10%","Урон +10%")}[kind];
+ const detail={damage:'×'+(p.boost.dmg||1).toFixed(2)+' → ×'+((p.boost.dmg||1)*(1+v/100)).toFixed(2),rate:'×'+(p.boost.rate||1).toFixed(2)+' → ×'+((p.boost.rate||1)*(1+v/100)).toFixed(2),move:'×'+(p.boost.move||1).toFixed(2)+' → ×'+((p.boost.move||1)*(1+v/100)).toFixed(2),hp:p.maxhp+' → '+(p.maxhp+v)+(L(" · full heal"," · лечение")),bomb:p.bomb+' → '+(p.bomb+1),crit:Math.round(p.boost.crit*100)+'% → '+Math.round(Math.min(1,p.boost.crit+v/100)*100)+'%',wide:L("Area attacks","Атаки по площади"),pierce:L("Projectiles pass through enemies","Снаряды проходят сквозь цели"),armor:L("Damage +10%","Урон +10%")}[kind];
  return {icon:uiPixelIcon(kind),title:L(names[kind][1],names[kind][0]),effect:(kind==='armor'?'−':'+')+v+(['hp','bomb','pierce'].includes(kind)?'':kind==='crit'?(L(" pp"," п.п.")):'%'),detail};
 }
 function renderUpgradeChoice(d,p,o,i){
@@ -4263,7 +4277,7 @@ function updateRings(dt){
 }
 function enemyXPValue(type){return type==='boss'?150:[34,42,50][enemyTier(type)]}
 function dropEnemyXP(e){
- const value=e.elite?120:e.type==='boss'&&soloRun?250:enemyXPValue(e.type),count=e.type==='boss'?5:e.elite?3:1;
+ const value=(e.elite?120:e.type==='boss'&&soloRun?250:enemyXPValue(e.type))*(soloRun&&e.type!=='boss'&&!e.elite?soloXPScale(wave):1),count=e.type==='boss'?5:e.elite?3:1;
  for(let i=0;i<count;i++){
   const angle=i*Math.PI*2/count,dist=count>1?16:0;
   drops.push({x:clamp(e.x+Math.cos(angle)*dist,arena.l+5,arena.r-5),y:clamp(e.y+Math.sin(angle)*dist,arena.t+5,arena.b-5),type:'xp',value:value/count,life:1,pulse:i*.3});
@@ -4388,7 +4402,7 @@ function update(dt){
  if(!player.dead&&(mouse.down||touchInput.attack))attack();
  if(state==='game'){updateNightmare(dt);updateSecret(dt);updateSpatialAudio(dt)}updateEnemies(dt);if(state==='game')updateLivingStations(dt);if(state==='game')updateArenaEvent(dt);if(state==='game')updateHazards(dt);if(state==='game')updateProjectiles(dt);if(state==='game')updateRings(dt);if(state==='game')updateDrops(dt);if(state==='game')updateArenaTrial(dt);updateFx(dt);
  enemies=enemies.filter(e=>!e.dead);
- if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if(waveTime>=delay||enemies.length===0){waveTime=0;spawnEnemy();spawned++}}
+ if(waveState==='fighting'&&state==='game'&&spawned<targetCount){waveTime+=dt;const delay=coop?.75:1.05;if((waveTime>=delay||enemies.length===0)&&allowWaveSpawn(!!soloRun,wave,enemies.length)){waveTime=0;spawnEnemy();spawned++}}
  if(state==='game'&&waveState==='fighting'&&spawned>=targetCount&&!boss&&enemies.length===0){waveState='clear';expireTrial(arenaTrial);tutorialEvent('wave');if(nightmare?.hunter){nightmare.hunter.dead=true;hazards=hazards.filter(h=>h.source!==nightmare.hunter);nightmare.hunter=null}if(nightmare){nightmare.echo=null;nightmare.fear=fearClamp(nightmare.fear-12)}between=soloRun?4:1.6;let reward=0;if(soloRun){reward=clearWaveReward(meta,soloRun,wave,selectedMap);if(reward)addCoins(soloRun,coinReward(wave));saveMeta()}toast(L('WAVE CLEARED · COLLECT XP','ВОЛНА ЗАЧИЩЕНА · СОБЕРИ ОПЫТ')+(reward?' · ◆ +'+reward:''));toastTimer=2.5}
  if(!alivePlayers().length)return;
  if(state==='game'&&waveState==='clear'){between-=dt;if(between<=0){if(soloRun?.campaign&&wave===FINAL_WAVE){if(!openCampaignEnding())endGame(true,false)}else if(soloRun&&wave%5===0)openRitual();else if(!(soloRun&&merchantWave(wave)&&openMerchant())&&!(soloRun&&encounterWave(wave)&&openEncounter())){wave++;beginWave()}}}
