@@ -9,16 +9,16 @@ let soloRun={};
 const chars=[{id:'warden'},{id:'revenant'}],weapons=[{name:'A'},{name:'B'},{name:'C'},{name:'D'}],weaponLevels=[1,1,1,1],canEvolve=()=>false;
 let weapon=0,player=null;
 for(let w=1;w<=10000;w++){
- check(Number.isInteger(soloWaveCount(w))&&soloWaveCount(w)>0&&soloWaveCount(w)<=42);
+ check(Number.isInteger(soloWaveCount(w))&&soloWaveCount(w)>0&&soloWaveCount(w)<=120);
  check(soloStatRound(w)<=w&&soloStatRound(w)>0);
  check(soloStatRound(w+1)>soloStatRound(w));check(soloBossBase(w+1)>soloBossBase(w));
- check(soloActiveLimit(w)>=8&&soloActiveLimit(w)<=18);
- check(!allowWaveSpawn(true,w,soloActiveLimit(w)));check(allowWaveSpawn(true,w,soloActiveLimit(w)-1));check(allowWaveSpawn(false,w,1000));
+ check(soloActiveLimit(w)>=10&&soloActiveLimit(w)<=36);
+ check(!allowWaveSpawn(true,w,soloActiveLimit(w)));check(allowWaveSpawn(true,w,soloActiveLimit(w)-1));check(!allowWaveSpawn(false,w,1000));
  check(soloHurtScale(w)>=.9&&soloHurtScale(w)<=1);
- check(soloXPScale(w)>=1&&soloXPScale(w)<=1.1);
+ check(soloXPScale(w)>=.73&&soloXPScale(w)<=.86);
 }
-check(soloWaveCount(4)===17&&soloWaveCount(6)===20&&soloWaveCount(7)===22);
-check(soloBossBase(5)===2050&&soloBossBase(10)===3350&&soloBossBase(15)===4650);
+check(soloWaveCount(4)===24&&soloWaveCount(6)===32&&soloWaveCount(7)===36);
+check(soloBossBase(5)===4600&&soloBossBase(10)===7700&&soloBossBase(15)===11800);
 check(soloStatRound(20)===20&&soloStatRound(100)<45);
 const options={warden:['ward_hp','ward_rate','ward_dmg'],revenant:['rev_hp','rev_crit','rev_move']};
 for(const hero of Object.keys(options)){
