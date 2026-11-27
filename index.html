@@ -5058,7 +5058,85 @@ function paintBossCrest(g,e){
  }
  g.fillRect(-12,-47,24,2);
 }
-function paintHiddenBoss(g,p,stage,phase,charging){g.save();const R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(x,y,w,h)},ink='#140f1d',col=p.color;if(p.id===13){R(ink,-25,-35,50,54);R('#5b4034',-19,-30,38,43);R('#a17b4b',-15,-26,30,31);R(col,-19,4,38,6);R('#3a2730',-10,10,20,13);R(col,-4,17,8,8);R(ink,-9,-19,18,8);R(col,-6,-17,3,3);R(col,3,-17,3,3);for(const k of [-1,1]){R('#423039',k*28-5,-20,10,35);R(col,k*28-3,-20,6,5)}}else{R(ink,-26,-34,52,57);R('#30474d',-20,-29,40,45);R('#50756d',-14,-34,28,35);R(ink,-9,-25,18,19);R(col,-6,-21,4,3);R(col,2,-21,4,3);for(const k of [-1,1]){R('#44655f',k*21-6,-14,12,34);R(col,k*25-2,9,4,12);R('#2b4249',k*15-5,16,10,11)}R(col,-2,-5,4,12)}if(stage>=2){R(col,-14,-39,28,3);R(col,-23,-8,4,7);R(col,19,-8,4,7)}if(stage===3)R('#e87b87',-8,1,16,3);if(charging){g.strokeStyle=col;g.beginPath();g.arc(0,0,39,0,TAU);g.stroke()}g.restore()}
+// V70.8 — Secret Nightmares: two individually authored three-phase silhouettes.
+function paintHiddenBoss(g,p,stage=1,phase=0,charging=false){
+ const R=(c,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const P=(c,pts)=>{g.fillStyle=c;g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill()};
+ const ink='#140f1d',t=reduceMotion||!Number.isFinite(phase)?0:phase,sway=Math.round(Math.sin(t*1.6)*2),bell=p.id===13;
+ const hot=bell?(stage===3?'#ffe8af':stage===2?'#efb96e':'#c89b61'):(stage===3?'#d4fff0':stage===2?'#a9e6ce':'#78b4ad');
+ g.save();
+ if(bell){
+  // Suspended bronze bell, crumbling stone yoke, swinging clapper and chain limbs.
+  for(const s of [-1,1]){
+   const d=s*sway;
+   P(ink,[s*20,-31,s*30,-35,s*37,-26,s*34,-17,s*23,-14]);
+   P('#756b63',[s*22,-30,s*29,-32,s*34,-25,s*32,-19,s*24,-17]);
+   for(let i=0;i<4;i++){const x=s*(31+i*3),y=-15+i*8+d;R(ink,x-5,y-4,10,9);R('#88766a',x-4,y-3,8,7);R('#423641',x-2,y-1,4,3)}
+   P(ink,[s*38,11+d,s*48,13+d,s*49,23+d,s*41,28,s*35,19+d]);
+   P('#665048',[s*39,13+d,s*45,14+d,s*46,22+d,s*41,25,s*37,19+d]);R(hot,s<0?-45:40,16+d,5,2);
+  }
+  P(ink,[-9,-52,9,-52,14,-44,12,-32,-12,-32,-14,-44]);P('#736358',[-7,-50,7,-50,11,-43,10,-34,-10,-34,-11,-43]);R('#bba58b',-5,-49,10,3);
+  const l=charging?-3:sway;
+  P(ink,[-16,-36+l,16,-36+l,23,-29+l,26,-12+l,30,0+l,36,10+l,32,18+l,-32,18+l,-36,10+l,-30,0+l,-26,-12+l,-23,-29+l]);
+  P('#8b643f',[-14,-34+l,14,-34+l,21,-28+l,24,-11+l,28,1+l,33,10+l,30,16+l,-30,16+l,-33,10+l,-28,1+l,-24,-11+l,-21,-28+l]);
+  P('#ba9157',[-11,-32+l,4,-32+l,12,-24+l,12,1+l,20,9+l,-24,9+l,-20,0+l,-18,-24+l]);
+  R('#e0bd7c',-12,-32+l,17,2);R('#6e4d3c',17,-24+l,5,29);
+  R(ink,-17,-19+l,34,9);R(hot,-14,-17+l,10,3);R(hot,4,-17+l,10,3);
+  for(const s of [-1,1]){R('#d5ac71',s<0?-25:21,-6+l,4,4);R('#654537',s<0?-24:22,2+l,3,5)}
+  P('#4b3033',[-30,8+l,30,8+l,26,17+l,-26,17+l]);R(hot,-28,9+l,56,3);R('#302333',-18,15+l,36,5);
+  const cl=charging?0:sway*2;
+  R(ink,cl-4,16+l,8,10);R('#93734c',cl-2,17+l,4,8);P(ink,[cl-8,25+l,cl+8,25+l,cl+7,30,cl-7,30]);R(hot,cl-5,26,10,3);
+  if(stage>=2){
+   // The bell wall cracks and its yoke begins to break apart.
+   P(ink,[-12,-34+l,-4,-28+l,-8,-19+l,1,-12+l,-5,-3+l,3,5+l,-3,9+l,-12,-2+l,-7,-12+l,-13,-20+l,-9,-27+l]);R(hot,-7,-19+l,3,7);
+   for(const s of [-1,1]){P(ink,[s*23,-28,s*34,-43,s*40,-41,s*37,-30,s*30,-22]);P('#a18a70',[s*25,-28,s*34,-40,s*37,-39,s*34,-30,s*30,-25]);R(hot,s<0?-36:32,-37,4,2)}
+   R('#70433c',-24,6+l,48,3);
+  }
+  if(stage===3){
+   // Broken bell exposes a suspended resonance core.
+   P(ink,[-19,-13+l,-11,-24+l,11,-24+l,19,-13+l,20,4+l,11,16+l,-11,16+l,-20,4+l]);
+   P('#8d4f38',[-17,-12+l,-10,-22+l,10,-22+l,17,-12+l,18,3+l,10,14+l,-10,14+l,-18,3+l]);
+   P(hot,[-11,-10+l,0,-19+l,11,-10+l,11,4+l,0,12+l,-11,4+l]);R('#fff6d2',-3,-10+l,6,17);
+   for(const s of [-1,1]){P(ink,[s*22,-15,s*39,-20,s*46,-13,s*44,7,s*34,15,s*27,6]);P('#b58b56',[s*24,-14,s*38,-17,s*43,-12,s*41,6,s*34,12,s*29,5]);R(hot,s<0?-40:36,-7,4,8)}
+  }
+  if(horrorFx&&!reduceMotion){const a=g.globalAlpha;g.globalAlpha=a*.55;R(hot,-31+sway,-46,4,2);R(hot,30-sway,-44,2,3);if(stage>=2){R(hot,-43,5+sway,2,3);R(hot,42,7-sway,3,2)}g.globalAlpha=a}
+ }else{
+  // Veiled Widow: long funerary veil, four arachnid limbs, concealed face and woven pendant.
+  const lift=charging?-4:0;
+  for(const s of [-1,1])for(let i=0;i<2;i++){
+   const y=-15+i*13,d=s*sway*(i?1:-1);
+   P(ink,[s*18,y,s*(32+i*3),y-8,s*(44+i*3),y+1+d+lift,s*(49-i),y+17+d+lift,s*(42-i),y+22+d+lift,s*37,y+7+d+lift,s*24,y+8]);
+   P('#486763',[s*20,y,s*(32+i*3),y-6,s*(42+i*3),y+2+d+lift,s*(46-i),y+17+d+lift,s*(42-i),y+19+d+lift,s*39,y+6+d+lift,s*25,y+6]);
+   R('#a3b9ac',s<0?-(44+i):40+i,y+3+d+lift,4,2);
+  }
+  P(ink,[-21,-26,-15,-41,-7,-52,7,-52,15,-41,21,-26,24,2,30,21,22,29,12,24+sway,3,29,-6,25-sway,-16,29,-30,22,-23,2]);
+  P('#30464b',[-19,-25,-13,-40,-6,-50,6,-50,13,-40,19,-25,22,2,27,20,21,26,12,22+sway,3,26,-6,23-sway,-16,26,-27,21,-21,2]);
+  P('#63867c',[-15,-30,-10,-42,-5,-47,-5,-27,-10,1,-16,21,-22,20,-18,1]);P('#45625f',[5,-46,10,-41,15,-29,18,-4,24,18,19,23,10,16,8,-7]);
+  // A pale face is visible only through the split in the draped veil.
+  P(ink,[-12,-36,-7,-44,7,-44,12,-36,10,-20,4,-12,-4,-12,-10,-20]);
+  P('#b6c2b3',[-10,-35,-6,-42,6,-42,10,-35,8,-21,4,-14,-4,-14,-8,-21]);
+  R(ink,-9,-33,18,7);R(hot,-7,-31,5,3);R(hot,2,-31,5,3);R('#4d6965',-4,-22,8,3);
+  for(const s of [-1,1]){P('#779e91',[s*12,-36,s*18,-25,s*15,-6,s*20,14+s*sway,s*13,20+s*sway,s*9,5,s*11,-17]);R('#b1ccbd',s<0?-17:13,-24,4,2)}
+  P('#8da89c',[-8,-8,0,-13,8,-8,6,5,0,11,-6,5]);R(hot,-3,-4,6,9);
+  if(stage>=2){
+   // Veil tears reveal the hidden face and folded limbs.
+   P(ink,[-10,-41,-3,-37,-7,-30,1,-24,-5,-17,-10,-24,-12,-33]);R(hot,-6,-30,2,5);
+   for(const s of [-1,1]){P(ink,[s*17,-31,s*27,-45,s*35,-48,s*38,-40,s*30,-28,s*23,-20]);P('#77978a',[s*19,-31,s*28,-43,s*34,-45,s*35,-40,s*29,-29,s*24,-23]);R(hot,s<0?-34:30,-42,4,3)}
+   P('#20333b',[-15,4,-5,9,-11,23+sway,-18,24+sway,-22,14]);R(hot,-14,13+sway,4,2);
+  }
+  if(stage===3){
+   // The shroud splits into a web-like crown and exposes the widow's luminous nest.
+   for(const s of [-1,1]){P(ink,[s*15,-35,s*23,-52,s*31,-56,s*38,-50,s*35,-37,s*28,-27,s*24,-17]);P('#638e81',[s*17,-35,s*24,-50,s*31,-54,s*36,-49,s*33,-38,s*27,-29,s*24,-20]);R(hot,s<0?-33:29,-51,4,4)}
+   P(ink,[-14,-39,-8,-45,8,-45,14,-39,13,-24,5,-14,-5,-14,-13,-24]);P('#507c73',[-12,-38,-7,-43,7,-43,12,-38,11,-25,4,-16,-4,-16,-11,-25]);R(hot,-9,-32,18,4);R('#f4fff2',-3,-32,6,2);
+   P(ink,[-16,-7,-8,-16,8,-16,16,-7,19,11,9,23,-9,23,-19,11]);P('#557f72',[-14,-6,-7,-14,7,-14,14,-6,17,10,8,21,-8,21,-17,10]);P(hot,[-10,-3,0,-10,10,-3,11,10,0,17,-11,10]);R('#31524e',-3,0,6,12);R('#effff1',-2,2,3,7);
+  }
+  if(horrorFx&&!reduceMotion){const a=g.globalAlpha;g.globalAlpha=a*.4;R(hot,-24+sway,-49,3,2);R(hot,24-sway,-48,2,2);if(stage>=2){R(hot,-34,13+sway,3,2);R(hot,32,15-sway,2,3)}g.globalAlpha=a}
+ }
+ // Original fixed-radius charge ring, plus non-flashing overhead warning.
+ if(charging){g.strokeStyle=p.color;g.lineWidth=1;g.beginPath();g.arc(0,0,39,0,Math.PI*2);g.stroke();R('#ffd292',-14,-58,28,2);R('#ff9b55',-9,-55,18,1)}
+ g.restore();
+}
+
 // V70.7 — Final Nightmare: three bespoke forms of the Source of the Nightmare.
 function paintFinalBoss(g,stage=1,phase=0,charging=false){
  const R=(c,x,y,w,h)=>{if(w<=0||h<=0)return;g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
