@@ -2937,8 +2937,58 @@ function pushFx(list,item,cap){if(list.length>=cap)list.splice(0,list.length-cap
 function fxTick(list,dt){for(const q of list)q.life-=dt;return list.filter(q=>q.life>0)}
 function recoilPose(t,slot,less=false){const q=Math.max(0,Math.min(1,t/.14));return {offset:less?0:Math.round(q*(slot===2?5:3)),angle:less?0:Math.sin((1-q)*Math.PI)*q*(slot===2?.45:.17),flash:!less&&q>.72}}
 function impactProfile(d,boss=false){return {life:boss?.26:d>=60?.22:.13,radius:boss?17:d>=60?12:7,color:boss?'#e9a5aa':d>=60?'#ffdc9d':'#efc3a1'}}
+// V71.1 — Material-specific impact marks. No gameplay RNG, damage or physics.
+const impactMaterials={
+ fork:'metal',pepper:'organic',boiler:'metal',butcher:'organic',
+ crawler:'chitin',cableMite:'electric',eye:'spectral',wretch:'organic',
+ plate:'ceramic',neonGhost:'spectral',vendingDrone:'electric',siren:'metal',
+ knife:'metal',chainHound:'metal',slicer:'metal',maw:'metal',
+ boneWalker:'bone',hands:'organic',stalker:'spectral',feaster:'bone',
+ sporeBeetle:'chitin',rootHorror:'wood',spitter:'fungal',parasite:'fungal'
+};
+const bossImpactMaterials=['organic','metal','electric','metal','spectral','ceramic','metal','metal','spectral','bone','fungal','wood','spectral','metal','spectral'];
+const impactPalette={
+ metal:['#e7c299','#ad8d7d'],electric:['#b9edff','#71b8c4'],
+ bone:['#e2d3af','#a79a85'],spectral:['#d4b9ed','#8973b6'],
+ organic:['#d4a194','#9d646e'],ceramic:['#e5ded0','#b3a9ac'],
+ chitin:['#b9c69a','#788c69'],wood:['#d2b78a','#8a7951'],fungal:['#d7e9a9','#83ad78']
+};
+function enemyImpactMaterial(e){return e.type==='boss'?(bossImpactMaterials[e.bossId]||'spectral'):(impactMaterials[e.type]||'organic')}
+function paintMaterialImpact(g,q,t,r){
+ const mat=q.material||'organic',colors=impactPalette[mat]||impactPalette.organic;
+ const u=Math.max(0,Math.min(1,t)),radius=Math.max(1,Math.min(30,r));
+ const seed=Number.isFinite(q.angle)?q.angle:0,heavy=!!q.heavy;
+ const R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)};
+ const line=(c,x,y,dx,dy)=>{g.strokeStyle=c;g.lineWidth=1;g.beginPath();g.moveTo(Math.round(x),Math.round(y));g.lineTo(Math.round(x+dx),Math.round(y+dy));g.stroke()};
+ g.save();
+ const alpha=g.globalAlpha;g.globalAlpha=alpha*.85;
+ const count=heavy?6:4;
+ for(let i=0;i<count;i++){
+  const a=seed+i*Math.PI*2/count,dx=Math.cos(a),dy=Math.sin(a);
+  const x=dx*radius*(.45+u*.5),y=dy*radius*(.45+u*.5),c=colors[i%2];
+  if(mat==='metal'){
+   line(c,x,y,dx*(3+3*u),dy*(3+3*u));R(colors[0],x,y,2,1);
+  }else if(mat==='electric'){
+   line(c,x,y,dx*3-dy*2,dy*3+dx*2);line(colors[0],x+dx*3-dy*2,y+dy*3+dx*2,dx*3+dy*2,dy*3-dx*2);
+  }else if(mat==='bone'||mat==='ceramic'){
+   // Angular chips, not a uniform radial spark.
+   R(c,x,y,3,2);R(colors[0],x+Math.sign(dx),y-1,2,1);if(mat==='bone')R(c,x-1,y+1,1,2);
+  }else if(mat==='spectral'){
+   R(c,x-2,y,5,1);R(c,x+1,y-2,1,4);if(heavy)R(colors[0],x-3,y+2,2,1);
+  }else if(mat==='wood'){
+   line(c,x,y,dx*5-dy*2,dy*5+dx*2);R(colors[1],x+dx*2,y+dy*2,2,2);
+  }else if(mat==='fungal'){
+   R(c,x,y-u*4,2,2);if(heavy)R(colors[0],x+2,y-u*4-2,1,1);
+  }else if(mat==='chitin'){
+   R(c,x,y,3,2);line(colors[0],x,y-1,dx*2,dy*2);
+  }else{
+   R(c,x,y,2,2);R(colors[1],x-dx*2,y-dy*2,2,1);
+  }
+ }
+ g.restore();
+}
 function clearCombatPresentation(){impactMarks=[];dashGhosts=[];deathSprites=[];shake=0}
-function addImpact(e,d,owner){if(!horrorFx||reduceMotion)return;const q=impactProfile(d,e.type==='boss'),source=owner==='p1'?player:owner==='p2'?player2:null;pushFx(impactMarks,{x:e.x,y:e.y-8,...q,scar:source?.charId==='scar',vesa:source?.charId==='vesa',nyx:source?.charId==='nyx',mage:source?.charId==='pelmage',shiv:source?.charId==='assassin',golem:source?.charId==='golem',warden:source?.charId==='warden',voidArt:source?.charId==='revenant',max:q.life},COMBAT_FX.marks)}
+function addImpact(e,d,owner){if(!horrorFx||reduceMotion)return;const q=impactProfile(d,e.type==='boss'),source=owner==='p1'?player:owner==='p2'?player2:null;pushFx(impactMarks,{x:e.x,y:e.y-8,...q,material:enemyImpactMaterial(e),heavy:e.type==='boss'||d>=60,angle:source?Math.atan2(e.y-source.y,e.x-source.x):0,scar:source?.charId==='scar',vesa:source?.charId==='vesa',nyx:source?.charId==='nyx',mage:source?.charId==='pelmage',shiv:source?.charId==='assassin',golem:source?.charId==='golem',warden:source?.charId==='warden',voidArt:source?.charId==='revenant',max:q.life},COMBAT_FX.marks)}
 function addDeathSprite(e){if(!horrorFx||reduceMotion)return;const life=e.type==='boss'?.42:.24;pushFx(deathSprites,{x:e.x,y:e.y,type:e.type,bossId:e.bossId,kind:e.kind,stage:e.stage,phase:e.phase,life,max:life},COMBAT_FX.death)}
 function addDashGhosts(p,ox,oy){if(!horrorFx||reduceMotion)return;for(let i=0;i<3;i++){const t=i/3,life=.12+i*.035;pushFx(dashGhosts,{x:ox+(p.x-ox)*t,y:oy+(p.y-oy)*t,id:p.charId,aim:p.aim,dashAngle:Math.atan2(p.y-oy,p.x-ox),life,max:life},COMBAT_FX.ghosts)}}
 function paintCombatPresentation(g,view,layer){
@@ -2947,7 +2997,7 @@ function paintCombatPresentation(g,view,layer){
  if(layer==='under'){
   for(const q of dashGhosts){if(!visible(q))continue;g.save();g.translate(Math.round(q.x),Math.round(q.y));if(q.id==='scar')paintScarDashEcho(g,q);else if(q.id==='vesa')paintVesaDashEcho(g,q);else if(q.id==='nyx')paintNyxDashEcho(g,q);else if(q.id==='pelmage')paintMageDashEcho(g,q);else if(q.id==='assassin')paintShivDashEcho(g,q);else if(q.id==='golem')paintGolemDashEcho(g,q);else if(q.id==='warden')paintWardenDashEcho(g,q);else if(q.id==='revenant')paintVoidDashEcho(g,q);g.globalAlpha=(q.id==='nyx'?.14:q.id==='assassin'?.12:.22)*q.life/q.max;pixelHeroBody(g,q.id,0,0,q.aim);g.restore()}
   for(const q of deathSprites){if(!visible(q))continue;const t=1-q.life/q.max;g.save();g.translate(Math.round(q.x),Math.round(q.y));g.globalAlpha=.65*(1-t);g.rotate(t*.7);g.scale(1+.12*t,Math.max(.16,1-t*.85));if(q.type==='boss'){if(q.bossId>=13)paintHiddenBoss(g,bossProfile(q),q.stage||1,0,false);else if(q.bossId===12)paintFinalBoss(g,q.stage||1,0,false);else paintRosterBoss(g,q,0,false,false)}else pixelEnemy(g,q.type,q.phase||0,0,1);g.restore()}
- }else for(const q of impactMarks){if(!visible(q))continue;const t=1-q.life/q.max,r=q.radius*(.5+t*.75);g.save();g.translate(Math.round(q.x),Math.round(q.y));g.globalAlpha=.8*(1-t);g.strokeStyle=q.scar?'#ffab60':q.vesa?'#b7df83':q.nyx?'#b5b1fa':q.mage?'#a5e5ff':q.shiv?'#dcebe4':q.golem?'#ffc27c':q.warden?'#ffdc8e':q.voidArt?'#d4a7ed':q.color;g.lineWidth=1.5;if(q.scar){g.fillStyle='#ffdc99';for(const k of [-1,1])g.fillRect(Math.round(k*r*.7),Math.round(-r*.6),2,3)}else if(q.vesa){g.fillStyle='#ceefa0';for(const k of [-1,0,1])g.fillRect(Math.round(k*r*.65),Math.round((1-Math.abs(k))*r*.6),2,3)}else if(q.nyx){g.fillStyle='#b5b1fa';for(const k of [-1,1]){g.fillRect(Math.round(k*r*.6),-2,3,1);g.fillRect(Math.round(k*r*.6),1,1,3)}}else if(q.mage){for(const k of [-1,1])paintMageRune(g,Math.round(k*r*.6),-3,k===1?1:0,'#a5e5ff')}else if(q.shiv){g.fillStyle='#dcebe4';for(const k of [-1,1]){g.fillRect(Math.round(k*r*.65)-2,-3,5,1);g.fillRect(Math.round(k*r*.65),2,4,1)}}else if(q.golem){for(const k of [-1,1]){g.fillStyle='#ab8b72';g.fillRect(Math.round(k*r*.6),-4,3,3);g.fillStyle='#ffc27c';g.fillRect(Math.round(k*r*.7),-5,2,2)}}else if(q.warden){for(const k of [-1,1])paintWardenStar(g,Math.round(k*r*.65),-3,'#ffdc8e')}else if(q.voidArt){for(const k of [-1,1])paintVoidFracture(g,Math.round(k*r*.65),-2)}for(let i=0;i<4;i++){const a=Math.PI*.25+i*Math.PI/2;g.beginPath();g.moveTo(Math.cos(a)*r*.45,Math.sin(a)*r*.45);g.lineTo(Math.cos(a)*r,Math.sin(a)*r);g.stroke()}g.restore()}
+ }else for(const q of impactMarks){if(!visible(q))continue;const t=1-q.life/q.max,r=q.radius*(.5+t*.75);g.save();g.translate(Math.round(q.x),Math.round(q.y));g.globalAlpha=.8*(1-t);paintMaterialImpact(g,q,t,r);g.strokeStyle=q.scar?'#ffab60':q.vesa?'#b7df83':q.nyx?'#b5b1fa':q.mage?'#a5e5ff':q.shiv?'#dcebe4':q.golem?'#ffc27c':q.warden?'#ffdc8e':q.voidArt?'#d4a7ed':q.color;g.lineWidth=1.5;if(q.scar){g.fillStyle='#ffdc99';for(const k of [-1,1])g.fillRect(Math.round(k*r*.7),Math.round(-r*.6),2,3)}else if(q.vesa){g.fillStyle='#ceefa0';for(const k of [-1,0,1])g.fillRect(Math.round(k*r*.65),Math.round((1-Math.abs(k))*r*.6),2,3)}else if(q.nyx){g.fillStyle='#b5b1fa';for(const k of [-1,1]){g.fillRect(Math.round(k*r*.6),-2,3,1);g.fillRect(Math.round(k*r*.6),1,1,3)}}else if(q.mage){for(const k of [-1,1])paintMageRune(g,Math.round(k*r*.6),-3,k===1?1:0,'#a5e5ff')}else if(q.shiv){g.fillStyle='#dcebe4';for(const k of [-1,1]){g.fillRect(Math.round(k*r*.65)-2,-3,5,1);g.fillRect(Math.round(k*r*.65),2,4,1)}}else if(q.golem){for(const k of [-1,1]){g.fillStyle='#ab8b72';g.fillRect(Math.round(k*r*.6),-4,3,3);g.fillStyle='#ffc27c';g.fillRect(Math.round(k*r*.7),-5,2,2)}}else if(q.warden){for(const k of [-1,1])paintWardenStar(g,Math.round(k*r*.65),-3,'#ffdc8e')}else if(q.voidArt){for(const k of [-1,1])paintVoidFracture(g,Math.round(k*r*.65),-2)}if(!q.material){for(let i=0;i<4;i++){const a=Math.PI*.25+i*Math.PI/2;g.beginPath();g.moveTo(Math.cos(a)*r*.45,Math.sin(a)*r*.45);g.lineTo(Math.cos(a)*r,Math.sin(a)*r);g.stroke()}}else if(q.heavy){g.strokeStyle=q.color;g.lineWidth=1;g.beginPath();g.moveTo(-r*.5,0);g.lineTo(r*.5,0);g.stroke()}g.restore()}
 }
 function spawnParticles(x,y,n,color,force=1){n=fxBudget(particles.length,reduceMotion||!horrorFx?Math.ceil(n*.45):n,COMBAT_FX.particles);for(let i=0;i<n;i++){const a=rnd(0,TAU),s=rnd(20,90)*force;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.25,.7),max:.7,size:rndi(1,3),color})}}
 function bloodBurst(x,y,n=12,force=1){n=fxBudget(particles.length,reduceMotion||!horrorFx?Math.ceil(n*.3):n,COMBAT_FX.particles);for(let i=0;i<n;i++){const a=rnd(0,TAU),s=rnd(22,105)*force;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.35,1.05),max:1.05,size:rndi(1,3),color:pick(['#8e1624','#b51f31','#d73545','#5a0d18'])})}blood.push({x:x+rnd(-2,2),y:y+rnd(-2,2),r:rnd(4,11),a:rnd(.45,.9)});if(blood.length>70)blood.shift()}
@@ -3258,8 +3308,10 @@ function damageEnemy(e,d,owner){
  if(!e||e.dead)return;
  if(owner)e.lastOwner=owner;
  e.hp-=d;addImpact(e,d,owner);e.hit=.08;e.hitT=Math.max(e.hitT||0,.22);e.hitLean=(Math.random()<.5?-1:1)*(.14+Math.random()*.18);initAudio();sfx('hit');floatText(e.x,e.y-10,''+Math.max(1,Math.round(d)));
+ const hitParticleStart=particles.length,material=enemyImpactMaterial(e);
  spawnParticles(e.x,e.y,4,e.type==='boss'?'#ff5c5e':'#f0b870',.7);
  if(d>20)bloodBurst(e.x,e.y,Math.min(10,Math.ceil(d/18)),.45);
+ if(material!=='organic'){const palette=impactPalette[material];for(let i=hitParticleStart;i<particles.length;i++)particles[i].color=palette[(i-hitParticleStart)%2];if(d>20)blood.pop();}
  if(e.hp<=0){ finishEnemyDeath(e); }
 }
 
