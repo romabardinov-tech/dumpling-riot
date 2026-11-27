@@ -3361,6 +3361,7 @@ function startGame(fromNetwork=false,checkpoint=null,date=null,rank=null){
 function goMenu(){if(onlineMode&&(netConn||peer)&&!netClosing){disconnectOnline(L('Left the room','Выход из комнаты'));return}saveAtBoundary=false;tutorial=null;renderTutorial();clearCombatPresentation();livingStations=[];encounter=null;if(soloRun?.campaign)selectedMap=soloRun.campaign.start;secretEncounter=null;nightmare=null;merchant=null;document.getElementById('merchantOverlay').hidden=true;closeSoloRun();if(soloRun?.daily||soloRun?.abyss)restoreSpecialMenu();soloRun=null;document.getElementById('ritualOverlay').hidden=true;clearNpc();clearLocalInput();upgradeQueue.length=0;levelupBusy=false;pendingUpgradePlayer=null;pendingUpgradeOptions=[];state='menu';startMenuMusic();document.getElementById('menu').style.display='grid';document.getElementById('gameover').style.display='none';document.getElementById('levelup').style.display='none';document.getElementById('pauseOverlay').style.display='none';touchInput.moveX=touchInput.moveY=touchInput.aimX=touchInput.aimY=touchInput.p2MoveX=touchInput.p2MoveY=0;touchInput.aimActive=false;touchInput.attack=false;fireBtnHeld=false;setHud(false);makeMenu();setMenuTab('home');drawRemoteArrow()}
 function waveSpawnBudget(round,twoPlayers,total){return Math.min(total,(twoPlayers?7:4)+Math.floor(round/4))}
 function beginWave(){
+ resetSquadAttackPacing(squadAttackPacing);
  if(suspendAtBoundary())return;
  questTargets=new WeakSet();
  spatialTimer=0;heartbeatTimer=0;ambientTimer=0;ambientIndex=0;warningAt=-Infinity;clearCombatPresentation();livingStations=makeLivingStations(selectedMap,soloRun,arena);
@@ -4552,8 +4553,43 @@ function startBossCombo(e,tp,area,legacy){
  if(last>0){e.comboWindup=last;e.comboRecover=last+bossComboFor(e.bossId)[1]}
  return marks;
 }
+// V74.6 — Stagger ordinary solo enemy special attacks, with oldest-ready priority.
+// [attack family, actual trigger distance]; excludes elites, mutants and bosses.
+const squadAttackProfiles={
+ chainHound:['charge',125],stalker:['charge',190],slicer:['charge',240],
+ cableMite:['ranged',175],vendingDrone:['ranged',240],eye:['ranged',Infinity],wretch:['ranged',Infinity],boiler:['ranged',Infinity],spitter:['ranged',Infinity],knife:['ranged',Infinity],
+ neonGhost:['hazard',90],boneWalker:['hazard',85],rootHorror:['hazard',140],butcher:['hazard',110],maw:['hazard',170],siren:['hazard',Infinity],feaster:['hazard',190]
+};
+const squadAttackGaps={charge:.22,ranged:.14,hazard:.18};
+const squadAttackPacing={charge:0,ranged:0,hazard:0};
+function resetSquadAttackPacing(clock){for(const key of Object.keys(squadAttackGaps))clock[key]=0}
+function paceSquadAttacks(list,target,round,dt,clock,enabled){
+ if(!enabled||!target||target.dead||!(dt>0)||round<3){resetSquadAttackPacing(clock);for(const e of list)e.squadAttackWait=0;return}
+ for(const key of Object.keys(squadAttackGaps))clock[key]=Math.max(0,(clock[key]||0)-dt);
+ const ready={charge:[],ranged:[],hazard:[]};let nearby=0;
+ for(const e of list){
+  const p=squadAttackProfiles[e.type],d=Math.hypot(target.x-e.x,target.y-e.y);
+  if(e.dead||e.elite||e.mutation||e.type==='boss'||!Number.isFinite(d)){e.squadAttackWait=0;continue}
+  if(d<=280)nearby++;
+  if(!p||!(d<p[1])||!Number.isFinite(e.attack)||e.attack>dt||e.lunge>0){e.squadAttackWait=0;continue}
+  ready[p[0]].push(e);
+ }
+ if(nearby<3){resetSquadAttackPacing(clock);for(const e of list)e.squadAttackWait=0;return}
+ for(const key of Object.keys(squadAttackGaps)){
+  const group=ready[key];if(!group.length)continue;
+  // Only one grant per family window; a waiting enemy retains its priority.
+  let winner=null;
+  if(clock[key]<=1e-8){for(const e of group)if(!winner||(e.squadAttackWait||0)>(winner.squadAttackWait||0))winner=e;}
+  for(const e of group){
+   if(e===winner){e.squadAttackWait=0;clock[key]=squadAttackGaps[key];}
+   else{e.squadAttackWait=(e.squadAttackWait||0)+dt;e.attack=dt+Math.min(.01,dt*.5);}
+  }
+ }
+}
 function updateEnemies(dt){
- const squadPlans=buildEnemySquadPlans(enemies,alivePlayers(),wave,arena);
+ const targets=alivePlayers();
+ paceSquadAttacks(enemies,targets[0],wave,dt,squadAttackPacing,!!soloRun&&!coop&&!onlineMode);
+ const squadPlans=buildEnemySquadPlans(enemies,targets,wave,arena);
  for(const e of enemies){
   if(e.dead)continue;
   if(e.bleed>0){e.bleed-=dt;e._bleedTick=(e._bleedTick||0)-dt;if(e._bleedTick<=0){e._bleedTick=.32;damageEnemy(e,3.5)}}
