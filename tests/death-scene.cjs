@@ -11,5 +11,5 @@ for(const data of [...types.map(type=>({type})),...bossFeedingProfiles.map((_,bo
 const e={type:'fork',x:15,y:0};check(!stepDeathFeeding(e,.1,{x:0,y:0},.1)&&!e.feeding);
 `)(check);
 new Function('check',section('const deathCryProfiles=','function playPainVoice(')+`check(Object.keys(deathCryProfiles).length===8);check(new Set(Object.values(deathCryProfiles).map(x=>JSON.stringify(x))).size===8);for(const p of Object.values(deathCryProfiles))check(p[1]>p[0]&&p[3]>=.75&&p[3]<=1.7)`)(check);
-check(c.includes("if(stepDeathFeeding(e,dt,target,deathTimer))playFeedingCue(e)"));check(c.includes("if(feeding&&(boss||!e.elite))paintFeedingJaw(ctx,e)"));check(c.includes("enemyDeathVoice(e.type,e.type==='boss'?e.bossId:null)"));
+check(c.includes("if(stepDeathFeeding(e,dt,target,deathTimer))playFeedingCue(e)"));check(c.includes("if(feeding&&(boss||!e.elite&&!e.champion))paintFeedingJaw(ctx,e)"));check(c.includes("enemyDeathVoice(e.type,e.type==='boss'?e.bossId:null)"));
 console.log('Death scene: '+count+' assertions passed; 24 enemy and 15 boss jaw profiles, contact gating, bounded timing and 8 individual cries. No live audio/viewport test.');
