@@ -1,6 +1,6 @@
 # Dumpling Riot — mobile release candidate preparation
 
-Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.7. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
+Status: **source preparation**, not an approved, signed or device-tested store release. V48 adds a solo roguelite progression loop; the web release and native candidate share the same source. Proposed first store release: 1.0.0; development source 0.68.8. Proposed bundle identifier com.dumplingriot.game must be confirmed before registration (changing it after publication creates a different app).
 
 ## Build on Windows / Linux (Android)
 1. Install Node.js 22+, Android Studio, JDK 21 and Android SDK 36; verify the current Play target requirement.
@@ -120,3 +120,6 @@ Fifth individual visual pass, ASSASSIN/SHIV only. Original segmented steel armor
 
 ## V68.7 — Iron Furnace: GOLEM
 Sixth individual visual pass, GOLEM only. Original riveted cast-iron casing, copper feed pipes, furnace grate and reinforced boots. Distinct boiler, nozzle, hammer and vent-stack weapon finishes and separate attack echoes. Bounded chimney steam and gentle furnace heat, dust and sparks on dash, metal fragments at impacts, decorative steam projectile trails. Optional golemArt snapshot field; protocol v68 and gameplay balance unchanged. Animated accents respect reduced motion/horror FX; the former unconditionally animated chimney steam was replaced. Inline syntax and 2907 isolated drawing-command/geometry assertions passed. Actual rendered image review, mobile FPS and network visual synchronization remain pending.
+
+## V68.8 — Sacred Light: WARDEN
+Seventh individual visual pass, WARDEN only. Original aged brass armor, ivory tabard, lantern crest and four distinct weapon finishes (lantern, spear, seal, torch). Low-opacity stepped directional light, dimmed and gently modulated under 35% HP, static with reduced motion. Separate short attack echoes, star-shaped dash trails and impact glints, decorative light projectile trails. Optional wardenArt snapshot field; network protocol v68 and combat balance unchanged. Animated accents respect reduced motion/horror FX; light is purely cosmetic and does not change enemy visibility, fear or damage. Inline syntax and 7721 isolated drawing-command/geometry assertions passed. Actual rendered review, mobile FPS and real network visual synchronization remain pending.
